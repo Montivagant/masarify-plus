@@ -1,0 +1,121 @@
+name: masarify
+description: Offline-first personal money tracking app for Egyptian and MENA users.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.22.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # ── Database ─────────────────────────────────────────────────────────────────
+  drift: ^2.20.0
+  drift_flutter: ^0.2.1
+  sqlite3_flutter_libs: ^0.5.0
+  path_provider: ^2.1.4
+  path: ^1.9.0
+
+  # ── State Management ─────────────────────────────────────────────────────────
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # ── Immutable Models ─────────────────────────────────────────────────────────
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # ── Navigation ───────────────────────────────────────────────────────────────
+  go_router: ^14.3.0
+
+  # ── UI & Animations ──────────────────────────────────────────────────────────
+  flutter_animate: ^4.5.0
+  lottie: ^3.1.2
+  shimmer: ^3.0.0
+  flex_color_scheme: ^8.4.0
+  google_fonts: ^6.2.1
+  smooth_page_indicator: ^1.2.0
+  flutter_slidable: ^3.1.1
+  modal_bottom_sheet: ^3.0.0
+  avatar_glow: ^3.0.1
+  animations: ^2.1.1
+  phosphor_flutter: ^2.1.0
+
+  # ── Charts ───────────────────────────────────────────────────────────────────
+  fl_chart: ^0.69.0
+
+  # ── Localization & Formatting ─────────────────────────────────────────────────
+  intl: ^0.20.0
+
+  # ── Notifications ────────────────────────────────────────────────────────────
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+
+  # ── Calendar ─────────────────────────────────────────────────────────────────
+  table_calendar: ^3.1.2
+
+  # ── Image (receipt photos) ───────────────────────────────────────────────────
+  image_picker: ^1.1.2
+
+  # ── Security ─────────────────────────────────────────────────────────────────
+  local_auth: ^2.3.0
+  flutter_secure_storage: ^9.2.2
+
+  # ── Export ───────────────────────────────────────────────────────────────────
+  pdf: ^3.11.1
+  share_plus: ^10.0.0
+  csv: ^6.0.0
+  file_picker: ^8.1.2
+
+  # ── Utilities ────────────────────────────────────────────────────────────────
+  crypto: ^3.0.5
+  uuid: ^4.4.2
+  equatable: ^2.0.5
+  collection: ^1.18.0
+  shared_preferences: ^2.3.2
+  connectivity_plus: ^6.1.0
+  package_info_plus: ^8.1.0
+  url_launcher: ^6.3.1
+
+  # ── Permissions ──────────────────────────────────────────────────────────────
+  permission_handler: ^11.3.1
+
+  # ── Voice Input ──────────────────────────────────────────────────────────────
+  speech_to_text: ^7.3.0
+
+  # ── AI / OpenRouter ─────────────────────────────────────────────────────────
+  http: ^1.2.2
+
+  # ── Location ─────────────────────────────────────────────────────────────────
+  geolocator: ^13.0.1
+  geocoding: ^3.0.0
+
+  # ── SMS & Notification Parser ─────────────────────────────────────────────────
+  another_telephony: ^0.4.1
+  notification_listener_service: ^0.3.5
+  rxdart: ^0.28.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  drift_dev: ^2.20.0
+  riverpod_generator: ^2.6.1
+  freezed: ^2.5.7
+  json_serializable: ^6.8.0
+  build_runner: ^2.4.12
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/animations/
+    - assets/icons/
+    - assets/images/
+    - assets/dictionaries/

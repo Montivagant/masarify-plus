@@ -1,0 +1,155 @@
+import 'dart:math' as math;
+
+/// Masarify spacing, radius, elevation, and icon size constants.
+/// NEVER hardcode dp values in widgets — use these constants.
+abstract final class AppSizes {
+  // ── Spacing scale (multiples of 4dp) ──────────────────────────────────
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 48;
+
+  // ── Border radius ──────────────────────────────────────────────────────
+  static const double borderRadiusXs = 4;
+  static const double borderRadiusSm = 8;
+  static const double borderRadiusMd = 16;
+  static const double borderRadiusLg = 24;
+  static const double borderRadiusFull = 100;
+
+  // ── Elevation ─────────────────────────────────────────────────────────
+  static const double elevationNone = 0;
+  static const double elevationLow = 1;
+  static const double elevationMedium = 2;
+  static const double elevationHigh = 4;
+
+  // ── Icon sizes ────────────────────────────────────────────────────────
+  static const double iconXxs = 12;
+  static const double iconXxs2 = 14;
+  static const double iconXs = 16;
+  static const double iconSm2 = 18;
+  static const double iconSm = 20;
+  static const double iconMd = 24;
+  static const double iconLg = 32;
+  static const double iconXl = 48;
+  static const double iconXl2 = 56;
+  static const double iconXl3 = 64;
+
+  // ── Layout ────────────────────────────────────────────────────────────
+  static const double screenHPadding = md; // Horizontal screen edge padding
+  static const double bottomScrollPadding = xxl; // 48dp bottom scroll clearance
+  static const double bottomNavHeight = 64; // WS-6: M3 standard height
+  static const double appBarHeight = 56;
+  static const double fabSize = 56;
+  static const double minTapTarget = 48; // Accessibility: min touch target
+
+  // ── Fine spacing ─────────────────────────────────────────────────────
+  static const double xxs = 2;
+
+  // ── Icon containers ─────────────────────────────────────────────────
+  static const double iconContainerXs = 28;
+  static const double iconContainerSm = 32;
+  static const double colorSwatchSize = 36;
+  static const double iconContainerMd = 40;
+  static const double iconContainerLg = 44;
+  static const double categoryChipSize = 52;
+
+  // ── Progress rings ──────────────────────────────────────────────────
+  static const double progressRingSm = 56;
+  static const double progressRingInner = 72;
+  static const double voiceMicSize = 80;
+  static const double progressRingLg = 96;
+  static const double onboardingIcon = 120;
+
+  // ── Chart heights ───────────────────────────────────────────────────
+  static const double chartHeightSm = 160;
+  static const double chartHeightMd = 200;
+  static const double chartHeightLg = 220;
+  static const double chartHeightXl = 240;
+
+  // ── Drag handle ─────────────────────────────────────────────────────
+  static const double dragHandleWidth = 40;
+  static const double dragHandleHeight = 4;
+
+  // ── Shimmer placeholders ────────────────────────────────────────────
+  static const double shimmerTextHeight = 14;
+  static const double shimmerTextHeightSm = 11;
+
+  // ── Dots / indicators ───────────────────────────────────────────────
+  static const double dotSm = 6;
+  static const double dotMd = 10;
+  static const double dotLg = 12;
+
+  // ── Chart bars & labels ─────────────────────────────────────────────
+  static const double chartBarWidth = 20;
+  static const double progressBarHeight = 8;
+  static const double chartLabelSize = 11;
+
+  // ── Misc ────────────────────────────────────────────────────────────
+  static const double spinnerSize = 20;
+  static const double dividerHeight = 1.0;
+  static const double barChartWidth = 12.0;
+  static const double comparisonColumnWidth = 64.0;
+  static const double pinKeypadButtonSize = 72.0;
+  static const double shimmerWidthLg = 100.0;
+  static const double shimmerWidthSm = 60.0;
+  static const double screenVPadding = md;
+
+  // ── Line heights ──────────────────────────────────────────────────────
+  static const double lineHeightRelaxed = 1.6;
+  static const double lineHeightNormal = 1.5;
+
+  // ── Opacity scale ─────────────────────────────────────────────────────
+  static const double opacitySubtle = 0.08;
+  static const double opacityXLight = 0.1;
+  static const double opacityLight2 = 0.12;
+  static const double opacityLight = 0.15;
+  static const double opacityLight3 = 0.2;
+  static const double opacityLight4 = 0.3;
+  static const double opacityLight5 = 0.4;
+  static const double opacityMedium = 0.5;
+  static const double opacityStrong = 0.7;
+  static const double opacityHeavy = 0.8;
+
+  // ── FAB (Expandable Radial) ───────────────────────────────────────────
+  static const double fabHitRadius = 36.0;
+  static const double fabBubbleSize = 48.0;
+  static const double fabRadialDistance = 70.0;
+  static const double fabRadialDistanceTop = 90.0;
+  static const double fabContainerSize = 200.0;
+  static const double fabHoverScale = 1.2;
+  static const double fabElevationResting = 2.0;
+  static const double fabElevationHovered = 6.0;
+  static const double fabRotationAngle = math.pi / 4;
+
+  // ── Card ──────────────────────────────────────────────────────────────
+  static const double cardPadding = md;
+  static const double cardRadius = borderRadiusMd;
+  static const double cardElevation = elevationLow;
+
+  // ── Pie chart ──────────────────────────────────────────────────────────
+  static const double pieChartRadius = 36.0; // WS-9: increased from 28
+  static const double pieChartCenterRadius = 60.0; // WS-9: increased from 52
+  static const double pieChartSectionSpace = 2.0;
+
+  // ── Glass / Gradient (WS-7) ──────────────────────────────────────────
+  static const double glassBlurSigma = 12.0;
+  static const double glassBorderWidth = 1.0;
+  static const double gradientBorderRadius = 24.0;
+
+  // ── Decorative circles (balance card) ──────────────────────────────
+  static const double decorCircleLg = 100.0;
+  static const double decorCircleSm = 80.0;
+  static const double decorCircleLgOffset = -20.0;
+  static const double decorCircleSmOffsetBottom = -30.0;
+  static const double decorCircleSmOffsetStart = -15.0;
+  static const double decorCircleLgOpacity = 0.08;
+  static const double decorCircleSmOpacity = 0.05;
+
+  // ── Dashboard sections (WS-8) ────────────────────────────────────────
+  static const double sectionGap = 16.0;
+
+  // ── Bottom sheet (WS-22) ─────────────────────────────────────────────
+  static const double bottomSheetHeightRatio = 0.5;
+}

@@ -1,0 +1,205 @@
+import 'package:drift/drift.dart';
+
+import '../../domain/entities/goal_contribution_entity.dart';
+import '../../domain/entities/savings_goal_entity.dart';
+import '../../domain/repositories/i_goal_repository.dart';
+import '../database/app_database.dart';
+import '../database/daos/goal_dao.dart';
+
+class GoalRepositoryImpl implements IGoalRepository {
+  const GoalRepositoryImpl(this._dao, this._db);
+
+  final GoalDao _dao;
+  final AppDatabase _db;
+
+  // ── Goals ─────────────────────────────────────────────────────────────────
+
+  @override
+  Stream<List<SavingsGoalEntity>> watchActive() =>
+      _dao.watchAll().map((list) => list.map(_toGoalEntity).toList());
+
+  @override
+  Stream<List<SavingsGoalEntity>> watchCompleted() =>
+      _dao.watchCompleted().map((list) => list.map(_toGoalEntity).toList());
+
+  @override
+  Future<SavingsGoalEntity?> getById(int id) async {
+    final row = await _dao.getById(id);
+    return row != null ? _toGoalEntity(row) : null;
+  }
+
+  @override
+  Future<int> createGoal({
+    required String name,
+    required String iconName,
+    required String colorHex,
+    required int targetAmount,
+    String currencyCode = 'EGP',
+    DateTime? deadline,
+    String keywords = '[]',
+    int? walletId,
+  }) {
+    // I4 fix: validate target amount is positive
+    if (targetAmount <= 0) {
+      throw ArgumentError('Goal target amount must be positive');
+    }
+    return _dao.insertGoal(
+        SavingsGoalsCompanion.insert(
+          name: name,
+          iconName: iconName,
+          colorHex: colorHex,
+          targetAmount: targetAmount,
+          currencyCode: Value(currencyCode),
+          deadline: Value(deadline),
+          keywords: Value(keywords),
+          walletId: Value(walletId),
+        ),
+      );
+  }
+
+  @override
+  Future<bool> updateGoal(SavingsGoalEntity goal) {
+    // Auto-set isCompleted based on current vs target
+    final completed = goal.currentAmount >= goal.targetAmount;
+    return _dao.saveGoal(
+      SavingsGoalsCompanion(
+        id: Value(goal.id),
+        name: Value(goal.name),
+        iconName: Value(goal.iconName),
+        colorHex: Value(goal.colorHex),
+        targetAmount: Value(goal.targetAmount),
+        currentAmount: Value(goal.currentAmount),
+        currencyCode: Value(goal.currencyCode),
+        deadline: Value(goal.deadline),
+        isCompleted: Value(completed),
+        keywords: Value(goal.keywords),
+        walletId: Value(goal.walletId),
+      ),
+    );
+  }
+
+  /// M10 fix: delete contributions before deleting goal to avoid orphans.
+  @override
+  Future<bool> deleteGoal(int id) async {
+    return _db.transaction(() async {
+      // Null out goalId references in transactions
+      await _db.customStatement(
+        'UPDATE transactions SET goal_id = NULL WHERE goal_id = ?',
+        [id],
+      );
+      // Delete all contributions for this goal
+      await _db.customStatement(
+        'DELETE FROM goal_contributions WHERE goal_id = ?',
+        [id],
+      );
+      return _dao.deleteGoal(id);
+    });
+  }
+
+  // ── Contributions ─────────────────────────────────────────────────────────
+
+  @override
+  Stream<List<GoalContributionEntity>> watchContributions(int goalId) =>
+      _dao
+          .watchContributions(goalId)
+          .map((list) => list.map(_toContributionEntity).toList());
+
+  @override
+  Future<int> addContribution({
+    required int goalId,
+    required int amount,
+    required DateTime date,
+    String? note,
+  }) async {
+    return _db.transaction(() async {
+      // I1 fix: prevent contribution from overshooting target
+      final goalBefore = await _dao.getById(goalId);
+      if (goalBefore == null) {
+        throw ArgumentError('Goal $goalId does not exist');
+      }
+      final remaining = goalBefore.targetAmount - goalBefore.currentAmount;
+      if (remaining <= 0) {
+        throw ArgumentError('Goal is already fully funded');
+      }
+      if (amount > remaining) {
+        throw ArgumentError(
+          'Contribution exceeds remaining target ($remaining piastres)',
+        );
+      }
+      final id = await _dao.insertContribution(
+        GoalContributionsCompanion.insert(
+          goalId: goalId,
+          amount: amount,
+          date: date,
+          note: Value(note),
+        ),
+      );
+      await _dao.addProgress(goalId, amount);
+
+      // C5 fix: auto-complete goal when target reached
+      final goal = await _dao.getById(goalId);
+      if (goal != null &&
+          !goal.isCompleted &&
+          goal.currentAmount >= goal.targetAmount) {
+        await _dao.saveGoal(
+          SavingsGoalsCompanion(
+            id: Value(goalId),
+            isCompleted: const Value(true),
+          ),
+        );
+      }
+
+      return id;
+    });
+  }
+
+  @override
+  Future<bool> deleteContribution(int id) async {
+    return _db.transaction(() async {
+      final contribution = await _dao.getContribution(id);
+      if (contribution == null) return false;
+      await _dao.subtractProgress(contribution.goalId, contribution.amount);
+
+      // I2 fix: unmark completed if current drops below target
+      final goal = await _dao.getById(contribution.goalId);
+      if (goal != null &&
+          goal.isCompleted &&
+          goal.currentAmount < goal.targetAmount) {
+        await _dao.saveGoal(
+          SavingsGoalsCompanion(
+            id: Value(contribution.goalId),
+            isCompleted: const Value(false),
+          ),
+        );
+      }
+
+      return _dao.deleteContribution(id);
+    });
+  }
+
+  // ── Mapping ───────────────────────────────────────────────────────────────
+
+  static SavingsGoalEntity _toGoalEntity(SavingsGoal g) => SavingsGoalEntity(
+        id: g.id,
+        name: g.name,
+        iconName: g.iconName,
+        colorHex: g.colorHex,
+        targetAmount: g.targetAmount,
+        currentAmount: g.currentAmount,
+        currencyCode: g.currencyCode,
+        deadline: g.deadline,
+        isCompleted: g.isCompleted,
+        keywords: g.keywords,
+        walletId: g.walletId,
+        createdAt: g.createdAt,
+      );
+
+  static GoalContributionEntity _toContributionEntity(GoalContribution c) =>
+      GoalContributionEntity(
+        id: c.id,
+        goalId: c.goalId,
+        amount: c.amount,
+        date: c.date,
+        note: c.note,
+      );
+}

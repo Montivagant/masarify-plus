@@ -1,0 +1,61 @@
+import 'package:flutter/material.dart';
+
+import 'app_icons.dart';
+import 'app_routes.dart';
+
+/// A single bottom navigation destination descriptor.
+class AppNavDest {
+  const AppNavDest({
+    required this.labelAr,
+    required this.labelEn,
+    required this.icon,
+    required this.activeIcon,
+    required this.route,
+  });
+
+  final String labelAr;
+  final String labelEn;
+  final IconData icon;
+  final IconData activeIcon;
+  final String route;
+
+  /// Returns the label for the given locale.
+  String label(Locale locale) => locale.languageCode == 'ar' ? labelAr : labelEn;
+}
+
+/// 4-tab navigation configuration with center FAB.
+/// Tabs: Home | Transactions | [FAB] | Analytics | More
+/// Budget & Goals moved to Hub (users check weekly, not daily).
+/// Settings is accessed via gear icon in AppBar — NOT a tab.
+abstract final class AppNavigation {
+  static const List<AppNavDest> destinations = [
+    AppNavDest(
+      labelAr: 'الرئيسية',
+      labelEn: 'Home',
+      icon: AppIcons.homeOutlined,
+      activeIcon: AppIcons.home,
+      route: AppRoutes.dashboard,
+    ),
+    AppNavDest(
+      labelAr: 'المعاملات',
+      labelEn: 'Transactions',
+      icon: AppIcons.transactionsOutlined,
+      activeIcon: AppIcons.transactions,
+      route: AppRoutes.transactions,
+    ),
+    AppNavDest(
+      labelAr: 'التحليلات',
+      labelEn: 'Analytics',
+      icon: AppIcons.analyticsOutlined,
+      activeIcon: AppIcons.analytics,
+      route: AppRoutes.analytics,
+    ),
+    AppNavDest(
+      labelAr: 'المزيد',
+      labelEn: 'More',
+      icon: AppIcons.moreOutlined,
+      activeIcon: AppIcons.more,
+      route: AppRoutes.hub,
+    ),
+  ];
+}
