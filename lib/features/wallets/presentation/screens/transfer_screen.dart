@@ -78,14 +78,14 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   width: AppSizes.dragHandleWidth,
                   height: AppSizes.dragHandleHeight,
                   decoration: BoxDecoration(
-                    color: Theme.of(ctx).colorScheme.outlineVariant,
+                    color: ctx.colors.outlineVariant,
                     borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                   ),
                 ),
               ),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(AppSizes.screenHPadding, AppSizes.md, AppSizes.screenHPadding, AppSizes.sm),
-                child: Text(pickerTitle, style: Theme.of(ctx).textTheme.titleMedium),
+                child: Text(pickerTitle, style: ctx.textStyles.titleMedium),
               ),
               Flexible(
                 child: ListView(
@@ -101,7 +101,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                           setState(() {
                             if (isFrom) { _fromWalletId = w.id; } else { _toWalletId = w.id; }
                           });
-                          Navigator.pop(ctx);
+                          ctx.pop();
                         },
                       ),
                     ),
@@ -137,11 +137,11 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
           content: Text(context.l10n.transfer_insufficient_body),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+              onPressed: () => ctx.pop(false),
               child: Text(context.l10n.common_cancel),
             ),
             TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
+              onPressed: () => ctx.pop(true),
               child: Text(context.l10n.common_confirm),
             ),
           ],
@@ -159,7 +159,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
         note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
         transferDate: DateTime.now(),
       );
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       // L7 fix: show success feedback
       ScaffoldMessenger.of(context).showSnackBar(
@@ -191,7 +191,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.l10n.transfer_from, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.outline)),
+            Text(context.l10n.transfer_from, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
             const SizedBox(height: AppSizes.xs),
             _WalletSelector(wallet: fromWallet, placeholder: context.l10n.transfer_select_wallet, onTap: () => _showWalletPicker(isFrom: true)),
             const SizedBox(height: AppSizes.md),
@@ -203,11 +203,11 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               ),
             ),
             const SizedBox(height: AppSizes.xs),
-            Text(context.l10n.transfer_to, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.outline)),
+            Text(context.l10n.transfer_to, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
             const SizedBox(height: AppSizes.xs),
             _WalletSelector(wallet: toWallet, placeholder: context.l10n.transfer_select_wallet, onTap: () => _showWalletPicker(isFrom: false)),
             const SizedBox(height: AppSizes.xl),
-            Text(context.l10n.transfer_amount_label, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.outline)),
+            Text(context.l10n.transfer_amount_label, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
             const SizedBox(height: AppSizes.sm),
             AmountInput(onAmountChanged: (p) => setState(() => _amountPiastres = p)),
             const SizedBox(height: AppSizes.lg),
@@ -229,7 +229,7 @@ class _WalletSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -244,8 +244,8 @@ class _WalletSelector extends StatelessWidget {
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(wallet!.name, style: Theme.of(context).textTheme.bodyLarge),
-                        Text(MoneyFormatter.format(wallet!.balance), style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.outline)),
+                        Text(wallet!.name, style: context.textStyles.bodyLarge),
+                        Text(MoneyFormatter.format(wallet!.balance), style: context.textStyles.bodySmall?.copyWith(color: cs.outline)),
                       ],
                     )
                   : Text(placeholder, style: context.textStyles.bodyMedium?.copyWith(color: cs.outline)),

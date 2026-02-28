@@ -13,6 +13,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -113,7 +114,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               width: AppSizes.dragHandleWidth,
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
-                color: Theme.of(ctx).colorScheme.outlineVariant,
+                color: ctx.colors.outlineVariant,
                 borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
@@ -128,7 +129,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   context.l10n.transaction_category_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
             ),
@@ -146,7 +147,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                             : null,
                         onTap: () {
                           setState(() => _categoryId = c.id);
-                          Navigator.pop(ctx);
+                          ctx.pop();
                         },
                       ),
                     )
@@ -181,7 +182,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 height: AppSizes.dragHandleHeight,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.outlineVariant,
+                  color: ctx.colors.outlineVariant,
                   borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                 ),
               ),
@@ -191,7 +192,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 ),
                 child: Text(
                   context.l10n.transaction_wallet_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
               Flexible(
@@ -205,7 +206,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                           _walletId == w.id ? const Icon(AppIcons.check) : null,
                       onTap: () {
                         setState(() => _walletId = w.id);
-                        Navigator.pop(ctx);
+                        ctx.pop();
                       },
                     ),
                   ).toList(),
@@ -222,6 +223,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   // ── Save ──────────────────────────────────────────────────────────────────
 
   Future<void> _save() async {
+    if (_loading) return;
     final title = _titleController.text.trim();
     if (title.isEmpty ||
         _amountPiastres <= 0 ||
@@ -268,7 +270,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         );
       }
 
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       context.pop();
     } catch (_) {
@@ -286,7 +288,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editId != null;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
     final typeCats =
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
@@ -394,7 +396,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                         selectedCat?.displayName(context.languageCode) ??
                             context.l10n.transaction_category_picker,
                         style: selectedCat != null
-                            ? Theme.of(context).textTheme.bodyLarge
+                            ? context.textStyles.bodyLarge
                             : context.textStyles.bodyMedium?.copyWith(color: cs.outline),
                       ),
                     ),
@@ -435,7 +437,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                         selectedWallet?.name ??
                             context.l10n.transaction_wallet_picker,
                         style: selectedWallet != null
-                            ? Theme.of(context).textTheme.bodyLarge
+                            ? context.textStyles.bodyLarge
                             : context.textStyles.bodyMedium?.copyWith(color: cs.outline),
                       ),
                     ),
@@ -503,7 +505,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             const SizedBox(height: AppSizes.lg),
 
             // ── Auto-log toggle ───────────────────────────────────────
-            Card(
+            GlassCard(
               child: SwitchListTile(
                 title: Text(context.l10n.recurring_auto_log_label),
                 subtitle: Text(context.l10n.recurring_auto_log_subtitle),

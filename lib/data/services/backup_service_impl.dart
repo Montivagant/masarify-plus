@@ -20,8 +20,8 @@ class BackupServiceImpl implements BackupService {
 
   final AppDatabase _db;
 
-  // C3 fix: bump to 2 to match DB schema version (aiEnrichmentJson added)
-  static const _schemaVersion = 2;
+  // Must match AppDatabase.schemaVersion — bump when schema changes
+  static const _schemaVersion = 3;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -330,6 +330,7 @@ class BackupServiceImpl implements BackupService {
         'limitAmount': b.limitAmount,
         'rollover': b.rollover,
         'rolloverAmount': b.rolloverAmount,
+        'createdAt': b.createdAt.toIso8601String(),
       };
 
   Map<String, dynamic> _goalToMap(SavingsGoal g) => {
@@ -479,6 +480,12 @@ class BackupServiceImpl implements BackupService {
         limitAmount: Value(m['limitAmount'] as int),
         rollover: Value(m['rollover'] as bool? ?? false),
         rolloverAmount: Value(m['rolloverAmount'] as int? ?? 0),
+        // v2 backups don't have createdAt — let DB default handle it
+        createdAt: Value(
+          m['createdAt'] != null
+              ? DateTime.parse(m['createdAt'] as String)
+              : DateTime.now(),
+        ),
       );
 
   SavingsGoalsCompanion _mapToGoal(Map<String, dynamic> m) =>

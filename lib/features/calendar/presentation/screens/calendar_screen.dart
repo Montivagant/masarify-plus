@@ -13,6 +13,7 @@ import '../../../../shared/providers/calendar_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final now = DateTime.now();
     final year = _focusedDay.year;
     final month = _focusedDay.month;
@@ -88,7 +89,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   formatButtonVisible: false,
                   titleCentered: true,
                   titleTextStyle:
-                      Theme.of(context).textTheme.titleMedium ??
+                      context.textStyles.titleMedium ??
                           const TextStyle(),
                   leftChevronIcon: const Icon(
                     AppIcons.chevronLeft,
@@ -107,7 +108,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       width: 2,
                     ),
                   ),
-                  todayTextStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  todayTextStyle: context.textStyles.bodyMedium?.copyWith(
                     color: cs.primary,
                     fontWeight: FontWeight.w700,
                   ) ?? const TextStyle(),
@@ -207,7 +208,7 @@ class _DayTransactionList extends ConsumerWidget {
           style: Theme.of(context)
               .textTheme
               .bodyMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.outline),
+              ?.copyWith(color: context.colors.outline),
         ),
       );
     }
@@ -245,7 +246,7 @@ class _DayTransactionList extends ConsumerWidget {
                 const SizedBox(width: AppSizes.xs),
                 Text(
                   '+${MoneyFormatter.formatAmount(totalIncome)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: context.textStyles.bodySmall?.copyWith(
                         color: context.appTheme.incomeColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -261,7 +262,7 @@ class _DayTransactionList extends ConsumerWidget {
                 const SizedBox(width: AppSizes.xs),
                 Text(
                   '\u2212${MoneyFormatter.formatAmount(totalExpense)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: context.textStyles.bodySmall?.copyWith(
                         color: context.appTheme.expenseColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -280,7 +281,7 @@ class _DayTransactionList extends ConsumerWidget {
               : AppIcons.category;
           final catColor = cat != null
               ? ColorUtils.fromHex(cat.colorHex)
-              : Theme.of(context).colorScheme.outline;
+              : context.colors.outline;
           final typeColor = tx.type == 'income'
               ? context.appTheme.incomeColor
               : context.appTheme.expenseColor;
@@ -293,18 +294,20 @@ class _DayTransactionList extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: AppSizes.iconContainerMd,
-                  height: AppSizes.iconContainerMd,
-                  decoration: BoxDecoration(
-                    color: catColor.withValues(alpha: AppSizes.opacityLight),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusSm),
-                  ),
-                  child: Icon(
-                    catIcon,
-                    size: AppSizes.iconSm,
-                    color: ColorUtils.contrastColor(catColor),
+                GlassCard(
+                  tier: GlassTier.inset,
+                  padding: EdgeInsets.zero,
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusSm),
+                  tintColor: catColor.withValues(alpha: AppSizes.opacityLight),
+                  child: SizedBox(
+                    width: AppSizes.iconContainerMd,
+                    height: AppSizes.iconContainerMd,
+                    child: Icon(
+                      catIcon,
+                      size: AppSizes.iconSm,
+                      color: ColorUtils.contrastColor(catColor),
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppSizes.md),
@@ -329,7 +332,7 @@ class _DayTransactionList extends ConsumerWidget {
                               .bodySmall
                               ?.copyWith(
                                 color:
-                                    Theme.of(context).colorScheme.outline,
+                                    context.colors.outline,
                               ),
                         ),
                     ],
@@ -337,7 +340,7 @@ class _DayTransactionList extends ConsumerWidget {
                 ),
                 Text(
                   '$prefix ${MoneyFormatter.formatAmount(tx.amount)}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: context.textStyles.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: typeColor,
                       ),

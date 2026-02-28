@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart'
     as ph show openAppSettings;
 
@@ -25,11 +26,11 @@ abstract final class PermissionHelper {
         content: Text(rationale),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => ctx.pop(false),
             child: Text(ctx.l10n.permission_deny),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
+            onPressed: () => ctx.pop(true),
             child: Text(ctx.l10n.permission_allow),
           ),
         ],

@@ -37,6 +37,13 @@ class WalletRepositoryImpl implements IWalletRepository {
   // ── Mutations ─────────────────────────────────────────────────────────────
 
   @override
+  Future<bool> existsByName(String name, {int? excludeId}) =>
+      _dao.existsByName(name, excludeId: excludeId);
+
+  @override
+  Future<bool> hasReferences(int walletId) => _dao.hasReferences(walletId);
+
+  @override
   Future<int> create({
     required String name,
     required String type,

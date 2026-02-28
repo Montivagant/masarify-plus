@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -38,10 +39,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
     'freelance', 'business', 'investment', 'wallet', 'goals',
   ];
 
-  static const _colorOptions = [
-    '#1A6B5E', '#F5A623', '#16A34A', '#DC2626',
-    '#1E88E5', '#7C3AED', '#DB2777', '#0891B2',
-  ];
+  static const _colorOptions = AppColors.pickerOptions;
 
   static const _groupValues = ['needs', 'wants', 'savings'];
 
@@ -106,7 +104,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
           groupType: _type == 'expense' ? _groupType : null,
         );
       }
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       context.pop();
     } catch (_) {
@@ -122,7 +120,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editId != null;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final selectedColor = ColorUtils.fromHex(_colorHex);
 
     return Scaffold(
@@ -233,8 +231,8 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: cs.primary, width: 3)
-                          : Border.all(color: Colors.transparent, width: 3),
+                          ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
+                          : Border.all(color: Colors.transparent, width: AppSizes.colorSwatchBorder),
                     ),
                     child: isSelected
                         ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
@@ -271,7 +269,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? selectedColor.withValues(alpha: 0.15)
+                          ? selectedColor.withValues(alpha: AppSizes.opacityLight)
                           : cs.surfaceContainerHighest,
                       borderRadius:
                           BorderRadius.circular(AppSizes.borderRadiusSm),

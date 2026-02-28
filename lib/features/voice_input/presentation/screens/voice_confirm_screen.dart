@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/voice_dictionary.dart';
@@ -14,8 +15,8 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/category_entity.dart';
+import '../../../../domain/repositories/i_transaction_repository.dart';
 import '../../../../shared/providers/category_provider.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -101,8 +102,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           ? Center(
               child: Text(
                 context.l10n.voice_no_results,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.bodyMedium?.copyWith(
+                      color: context.colors.outline,
                     ),
               ),
             )
@@ -126,7 +127,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                       : AppIcons.category,
                   categoryColor: cat != null
                       ? ColorUtils.fromHex(cat.colorHex)
-                      : Theme.of(context).colorScheme.outline,
+                      : context.colors.outline,
                   onRemove: () {
                     setState(() => _editableDrafts.removeAt(index));
                   },
@@ -166,7 +167,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                           height: AppSizes.spinnerSize,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.onPrimary,
+                            color: context.colors.onPrimary,
                           ),
                         )
                       : Text(context.l10n.voice_confirm_all),
@@ -220,7 +221,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     }
 
     setState(() => _saving = true);
-    HapticFeedback.mediumImpact();
+    HapticFeedback.heavyImpact();
 
     final messenger = ScaffoldMessenger.of(ctx);
     final nav = GoRouter.of(ctx);
@@ -230,24 +231,22 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
     try {
       final txRepo = ref.read(transactionRepositoryProvider);
-      final db = ref.read(databaseProvider);
 
-      // WS-3 fix: batch all writes in a single DB transaction for atomicity.
-      // All items succeed or none are written — no partial state.
-      await db.transaction(() async {
-        for (final draft in _editableDrafts) {
-          await txRepo.create(
-            walletId: draft.walletId!,
-            categoryId: draft.categoryId!,
-            amount: draft.amountPiastres,
-            type: draft.type,
-            title: draft.rawText,
-            transactionDate: draft.transactionDate,
-            source: 'voice',
-            rawSourceText: draft.rawText,
-          );
-        }
-      });
+      // Batch all writes in a single DB transaction for atomicity.
+      await txRepo.createBatch(
+        _editableDrafts
+            .map((draft) => CreateTransactionParams(
+                  walletId: draft.walletId!,
+                  categoryId: draft.categoryId!,
+                  amount: draft.amountPiastres,
+                  type: draft.type,
+                  title: draft.rawText,
+                  transactionDate: draft.transactionDate,
+                  source: 'voice',
+                  rawSourceText: draft.rawText,
+                ),)
+            .toList(),
+      );
 
       if (!mounted) return;
 
@@ -261,7 +260,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (matchedGoalName != null) {
         messenger.showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 5),
+            duration: AppDurations.snackbarLong,
             content: Text(l10n.goal_link_prompt(matchedGoalName)),
           ),
         );
@@ -300,7 +299,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               width: AppSizes.dragHandleWidth,
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
-                color: Theme.of(ctx).colorScheme.outlineVariant,
+                color: ctx.colors.outlineVariant,
                 borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
@@ -312,7 +311,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   context.l10n.transaction_category_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
             ),
@@ -328,7 +327,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 width: AppSizes.colorSwatchSize,
                 height: AppSizes.colorSwatchSize,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: color.withValues(alpha: AppSizes.opacityLight2),
                   borderRadius:
                       BorderRadius.circular(AppSizes.borderRadiusSm),
                 ),
@@ -342,7 +341,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               selected: cat.id == draft.categoryId,
               onTap: () {
                 setState(() => draft.categoryId = cat.id);
-                Navigator.of(ctx).pop();
+                ctx.pop();
               },
             );
           },
@@ -408,7 +407,7 @@ class _DraftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final typeColor = draft.type == 'income'
         ? context.appTheme.incomeColor
         : context.appTheme.expenseColor;
@@ -434,7 +433,7 @@ class _DraftCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     draft.rawText,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           color: cs.outline,
                           fontStyle: FontStyle.italic,
                         ),
@@ -465,7 +464,7 @@ class _DraftCard extends StatelessWidget {
                       vertical: AppSizes.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: typeColor.withValues(alpha: 0.12),
+                      color: typeColor.withValues(alpha: AppSizes.opacityLight2),
                       borderRadius:
                           BorderRadius.circular(AppSizes.borderRadiusSm),
                     ),
@@ -473,7 +472,7 @@ class _DraftCard extends StatelessWidget {
                       draft.type == 'income'
                           ? context.l10n.transaction_type_income
                           : context.l10n.transaction_type_expense,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: context.textStyles.bodySmall?.copyWith(
                             color: typeColor,
                             fontWeight: FontWeight.w600,
                           ),
@@ -491,7 +490,7 @@ class _DraftCard extends StatelessWidget {
                       vertical: AppSizes.xs,
                     ),
                     decoration: BoxDecoration(
-                      color: categoryColor.withValues(alpha: 0.12),
+                      color: categoryColor.withValues(alpha: AppSizes.opacityLight2),
                       borderRadius:
                           BorderRadius.circular(AppSizes.borderRadiusSm),
                     ),

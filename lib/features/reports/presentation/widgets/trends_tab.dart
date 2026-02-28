@@ -111,7 +111,7 @@ class _SpendingLineChart extends StatelessWidget {
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipItems: (touchedSpots) {
-              final tooltipColor = Theme.of(context).colorScheme.onSurfaceVariant;
+              final tooltipColor = context.colors.onSurfaceVariant;
               return touchedSpots.map((spot) {
                 final idx = spot.spotIndex;
                 final d = data[idx];
@@ -143,9 +143,9 @@ class _SpendingLineChart extends StatelessWidget {
                 }
                 return Text(
                   MoneyFormatter.formatCompact(value.toInt()),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: context.textStyles.bodySmall?.copyWith(
                         fontSize: AppSizes.chartLabelSize,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                 );
               },
@@ -164,9 +164,9 @@ class _SpendingLineChart extends StatelessWidget {
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
                     '${data[idx].date.day}/${data[idx].date.month}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           fontSize: AppSizes.chartLabelSize,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: context.colors.onSurfaceVariant,
                         ),
                   ),
                 );
@@ -193,7 +193,7 @@ class _SpendingLineChart extends StatelessWidget {
             color: context.appTheme.expenseColor,
             barWidth: 3.0, // WS-9: thicker line
             shadow: Shadow(
-              color: context.appTheme.expenseColor.withValues(alpha: 0.3),
+              color: context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityLight4),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -204,7 +204,7 @@ class _SpendingLineChart extends StatelessWidget {
                 radius: 4,
                 color: context.appTheme.expenseColor,
                 strokeWidth: 2,
-                strokeColor: Theme.of(context).colorScheme.surface,
+                strokeColor: context.colors.surface,
               ),
             ),
             // WS-9: gradient area fill (0.25→0.0 alpha)
@@ -214,7 +214,7 @@ class _SpendingLineChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  context.appTheme.expenseColor.withValues(alpha: 0.25),
+                  context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityQuarter),
                   context.appTheme.expenseColor.withValues(alpha: 0.0),
                 ],
               ),

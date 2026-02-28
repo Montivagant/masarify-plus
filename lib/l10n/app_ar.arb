@@ -312,7 +312,6 @@
   "transfer_from": "من",
   "transfer_to": "إلى",
   "transfer_fee": "رسوم التحويل (اختياري)",
-  "transfer_success": "تم التحويل بنجاح",
 
   "language_en": "English",
   "language_ar": "العربية",
@@ -668,5 +667,33 @@
   "fab_income": "دخل",
   "fab_voice": "صوت",
 
-  "wallet_archive_balance_warning": "هذه المحفظة لا تزال تحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة."
+  "wallet_archive_balance_warning": "هذه المحفظة لا تزال تحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.",
+
+  "notif_prefs_title": "إعدادات الإشعارات",
+  "notif_section_budget": "تنبيهات الميزانية",
+  "notif_budget_warning": "تحذير الميزانية (٨٠٪)",
+  "notif_budget_warning_sub": "إشعار عند وصول الإنفاق إلى ٨٠٪ من الميزانية",
+  "notif_budget_exceeded": "تجاوز الميزانية (١٠٠٪)",
+  "notif_budget_exceeded_sub": "إشعار عند استنفاد الميزانية بالكامل",
+  "notif_section_bills": "الفواتير والمتكررات",
+  "notif_bill_reminder": "تذكير الفواتير",
+  "notif_bill_reminder_sub": "تذكير بالفواتير القادمة قبل موعد الاستحقاق",
+  "notif_recurring_reminder": "المعاملات المتكررة",
+  "notif_recurring_reminder_sub": "إشعار عند استحقاق المعاملات المتكررة",
+  "notif_section_goals": "الأهداف",
+  "notif_goal_milestone": "إنجازات الأهداف",
+  "notif_goal_milestone_sub": "احتفل عند الوصول إلى ٢٥٪ و٥٠٪ و٧٥٪ و١٠٠٪ من الهدف",
+  "notif_section_daily": "التذكير اليومي",
+  "notif_daily_reminder": "سجّل مصاريفك",
+  "notif_daily_reminder_sub": "تذكير لطيف لتسجيل معاملات اليوم",
+  "notif_daily_reminder_time": "وقت التذكير",
+  "notif_section_quiet": "ساعات الهدوء",
+  "notif_quiet_hours": "تفعيل ساعات الهدوء",
+  "notif_quiet_hours_sub": "إيقاف جميع الإشعارات خلال ساعات محددة",
+  "notif_quiet_start": "البداية",
+  "notif_quiet_end": "النهاية",
+
+  "period_3_months": "3 أشهر",
+  "period_6_months": "6 أشهر",
+  "period_1_year": "سنة"
 }

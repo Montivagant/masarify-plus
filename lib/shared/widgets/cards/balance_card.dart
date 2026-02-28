@@ -3,9 +3,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../app/theme/app_theme_extension.dart';
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
+import '../../../core/services/glass_config_service.dart';
 import '../../../core/utils/money_formatter.dart';
 
 /// Hero balance card for the Dashboard (Zone 1).
@@ -34,7 +37,7 @@ class BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final theme = context.appTheme;
 
     return Container(
@@ -43,7 +46,7 @@ class BalanceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSizes.gradientBorderRadius),
         boxShadow: [
           BoxShadow(
-            color: cs.primary.withValues(alpha: 0.3),
+            color: cs.primary.withValues(alpha: AppSizes.opacityLight4),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -89,7 +92,7 @@ class BalanceCard extends StatelessWidget {
                   children: [
                     Text(
                       context.l10n.wallet_total_balance,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: context.textStyles.bodyMedium?.copyWith(
                             color: cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
                           ),
                       maxLines: 1,
@@ -116,7 +119,7 @@ class BalanceCard extends StatelessWidget {
                   tween: IntTween(begin: 0, end: totalPiastres),
                   duration: context.reduceMotion
                       ? Duration.zero
-                      : const Duration(milliseconds: 600),
+                      : AppDurations.countUp,
                   curve: Curves.easeOutCubic,
                   builder: (_, value, __) {
                     return Semantics(
@@ -125,7 +128,7 @@ class BalanceCard extends StatelessWidget {
                         hidden
                             ? '••••••'
                             : MoneyFormatter.format(value, currency: currencyCode),
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        style: context.textStyles.displaySmall?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: cs.onPrimary,
                             ),
@@ -160,7 +163,7 @@ class BalanceCard extends StatelessWidget {
                         const SizedBox(width: AppSizes.xs),
                         Text(
                           '${isUp ? '+' : ''}$pct% ${context.l10n.reports_vs_last_month}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: context.textStyles.bodySmall?.copyWith(
                                 color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
                               ),
                           maxLines: 1,
@@ -172,51 +175,31 @@ class BalanceCard extends StatelessWidget {
                 ],
                 const SizedBox(height: AppSizes.lg),
                 // Glass-effect income / expense row
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: AppSizes.glassBlurSigma,
-                      sigmaY: AppSizes.glassBlurSigma,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(AppSizes.sm),
-                      decoration: BoxDecoration(
-                        color: theme.glassSurface,
-                        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                        border: Border.all(
-                          color: theme.glassBorder,
-                          // ignore: avoid_redundant_argument_values
-                          width: AppSizes.glassBorderWidth,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _SummaryItem(
-                              icon: AppIcons.income,
-                              label: context.l10n.balance_income_label,
-                              piastres: monthlyIncomePiastres,
-                              color: context.appTheme.incomeColor,
-                              hidden: hidden,
-                              currencyCode: currencyCode,
-                            ),
-                          ),
-                          const SizedBox(width: AppSizes.md),
-                          Expanded(
-                            child: _SummaryItem(
-                              icon: AppIcons.expense,
-                              label: context.l10n.balance_expense_label,
-                              piastres: monthlyExpensePiastres,
-                              color: context.appTheme.expenseColor,
-                              hidden: hidden,
-                              currencyCode: currencyCode,
-                            ),
-                          ),
-                        ],
+                _GlassInsetRow(
+                  theme: theme,
+                  children: [
+                    Expanded(
+                      child: _SummaryItem(
+                        icon: AppIcons.income,
+                        label: context.l10n.balance_income_label,
+                        piastres: monthlyIncomePiastres,
+                        color: context.appTheme.incomeColor,
+                        hidden: hidden,
+                        currencyCode: currencyCode,
                       ),
                     ),
-                  ),
+                    const SizedBox(width: AppSizes.md),
+                    Expanded(
+                      child: _SummaryItem(
+                        icon: AppIcons.expense,
+                        label: context.l10n.balance_expense_label,
+                        piastres: monthlyExpensePiastres,
+                        color: context.appTheme.expenseColor,
+                        hidden: hidden,
+                        currencyCode: currencyCode,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -246,14 +229,14 @@ class _SummaryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Row(
       children: [
         Container(
           width: AppSizes.iconContainerXs,
           height: AppSizes.iconContainerXs,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.2),
+            color: color.withValues(alpha: AppSizes.opacityLight3),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
           ),
           child: Icon(icon, size: AppSizes.iconXs, color: color),
@@ -265,7 +248,7 @@ class _SummaryItem extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: context.textStyles.bodySmall?.copyWith(
                       color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
                     ),
               ),
@@ -276,7 +259,7 @@ class _SummaryItem extends StatelessWidget {
                         piastres,
                         currency: currencyCode,
                       ),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: context.textStyles.bodySmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: cs.onPrimary,
                     ),
@@ -287,6 +270,48 @@ class _SummaryItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Glass inset row that respects [GlassConfig] for blur fallback.
+class _GlassInsetRow extends StatelessWidget {
+  const _GlassInsetRow({
+    required this.theme,
+    required this.children,
+  });
+
+  final AppThemeExtension theme;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppSizes.borderRadiusMd);
+    final decoration = BoxDecoration(
+      color: theme.glassInsetSurface,
+      borderRadius: radius,
+      border: Border.all(color: theme.glassInsetBorder),
+    );
+
+    final content = Container(
+      padding: const EdgeInsets.all(AppSizes.sm),
+      decoration: decoration,
+      child: Row(children: children),
+    );
+
+    if (!GlassConfig.shouldBlur(context)) {
+      return ClipRRect(borderRadius: radius, child: content);
+    }
+
+    return ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppSizes.glassBlurInset,
+          sigmaY: AppSizes.glassBlurInset,
+        ),
+        child: content,
+      ),
     );
   }
 }

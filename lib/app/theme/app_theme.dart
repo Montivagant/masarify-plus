@@ -2,6 +2,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/constants/app_sizes.dart';
 import 'app_colors.dart';
 import 'app_text_styles.dart';
 import 'app_theme_extension.dart';
@@ -13,9 +14,9 @@ abstract final class AppTheme {
         primary: AppColors.primary,
         primaryContainer: AppColors.primaryLight,
         secondary: AppColors.accent,
-        secondaryContainer: Color(0xFFD4EDE3), // Light sage
+        secondaryContainer: AppColors.secondaryContainerLight,
         tertiary: AppColors.incomeGreen,
-        tertiaryContainer: Color(0xFFD1FAE5), // Emerald 100
+        tertiaryContainer: AppColors.tertiaryContainerLight,
         appBarColor: AppColors.primary,
         error: AppColors.expenseRed,
       ),
@@ -25,10 +26,10 @@ abstract final class AppTheme {
 
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
-        cardRadius: 16.0,
-        inputDecoratorRadius: 16.0,
-        dialogRadius: 24.0,
-        bottomSheetRadius: 24.0,
+        cardRadius: AppSizes.borderRadiusMd,
+        inputDecoratorRadius: AppSizes.borderRadiusMd,
+        dialogRadius: AppSizes.borderRadiusLg,
+        bottomSheetRadius: AppSizes.borderRadiusLg,
         bottomNavigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarIndicatorSchemeColor: SchemeColor.primaryContainer,
@@ -50,13 +51,13 @@ abstract final class AppTheme {
     final base = FlexThemeData.dark(
       colors: const FlexSchemeColor(
         primary: AppColors.primaryDark,
-        primaryContainer: Color(0xFF2D2344), // Dark Violet
-        secondary: Color(0xFFC4898A), // Mauve Pink
-        secondaryContainer: Color(0xFF3D2A2A), // Dark mauve
-        tertiary: Color(0xFFE19B8B), // Rose Gold
-        tertiaryContainer: Color(0xFF3D2B25), // Dark rose
+        primaryContainer: AppColors.primaryContainerDark,
+        secondary: AppColors.secondaryDark,
+        secondaryContainer: AppColors.secondaryContainerDark,
+        tertiary: AppColors.tertiaryDark,
+        tertiaryContainer: AppColors.tertiaryContainerDark,
         appBarColor: AppColors.backgroundDark,
-        error: Color(0xFFB85450),
+        error: AppColors.errorDark,
       ),
       surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
       blendLevel: 13,
@@ -64,10 +65,10 @@ abstract final class AppTheme {
 
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
-        cardRadius: 16.0,
-        inputDecoratorRadius: 16.0,
-        dialogRadius: 24.0,
-        bottomSheetRadius: 24.0,
+        cardRadius: AppSizes.borderRadiusMd,
+        inputDecoratorRadius: AppSizes.borderRadiusMd,
+        dialogRadius: AppSizes.borderRadiusLg,
+        bottomSheetRadius: AppSizes.borderRadiusLg,
         bottomNavigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarIndicatorSchemeColor: SchemeColor.primaryContainer,

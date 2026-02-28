@@ -25,6 +25,12 @@ abstract interface class IWalletRepository {
 
   Future<bool> archive(int id);
 
+  /// Check if a wallet with [name] already exists (optionally excluding [excludeId]).
+  Future<bool> existsByName(String name, {int? excludeId});
+
+  /// Check if a wallet has transactions or transfers referencing it.
+  Future<bool> hasReferences(int walletId);
+
   /// Adjust balance by [deltaPiastres] within a Drift transaction.
   Future<void> adjustBalance(int id, int deltaPiastres);
 

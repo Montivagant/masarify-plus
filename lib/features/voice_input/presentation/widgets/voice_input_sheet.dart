@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/config/ai_config.dart';
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -30,7 +31,7 @@ class VoiceInputSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSizes.borderRadiusMd),
@@ -138,7 +139,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             goals: goals,
             modelPreference: modelPref,
           ).timeout(
-            const Duration(seconds: 20),
+            AppDurations.voiceListenTimeout,
             onTimeout: () => const AiVoiceParseResult(
               drafts: [],
               usedAi: false,
@@ -173,7 +174,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   void _navigateToConfirm(List<VoiceTransactionDraft> drafts) {
     // R5-C2 fix: mounted check + postFrameCallback to avoid pop→push race
     final router = GoRouter.of(context);
-    Navigator.of(context).pop();
+    context.pop();
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       router.push(AppRoutes.voiceConfirm, extra: drafts);
@@ -184,7 +185,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   void _popAndShowInfo(String message) {
     // Capture scaffold messenger before popping (context will be unmounted).
     SnackHelper.showInfo(context, message);
-    Navigator.of(context).pop();
+    context.pop();
   }
 
   @override
@@ -197,7 +198,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -225,16 +226,17 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             alignment: AlignmentDirectional.centerEnd,
             child: IconButton(
               icon: const Icon(AppIcons.close, size: AppSizes.iconSm),
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.pop(),
               visualDensity: VisualDensity.compact,
+              tooltip: context.l10n.common_close,
             ),
           ),
 
           // ── Mic button with avatar_glow pulse ─────────────────
           if (!_serviceReady && _state != VoiceState.error)
             const SizedBox(
-              width: 72,
-              height: 72,
+              width: AppSizes.voiceMicSize,
+              height: AppSizes.voiceMicSize,
               child: Center(child: CircularProgressIndicator()),
             )
           else
@@ -247,8 +249,8 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 glowRadiusFactor: 0.3,
                 glowColor: cs.primary,
                 child: Container(
-                  width: 72,
-                  height: 72,
+                  width: AppSizes.voiceMicSize,
+                  height: AppSizes.voiceMicSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _state == VoiceState.listening
@@ -275,7 +277,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
           // ── Status text ──────────────────────────────────────
           Text(
             _statusText(context),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: context.textStyles.bodyMedium?.copyWith(
                   color: cs.outline,
                 ),
           ),
@@ -293,7 +295,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
               ),
               child: Text(
                 _transcript,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: context.textStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -311,7 +313,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => context.pop(),
                   child: Text(context.l10n.common_close),
                 ),
                 const SizedBox(width: AppSizes.md),
@@ -334,7 +336,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                       _aiCancelled = true;
                       _aiParsing = false;
                     });
-                    Navigator.of(context).pop();
+                    context.pop();
                   },
                   child: Text(context.l10n.common_cancel),
                 ),

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:notification_listener_service/notification_event.dart';
 import 'package:notification_listener_service/notification_listener_service.dart';
@@ -9,6 +8,7 @@ import 'package:notification_listener_service/notification_listener_service.dart
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
+import '../constants/app_durations.dart';
 import 'ai/ai_transaction_parser.dart';
 import 'crash_log_service.dart';
 import 'notification_transaction_parser.dart';
@@ -80,7 +80,7 @@ class NotificationListenerWrapper {
       CrashLogService.log(e, stack);
       // Retry once after a delay — service may not be bound yet.
       if (retryCount < 1) {
-        await Future<void>.delayed(const Duration(seconds: 1));
+        await Future<void>.delayed(AppDurations.retryDelay);
         await _start(retryCount + 1);
       }
     }
@@ -131,12 +131,23 @@ class NotificationListenerWrapper {
     );
     if (parsed == null) return;
 
-    // Deduplicate
-    final alreadyExists = await _dao.exists(parsed.bodyHash);
-    if (alreadyExists) return;
+    // Insert-first dedup: ON CONFLICT DO NOTHING prevents duplicates
+    // without a check-then-act race with the SMS parser.
+    await _dao.insertLog(
+      SmsParserLogsCompanion.insert(
+        senderAddress: parsed.senderAddress,
+        bodyHash: parsed.bodyHash,
+        body: parsed.body,
+        parsedStatus: 'pending',
+        source: 'notification',
+        receivedAt: parsed.receivedAt,
+      ),
+    );
+    final inserted = await _dao.getByHash(parsed.bodyHash);
+    if (inserted == null || inserted.aiEnrichmentJson != null) return;
+    if (inserted.source != 'notification') return;
 
     // AI enrichment (optional — null on failure).
-    String? enrichmentJson;
     if (aiParser != null && categories != null) {
       final enrichment = await aiParser!.enrich(
         sender: sender,
@@ -146,22 +157,12 @@ class NotificationListenerWrapper {
         categories: categories!,
       );
       if (enrichment != null) {
-        enrichmentJson = jsonEncode(enrichment.toJson());
+        await _dao.updateEnrichment(
+          inserted.id,
+          jsonEncode(enrichment.toJson()),
+        );
       }
     }
-
-    // Store as pending
-    await _dao.insertLog(
-      SmsParserLogsCompanion.insert(
-        senderAddress: parsed.senderAddress,
-        bodyHash: parsed.bodyHash,
-        body: parsed.body,
-        parsedStatus: 'pending',
-        source: 'notification',
-        receivedAt: parsed.receivedAt,
-        aiEnrichmentJson: Value(enrichmentJson),
-      ),
-    );
 
     _pendingCount++;
     pendingStream.add(_pendingCount);

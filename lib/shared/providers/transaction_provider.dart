@@ -24,26 +24,24 @@ final transactionsByWalletProvider =
 );
 
 /// H14 fix: Total income for a given (year, month).
-/// Depends on the reactive transaction stream so it auto-refreshes
-/// when transactions change, without requiring navigation away and back.
+/// Derived from the reactive [transactionsByMonthProvider] stream — no
+/// redundant DB round-trip needed.
 final monthlyIncomeProvider =
-    FutureProvider.family<int, (int, int)>((ref, params) {
-  // Watch the transaction stream to trigger re-computation on changes
-  ref.watch(transactionsByMonthProvider(params));
-  return ref
-      .read(transactionRepositoryProvider)
-      .sumByTypeAndMonth('income', params.$1, params.$2);
+    Provider.family<int, (int, int)>((ref, params) {
+  final txs = ref.watch(transactionsByMonthProvider(params)).valueOrNull ?? [];
+  return txs
+      .where((t) => t.type == 'income')
+      .fold(0, (s, t) => s + t.amount);
 });
 
 /// H14 fix: Total expense for a given (year, month).
-/// Same reactive pattern as monthlyIncomeProvider.
+/// Derived from the reactive [transactionsByMonthProvider] stream.
 final monthlyExpenseProvider =
-    FutureProvider.family<int, (int, int)>((ref, params) {
-  // Watch the transaction stream to trigger re-computation on changes
-  ref.watch(transactionsByMonthProvider(params));
-  return ref
-      .read(transactionRepositoryProvider)
-      .sumByTypeAndMonth('expense', params.$1, params.$2);
+    Provider.family<int, (int, int)>((ref, params) {
+  final txs = ref.watch(transactionsByMonthProvider(params)).valueOrNull ?? [];
+  return txs
+      .where((t) => t.type == 'expense')
+      .fold(0, (s, t) => s + t.amount);
 });
 
 /// M1 fix: single transaction by id — auto-invalidates after edits via ref.watch.

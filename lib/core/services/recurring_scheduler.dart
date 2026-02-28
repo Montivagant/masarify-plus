@@ -3,6 +3,7 @@ import '../../domain/repositories/i_category_repository.dart';
 import '../../domain/repositories/i_recurring_rule_repository.dart';
 import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
+import '../extensions/datetime_extensions.dart';
 import '../utils/money_formatter.dart';
 import 'crash_log_service.dart';
 import 'notification_service.dart';
@@ -32,7 +33,7 @@ class RecurringScheduler {
 
   Future<void> run() async {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = now.startOfDay;
     final dueRules = await _ruleRepo.getDue(now);
 
     for (final rule in dueRules) {
@@ -64,7 +65,7 @@ class RecurringScheduler {
 
         // Guard: already processed today
         if (rule.lastProcessedDate != null &&
-            _isSameDay(rule.lastProcessedDate!, now)) {
+            rule.lastProcessedDate!.isSameDay(now)) {
           continue;
         }
 
@@ -95,6 +96,8 @@ class RecurringScheduler {
 
         // C6 fix: catch-up loop — process ALL missed periods, not just one
         // R5-C3 fix: cap iterations to prevent unbounded loop
+        // Fix #21: advance nextDueDate after each iteration so a crash
+        // mid-loop doesn't re-process already-logged transactions.
         const maxCatchUp = 365;
         var iterations = 0;
         var nextDue = rule.nextDueDate;
@@ -108,36 +111,34 @@ class RecurringScheduler {
           if (rule.autoLog) {
             await _autoLogTransaction(rule, nextDue);
           }
-          // Non-autoLog: fire only one notification (most recent overdue),
-          // not one per missed period. Skip notification inside the loop
-          // and fire once after the loop completes.
 
           nextDue = _computeNextDueDate(nextDue, rule.frequency);
+
+          // Persist nextDueDate after each iteration so crash mid-loop
+          // doesn't re-run already-logged transactions on restart.
+          await _ruleRepo.update(
+            RecurringRuleEntity(
+              id: rule.id,
+              walletId: rule.walletId,
+              categoryId: rule.categoryId,
+              amount: rule.amount,
+              type: rule.type,
+              title: rule.title,
+              frequency: rule.frequency,
+              startDate: rule.startDate,
+              endDate: rule.endDate,
+              nextDueDate: nextDue,
+              autoLog: rule.autoLog,
+              isActive: rule.isActive,
+              lastProcessedDate: now,
+            ),
+          );
         }
 
         // CR-13 fix: fire a single notification for overdue non-autoLog rules
         if (!rule.autoLog && iterations > 0) {
           await _fireReminder(rule);
         }
-
-        // Advance nextDueDate and mark processed
-        await _ruleRepo.update(
-          RecurringRuleEntity(
-            id: rule.id,
-            walletId: rule.walletId,
-            categoryId: rule.categoryId,
-            amount: rule.amount,
-            type: rule.type,
-            title: rule.title,
-            frequency: rule.frequency,
-            startDate: rule.startDate,
-            endDate: rule.endDate,
-            nextDueDate: nextDue,
-            autoLog: rule.autoLog,
-            isActive: rule.isActive,
-            lastProcessedDate: now,
-          ),
-        );
       } catch (e, stack) {
         // M14: skip this rule, continue processing others
         // R5-I5 fix: log errors instead of silently swallowing
@@ -200,6 +201,4 @@ class RecurringScheduler {
   static int _daysInMonth(int year, int month) =>
       DateTime(year, month + 1, 0).day;
 
-  static bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }

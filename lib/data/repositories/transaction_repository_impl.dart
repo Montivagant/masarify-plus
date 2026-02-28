@@ -104,17 +104,16 @@ class TransactionRepositoryImpl implements ITransactionRepository {
     if (type != 'income' && type != 'expense') {
       throw ArgumentError('Transaction type must be income or expense');
     }
-    // I5 fix: validate category type matches transaction type
-    final cat = await _categoryDao.getById(categoryId);
-    if (cat != null && cat.type != 'both' && cat.type != type) {
-      throw ArgumentError('Category type "${cat.type}" does not match transaction type "$type"');
-    }
-    // C6 fix: validate walletId exists before insert
-    final wallet = await _walletDao.getById(walletId);
-    if (wallet == null) {
-      throw ArgumentError('Wallet with id $walletId does not exist');
-    }
     return _db.transaction(() async {
+      // Validation inside transaction to avoid TOCTOU race
+      final cat = await _categoryDao.getById(categoryId);
+      if (cat != null && cat.type != 'both' && cat.type != type) {
+        throw ArgumentError('Category type "${cat.type}" does not match transaction type "$type"');
+      }
+      final wallet = await _walletDao.getById(walletId);
+      if (wallet == null) {
+        throw ArgumentError('Wallet with id $walletId does not exist');
+      }
       final id = await _dao.insertTransaction(
         TransactionsCompanion.insert(
           walletId: walletId,
@@ -222,6 +221,11 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       // CR-12 fix: check for duplicate ID (double-undo safety)
       final existing = await _dao.getById(tx.id);
       if (existing != null) return; // already restored — idempotent
+      // Verify wallet still exists before restoring
+      final wallet = await _walletDao.getById(tx.walletId);
+      if (wallet == null) {
+        throw StateError('Cannot restore: wallet ${tx.walletId} no longer exists');
+      }
       await _dao.insertTransaction(
         TransactionsCompanion(
           id: Value(tx.id),
@@ -250,6 +254,31 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       // Re-apply wallet balance effect
       final delta = tx.type == 'income' ? tx.amount : -tx.amount;
       await _walletDao.adjustBalance(tx.walletId, delta);
+    });
+  }
+
+  @override
+  Future<List<int>> createBatch(List<CreateTransactionParams> params) async {
+    return _db.transaction(() async {
+      final ids = <int>[];
+      for (final p in params) {
+        final id = await _dao.insertTransaction(
+          TransactionsCompanion.insert(
+            walletId: p.walletId,
+            categoryId: p.categoryId,
+            amount: p.amount,
+            type: p.type,
+            title: p.title,
+            transactionDate: p.transactionDate,
+            source: Value(p.source),
+            rawSourceText: Value(p.rawSourceText),
+          ),
+        );
+        final delta = p.type == 'income' ? p.amount : -p.amount;
+        await _walletDao.adjustBalance(p.walletId, delta);
+        ids.add(id);
+      }
+      return ids;
     });
   }
 

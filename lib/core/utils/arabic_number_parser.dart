@@ -24,6 +24,7 @@ abstract final class ArabicNumberParser {
     '٧': '7',
     '٨': '8',
     '٩': '9',
+    '،': ',', // Arabic comma → Western comma
   };
 
   // ── Spoken number words → piastres ─────────────────────────────────────
@@ -89,7 +90,7 @@ abstract final class ArabicNumberParser {
   /// - Fractions ("نص" → 50, "ربع" → 25)
   /// - Mixed ("100 جنيه" → 10000)
   static int? parse(String text) {
-    final normalized = _normalizeArabicDigits(text.trim());
+    final normalized = normalizeDigits(text.trim());
 
     // Try numeric first (most reliable)
     final numericResult = _tryNumeric(normalized);
@@ -101,7 +102,10 @@ abstract final class ArabicNumberParser {
 
   // ── Private helpers ────────────────────────────────────────────────────
 
-  static String _normalizeArabicDigits(String input) {
+  /// Normalize Eastern Arabic numerals (٠-٩) and Arabic comma (،)
+  /// to Western equivalents. Canonical implementation — used by
+  /// MoneyFormatter and EgyptianSmsPatterns.
+  static String normalizeDigits(String input) {
     var result = input;
     for (final entry in _arabicDigits.entries) {
       result = result.replaceAll(entry.key, entry.value);

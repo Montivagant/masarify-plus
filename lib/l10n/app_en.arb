@@ -312,7 +312,6 @@
   "transfer_from": "From",
   "transfer_to": "To",
   "transfer_fee": "Transfer Fee (optional)",
-  "transfer_success": "Transfer completed",
 
   "language_en": "English",
   "language_ar": "Arabic (العربية)",
@@ -668,5 +667,33 @@
   "fab_income": "Income",
   "fab_voice": "Voice",
 
-  "wallet_archive_balance_warning": "This wallet still has a remaining balance. The balance will be excluded from your totals after archiving."
+  "wallet_archive_balance_warning": "This wallet still has a remaining balance. The balance will be excluded from your totals after archiving.",
+
+  "notif_prefs_title": "Notification Settings",
+  "notif_section_budget": "Budget Alerts",
+  "notif_budget_warning": "Budget Warning (80%)",
+  "notif_budget_warning_sub": "Notify when spending reaches 80% of budget",
+  "notif_budget_exceeded": "Budget Exceeded (100%)",
+  "notif_budget_exceeded_sub": "Notify when a budget is fully spent",
+  "notif_section_bills": "Bills & Recurring",
+  "notif_bill_reminder": "Bill Reminders",
+  "notif_bill_reminder_sub": "Remind about upcoming bills before due date",
+  "notif_recurring_reminder": "Recurring Transactions",
+  "notif_recurring_reminder_sub": "Notify when recurring transactions are due",
+  "notif_section_goals": "Goals",
+  "notif_goal_milestone": "Goal Milestones",
+  "notif_goal_milestone_sub": "Celebrate when you reach 25%, 50%, 75%, and 100% of a goal",
+  "notif_section_daily": "Daily Reminder",
+  "notif_daily_reminder": "Log Your Expenses",
+  "notif_daily_reminder_sub": "A gentle reminder to log today's transactions",
+  "notif_daily_reminder_time": "Reminder Time",
+  "notif_section_quiet": "Quiet Hours",
+  "notif_quiet_hours": "Enable Quiet Hours",
+  "notif_quiet_hours_sub": "Pause all notifications during set hours",
+  "notif_quiet_start": "Start",
+  "notif_quiet_end": "End",
+
+  "period_3_months": "3M",
+  "period_6_months": "6M",
+  "period_1_year": "1Y"
 }

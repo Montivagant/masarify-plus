@@ -4,6 +4,7 @@ import '../../../app/theme/app_theme_extension.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/services/insight_engine.dart';
+import 'glass_card.dart';
 
 /// Displays a single financial insight with icon, title, body, CTA, and optional dismiss.
 class InsightCard extends StatelessWidget {
@@ -26,19 +27,15 @@ class InsightCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final iconData = _iconForType(insight.type);
     final iconColor = _colorForType(insight.type, cs, context.appTheme);
 
-    return Card(
+    return GlassCard(
+      showShadow: true,
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
-      ),
-      elevation: 0.5, // WS-12: soft box shadow
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.3)),
       ),
       child: Container(
         // WS-12: accent stripe on start edge
@@ -48,11 +45,10 @@ class InsightCard extends StatelessWidget {
             start: BorderSide(color: iconColor, width: 3),
           ),
         ),
-        child: Padding(
-        padding: const EdgeInsets.all(AppSizes.md),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(width: AppSizes.xs),
             Container(
               width: AppSizes.iconContainerMd,
               height: AppSizes.iconContainerMd,
@@ -80,7 +76,7 @@ class InsightCard extends StatelessWidget {
                   const SizedBox(height: AppSizes.xs),
                   Text(
                     body,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           color: cs.onSurfaceVariant,
                         ),
                     maxLines: 2,
@@ -114,7 +110,6 @@ class InsightCard extends StatelessWidget {
           ],
         ),
       ),
-      ), // close Container for WS-12
     );
   }
 

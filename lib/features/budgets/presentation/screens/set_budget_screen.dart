@@ -12,6 +12,7 @@ import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -91,7 +92,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               width: AppSizes.dragHandleWidth,
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
-                color: Theme.of(ctx).colorScheme.outlineVariant,
+                color: ctx.colors.outlineVariant,
                 borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
@@ -106,7 +107,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   context.l10n.transaction_category_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
             ),
@@ -123,7 +124,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                             : null,
                         onTap: () {
                           setState(() => _categoryId = c.id);
-                          Navigator.pop(ctx);
+                          ctx.pop();
                         },
                       ),
                     )
@@ -187,7 +188,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           );
         }
       }
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       context.pop();
     } catch (_) {
@@ -203,7 +204,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editId != null;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final categories = ref.watch(expenseCategoriesProvider).valueOrNull ?? [];
     final selectedCat =
         categories.where((c) => c.id == _categoryId).firstOrNull;
@@ -222,20 +223,15 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Month chip
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSizes.md),
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-              ),
+            GlassCard(
+              tintColor: cs.surfaceContainerHighest.withValues(alpha: AppSizes.opacityLight4),
               child: Row(
                 children: [
                   const Icon(AppIcons.calendar, size: AppSizes.iconSm),
                   const SizedBox(width: AppSizes.sm),
                   Text(
                     '${_monthName(context, _month)} $_year',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: context.textStyles.bodyLarge,
                   ),
                 ],
               ),
@@ -277,8 +273,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                         child: Text(
                           selectedCat?.displayName(context.languageCode) ?? context.l10n.transaction_category_picker,
                           style: selectedCat != null
-                              ? Theme.of(context).textTheme.bodyLarge
-                              : Theme.of(context).textTheme.bodyLarge?.copyWith(color: cs.outline),
+                              ? context.textStyles.bodyLarge
+                              : context.textStyles.bodyLarge?.copyWith(color: cs.outline),
                         ),
                       ),
                       const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
@@ -305,7 +301,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             const SizedBox(height: AppSizes.lg),
 
             // Rollover toggle
-            Card(
+            GlassCard(
               child: SwitchListTile(
                 title: Text(context.l10n.budget_rollover_title),
                 subtitle: Text(context.l10n.budget_rollover),

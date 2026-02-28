@@ -1,7 +1,6 @@
 import 'dart:convert';
 
-import 'package:another_telephony/telephony.dart' hide Value;
-import 'package:drift/drift.dart';
+import 'package:another_telephony/telephony.dart';
 
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
@@ -73,12 +72,25 @@ class SmsParserService {
       );
       if (parsed == null) continue;
 
-      // Deduplicate via body hash.
-      final alreadyExists = await _dao.exists(parsed.bodyHash);
-      if (alreadyExists) continue;
+      // Insert-first dedup: try insert with ON CONFLICT DO NOTHING.
+      // If the row already exists, getByHash will return the existing row
+      // and we skip AI enrichment — avoids wasting an API call on duplicates.
+      await _dao.insertLog(
+        SmsParserLogsCompanion.insert(
+          senderAddress: parsed.senderAddress,
+          bodyHash: parsed.bodyHash,
+          body: parsed.body,
+          parsedStatus: 'pending',
+          source: 'sms',
+          receivedAt: parsed.receivedAt,
+        ),
+      );
+      final inserted = await _dao.getByHash(parsed.bodyHash);
+      if (inserted == null || inserted.aiEnrichmentJson != null) continue;
+      // Only count and enrich truly new entries
+      if (inserted.source != 'sms') continue;
 
       // AI enrichment (optional — null on failure).
-      String? enrichmentJson;
       if (aiParser != null &&
           categories != null &&
           enrichmentCalls < maxEnrichmentCalls) {
@@ -91,22 +103,12 @@ class SmsParserService {
           categories: categories!,
         );
         if (enrichment != null) {
-          enrichmentJson = jsonEncode(enrichment.toJson());
+          await _dao.updateEnrichment(
+            inserted.id,
+            jsonEncode(enrichment.toJson()),
+          );
         }
       }
-
-      // Insert as pending for user review.
-      await _dao.insertLog(
-        SmsParserLogsCompanion.insert(
-          senderAddress: parsed.senderAddress,
-          bodyHash: parsed.bodyHash,
-          body: parsed.body,
-          parsedStatus: 'pending',
-          source: 'sms',
-          receivedAt: parsed.receivedAt,
-          aiEnrichmentJson: Value(enrichmentJson),
-        ),
-      );
       newCount++;
     }
 

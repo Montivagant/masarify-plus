@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -41,7 +42,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _nextPage() {
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 350),
+      duration: AppDurations.pageTransition,
       curve: Curves.easeInOut,
     );
   }
@@ -74,7 +75,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Scaffold(
       body: SafeArea(
@@ -138,15 +139,15 @@ class _WelcomePage extends ConsumerWidget {
             children: [
               Text(
                 context.l10n.onboarding_language_prompt,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
                     ),
               ),
               const SizedBox(width: AppSizes.sm),
               SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'ar', label: Text('العربية')),
-                  ButtonSegment(value: 'en', label: Text('English')),
+                segments: [
+                  ButtonSegment(value: 'ar', label: Text(context.l10n.language_ar)),
+                  ButtonSegment(value: 'en', label: Text(context.l10n.language_en)),
                 ],
                 selected: {currentLocale ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'ar' : 'en')},
                 onSelectionChanged: (set) =>
@@ -174,7 +175,7 @@ class _WelcomePage extends ConsumerWidget {
           const SizedBox(height: AppSizes.xl),
           Text(
             context.l10n.onboarding_page1_title,
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+            style: context.textStyles.headlineLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
             textAlign: TextAlign.center,
@@ -182,8 +183,8 @@ class _WelcomePage extends ConsumerWidget {
           const SizedBox(height: AppSizes.md),
           Text(
             context.l10n.onboarding_page1_body,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
+            style: context.textStyles.bodyLarge?.copyWith(
+                  color: context.colors.outline,
                   height: AppSizes.lineHeightRelaxed,
                 ),
             textAlign: TextAlign.center,
@@ -220,7 +221,7 @@ class _FeatureChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Chip(
       avatar: Icon(icon, size: AppSizes.iconXs, color: cs.primary),
       label: Text(label),
@@ -254,7 +255,7 @@ class _BalancePage extends StatelessWidget {
           const SizedBox(height: AppSizes.xxl),
           Text(
             context.l10n.onboarding_page2_title,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: context.textStyles.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
             textAlign: TextAlign.center,
@@ -262,8 +263,8 @@ class _BalancePage extends StatelessWidget {
           const SizedBox(height: AppSizes.sm),
           Text(
             context.l10n.onboarding_page2_body,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
+            style: context.textStyles.bodyMedium?.copyWith(
+                  color: context.colors.outline,
                   height: AppSizes.lineHeightNormal,
                 ),
             textAlign: TextAlign.center,
@@ -284,8 +285,8 @@ class _BalancePage extends StatelessWidget {
             onPressed: onSkip,
             child: Text(
               context.l10n.onboarding_page2_skip,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: context.colors.outline,
               ),
             ),
           ),

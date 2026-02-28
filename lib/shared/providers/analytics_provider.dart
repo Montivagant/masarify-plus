@@ -60,16 +60,18 @@ final monthlyTotalsProvider =
     FutureProvider.family<List<MonthlyTotal>, int>((ref, count) async {
   final now = DateTime.now();
   final repo = ref.watch(transactionRepositoryProvider);
-  // IM-13 fix: watch reactive stream so totals auto-refresh on tx changes
-  ref.watch(transactionsByMonthProvider((now.year, now.month)));
+  // Watch all recent transactions so past-month edits also trigger refresh
+  ref.watch(recentTransactionsProvider);
   final results = <MonthlyTotal>[];
 
   for (var i = count - 1; i >= 0; i--) {
     final d = DateTime(now.year, now.month - i);
     final y = d.year;
     final m = d.month;
-    final income = await repo.sumByTypeAndMonth('income', y, m);
-    final expense = await repo.sumByTypeAndMonth('expense', y, m);
+    final [income, expense] = await Future.wait([
+      repo.sumByTypeAndMonth('income', y, m),
+      repo.sumByTypeAndMonth('expense', y, m),
+    ]);
     results.add(MonthlyTotal(year: y, month: m, income: income, expense: expense));
   }
 
@@ -100,8 +102,10 @@ final categoryBreakdownProvider = Provider.family<
     final total = sorted.fold<int>(0, (s, e) => s + e.value);
     if (total == 0) return [];
 
+    final categoryMap = {for (final c in categories) c.id: c};
+
     return sorted.map((entry) {
-      final cat = categories.where((c) => c.id == entry.key).firstOrNull;
+      final cat = categoryMap[entry.key];
       return CategorySpending(
         categoryId: entry.key,
         categoryName: cat?.displayName(lang) ?? '?',
@@ -124,6 +128,8 @@ final dailySpendingProvider =
   final end = DateTime(now.year, now.month, now.day + 1); // midnight tomorrow (exclusive)
 
   final repo = ref.watch(transactionRepositoryProvider);
+  // Watch all recent transactions so backdated edits also trigger refresh
+  ref.watch(recentTransactionsProvider);
   final txns = await repo.getByDateRange(start, end);
 
   final dailyMap = <DateTime, int>{};
@@ -164,10 +170,9 @@ class MonthComparison {
 final monthComparisonProvider = FutureProvider<MonthComparison>((ref) async {
   final now = DateTime.now();
   final lastMonthDate = DateTime(now.year, now.month - 1);
-  // CR-3 fix: capture all watched values before any await
   final repo = ref.watch(transactionRepositoryProvider);
-  // IM-14 fix: watch reactive stream to auto-refresh on tx changes
-  ref.watch(transactionsByMonthProvider((now.year, now.month)));
+  // Watch all recent transactions so any tx change triggers refresh
+  ref.watch(recentTransactionsProvider);
 
   final [thisIncome, thisExpense, lastIncome, lastExpense] = await Future.wait([
     repo.sumByTypeAndMonth('income', now.year, now.month),

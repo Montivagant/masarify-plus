@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -236,7 +237,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         );
       }
 
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
 
       // Check for goal keyword match and prompt with SnackBar.
@@ -246,7 +247,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         final l10n = context.l10n;
         messenger.showSnackBar(
           SnackBar(
-            duration: const Duration(seconds: 5),
+            duration: AppDurations.snackbarLong,
             content: Text(l10n.goal_link_prompt(match.goalName)),
             action: SnackBarAction(
               label: l10n.goal_link_action,
@@ -300,7 +301,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 height: AppSizes.dragHandleHeight,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.outlineVariant,
+                  color: ctx.colors.outlineVariant,
                   borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                 ),
               ),
@@ -310,7 +311,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 ),
                 child: Text(
                   context.l10n.transaction_wallet_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
               Flexible(
@@ -324,7 +325,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                           _walletId == w.id ? const Icon(AppIcons.check) : null,
                       onTap: () {
                         setState(() => _walletId = w.id);
-                        Navigator.pop(ctx);
+                        ctx.pop();
                       },
                     ),
                   ).toList(),
@@ -348,7 +349,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         selectedId: _selectedCategoryId,
         onSelected: (id) {
           setState(() => _selectedCategoryId = id);
-          Navigator.pop(context);
+          context.pop();
         },
       ),
     );
@@ -358,7 +359,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
     final typeCats =
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
@@ -589,13 +590,13 @@ class _OptionalSection extends StatelessWidget {
                 Icon(
                   expanded ? AppIcons.expandLess : AppIcons.expandMore,
                   size: AppSizes.iconXs,
-                  color: Theme.of(context).colorScheme.outline,
+                  color: context.colors.outline,
                 ),
                 const SizedBox(width: AppSizes.xs),
                 Text(
                   context.l10n.transaction_optional_details,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
+                  style: context.textStyles.bodySmall?.copyWith(
+                        color: context.colors.outline,
                       ),
                 ),
               ],
@@ -603,7 +604,7 @@ class _OptionalSection extends StatelessWidget {
           ),
         ),
         AnimatedSize(
-          duration: const Duration(milliseconds: 200),
+          duration: AppDurations.animQuick,
           curve: Curves.easeInOut,
           child: expanded
               ? Padding(
@@ -709,7 +710,7 @@ class _CategoryPickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
@@ -733,7 +734,7 @@ class _CategoryPickerSheet extends StatelessWidget {
               alignment: AlignmentDirectional.centerStart,
               child: Text(
                 context.l10n.transaction_category_picker,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
           ),
@@ -785,7 +786,7 @@ class _CategoryPickerSheet extends StatelessWidget {
                       const SizedBox(height: AppSizes.xs),
                       Text(
                         cat.displayName(ctx.languageCode),
-                        style: Theme.of(ctx).textTheme.labelSmall,
+                        style: ctx.textStyles.labelSmall,
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

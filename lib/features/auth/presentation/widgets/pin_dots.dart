@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/extensions/build_context_extensions.dart';
 
 /// Six-dot PIN display showing filled/empty state.
 class PinDots extends StatelessWidget {
@@ -16,7 +17,7 @@ class PinDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,

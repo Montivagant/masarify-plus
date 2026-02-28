@@ -50,4 +50,31 @@ abstract interface class ITransactionRepository {
   /// H12 fix: restores a previously deleted transaction with its original ID.
   /// Used by undo-delete to preserve ID references (budgets, goals).
   Future<void> restore(TransactionEntity transaction);
+
+  /// Creates multiple transactions atomically in a single DB transaction.
+  /// All succeed or none are written.
+  Future<List<int>> createBatch(List<CreateTransactionParams> params);
+}
+
+/// Parameters for batch transaction creation.
+class CreateTransactionParams {
+  const CreateTransactionParams({
+    required this.walletId,
+    required this.categoryId,
+    required this.amount,
+    required this.type,
+    required this.title,
+    required this.transactionDate,
+    this.source = 'manual',
+    this.rawSourceText,
+  });
+
+  final int walletId;
+  final int categoryId;
+  final int amount;
+  final String type;
+  final String title;
+  final DateTime transactionDate;
+  final String source;
+  final String? rawSourceText;
 }

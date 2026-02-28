@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import 'arabic_number_parser.dart';
+
 /// MANDATORY formatter for all monetary amounts.
 /// ALL amounts stored as INTEGER piastres. NEVER use double for money storage.
 /// Rule: 100.50 EGP → stored as 10050 piastres.
@@ -78,7 +80,7 @@ abstract final class MoneyFormatter {
         .replaceAll('\u066C', '') // Arabic thousands separator
         .trim();
     if (cleaned.isEmpty) return null;
-    final normalized = _normalizeDigits(cleaned);
+    final normalized = ArabicNumberParser.normalizeDigits(cleaned);
     final value = double.tryParse(normalized);
     if (value == null) return null;
     return (value * 100).round();
@@ -107,12 +109,4 @@ abstract final class MoneyFormatter {
     };
   }
 
-  static String _normalizeDigits(String input) {
-    const easternArabic = '٠١٢٣٤٥٦٧٨٩';
-    var result = input;
-    for (var i = 0; i < easternArabic.length; i++) {
-      result = result.replaceAll(easternArabic[i], '$i');
-    }
-    return result;
-  }
 }

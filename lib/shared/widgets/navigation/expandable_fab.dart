@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
+import '../cards/glass_card.dart';
 
 /// Data for a single radial menu bubble.
 class _FabBubble {
@@ -65,7 +67,7 @@ class _ExpandableFabState extends State<ExpandableFab>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 250),
+      duration: AppDurations.fabExpand,
     );
     _expandAnimation = CurvedAnimation(
       parent: _controller,
@@ -85,7 +87,7 @@ class _ExpandableFabState extends State<ExpandableFab>
         icon: AppIcons.mic,
         labelKey: (ctx) => ctx.l10n.fab_voice,
         offset: const Offset(0, -AppSizes.fabRadialDistanceTop),
-        color: (ctx) => Theme.of(ctx).colorScheme.primary,
+        color: (ctx) => ctx.colors.primary,
       ),
       _FabBubble(
         icon: AppIcons.income,
@@ -94,6 +96,19 @@ class _ExpandableFabState extends State<ExpandableFab>
         color: (ctx) => ctx.appTheme.incomeColor,
       ),
     ];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Respect reduceMotion accessibility setting.
+    // Only update duration when not actively animating to avoid jumps.
+    final newDuration = context.reduceMotion
+        ? Duration.zero
+        : AppDurations.fabExpand;
+    if (_controller.duration != newDuration && !_controller.isAnimating) {
+      _controller.duration = newDuration;
+    }
   }
 
   @override
@@ -154,7 +169,7 @@ class _ExpandableFabState extends State<ExpandableFab>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     // M3 fix: use OverlayEntry-style full-screen scrim via LayoutBuilder
     // instead of 200x200 SizedBox so tapping anywhere outside collapses the FAB.
@@ -177,7 +192,7 @@ class _ExpandableFabState extends State<ExpandableFab>
                   onTap: () => _collapse(),
                   behavior: HitTestBehavior.opaque,
                   child: ColoredBox(
-                    color: cs.scrim.withValues(alpha: 0.3),
+                    color: cs.scrim.withValues(alpha: AppSizes.opacityLight4),
                     child: const SizedBox.expand(),
                   ),
                 ),
@@ -288,7 +303,7 @@ class _ExpandableFabState extends State<ExpandableFab>
                     shape: const CircleBorder(),
                     color: isHovered
                         ? bubbleColor
-                        : bubbleColor.withValues(alpha: 0.85),
+                        : bubbleColor.withValues(alpha: AppSizes.opacityNearFull),
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: () => _collapse(selectedIndex: i),
@@ -301,18 +316,17 @@ class _ExpandableFabState extends State<ExpandableFab>
                   ),
                 ),
                 const SizedBox(height: AppSizes.xs),
-                Container(
+                GlassCard(
+                  tier: GlassTier.inset,
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.sm,
                     vertical: AppSizes.xxs,
                   ),
-                  decoration: BoxDecoration(
-                    color: cs.shadow.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                  ),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+                  tintColor: cs.shadow.withValues(alpha: AppSizes.opacityLight5),
                   child: Text(
                     bubble.labelKey(context),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    style: context.textStyles.labelSmall?.copyWith(
                           color: cs.onPrimary,
                           fontWeight: FontWeight.w600,
                         ),

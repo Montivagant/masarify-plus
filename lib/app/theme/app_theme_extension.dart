@@ -26,6 +26,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.glassSurface,
     required this.glassBorder,
     required this.onTransferColor,
+    required this.glassCardSurface,
+    required this.glassCardBorder,
+    required this.glassSheetSurface,
+    required this.glassSheetBorder,
+    required this.glassInsetSurface,
+    required this.glassInsetBorder,
+    required this.glassShadow,
   });
 
   final Color incomeColor;
@@ -45,6 +52,15 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color glassSurface;
   final Color glassBorder;
   final Color onTransferColor;
+
+  // ── 3-Tier Glass Hierarchy ──────────────────────────────────────────
+  final Color glassCardSurface; // Tier 2: cards, sections
+  final Color glassCardBorder;
+  final Color glassSheetSurface; // Tier 1: sheets, dialogs, overlays
+  final Color glassSheetBorder;
+  final Color glassInsetSurface; // Tier 3: nested elements, icon badges
+  final Color glassInsetBorder;
+  final Color glassShadow; // Brand-tinted shadow
 
   static const light = AppThemeExtension(
     incomeColor: AppColors.incomeGreen, // #059669 — AAA 5.4:1
@@ -68,6 +84,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     glassSurface: AppColors.glassSurfaceLight,
     glassBorder: AppColors.glassBorderLight,
     onTransferColor: AppColors.onTransfer,
+    glassCardSurface: AppColors.glassCardSurfaceLight,
+    glassCardBorder: AppColors.glassCardBorderLight,
+    glassSheetSurface: AppColors.glassSheetSurfaceLight,
+    glassSheetBorder: AppColors.glassSheetBorderLight,
+    glassInsetSurface: AppColors.glassInsetSurfaceLight,
+    glassInsetBorder: AppColors.glassInsetBorderLight,
+    glassShadow: AppColors.glassShadowLight,
   );
 
   static const dark = AppThemeExtension(
@@ -92,6 +115,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     glassSurface: AppColors.glassSurfaceDark,
     glassBorder: AppColors.glassBorderDark,
     onTransferColor: AppColors.onTransfer,
+    glassCardSurface: AppColors.glassCardSurfaceDark,
+    glassCardBorder: AppColors.glassCardBorderDark,
+    glassSheetSurface: AppColors.glassSheetSurfaceDark,
+    glassSheetBorder: AppColors.glassSheetBorderDark,
+    glassInsetSurface: AppColors.glassInsetSurfaceDark,
+    glassInsetBorder: AppColors.glassInsetBorderDark,
+    glassShadow: AppColors.glassShadowDark,
   );
 
   @override
@@ -113,6 +143,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? glassSurface,
     Color? glassBorder,
     Color? onTransferColor,
+    Color? glassCardSurface,
+    Color? glassCardBorder,
+    Color? glassSheetSurface,
+    Color? glassSheetBorder,
+    Color? glassInsetSurface,
+    Color? glassInsetBorder,
+    Color? glassShadow,
   }) =>
       AppThemeExtension(
         incomeColor: incomeColor ?? this.incomeColor,
@@ -134,6 +171,13 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
         glassSurface: glassSurface ?? this.glassSurface,
         glassBorder: glassBorder ?? this.glassBorder,
         onTransferColor: onTransferColor ?? this.onTransferColor,
+        glassCardSurface: glassCardSurface ?? this.glassCardSurface,
+        glassCardBorder: glassCardBorder ?? this.glassCardBorder,
+        glassSheetSurface: glassSheetSurface ?? this.glassSheetSurface,
+        glassSheetBorder: glassSheetBorder ?? this.glassSheetBorder,
+        glassInsetSurface: glassInsetSurface ?? this.glassInsetSurface,
+        glassInsetBorder: glassInsetBorder ?? this.glassInsetBorder,
+        glassShadow: glassShadow ?? this.glassShadow,
       );
 
   @override
@@ -165,6 +209,19 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       glassBorder: Color.lerp(glassBorder, other.glassBorder, t)!,
       onTransferColor:
           Color.lerp(onTransferColor, other.onTransferColor, t)!,
+      glassCardSurface:
+          Color.lerp(glassCardSurface, other.glassCardSurface, t)!,
+      glassCardBorder:
+          Color.lerp(glassCardBorder, other.glassCardBorder, t)!,
+      glassSheetSurface:
+          Color.lerp(glassSheetSurface, other.glassSheetSurface, t)!,
+      glassSheetBorder:
+          Color.lerp(glassSheetBorder, other.glassSheetBorder, t)!,
+      glassInsetSurface:
+          Color.lerp(glassInsetSurface, other.glassInsetSurface, t)!,
+      glassInsetBorder:
+          Color.lerp(glassInsetBorder, other.glassInsetBorder, t)!,
+      glassShadow: Color.lerp(glassShadow, other.glassShadow, t)!,
     );
   }
 }

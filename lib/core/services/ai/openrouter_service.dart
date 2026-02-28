@@ -69,9 +69,18 @@ class OpenRouterService {
         .timeout(const Duration(seconds: AiConfig.apiTimeoutSeconds));
 
     if (response.statusCode != 200) {
+      // Sanitize: only include status code and error category,
+      // never the raw body which may echo request content (bank SMS text).
+      final category = response.statusCode == 429
+          ? 'rate_limit'
+          : response.statusCode == 401
+              ? 'unauthorized'
+              : response.statusCode >= 500
+                  ? 'server_error'
+                  : 'client_error';
       throw OpenRouterException(
         response.statusCode,
-        response.body,
+        'API error: $category (${response.statusCode})',
       );
     }
 

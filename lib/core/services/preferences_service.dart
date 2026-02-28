@@ -22,6 +22,19 @@ class PreferencesService {
   static const _kSmsParserEnabled = 'sms_parser_enabled';
   static const _kAiModel = 'ai_model';
 
+  // Notification preference keys
+  static const _kNotifyBudgetWarning = 'notify_budget_warning';
+  static const _kNotifyBudgetExceeded = 'notify_budget_exceeded';
+  static const _kNotifyBillReminder = 'notify_bill_reminder';
+  static const _kNotifyRecurring = 'notify_recurring';
+  static const _kNotifyGoalMilestone = 'notify_goal_milestone';
+  static const _kNotifyDailyReminder = 'notify_daily_reminder';
+  static const _kDailyReminderHour = 'daily_reminder_hour';
+  static const _kDailyReminderMinute = 'daily_reminder_minute';
+  static const _kQuietHoursEnabled = 'quiet_hours_enabled';
+  static const _kQuietHoursStart = 'quiet_hours_start';
+  static const _kQuietHoursEnd = 'quiet_hours_end';
+
   // ── Onboarding ────────────────────────────────────────────────────────────
   bool get isOnboardingDone => _prefs.getBool(_kOnboardingDone) ?? false;
 
@@ -93,6 +106,51 @@ class PreferencesService {
   String get aiModel => _prefs.getString(_kAiModel) ?? 'auto';
 
   Future<void> setAiModel(String model) => _prefs.setString(_kAiModel, model);
+
+  // ── Notification preferences ──────────────────────────────────────────────
+  bool get notifyBudgetWarning => _prefs.getBool(_kNotifyBudgetWarning) ?? true;
+  Future<void> setNotifyBudgetWarning(bool v) =>
+      _prefs.setBool(_kNotifyBudgetWarning, v);
+
+  bool get notifyBudgetExceeded =>
+      _prefs.getBool(_kNotifyBudgetExceeded) ?? true;
+  Future<void> setNotifyBudgetExceeded(bool v) =>
+      _prefs.setBool(_kNotifyBudgetExceeded, v);
+
+  bool get notifyBillReminder => _prefs.getBool(_kNotifyBillReminder) ?? true;
+  Future<void> setNotifyBillReminder(bool v) =>
+      _prefs.setBool(_kNotifyBillReminder, v);
+
+  bool get notifyRecurring => _prefs.getBool(_kNotifyRecurring) ?? true;
+  Future<void> setNotifyRecurring(bool v) =>
+      _prefs.setBool(_kNotifyRecurring, v);
+
+  bool get notifyGoalMilestone => _prefs.getBool(_kNotifyGoalMilestone) ?? true;
+  Future<void> setNotifyGoalMilestone(bool v) =>
+      _prefs.setBool(_kNotifyGoalMilestone, v);
+
+  bool get notifyDailyReminder =>
+      _prefs.getBool(_kNotifyDailyReminder) ?? false;
+  Future<void> setNotifyDailyReminder(bool v) =>
+      _prefs.setBool(_kNotifyDailyReminder, v);
+
+  int get dailyReminderHour => _prefs.getInt(_kDailyReminderHour) ?? 20;
+  int get dailyReminderMinute => _prefs.getInt(_kDailyReminderMinute) ?? 0;
+  Future<void> setDailyReminderTime(int hour, int minute) async {
+    await _prefs.setInt(_kDailyReminderHour, hour);
+    await _prefs.setInt(_kDailyReminderMinute, minute);
+  }
+
+  bool get quietHoursEnabled => _prefs.getBool(_kQuietHoursEnabled) ?? false;
+  Future<void> setQuietHoursEnabled(bool v) =>
+      _prefs.setBool(_kQuietHoursEnabled, v);
+
+  int get quietHoursStart => _prefs.getInt(_kQuietHoursStart) ?? 22;
+  int get quietHoursEnd => _prefs.getInt(_kQuietHoursEnd) ?? 7;
+  Future<void> setQuietHours(int start, int end) async {
+    await _prefs.setInt(_kQuietHoursStart, start);
+    await _prefs.setInt(_kQuietHoursEnd, end);
+  }
 
   // ── Clear all data ────────────────────────────────────────────────────────
   Future<void> clearAll() => _prefs.clear();

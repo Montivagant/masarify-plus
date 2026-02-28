@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 
 enum AppButtonVariant { primary, secondary, danger, ghost }
 
@@ -68,8 +69,8 @@ class AppButton extends StatelessWidget {
           onPressed: isLoading ? null : _onTap(onPressed),
           style: FilledButton.styleFrom(
             minimumSize: const Size(AppSizes.minTapTarget, AppSizes.minTapTarget),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            foregroundColor: Theme.of(context).colorScheme.onError,
+            backgroundColor: context.colors.error,
+            foregroundColor: context.colors.onError,
           ),
           child: child,
         ),
@@ -95,7 +96,7 @@ class AppButton extends StatelessWidget {
   }
 
   Color _foregroundColor(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return switch (variant) {
       AppButtonVariant.primary => cs.onPrimary,
       AppButtonVariant.secondary => cs.primary,

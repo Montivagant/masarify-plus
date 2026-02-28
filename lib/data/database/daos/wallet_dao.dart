@@ -72,6 +72,23 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     return result.read<int>('total');
   }
 
+  /// Check if a wallet has any transactions or transfers referencing it.
+  Future<bool> hasReferences(int walletId) async {
+    final result = await customSelect(
+      'SELECT EXISTS('
+      '  SELECT 1 FROM transactions WHERE wallet_id = ?'
+      ') OR EXISTS('
+      '  SELECT 1 FROM transfers WHERE from_wallet_id = ? OR to_wallet_id = ?'
+      ') AS has_refs',
+      variables: [
+        Variable.withInt(walletId),
+        Variable.withInt(walletId),
+        Variable.withInt(walletId),
+      ],
+    ).getSingle();
+    return result.read<int>('has_refs') == 1;
+  }
+
   /// H4 fix: reactive stream of total balance across all non-archived wallets.
   Stream<int> watchTotalBalance() =>
       customSelect(

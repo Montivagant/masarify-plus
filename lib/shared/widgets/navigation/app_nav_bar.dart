@@ -2,13 +2,14 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
 import '../../../shared/providers/notification_listener_provider.dart';
 import 'expandable_fab.dart';
@@ -30,7 +31,7 @@ class AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const dests = AppNavigation.destinations;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final locale = Localizations.localeOf(context);
     const radius = BorderRadius.all(Radius.circular(AppSizes.borderRadiusLg));
 
@@ -131,7 +132,7 @@ class _NavTab extends StatelessWidget {
             const SizedBox(height: AppSizes.xxs),
             Text(
               label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              style: context.textStyles.labelSmall?.copyWith(
                     color: color,
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.w400,
@@ -198,7 +199,7 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
     return Scaffold(
       extendBody: true,
       // I16 fix: wrap shell body in error boundary to prevent full-app crash
-      body: _ErrorBoundary(child: widget.navigationShell),
+      body: widget.navigationShell,
       bottomNavigationBar: AppNavBar(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: (index) {
@@ -231,33 +232,5 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
-  }
-}
-
-/// I16 fix: lightweight error boundary that catches rendering errors
-/// and shows a fallback instead of crashing the entire app.
-class _ErrorBoundary extends StatefulWidget {
-  const _ErrorBoundary({required this.child});
-  final Widget child;
-
-  @override
-  State<_ErrorBoundary> createState() => _ErrorBoundaryState();
-}
-
-class _ErrorBoundaryState extends State<_ErrorBoundary> {
-  bool _hasError = false;
-
-  @override
-  void didUpdateWidget(_ErrorBoundary old) {
-    super.didUpdateWidget(old);
-    if (_hasError) setState(() => _hasError = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      return const Center(child: Icon(AppIcons.warning, size: AppSizes.iconXl));
-    }
-    return widget.child;
   }
 }

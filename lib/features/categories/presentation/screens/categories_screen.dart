@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +13,7 @@ import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -99,7 +101,7 @@ class CategoriesScreen extends ConsumerWidget {
           content: Text(ctx.l10n.category_delete_default_warning),
           actions: [
             FilledButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () => ctx.pop(),
               child: Text(ctx.l10n.common_ok),
             ),
           ],
@@ -115,14 +117,14 @@ class CategoriesScreen extends ConsumerWidget {
         content: Text(ctx.l10n.category_delete_confirm(category.displayName(ctx.languageCode))),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(ctx.l10n.common_cancel),
           ),
           AppButton(
             label: ctx.l10n.common_delete,
             variant: AppButtonVariant.danger,
             isFullWidth: false,
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
           ),
         ],
       ),
@@ -130,6 +132,7 @@ class CategoriesScreen extends ConsumerWidget {
 
     if (confirmed == true) {
       await ref.read(categoryRepositoryProvider).archive(category.id);
+      HapticFeedback.mediumImpact();
     }
   }
 }
@@ -141,7 +144,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
         AppSizes.screenHPadding,
@@ -168,7 +171,7 @@ class _SectionHeader extends StatelessWidget {
               color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
             ),
-            child: Text('$count', style: Theme.of(context).textTheme.labelSmall),
+            child: Text('$count', style: context.textStyles.labelSmall),
           ),
         ],
       ),
@@ -197,20 +200,24 @@ class _CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = ColorUtils.fromHex(category.colorHex);
     final icon = CategoryIconMapper.fromName(category.iconName);
-    return Card(
+    return GlassCard(
+      showShadow: true,
+      onTap: onTap,
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
       ),
       child: ListTile(
-        leading: Container(
-          width: AppSizes.iconContainerLg,
-          height: AppSizes.iconContainerLg,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: AppSizes.opacityLight),
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        leading: GlassCard(
+          tier: GlassTier.inset,
+          padding: EdgeInsets.zero,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+          tintColor: color.withValues(alpha: AppSizes.opacityLight),
+          child: SizedBox(
+            width: AppSizes.iconContainerLg,
+            height: AppSizes.iconContainerLg,
+            child: Icon(icon, color: ColorUtils.contrastColor(color), size: AppSizes.iconSm),
           ),
-          child: Icon(icon, color: ColorUtils.contrastColor(color), size: AppSizes.iconSm),
         ),
         title: Text(category.displayName(context.languageCode)),
         subtitle: category.groupType != null
@@ -219,7 +226,7 @@ class _CategoryTile extends StatelessWidget {
         trailing: category.isDefault
             ? Chip(
                 label: Text(context.l10n.category_default_chip),
-                labelStyle: Theme.of(context).textTheme.labelSmall,
+                labelStyle: context.textStyles.labelSmall,
                 padding: EdgeInsets.zero,
                 visualDensity: VisualDensity.compact,
               )
@@ -227,7 +234,7 @@ class _CategoryTile extends StatelessWidget {
                 icon: Icon(
                   AppIcons.delete,
                   size: AppSizes.iconSm,
-                  color: Theme.of(context).colorScheme.error,
+                  color: context.colors.error,
                 ),
                 tooltip: context.l10n.common_delete,
                 onPressed: onDelete,

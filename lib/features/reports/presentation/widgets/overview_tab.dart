@@ -51,10 +51,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
                 vertical: AppSizes.sm,
               ),
               child: SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 3, label: Text('3M')),
-                  ButtonSegment(value: 6, label: Text('6M')),
-                  ButtonSegment(value: 12, label: Text('1Y')),
+                segments: [
+                  ButtonSegment(value: 3, label: Text(context.l10n.period_3_months)),
+                  ButtonSegment(value: 6, label: Text(context.l10n.period_6_months)),
+                  ButtonSegment(value: 12, label: Text(context.l10n.period_1_year)),
                 ],
                 selected: {_months},
                 onSelectionChanged: (v) => setState(() => _months = v.first),
@@ -172,7 +172,7 @@ class _SummaryTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: context.textStyles.bodySmall?.copyWith(
                   color: color,
                 ),
             maxLines: 1,
@@ -181,7 +181,7 @@ class _SummaryTile extends StatelessWidget {
           const SizedBox(height: AppSizes.xs),
           Text(
             MoneyFormatter.formatAmount(amount),
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            style: context.textStyles.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -222,8 +222,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
               final label = rodIdx == 0 ? context.l10n.dashboard_income : context.l10n.dashboard_expense;
               return BarTooltipItem(
                 '$label\n${MoneyFormatter.format(rod.toY.toInt())}',
-                Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                context.textStyles.bodySmall!.copyWith(
+                      color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
               );
@@ -245,8 +245,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(end: 4),
                   child: Text(
                     MoneyFormatter.formatCompact(value.toInt()),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    style: context.textStyles.bodySmall?.copyWith(
+                          color: context.colors.onSurfaceVariant,
                           fontSize: AppSizes.chartLabelSize,
                         ),
                   ),
@@ -266,9 +266,9 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
                     '${totals[idx].month}/${totals[idx].year % 100}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           fontSize: AppSizes.chartLabelSize,
-                          color: Theme.of(context).colorScheme.outline,
+                          color: context.colors.outline,
                         ),
                   ),
                 );
@@ -279,7 +279,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
         gridData: FlGridData(
           drawVerticalLine: false,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(
+            color: context.colors.outlineVariant.withValues(
                   alpha: AppSizes.opacityMedium,
                 ),
             strokeWidth: 1,
@@ -299,7 +299,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.incomeColor.withValues(alpha: 0.6),
+                    context.appTheme.incomeColor.withValues(alpha: AppSizes.opacityMedium2),
                     context.appTheme.incomeColor,
                   ],
                 ),
@@ -314,7 +314,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.expenseColor.withValues(alpha: 0.6),
+                    context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityMedium2),
                     context.appTheme.expenseColor,
                   ],
                 ),
@@ -344,7 +344,7 @@ class _DailyAverageRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSizes.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(
+        color: context.colors.surfaceContainerHighest.withValues(
               alpha: 0.4,
             ),
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
@@ -354,11 +354,11 @@ class _DailyAverageRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium,
+            style: context.textStyles.bodyMedium,
           ),
           Text(
             MoneyFormatter.format(amount),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: context.textStyles.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
           ),

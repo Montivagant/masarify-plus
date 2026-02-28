@@ -6,12 +6,14 @@ import '../../domain/repositories/i_budget_repository.dart';
 import '../database/app_database.dart';
 import '../database/daos/budget_dao.dart';
 import '../database/daos/transaction_dao.dart';
+import '../database/daos/wallet_dao.dart';
 
 class BudgetRepositoryImpl implements IBudgetRepository {
-  const BudgetRepositoryImpl(this._dao, this._txDao);
+  const BudgetRepositoryImpl(this._dao, this._txDao, this._walletDao);
 
   final BudgetDao _dao;
   final TransactionDao _txDao;
+  final WalletDao _walletDao;
 
   // ── Streams ──────────────────────────────────────────────────────────────
 
@@ -24,14 +26,21 @@ class BudgetRepositoryImpl implements IBudgetRepository {
     final budgetStream = _dao.watchByMonth(year, month);
     final txStream = _txDao.watchByMonth(year, month);
 
-    return Rx.combineLatest2(
+    final walletStream = _walletDao.watchAll();
+
+    return Rx.combineLatest3(
       budgetStream,
       txStream,
-      (List<Budget> budgets, List<Transaction> txns) {
-        // Compute spend per category in Dart — eliminates N+1 DB queries
+      walletStream,
+      (List<Budget> budgets, List<Transaction> txns, List<Wallet> wallets) {
+        // Filter out transactions from archived wallets for consistency
+        // with getByMonth() which uses w.is_archived = 0 in SQL
+        final archivedIds = {
+          for (final w in wallets) if (w.isArchived) w.id,
+        };
         final spendByCat = <int, int>{};
         for (final tx in txns) {
-          if (tx.type == 'expense') {
+          if (tx.type == 'expense' && !archivedIds.contains(tx.walletId)) {
             spendByCat[tx.categoryId] =
                 (spendByCat[tx.categoryId] ?? 0) + tx.amount;
           }

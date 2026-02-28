@@ -55,15 +55,18 @@ class TransactionListSection extends StatelessWidget {
             children: [
               Text(
                 dateLabel,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.labelLarge?.copyWith(
+                      color: context.colors.outline,
                     ),
               ),
               if (onSeeAll != null)
                 TextButton.icon(
                   onPressed: onSeeAll,
                   label: Text(context.l10n.common_all),
-                  icon: const Icon(AppIcons.chevronRight, size: AppSizes.iconXs),
+                  icon: Icon(
+                    context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+                    size: AppSizes.iconXs,
+                  ),
                   iconAlignment: IconAlignment.end,
                   style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,

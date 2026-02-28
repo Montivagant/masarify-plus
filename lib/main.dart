@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'core/services/crash_log_service.dart';
+import 'core/services/glass_config_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/recurring_scheduler.dart';
@@ -40,6 +41,7 @@ Future<void> main() async {
   // race conditions in theme/locale providers.
   final prefs = await SharedPreferences.getInstance();
 
+  await GlassConfig.initialize();
   await NotificationService.initialize();
 
   // Run init tasks before UI mounts, reusing the same container.

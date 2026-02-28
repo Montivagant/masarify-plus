@@ -87,7 +87,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
               width: AppSizes.dragHandleWidth,
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
-                color: Theme.of(ctx).colorScheme.outlineVariant,
+                color: ctx.colors.outlineVariant,
                 borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
@@ -102,7 +102,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   context.l10n.transaction_category_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
             ),
@@ -120,7 +120,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                             : null,
                         onTap: () {
                           setState(() => _categoryId = c.id);
-                          Navigator.pop(ctx);
+                          ctx.pop();
                         },
                       ),
                     )
@@ -155,7 +155,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 height: AppSizes.dragHandleHeight,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Theme.of(ctx).colorScheme.outlineVariant,
+                  color: ctx.colors.outlineVariant,
                   borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                 ),
               ),
@@ -165,7 +165,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 ),
                 child: Text(
                   context.l10n.transaction_wallet_picker,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
               ),
               Flexible(
@@ -179,7 +179,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                           _walletId == w.id ? const Icon(AppIcons.check) : null,
                       onTap: () {
                         setState(() => _walletId = w.id);
-                        Navigator.pop(ctx);
+                        ctx.pop();
                       },
                     ),
                   ).toList(),
@@ -236,7 +236,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
         );
       }
 
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       context.pop();
     } catch (_) {
@@ -254,7 +254,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editId != null;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final categories =
         ref.watch(expenseCategoriesProvider).valueOrNull ?? [];
     final selectedCat =
@@ -331,7 +331,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                         selectedCat?.displayName(context.languageCode) ??
                             context.l10n.transaction_category_picker,
                         style: selectedCat != null
-                            ? Theme.of(context).textTheme.bodyLarge
+                            ? context.textStyles.bodyLarge
                             : TextStyle(color: cs.outline),
                       ),
                     ),
@@ -372,7 +372,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                         selectedWallet?.name ??
                             context.l10n.transaction_wallet_picker,
                         style: selectedWallet != null
-                            ? Theme.of(context).textTheme.bodyLarge
+                            ? context.textStyles.bodyLarge
                             : TextStyle(color: cs.outline),
                       ),
                     ),

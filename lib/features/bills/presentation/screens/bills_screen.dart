@@ -15,6 +15,7 @@ import '../../../../domain/entities/bill_entity.dart';
 import '../../../../shared/providers/bill_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -122,7 +123,7 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        style: context.textStyles.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -150,7 +151,7 @@ class _BillCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final cat = categories
         .where((c) => c.id == bill.categoryId)
         .firstOrNull;
@@ -212,15 +213,17 @@ class _BillCard extends ConsumerWidget {
           child: Row(
             children: [
               // Category icon badge
-              Container(
-                width: AppSizes.iconContainerLg,
-                height: AppSizes.iconContainerLg,
-                decoration: BoxDecoration(
-                  color: catColor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusSm),
+              GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius:
+                    BorderRadius.circular(AppSizes.borderRadiusSm),
+                tintColor: catColor.withValues(alpha: AppSizes.opacityLight2),
+                child: SizedBox(
+                  width: AppSizes.iconContainerLg,
+                  height: AppSizes.iconContainerLg,
+                  child: Icon(catIcon, size: AppSizes.iconMd, color: catColor),
                 ),
-                child: Icon(catIcon, size: AppSizes.iconMd, color: catColor),
               ),
               const SizedBox(width: AppSizes.md),
               // Name + due date
@@ -231,7 +234,7 @@ class _BillCard extends ConsumerWidget {
                     Text(
                       bill.name,
                       style:
-                          Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          context.textStyles.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w600,
                               ),
                       maxLines: 1,
@@ -271,7 +274,7 @@ class _BillCard extends ConsumerWidget {
                 children: [
                   Text(
                     MoneyFormatter.formatAmount(bill.amount),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: context.textStyles.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
@@ -283,14 +286,14 @@ class _BillCard extends ConsumerWidget {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: context.appTheme.incomeColor.withValues(alpha: 0.12),
+                        color: context.appTheme.incomeColor.withValues(alpha: AppSizes.opacityLight2),
                         borderRadius:
                             BorderRadius.circular(AppSizes.borderRadiusSm),
                       ),
                       child: Text(
                         context.l10n.bills_paid,
                         style:
-                            Theme.of(context).textTheme.labelSmall?.copyWith(
+                            context.textStyles.labelSmall?.copyWith(
                                   color: context.appTheme.incomeColor,
                                 ),
                       ),
@@ -332,11 +335,11 @@ class _BillCard extends ConsumerWidget {
         content: Text(context.l10n.bill_mark_paid_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             child: Text(context.l10n.common_confirm),
           ),
         ],
@@ -375,20 +378,15 @@ class _BillCard extends ConsumerWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => ctx.pop(),
             child: Text(context.l10n.common_cancel),
           ),
-          // H3 fix: if paid bill has linked tx, also delete the transaction
+          // Bill repo delete() handles linked transaction cleanup atomically
           TextButton(
             onPressed: () async {
-              if (hasTx) {
-                await ref
-                    .read(transactionRepositoryProvider)
-                    .delete(bill.linkedTransactionId!);
-              }
               await ref.read(billRepositoryProvider).delete(bill.id);
               HapticFeedback.mediumImpact();
-              if (ctx.mounted) Navigator.pop(ctx);
+              if (ctx.mounted) ctx.pop();
             },
             child: Text(
               context.l10n.common_delete,

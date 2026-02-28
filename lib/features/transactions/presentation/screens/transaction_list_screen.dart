@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
-import '../../../../core/utils/category_icon_mapper.dart';
-import '../../../../core/utils/color_utils.dart';
+import '../../../../core/utils/category_resolver.dart';
+import '../../../../core/utils/transaction_grouper.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -54,7 +57,7 @@ class _TransactionListScreenState
               ),
               child: Text(
                 context.l10n.transaction_filter_type_title,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             _FilterTile(
@@ -63,7 +66,7 @@ class _TransactionListScreenState
               selected: _filterType == 'all',
               onTap: () {
                 setState(() => _filterType = 'all');
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             _FilterTile(
@@ -72,7 +75,7 @@ class _TransactionListScreenState
               selected: _filterType == 'expense',
               onTap: () {
                 setState(() => _filterType = 'expense');
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             _FilterTile(
@@ -81,7 +84,7 @@ class _TransactionListScreenState
               selected: _filterType == 'income',
               onTap: () {
                 setState(() => _filterType = 'income');
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             const SizedBox(height: AppSizes.md),
@@ -102,14 +105,14 @@ class _TransactionListScreenState
         content: Text(context.l10n.transaction_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             child: Text(
               context.l10n.common_delete,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: TextStyle(color: context.colors.error),
             ),
           ),
         ],
@@ -121,13 +124,14 @@ class _TransactionListScreenState
     final deleted = await repo.delete(tx.id);
     if (!deleted || !mounted) return;
 
+    HapticFeedback.mediumImpact();
     SnackHelper.showSuccess(
       context,
       context.l10n.transaction_deleted_message(tx.title),
-      duration: const Duration(seconds: 5),
+      duration: AppDurations.snackbarLong,
       action: SnackBarAction(
         label: context.l10n.transaction_undo,
-        textColor: Theme.of(context).colorScheme.onPrimary,
+        textColor: context.colors.onPrimary,
         onPressed: () async {
           // H12 fix: restore with original ID so budget/goal references
           // aren't orphaned (previously created a new ID via repo.create)
@@ -144,18 +148,12 @@ class _TransactionListScreenState
     final allTxs = ref.watch(recentTransactionsProvider);
     final categories = ref.watch(categoriesProvider);
 
-    ({IconData icon, Color color, String name}) resolveCategory(int catId) {
-      final catList = categories.valueOrNull ?? [];
-      final cat = catList.where((c) => c.id == catId).firstOrNull;
-      if (cat == null) {
-        return (icon: AppIcons.category, color: Theme.of(context).colorScheme.outline, name: '?');
-      }
-      return (
-        icon: CategoryIconMapper.fromName(cat.iconName),
-        color: ColorUtils.fromHex(cat.colorHex),
-        name: cat.displayName(context.languageCode),
-      );
-    }
+    ResolvedCategory resolveCat(int catId) => resolveCategory(
+          categoryId: catId,
+          categories: categories.valueOrNull ?? [],
+          fallbackColor: context.colors.outline,
+          languageCode: context.languageCode,
+        );
 
     final filterActive = _filterType != 'all';
 
@@ -168,7 +166,7 @@ class _TransactionListScreenState
             icon: Icon(
               AppIcons.filter,
               color: filterActive
-                  ? Theme.of(context).colorScheme.primary
+                  ? context.colors.primary
                   : null,
             ),
             tooltip: context.l10n.transactions_filter,
@@ -239,7 +237,7 @@ class _TransactionListScreenState
                   );
                 }
 
-                final grouped = _groupTransactions(context, filtered);
+                final grouped = groupTransactionsByDate(context, filtered);
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(
@@ -249,16 +247,26 @@ class _TransactionListScreenState
                   itemCount: grouped.length,
                   itemBuilder: (_, i) {
                     final entry = grouped.entries.elementAt(i);
-                    return TransactionListSection(
+                    final section = TransactionListSection(
                       dateLabel: entry.key,
                       transactions: entry.value,
-                      categoryResolver: resolveCategory,
+                      categoryResolver: resolveCat,
                       onTransactionTap: (tx) =>
                           context.push('/transactions/${tx.id}'),
                       onTransactionDelete: _deleteTransaction,
                       onTransactionEdit: (tx) =>
                           context.push('/transactions/${tx.id}/edit'),
                     );
+                    if (context.reduceMotion) return section;
+                    return section
+                        .animate()
+                        .fadeIn(duration: AppDurations.listItemEntry)
+                        .slideY(
+                          begin: 0.03,
+                          end: 0,
+                          duration: AppDurations.listItemEntry,
+                          curve: Curves.easeOutCubic,
+                        );
                   },
                 );
               },
@@ -278,29 +286,6 @@ class _TransactionListScreenState
     );
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────
-
-  Map<String, List<TransactionEntity>> _groupTransactions(
-    BuildContext context,
-    List<TransactionEntity> transactions,
-  ) {
-    final map = <String, List<TransactionEntity>>{};
-    for (final tx in transactions) {
-      final label = _dateLabel(context, tx.transactionDate);
-      (map[label] ??= []).add(tx);
-    }
-    return map;
-  }
-
-  String _dateLabel(BuildContext context, DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final txDay = DateTime(date.year, date.month, date.day);
-    final diff = today.difference(txDay).inDays;
-    if (diff == 0) return context.l10n.date_today;
-    if (diff == 1) return context.l10n.date_yesterday;
-    return '${txDay.day}/${txDay.month}/${txDay.year}';
-  }
 }
 
 // ── Filter tile ───────────────────────────────────────────────────────────
@@ -323,7 +308,7 @@ class _FilterTile extends StatelessWidget {
     return ListTile(
       leading: Icon(
         icon,
-        color: selected ? Theme.of(context).colorScheme.primary : null,
+        color: selected ? context.colors.primary : null,
       ),
       title: Text(label),
       trailing: selected ? const Icon(AppIcons.check) : null,

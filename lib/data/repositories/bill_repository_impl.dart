@@ -72,7 +72,9 @@ class BillRepositoryImpl implements IBillRepository {
       );
 
   @override
-  Future<bool> markPaid(int id, DateTime paidAt) => _dao.markPaid(id, paidAt);
+  @Deprecated('Use markPaidAtomic() instead — this bypasses balance adjustment')
+  Future<bool> markPaid(int id, DateTime paidAt) =>
+      throw UnsupportedError('Use markPaidAtomic() to ensure wallet balance is adjusted');
 
   /// H2 fix: atomically create expense transaction + mark bill paid + link them.
   @override

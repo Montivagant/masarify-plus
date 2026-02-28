@@ -88,10 +88,11 @@ class ParserReviewScreen extends ConsumerWidget {
     final approvedMsg = context.l10n.parser_approved_msg;
     final errorMsg = context.l10n.common_error_generic;
 
-    // Resolve AI-suggested category or fall back to default (id=1).
+    // Resolve AI-suggested category or fall back to a matching-type category.
     final enrichment = _parseEnrichment(log.aiEnrichmentJson);
-    var categoryId = 1;
+    final txType = parsed.type;
     var title = log.senderAddress;
+    int? categoryId;
     if (enrichment != null) {
       final match = categories.where(
         (c) => c.iconName == enrichment.categoryIcon,
@@ -99,6 +100,12 @@ class ParserReviewScreen extends ConsumerWidget {
       if (match.isNotEmpty) categoryId = match.first.id;
       if (enrichment.merchant.isNotEmpty) title = enrichment.merchant;
     }
+    // Fall back to a category matching the transaction type
+    categoryId ??= categories
+        .where((c) => c.type == txType || c.type == 'both')
+        .map((c) => c.id)
+        .firstOrNull;
+    if (categoryId == null) return; // no valid category available
 
     HapticFeedback.mediumImpact();
 
@@ -163,7 +170,7 @@ class _PendingLogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     final parsed = NotificationTransactionParser.parse(
       sender: log.senderAddress,
@@ -223,7 +230,7 @@ class _PendingLogCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     displayTitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                     maxLines: 1,
@@ -233,7 +240,7 @@ class _PendingLogCard extends StatelessWidget {
                 if (parsed != null)
                   Text(
                     amount,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    style: context.textStyles.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: isIncome
                               ? context.appTheme.incomeColor
@@ -249,7 +256,7 @@ class _PendingLogCard extends StatelessWidget {
               enrichment?.note.isNotEmpty == true
                   ? enrichment!.note
                   : log.body,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              style: context.textStyles.bodySmall?.copyWith(
                     color: cs.outline,
                   ),
               maxLines: 3,

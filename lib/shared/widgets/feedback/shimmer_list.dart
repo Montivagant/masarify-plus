@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 
 /// Shimmer skeleton loader for list screens.
 /// Shows [itemCount] placeholder rows matching typical transaction card height.
@@ -17,7 +18,7 @@ class ShimmerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final baseColor = cs.surfaceContainerHighest;
     final highlightColor = cs.surfaceContainerLow;
 
@@ -46,7 +47,7 @@ class _ShimmerItem extends StatelessWidget {
       height: height,
       padding: const EdgeInsets.all(AppSizes.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        color: context.colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
       ),
       child: Row(
@@ -56,7 +57,7 @@ class _ShimmerItem extends StatelessWidget {
             width: AppSizes.iconContainerLg,
             height: AppSizes.iconContainerLg,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              color: context.colors.surfaceContainerHighest,
               shape: BoxShape.circle,
             ),
           ),
@@ -70,7 +71,7 @@ class _ShimmerItem extends StatelessWidget {
                   height: AppSizes.shimmerTextHeight,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: context.colors.surfaceContainerHighest,
                     borderRadius:
                         BorderRadius.circular(AppSizes.borderRadiusSm),
                   ),
@@ -80,7 +81,7 @@ class _ShimmerItem extends StatelessWidget {
                   height: AppSizes.shimmerTextHeightSm,
                   width: AppSizes.shimmerWidthLg,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: context.colors.surfaceContainerHighest,
                     borderRadius:
                         BorderRadius.circular(AppSizes.borderRadiusSm),
                   ),
@@ -97,7 +98,7 @@ class _ShimmerItem extends StatelessWidget {
                 height: AppSizes.shimmerTextHeight,
                 width: AppSizes.shimmerWidthSm,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: context.colors.surfaceContainerHighest,
                   borderRadius:
                       BorderRadius.circular(AppSizes.borderRadiusSm),
                 ),

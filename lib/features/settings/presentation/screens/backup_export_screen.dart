@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -25,13 +30,25 @@ class BackupExportScreen extends ConsumerStatefulWidget {
 class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   bool _busy = false;
 
+  /// Delete temp export file after sharing to avoid leaking financial data.
+  void _deleteTempFile(String? path) {
+    if (path == null) return;
+    try {
+      final file = File(path);
+      if (file.existsSync()) file.deleteSync();
+    } catch (_) {
+      // Best-effort cleanup — don't crash if delete fails
+    }
+  }
+
   // ── Export JSON ──────────────────────────────────────────────────────────
 
   Future<void> _exportJson() async {
     if (_busy) return;
     setState(() => _busy = true);
+    String? path;
     try {
-      final path = await ref.read(backupServiceProvider).exportToJson();
+      path = await ref.read(backupServiceProvider).exportToJson();
       if (!mounted) return;
       await Share.shareXFiles([XFile(path)]);
       if (mounted) {
@@ -42,6 +59,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         SnackHelper.showError(context, e.toString());
       }
     } finally {
+      _deleteTempFile(path);
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -91,13 +109,13 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         content: Text(l10n.backup_confirm_restore_body),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(l10n.common_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(ctx).colorScheme.error,
+              backgroundColor: ctx.colors.error,
             ),
             child: Text(l10n.backup_restore),
           ),
@@ -114,9 +132,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     if (picked == null || _busy) return;
 
     setState(() => _busy = true);
+    String? path;
     try {
-      final path =
-          await ref.read(backupServiceProvider).exportTransactionsToCsv(
+      path = await ref.read(backupServiceProvider).exportTransactionsToCsv(
                 year: picked.year,
                 month: picked.month,
               );
@@ -130,6 +148,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         SnackHelper.showError(context, e.toString());
       }
     } finally {
+      _deleteTempFile(path);
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -141,8 +160,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     if (picked == null || _busy) return;
 
     setState(() => _busy = true);
+    String? path;
     try {
-      final path = await ref.read(pdfExportServiceProvider).generate(
+      path = await ref.read(pdfExportServiceProvider).generate(
             year: picked.year,
             month: picked.month,
           );
@@ -156,6 +176,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         SnackHelper.showError(context, e.toString());
       }
     } finally {
+      _deleteTempFile(path);
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -177,7 +198,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Scaffold(
       appBar: AppAppBar(title: l10n.backup_title),
@@ -190,37 +211,49 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
               child: LinearProgressIndicator(),
             ),
           const SizedBox(height: AppSizes.sm),
-          _ActionTile(
-            icon: AppIcons.export_,
-            label: l10n.backup_export_json,
-            subtitle: l10n.backup_export_json_subtitle,
-            iconColor: cs.primary,
-            onTap: _busy ? null : _exportJson,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            child: GlassSection(
+              header: l10n.backup_title,
+              children: [
+                _ActionTile(
+                  icon: AppIcons.export_,
+                  label: l10n.backup_export_json,
+                  subtitle: l10n.backup_export_json_subtitle,
+                  iconColor: cs.primary,
+                  onTap: _busy ? null : _exportJson,
+                ),
+                _ActionTile(
+                  icon: AppIcons.import_,
+                  label: l10n.backup_restore,
+                  subtitle: l10n.backup_restore_subtitle,
+                  iconColor: cs.tertiary,
+                  onTap: _busy ? null : _restoreJson,
+                ),
+              ],
+            ),
           ),
-          _ActionTile(
-            icon: AppIcons.import_,
-            label: l10n.backup_restore,
-            subtitle: l10n.backup_restore_subtitle,
-            iconColor: cs.tertiary,
-            onTap: _busy ? null : _restoreJson,
-          ),
-          const Divider(
-            indent: AppSizes.screenHPadding,
-            endIndent: AppSizes.screenHPadding,
-          ),
-          _ActionTile(
-            icon: AppIcons.transactions,
-            label: l10n.backup_export_csv,
-            subtitle: l10n.backup_export_csv_subtitle,
-            iconColor: cs.secondary,
-            onTap: _busy ? null : _exportCsv,
-          ),
-          _ActionTile(
-            icon: AppIcons.analytics,
-            label: l10n.backup_export_pdf,
-            subtitle: l10n.backup_export_pdf_subtitle,
-            iconColor: cs.secondary,
-            onTap: _busy ? null : _exportPdf,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            child: GlassSection(
+              header: l10n.backup_export_csv,
+              children: [
+                _ActionTile(
+                  icon: AppIcons.transactions,
+                  label: l10n.backup_export_csv,
+                  subtitle: l10n.backup_export_csv_subtitle,
+                  iconColor: cs.secondary,
+                  onTap: _busy ? null : _exportCsv,
+                ),
+                _ActionTile(
+                  icon: AppIcons.analytics,
+                  label: l10n.backup_export_pdf,
+                  subtitle: l10n.backup_export_pdf_subtitle,
+                  iconColor: cs.secondary,
+                  onTap: _busy ? null : _exportPdf,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -245,21 +278,23 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final enabled = onTap != null;
 
     return ListTile(
-      leading: Container(
-        width: AppSizes.colorSwatchSize,
-        height: AppSizes.colorSwatchSize,
-        decoration: BoxDecoration(
-          color: (enabled ? iconColor : cs.outline).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-        ),
-        child: Icon(
-          icon,
-          size: AppSizes.iconSm,
-          color: enabled ? iconColor : cs.outline,
+      leading: GlassCard(
+        tier: GlassTier.inset,
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+        tintColor: (enabled ? iconColor : cs.outline).withValues(alpha: AppSizes.opacityLight2),
+        child: SizedBox(
+          width: AppSizes.colorSwatchSize,
+          height: AppSizes.colorSwatchSize,
+          child: Icon(
+            icon,
+            size: AppSizes.iconSm,
+            color: enabled ? iconColor : cs.outline,
+          ),
         ),
       ),
       title: Text(

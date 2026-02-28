@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
+import 'glass_card.dart';
 
 /// Budget category card with an animated progress bar.
 ///
@@ -41,90 +43,87 @@ class BudgetProgressCard extends StatelessWidget {
     final isOver = spentPiastres > limitPiastres;
     final pct = (_fraction * 100).clamp(0, 100).round();
 
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.cardRadius),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return GlassCard(
+      showShadow: true,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(categoryIcon, size: AppSizes.iconSm),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: Text(
-                      categoryName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Text(
-                    isOver ? context.l10n.budget_exceeded : '$pct%',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: barColor,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.sm),
-              Semantics(
-                label: '$categoryName: $pct%',
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: _fraction.clamp(0.0, 1.0)),
-                  duration: context.reduceMotion
-                      ? Duration.zero
-                      : const Duration(milliseconds: 600),
-                  curve: Curves.easeOutCubic,
-                  builder: (_, value, __) => ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusFull),
-                    child: LinearProgressIndicator(
-                      value: value,
-                      minHeight: AppSizes.progressBarHeight,
-                      backgroundColor: Theme.of(context)
-                          .colorScheme
-                          .surfaceContainerHighest,
-                      valueColor: AlwaysStoppedAnimation(barColor),
-                    ),
-                  ),
+              Icon(categoryIcon, size: AppSizes.iconSm),
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: Text(
+                  categoryName,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: AppSizes.xs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    MoneyFormatter.formatCompact(
-                      spentPiastres,
-                      currency: currencyCode,
+              Text(
+                isOver ? context.l10n.budget_exceeded : '$pct%',
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: barColor,
+                      fontWeight: FontWeight.w700,
                     ),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: barColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  Text(
-                    MoneyFormatter.formatCompact(
-                      limitPiastres,
-                      currency: currencyCode,
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSizes.sm),
+          RepaintBoundary(
+            child: Semantics(
+              label: '$categoryName: $pct%',
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: _fraction.clamp(0.0, 1.0)),
+                duration: context.reduceMotion
+                    ? Duration.zero
+                    : AppDurations.countUp,
+                curve: Curves.easeOutCubic,
+                builder: (_, value, __) => ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusFull),
+                  child: LinearProgressIndicator(
+                    value: value,
+                    minHeight: AppSizes.progressBarHeight,
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
+                    valueColor: AlwaysStoppedAnimation(barColor),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.xs),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                MoneyFormatter.formatCompact(
+                  spentPiastres,
+                  currency: currencyCode,
+                ),
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: barColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              Text(
+                MoneyFormatter.formatCompact(
+                  limitPiastres,
+                  currency: currencyCode,
+                ),
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
+                    ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

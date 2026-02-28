@@ -7,6 +7,8 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../constants/app_durations.dart';
+
 /// Voice input states.
 enum VoiceState { idle, listening, processing, error }
 
@@ -186,7 +188,7 @@ class VoiceInputService {
 
     // Safety: if _onStatus never fires, force terminal state after 2s.
     _processingTimeout?.cancel();
-    _processingTimeout = Timer(const Duration(seconds: 2), _emitTerminalState);
+    _processingTimeout = Timer(AppDurations.voiceTimeout, _emitTerminalState);
   }
 
   /// Cancel listening without processing.
@@ -271,7 +273,7 @@ class VoiceInputService {
     _autoRestarting = true;
 
     // WS-2 fix: increased from 200ms to 500ms to avoid error_recognizer_busy.
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(AppDurations.delaySmall);
 
     if (_userRequestedStop) {
       _autoRestarting = false;

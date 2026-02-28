@@ -30,7 +30,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Text(
         title,
-        style: Theme.of(context).textTheme.headlineMedium,
+        style: context.textStyles.headlineMedium,
         overflow: TextOverflow.ellipsis,
       ),
       centerTitle: centerTitle,

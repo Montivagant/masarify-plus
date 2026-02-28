@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme_extension.dart';
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 
@@ -11,7 +12,7 @@ abstract final class SnackHelper {
     BuildContext context,
     String message, {
     SnackBarAction? action,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = AppDurations.snackbarDefault,
   }) {
     _show(
       context,
@@ -27,7 +28,7 @@ abstract final class SnackHelper {
     BuildContext context,
     String message, {
     SnackBarAction? action,
-    Duration duration = const Duration(seconds: 4),
+    Duration duration = AppDurations.snackbarError,
   }) {
     _show(
       context,
@@ -43,13 +44,13 @@ abstract final class SnackHelper {
     BuildContext context,
     String message, {
     SnackBarAction? action,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = AppDurations.snackbarDefault,
   }) {
     _show(
       context,
       message: message,
       icon: AppIcons.infoFilled,
-      color: Theme.of(context).colorScheme.primary,
+      color: context.colors.primary,
       action: action,
       duration: duration,
     );
@@ -63,7 +64,7 @@ abstract final class SnackHelper {
     SnackBarAction? action,
     required Duration duration,
   }) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -75,7 +76,7 @@ abstract final class SnackHelper {
               Flexible(
                 child: Text(
                   message,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: context.textStyles.bodyMedium?.copyWith(
                         color: cs.onPrimary,
                       ),
                   maxLines: 2,

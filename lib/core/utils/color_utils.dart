@@ -27,24 +27,4 @@ abstract final class ColorUtils {
     return luminance > 0.35 ? Colors.black : Colors.white;
   }
 
-  /// Returns a background color derived from [brandColor] with the given
-  /// [alpha], ensuring minimum visual contrast against [surface].
-  /// If the brand color is too dark for the alpha level, the alpha is
-  /// boosted to maintain visibility.
-  static Color safeBackgroundFor(
-    Color brandColor, {
-    double alpha = 0.15,
-    Color surface = Colors.white,
-  }) {
-    final blended = Color.lerp(surface, brandColor, alpha)!;
-    // Check if the result is distinguishable from surface
-    final surfaceLum = surface.computeLuminance();
-    final blendedLum = blended.computeLuminance();
-    final contrast = (surfaceLum + 0.05) / (blendedLum + 0.05);
-    if (contrast < 1.1 && contrast > 0.9) {
-      // Too similar — boost alpha
-      return Color.lerp(surface, brandColor, alpha + 0.1)!;
-    }
-    return blended;
-  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 
 /// Masarify standard text field.
 /// RTL-safe, has floating label, error state, and semantic label.
@@ -66,7 +67,7 @@ class AppTextField extends StatelessWidget {
         readOnly: readOnly,
         autofocus: autofocus,
         focusNode: focusNode,
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: context.textStyles.bodyLarge,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,

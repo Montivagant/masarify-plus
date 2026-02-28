@@ -54,7 +54,7 @@ class AppDatePicker extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
+              color: context.colors.outlineVariant,
             ),
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
           ),
@@ -64,12 +64,12 @@ class AppDatePicker extends StatelessWidget {
               Icon(
                 AppIcons.calendar,
                 size: AppSizes.iconSm,
-                color: Theme.of(context).colorScheme.primary,
+                color: context.colors.primary,
               ),
               const SizedBox(width: AppSizes.xs),
               Text(
                 _formatDate(context, selectedDate),
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: context.textStyles.bodyMedium,
               ),
             ],
           ),

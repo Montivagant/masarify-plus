@@ -104,25 +104,25 @@ class _AmountInputState extends State<AmountInput> {
   Widget build(BuildContext context) {
     final piastres = _parsePiastres();
     final isZero = piastres == 0;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final effectiveColor = widget.textColor;
 
     final textStyle = widget.compact
-        ? Theme.of(context).textTheme.titleMedium?.copyWith(
+        ? context.textStyles.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
             )
-        : Theme.of(context).textTheme.displaySmall?.copyWith(
+        : context.textStyles.displaySmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
             );
 
     final hintStyle = widget.compact
-        ? Theme.of(context).textTheme.titleMedium?.copyWith(
+        ? context.textStyles.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: cs.outline.withValues(alpha: AppSizes.opacityMedium),
             )
-        : Theme.of(context).textTheme.displaySmall?.copyWith(
+        : context.textStyles.displaySmall?.copyWith(
               fontWeight: FontWeight.w700,
               color: cs.outline.withValues(alpha: AppSizes.opacityMedium),
             );

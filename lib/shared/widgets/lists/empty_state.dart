@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 import '../buttons/app_button.dart';
 
 /// M8 fix: removed stale STUB comment — fully implemented.
@@ -34,8 +35,8 @@ class EmptyState extends StatelessWidget {
     final iconSize = compact ? AppSizes.iconLg : AppSizes.iconXl3;
     final padding = compact ? AppSizes.md : AppSizes.xl;
     final titleStyle = compact
-        ? Theme.of(context).textTheme.titleSmall
-        : Theme.of(context).textTheme.titleLarge;
+        ? context.textStyles.titleSmall
+        : context.textStyles.titleLarge;
 
     return Center(
       child: Padding(
@@ -46,7 +47,7 @@ class EmptyState extends StatelessWidget {
             Icon(
               AppIcons.inbox,
               size: iconSize,
-              color: Theme.of(context).colorScheme.outline,
+              color: context.colors.outline,
             ),
             const SizedBox(height: AppSizes.sm),
             Text(
@@ -58,8 +59,8 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: AppSizes.xs),
               Text(
                 subtitle!,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
                     ),
                 textAlign: TextAlign.center,
               ),

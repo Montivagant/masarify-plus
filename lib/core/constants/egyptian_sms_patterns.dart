@@ -1,3 +1,5 @@
+import '../utils/arabic_number_parser.dart';
+
 /// Regex patterns for Egyptian bank and wallet SMS parsing.
 /// Used by SmsTransactionParser and NotificationTransactionParser.
 abstract final class EgyptianSmsPatterns {
@@ -42,18 +44,9 @@ abstract final class EgyptianSmsPatterns {
       r'(?:EGP|LE|جنيه|ج\.م)\s*([\d٠-٩]{1,3}(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)';
 
   /// Normalize Eastern Arabic numerals to Western digits.
-  static String normalizeDigits(String input) {
-    const mapping = {
-      '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
-      '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
-      '،': ',',
-    };
-    var result = input;
-    for (final entry in mapping.entries) {
-      result = result.replaceAll(entry.key, entry.value);
-    }
-    return result;
-  }
+  /// Delegates to canonical [ArabicNumberParser.normalizeDigits].
+  static String normalizeDigits(String input) =>
+      ArabicNumberParser.normalizeDigits(input);
 
   /// Credit/income patterns
   static const List<String> creditPatterns = [

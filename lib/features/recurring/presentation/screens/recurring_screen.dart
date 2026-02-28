@@ -15,6 +15,7 @@ import '../../../../domain/entities/recurring_rule_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -99,8 +100,8 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
+        style: context.textStyles.labelLarge?.copyWith(
+              color: context.colors.outline,
             ),
       ),
     );
@@ -136,7 +137,7 @@ class _RecurringCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final cat = categories
         .where((c) => c.id == rule.categoryId)
         .firstOrNull;
@@ -194,15 +195,17 @@ class _RecurringCard extends ConsumerWidget {
           child: Row(
             children: [
               // Category icon badge
-              Container(
-                width: AppSizes.iconContainerLg,
-                height: AppSizes.iconContainerLg,
-                decoration: BoxDecoration(
-                  color: catColor.withValues(alpha: 0.12),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusSm),
+              GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius:
+                    BorderRadius.circular(AppSizes.borderRadiusSm),
+                tintColor: catColor.withValues(alpha: AppSizes.opacityLight2),
+                child: SizedBox(
+                  width: AppSizes.iconContainerLg,
+                  height: AppSizes.iconContainerLg,
+                  child: Icon(catIcon, size: AppSizes.iconMd, color: ColorUtils.contrastColor(catColor)),
                 ),
-                child: Icon(catIcon, size: AppSizes.iconMd, color: ColorUtils.contrastColor(catColor)),
               ),
               const SizedBox(width: AppSizes.md),
               // Title + frequency + next due
@@ -212,7 +215,7 @@ class _RecurringCard extends ConsumerWidget {
                   children: [
                     Text(
                       rule.title,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: context.textStyles.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                       maxLines: 1,
@@ -230,7 +233,7 @@ class _RecurringCard extends ConsumerWidget {
                         Text(
                           _frequencyLabel(context, rule.frequency),
                           style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                              context.textStyles.bodySmall?.copyWith(
                                     color: cs.outline,
                                   ),
                         ),
@@ -238,7 +241,7 @@ class _RecurringCard extends ConsumerWidget {
                         Text(
                           '${context.l10n.recurring_next_due}: ${_formatDate(rule.nextDueDate)}',
                           style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                              context.textStyles.bodySmall?.copyWith(
                                     color: cs.outline,
                                   ),
                         ),
@@ -254,7 +257,7 @@ class _RecurringCard extends ConsumerWidget {
                 children: [
                   Text(
                     '$prefix ${MoneyFormatter.formatAmount(rule.amount)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: context.textStyles.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: typeColor,
                         ),
@@ -291,11 +294,11 @@ class _RecurringCard extends ConsumerWidget {
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             child: Text(context.l10n.common_confirm),
           ),
         ],
@@ -342,14 +345,14 @@ class _RecurringCard extends ConsumerWidget {
         content: Text(context.l10n.recurring_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => ctx.pop(),
             child: Text(context.l10n.common_cancel),
           ),
           TextButton(
             onPressed: () {
               ref.read(recurringRuleRepositoryProvider).delete(rule.id);
               HapticFeedback.mediumImpact();
-              Navigator.pop(ctx);
+              ctx.pop();
             },
             child: Text(
               context.l10n.common_delete,

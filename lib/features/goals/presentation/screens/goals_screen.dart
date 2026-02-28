@@ -12,6 +12,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/savings_goal_entity.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -87,7 +88,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(
         AppSizes.screenHPadding,
@@ -111,7 +112,7 @@ class _SectionHeader extends StatelessWidget {
               color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
             ),
-            child: Text('$count', style: Theme.of(context).textTheme.labelSmall),
+            child: Text('$count', style: context.textStyles.labelSmall),
           ),
         ],
       ),
@@ -131,107 +132,107 @@ class _GoalCard extends StatelessWidget {
     final pct = (goal.progressFraction * 100).clamp(0, 100).round();
     final daysLeft = goal.deadline?.difference(DateTime.now()).inDays;
 
-    return Card(
+    return GlassCard(
+      showShadow: true,
+      onTap: onTap,
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSizes.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: AppSizes.iconContainerLg,
-                    height: AppSizes.iconContainerLg,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: AppSizes.opacityLight2),
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadiusMd),
-                    ),
-                    child: Icon(icon, color: color, size: AppSizes.iconSm),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          goal.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        if (daysLeft != null)
-                          Text(
-                            daysLeft > 0
-                                ? context.l10n.goal_days_remaining(daysLeft)
-                                : goal.isCompleted
-                                    ? context.l10n.goal_completed_chip
-                                    : context.l10n.goal_overdue,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    '$pct%',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.sm),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: goal.progressFraction),
-                  duration: AppDurations.countUp,
-                  curve: Curves.easeOutCubic,
-                  builder: (_, value, __) => LinearProgressIndicator(
-                    value: value,
-                    minHeight: 8,
-                    backgroundColor:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation(color),
-                  ),
+              GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+                tintColor: color.withValues(alpha: AppSizes.opacityLight2),
+                child: SizedBox(
+                  width: AppSizes.iconContainerLg,
+                  height: AppSizes.iconContainerLg,
+                  child: Icon(icon, color: color, size: AppSizes.iconSm),
                 ),
               ),
-              const SizedBox(height: AppSizes.xs),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    MoneyFormatter.formatCompact(goal.currentAmount),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: color,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                  Text(
-                    MoneyFormatter.formatCompact(goal.targetAmount),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                  ),
-                ],
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      goal.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    if (daysLeft != null)
+                      Text(
+                        daysLeft > 0
+                            ? context.l10n.goal_days_remaining(daysLeft)
+                            : goal.isCompleted
+                                ? context.l10n.goal_completed_chip
+                                : context.l10n.goal_overdue,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                              color: context.colors.outline,
+                            ),
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                '$pct%',
+                style: context.textStyles.titleMedium?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSizes.sm),
+          RepaintBoundary(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: goal.progressFraction),
+                duration: context.reduceMotion
+                    ? Duration.zero
+                    : AppDurations.countUp,
+                curve: Curves.easeOutCubic,
+                builder: (_, value, __) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 8,
+                  backgroundColor:
+                      context.colors.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation(color),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.xs),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                MoneyFormatter.formatCompact(goal.currentAmount),
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              Text(
+                MoneyFormatter.formatCompact(goal.targetAmount),
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
+                    ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

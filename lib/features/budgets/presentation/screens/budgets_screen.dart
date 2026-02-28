@@ -15,6 +15,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/budget_progress_card.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -85,14 +86,14 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
         content: Text(context.l10n.budget_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           AppButton(
             label: context.l10n.common_delete,
             variant: AppButtonVariant.danger,
             isFullWidth: false,
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
           ),
         ],
       ),
@@ -174,9 +175,9 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                               onPressed: (_) =>
                                   _confirmDeleteBudget(context, budget.id),
                               backgroundColor:
-                                  Theme.of(context).colorScheme.error,
+                                  context.colors.error,
                               foregroundColor:
-                                  Theme.of(context).colorScheme.onError,
+                                  context.colors.onError,
                               icon: AppIcons.delete,
                               label: context.l10n.common_delete,
                               borderRadius: BorderRadius.circular(
@@ -240,7 +241,7 @@ class _MonthNavigator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(AppIcons.chevronRight),
+            icon: Icon(context.isRtl ? AppIcons.chevronRight : AppIcons.chevronLeft),
             onPressed: onPrev,
             tooltip: context.l10n.month_previous,
           ),
@@ -252,7 +253,7 @@ class _MonthNavigator extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           IconButton(
-            icon: const Icon(AppIcons.chevronLeft),
+            icon: Icon(context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight),
             onPressed: onNext,
             tooltip: context.l10n.month_next,
           ),
@@ -269,16 +270,13 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final remaining = totalLimit - totalSpent;
     final isOver = remaining < 0;
-    return Container(
+    return GlassCard(
+      showShadow: true,
       margin: const EdgeInsets.symmetric(vertical: AppSizes.screenHPadding),
-      padding: const EdgeInsets.all(AppSizes.md),
-      decoration: BoxDecoration(
-        color: cs.primaryContainer,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-      ),
+      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
       child: Row(
         children: [
           Expanded(
@@ -326,14 +324,14 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: context.textStyles.titleMedium?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w700,
               ),
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          style: context.textStyles.bodySmall?.copyWith(
                 color: color.withValues(alpha: AppSizes.opacityStrong),
               ),
         ),

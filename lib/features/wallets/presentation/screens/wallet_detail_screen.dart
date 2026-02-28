@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,16 +7,16 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
-import '../../../../core/utils/category_icon_mapper.dart';
+import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
-import '../../../../domain/entities/transaction_entity.dart';
+import '../../../../core/utils/transaction_grouper.dart';
 import '../../../../shared/providers/category_provider.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
@@ -32,18 +33,12 @@ class WalletDetailScreen extends ConsumerWidget {
     final txAsync = ref.watch(transactionsByWalletProvider(id));
     final categories = ref.watch(categoriesProvider);
 
-    ({IconData icon, Color color, String name}) resolveCategory(int catId) {
-      final catList = categories.valueOrNull ?? [];
-      final cat = catList.where((c) => c.id == catId).firstOrNull;
-      if (cat == null) {
-        return (icon: AppIcons.category, color: Theme.of(context).colorScheme.outline, name: '?');
-      }
-      return (
-        icon: CategoryIconMapper.fromName(cat.iconName),
-        color: ColorUtils.fromHex(cat.colorHex),
-        name: cat.displayName(context.languageCode),
-      );
-    }
+    ResolvedCategory resolveCat(int catId) => resolveCategory(
+          categoryId: catId,
+          categories: categories.valueOrNull ?? [],
+          fallbackColor: context.colors.outline,
+          languageCode: context.languageCode,
+        );
 
     return walletAsync.when(
       data: (wallet) {
@@ -78,34 +73,33 @@ class WalletDetailScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Balance header
-                Container(
-                  width: double.infinity,
+                GlassCard(
+                  showShadow: true,
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.all(AppSizes.lg),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: AppSizes.opacityXLight),
-                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                    border: Border.all(color: color.withValues(alpha: AppSizes.opacityLight4)),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(AppIcons.wallet, color: color, size: AppSizes.iconLg),
-                      const SizedBox(height: AppSizes.sm),
-                      Text(
-                        MoneyFormatter.format(wallet.balance),
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: color,
-                            ),
-                      ),
-                      const SizedBox(height: AppSizes.xs),
-                      Text(
-                        context.l10n.wallet_current_balance,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                      ),
-                    ],
+                  tintColor: color.withValues(alpha: AppSizes.opacityXLight),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      children: [
+                        Icon(AppIcons.wallet, color: color, size: AppSizes.iconLg),
+                        const SizedBox(height: AppSizes.sm),
+                        Text(
+                          MoneyFormatter.format(wallet.balance),
+                          style: context.textStyles.headlineLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: color,
+                              ),
+                        ),
+                        const SizedBox(height: AppSizes.xs),
+                        Text(
+                          context.l10n.wallet_current_balance,
+                          style: context.textStyles.bodySmall?.copyWith(
+                                color: context.colors.outline,
+                              ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -125,7 +119,7 @@ class WalletDetailScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
                   child: Text(
                     context.l10n.wallet_transactions_header,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: context.textStyles.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                   ),
@@ -143,14 +137,14 @@ class WalletDetailScreen extends ConsumerWidget {
                         ),
                       );
                     }
-                    final grouped = _groupTransactions(context, txList);
+                    final grouped = groupTransactionsByDate(context, txList);
                     return Column(
                       children: grouped.entries
                           .map(
                             (e) => TransactionListSection(
                               dateLabel: e.key,
                               transactions: e.value,
-                              categoryResolver: resolveCategory,
+                              categoryResolver: resolveCat,
                               onTransactionTap: (tx) =>
                                   context.push(AppRoutes.transactionDetailPath(tx.id)),
                             ),
@@ -185,13 +179,9 @@ class WalletDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     int walletId,
   ) async {
-    // H9 fix: query DB directly instead of stale provider snapshot
-    final txCount =
-        await ref.read(transactionDaoProvider).countByWallet(walletId);
-    // H10 fix: also check transfers involving this wallet
-    final transferCount =
-        await ref.read(transferDaoProvider).countByWallet(walletId);
-    final hasReferences = txCount > 0 || transferCount > 0;
+    // H9/H10 fix: check for references via repository
+    final hasReferences =
+        await ref.read(walletRepositoryProvider).hasReferences(walletId);
 
     if (hasReferences) {
       if (!context.mounted) return;
@@ -202,7 +192,7 @@ class WalletDetailScreen extends ConsumerWidget {
           content: Text(context.l10n.wallet_cannot_delete_body),
           actions: [
             FilledButton(
-              onPressed: () => Navigator.pop(ctx),
+              onPressed: () => ctx.pop(),
               child: Text(context.l10n.common_ok),
             ),
           ],
@@ -227,14 +217,14 @@ class WalletDetailScreen extends ConsumerWidget {
         content: Text('${context.l10n.wallet_delete_confirm}$balanceWarning'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           AppButton(
             label: context.l10n.common_delete,
             variant: AppButtonVariant.danger,
             isFullWidth: false,
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
           ),
         ],
       ),
@@ -242,27 +232,9 @@ class WalletDetailScreen extends ConsumerWidget {
 
     if (confirmed == true && context.mounted) {
       await ref.read(walletRepositoryProvider).archive(walletId);
+      HapticFeedback.mediumImpact();
       if (context.mounted) context.pop();
     }
   }
 
-  static Map<String, List<TransactionEntity>> _groupTransactions(
-    BuildContext context,
-    List<TransactionEntity> transactions,
-  ) {
-    final map = <String, List<TransactionEntity>>{};
-    for (final tx in transactions) {
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final txDay = DateTime(tx.transactionDate.year, tx.transactionDate.month, tx.transactionDate.day);
-      final diff = today.difference(txDay).inDays;
-      final label = diff == 0
-          ? context.l10n.date_today
-          : diff == 1
-              ? context.l10n.date_yesterday
-              : '${txDay.day}/${txDay.month}/${txDay.year}';
-      (map[label] ??= []).add(tx);
-    }
-    return map;
-  }
 }

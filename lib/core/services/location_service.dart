@@ -1,6 +1,8 @@
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
 
+import '../constants/app_durations.dart';
+
 /// Wraps geolocator + geocoding for optional location tagging.
 ///
 /// Location NEVER blocks saving — callers must handle failures gracefully.
@@ -24,7 +26,7 @@ abstract final class LocationService {
       return await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 10),
+          timeLimit: AppDurations.locationTimeout,
         ),
       );
     } catch (_) {

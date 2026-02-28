@@ -93,7 +93,7 @@ class _AppSearchBarState extends State<AppSearchBar> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          fillColor: context.colors.surfaceContainerHighest,
         ),
       ),
     );

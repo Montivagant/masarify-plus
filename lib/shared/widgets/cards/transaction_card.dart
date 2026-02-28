@@ -6,6 +6,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../../domain/entities/transaction_entity.dart';
+import 'glass_card.dart';
 
 /// Single transaction row for TransactionListSection and Dashboard.
 ///
@@ -44,7 +45,7 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final appTheme = context.appTheme;
     final hasSlidable = onDelete != null || onEdit != null;
 
@@ -144,18 +145,20 @@ class _CardContent extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Category icon badge
-            Container(
-              width: AppSizes.iconContainerLg,
-              height: AppSizes.iconContainerLg,
-              decoration: BoxDecoration(
-                color: categoryColor.withValues(alpha: AppSizes.opacityLight),
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: Icon(
-                categoryIcon,
-                size: AppSizes.iconMd,
-                color: categoryColor,
+            // Category icon badge — glass inset (Tier 3)
+            GlassCard(
+              tier: GlassTier.inset,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              tintColor: categoryColor.withValues(alpha: AppSizes.opacityLight),
+              child: SizedBox(
+                width: AppSizes.iconContainerLg,
+                height: AppSizes.iconContainerLg,
+                child: Icon(
+                  categoryIcon,
+                  size: AppSizes.iconMd,
+                  color: categoryColor,
+                ),
               ),
             ),
             const SizedBox(width: AppSizes.md),
@@ -166,7 +169,7 @@ class _CardContent extends StatelessWidget {
                 children: [
                   Text(
                     transaction.title,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: context.textStyles.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                     maxLines: 1,
@@ -179,9 +182,9 @@ class _CardContent extends StatelessWidget {
                         child: Text(
                           categoryName,
                           style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                              context.textStyles.bodySmall?.copyWith(
                                     color:
-                                        Theme.of(context).colorScheme.outline,
+                                        context.colors.outline,
                                   ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -192,7 +195,7 @@ class _CardContent extends StatelessWidget {
                         Icon(
                           sourceIcon!,
                           size: AppSizes.iconXxs,
-                          color: Theme.of(context).colorScheme.outline,
+                          color: context.colors.outline,
                         ),
                       ],
                     ],
@@ -207,7 +210,7 @@ class _CardContent extends StatelessWidget {
               excludeSemantics: true,
               child: Text(
                 '$amountPrefix $formatted',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: context.textStyles.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: amountColor,
                     ),

@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/color_utils.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
@@ -35,10 +35,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   String? _nameError;
   bool _loading = false;
 
-  static const _colorOptions = [
-    '#1A6B5E', '#F5A623', '#16A34A', '#DC2626',
-    '#1E88E5', '#7C3AED', '#DB2777', '#0891B2',
-  ];
+  static const _colorOptions = AppColors.pickerOptions;
 
   List<({String value, String label, IconData icon})> _walletTypes(
     BuildContext context,
@@ -92,7 +89,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
       final repo = ref.read(walletRepositoryProvider);
       // M3 fix: check for duplicate wallet name
       if (widget.editId == null) {
-        final exists = await ref.read(walletDaoProvider).existsByName(name);
+        final exists = await repo.existsByName(name);
         if (exists && mounted) {
           setState(() {
             _nameError = context.l10n.wallet_name_duplicate;
@@ -116,7 +113,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
           colorHex: _colorHex,
         );
       }
-      HapticFeedback.mediumImpact();
+      HapticFeedback.heavyImpact();
       if (!mounted) return;
       context.pop();
     } on ArgumentError catch (_) {
@@ -139,7 +136,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.editId != null;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final types = _walletTypes(context);
 
     return Scaffold(
@@ -170,7 +167,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
             // Type
             Text(
               context.l10n.wallet_type_label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              style: context.textStyles.labelLarge?.copyWith(
                     color: cs.outline,
                   ),
             ),
@@ -194,7 +191,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
             // Color
             Text(
               context.l10n.wallet_color_label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              style: context.textStyles.labelLarge?.copyWith(
                     color: cs.outline,
                   ),
             ),
@@ -214,8 +211,8 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                       color: color,
                       shape: BoxShape.circle,
                       border: isSelected
-                          ? Border.all(color: cs.primary, width: 3)
-                          : Border.all(color: Colors.transparent, width: 3),
+                          ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
+                          : Border.all(color: Colors.transparent, width: AppSizes.colorSwatchBorder),
                     ),
                     child: isSelected
                         ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
@@ -230,7 +227,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
             if (!isEdit) ...[
               Text(
                 context.l10n.wallet_initial_balance,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                style: context.textStyles.labelLarge?.copyWith(
                       color: cs.outline,
                     ),
               ),

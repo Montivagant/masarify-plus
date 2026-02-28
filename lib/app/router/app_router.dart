@@ -44,6 +44,18 @@ import '../../shared/widgets/navigation/app_nav_bar.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
+/// Shared fade transition for pushed screens.
+CustomTransitionPage<T> _fadePage<T>({
+  required Widget child,
+  required GoRouterState state,
+}) =>
+    CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionsBuilder: (_, animation, __, child) =>
+          FadeTransition(opacity: animation, child: child),
+    );
+
 /// C4 fix: safe int parsing for route parameters — returns null on malformed IDs.
 int? _parseId(GoRouterState state) =>
     int.tryParse(state.pathParameters['id'] ?? '');
@@ -96,10 +108,13 @@ final appRouter = GoRouter(
     // Transactions — static routes before parameterised ones
     GoRoute(
       path: AppRoutes.transactionAdd,
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
-        return AddTransactionScreen(
-          initialType: extra?['type'] as String? ?? 'expense',
+        return _fadePage(
+          state: state,
+          child: AddTransactionScreen(
+            initialType: extra?['type'] as String? ?? 'expense',
+          ),
         );
       },
     ),
@@ -111,7 +126,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.transactionDetail,
       redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
-      builder: (context, state) => TransactionDetailScreen(id: _parseId(state)!),
+      pageBuilder: (context, state) => _fadePage(
+        state: state,
+        child: TransactionDetailScreen(id: _parseId(state)!),
+      ),
     ),
 
     // Wallets — static routes before parameterised ones
@@ -267,7 +285,10 @@ final appRouter = GoRouter(
     // Settings
     GoRoute(
       path: AppRoutes.settings,
-      builder: (_, __) => const SettingsScreen(),
+      pageBuilder: (_, state) => _fadePage(
+        state: state,
+        child: const SettingsScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.settingsBackup,

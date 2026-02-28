@@ -871,9 +871,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_fee => 'رسوم التحويل (اختياري)';
 
   @override
-  String get transfer_success => 'تم التحويل بنجاح';
-
-  @override
   String get language_en => 'English';
 
   @override
@@ -1213,6 +1210,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_insufficient_body =>
       'رصيد المحفظة المصدر أقل من مبلغ التحويل. هل تريد المتابعة؟';
+
+  @override
+  String get transfer_success => 'تم التحويل بنجاح';
 
   @override
   String get settings_appearance => 'المظهر';
@@ -1844,4 +1844,86 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get wallet_archive_balance_warning =>
       'هذه المحفظة لا تزال تحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.';
+
+  @override
+  String get notif_prefs_title => 'إعدادات الإشعارات';
+
+  @override
+  String get notif_section_budget => 'تنبيهات الميزانية';
+
+  @override
+  String get notif_budget_warning => 'تحذير الميزانية (٨٠٪)';
+
+  @override
+  String get notif_budget_warning_sub =>
+      'إشعار عند وصول الإنفاق إلى ٨٠٪ من الميزانية';
+
+  @override
+  String get notif_budget_exceeded => 'تجاوز الميزانية (١٠٠٪)';
+
+  @override
+  String get notif_budget_exceeded_sub => 'إشعار عند استنفاد الميزانية بالكامل';
+
+  @override
+  String get notif_section_bills => 'الفواتير والمتكررات';
+
+  @override
+  String get notif_bill_reminder => 'تذكير الفواتير';
+
+  @override
+  String get notif_bill_reminder_sub =>
+      'تذكير بالفواتير القادمة قبل موعد الاستحقاق';
+
+  @override
+  String get notif_recurring_reminder => 'المعاملات المتكررة';
+
+  @override
+  String get notif_recurring_reminder_sub =>
+      'إشعار عند استحقاق المعاملات المتكررة';
+
+  @override
+  String get notif_section_goals => 'الأهداف';
+
+  @override
+  String get notif_goal_milestone => 'إنجازات الأهداف';
+
+  @override
+  String get notif_goal_milestone_sub =>
+      'احتفل عند الوصول إلى ٢٥٪ و٥٠٪ و٧٥٪ و١٠٠٪ من الهدف';
+
+  @override
+  String get notif_section_daily => 'التذكير اليومي';
+
+  @override
+  String get notif_daily_reminder => 'سجّل مصاريفك';
+
+  @override
+  String get notif_daily_reminder_sub => 'تذكير لطيف لتسجيل معاملات اليوم';
+
+  @override
+  String get notif_daily_reminder_time => 'وقت التذكير';
+
+  @override
+  String get notif_section_quiet => 'ساعات الهدوء';
+
+  @override
+  String get notif_quiet_hours => 'تفعيل ساعات الهدوء';
+
+  @override
+  String get notif_quiet_hours_sub => 'إيقاف جميع الإشعارات خلال ساعات محددة';
+
+  @override
+  String get notif_quiet_start => 'البداية';
+
+  @override
+  String get notif_quiet_end => 'النهاية';
+
+  @override
+  String get period_3_months => '3 أشهر';
+
+  @override
+  String get period_6_months => '6 أشهر';
+
+  @override
+  String get period_1_year => 'سنة';
 }

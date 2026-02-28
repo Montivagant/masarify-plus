@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,7 +23,7 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     // M1 fix: use provider instead of FutureBuilder so data auto-refreshes
     final txAsync = ref.watch(transactionByIdProvider(id));
 
@@ -84,7 +85,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.all(AppSizes.lg),
                   decoration: BoxDecoration(
-                    color: typeColor.withValues(alpha: 0.08),
+                    color: typeColor.withValues(alpha: AppSizes.opacitySubtle),
                     borderRadius:
                         BorderRadius.circular(AppSizes.borderRadiusMd),
                     border: Border.all(
@@ -102,7 +103,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                       Text(
                         MoneyFormatter.format(tx.amount),
                         style:
-                            Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            context.textStyles.headlineLarge?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: typeColor,
                                 ),
@@ -209,7 +210,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                       ),
                       child: Text(
                         tx.rawSourceText!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        style: context.textStyles.bodySmall?.copyWith(
                               color: cs.outline,
                               fontStyle: FontStyle.italic,
                             ),
@@ -232,13 +233,14 @@ class TransactionDetailScreen extends ConsumerWidget {
         content: Text(context.l10n.transaction_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx),
+            onPressed: () => ctx.pop(),
             child: Text(context.l10n.common_cancel),
           ),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(ctx);
+              ctx.pop();
               await ref.read(transactionRepositoryProvider).delete(id);
+              HapticFeedback.mediumImpact();
               if (context.mounted) context.pop();
             },
             style: FilledButton.styleFrom(
@@ -298,13 +300,13 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
                     ),
               ),
               Text(
                 value,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: context.textStyles.bodyLarge,
               ),
             ],
           ),

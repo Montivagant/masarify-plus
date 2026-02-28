@@ -52,6 +52,7 @@ final budgetRepositoryProvider = Provider<IBudgetRepository>(
   (ref) => BudgetRepositoryImpl(
     ref.watch(budgetDaoProvider),
     ref.watch(transactionDaoProvider),
+    ref.watch(walletDaoProvider),
   ),
 );
 

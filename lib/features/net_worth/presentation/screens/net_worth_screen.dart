@@ -8,6 +8,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/net_worth_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -35,7 +36,7 @@ class NetWorthScreen extends ConsumerWidget {
             );
           }
 
-          final cs = Theme.of(context).colorScheme;
+          final cs = context.colors;
           final isPositive = nw.netWorth >= 0;
 
           return ListView(
@@ -44,8 +45,8 @@ class NetWorthScreen extends ConsumerWidget {
             ),
             children: [
               // ── Hero net worth number ───────────────────────────────
-              Container(
-                width: double.infinity,
+              GlassCard(
+                showShadow: true,
                 margin: const EdgeInsetsDirectional.fromSTEB(
                   AppSizes.screenHPadding,
                   AppSizes.md,
@@ -56,11 +57,7 @@ class NetWorthScreen extends ConsumerWidget {
                   vertical: AppSizes.xl,
                   horizontal: AppSizes.md,
                 ),
-                decoration: BoxDecoration(
-                  color: cs.primaryContainer,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusMd),
-                ),
+                tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
                 child: Column(
                   children: [
                     Text(
@@ -163,12 +160,9 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.md),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-      ),
+    return GlassCard(
+      showShadow: true,
+      tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -178,7 +172,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(width: AppSizes.xs),
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: context.textStyles.bodySmall?.copyWith(
                       color: color,
                     ),
               ),
@@ -187,7 +181,7 @@ class _SummaryCard extends StatelessWidget {
           const SizedBox(height: AppSizes.xs),
           Text(
             MoneyFormatter.format(amount),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: context.textStyles.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -218,7 +212,7 @@ class _WalletRow extends StatelessWidget {
     final color = ColorUtils.fromHex(colorHex);
     final balanceColor = isCreditCard && balance > 0
         ? context.appTheme.expenseColor
-        : Theme.of(context).colorScheme.onSurface;
+        : context.colors.onSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -227,27 +221,29 @@ class _WalletRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: AppSizes.iconContainerMd,
-            height: AppSizes.iconContainerMd,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: AppSizes.opacityLight2),
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+          GlassCard(
+            tier: GlassTier.inset,
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+            tintColor: color.withValues(alpha: AppSizes.opacityLight2),
+            child: SizedBox(
+              width: AppSizes.iconContainerMd,
+              height: AppSizes.iconContainerMd,
+              child: Icon(AppIcons.wallet, size: AppSizes.iconSm, color: color),
             ),
-            child: Icon(AppIcons.wallet, size: AppSizes.iconSm, color: color),
           ),
           const SizedBox(width: AppSizes.md),
           Expanded(
             child: Text(
               name,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: context.textStyles.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
           ),
           Text(
             MoneyFormatter.format(balance),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: context.textStyles.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: balanceColor,
                 ),

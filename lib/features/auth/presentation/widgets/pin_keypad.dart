@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/extensions/build_context_extensions.dart';
 
 /// Number keypad for PIN entry (0-9 + backspace).
 /// All buttons meet the 48dp minimum tap target.
@@ -61,6 +62,7 @@ class PinKeypad extends StatelessWidget {
             onPressed: onBackspace,
             icon: const Icon(AppIcons.backspace),
             iconSize: AppSizes.iconMd,
+            tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
             style: IconButton.styleFrom(
               minimumSize: const Size(AppSizes.minTapTarget, AppSizes.minTapTarget),
             ),
@@ -82,7 +84,7 @@ class PinKeypad extends StatelessWidget {
         ),
         child: Text(
           '$digit',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          style: context.textStyles.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
         ),

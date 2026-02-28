@@ -1772,12 +1772,6 @@ abstract class AppLocalizations {
   /// **'Transfer Fee (optional)'**
   String get transfer_fee;
 
-  /// No description provided for @transfer_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfer completed successfully'**
-  String get transfer_success;
-
   /// No description provided for @language_en.
   ///
   /// In en, this message translates to:
@@ -2437,6 +2431,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source wallet balance is less than the transfer amount. Continue anyway?'**
   String get transfer_insufficient_body;
+
+  /// No description provided for @transfer_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer completed successfully'**
+  String get transfer_success;
 
   /// No description provided for @settings_appearance.
   ///
@@ -3625,6 +3625,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This wallet still has a remaining balance. The balance will be excluded from your totals after archiving.'**
   String get wallet_archive_balance_warning;
+
+  /// No description provided for @notif_prefs_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Settings'**
+  String get notif_prefs_title;
+
+  /// No description provided for @notif_section_budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Alerts'**
+  String get notif_section_budget;
+
+  /// No description provided for @notif_budget_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Warning (80%)'**
+  String get notif_budget_warning;
+
+  /// No description provided for @notif_budget_warning_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify when spending reaches 80% of budget'**
+  String get notif_budget_warning_sub;
+
+  /// No description provided for @notif_budget_exceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Exceeded (100%)'**
+  String get notif_budget_exceeded;
+
+  /// No description provided for @notif_budget_exceeded_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify when a budget is fully spent'**
+  String get notif_budget_exceeded_sub;
+
+  /// No description provided for @notif_section_bills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills & Recurring'**
+  String get notif_section_bills;
+
+  /// No description provided for @notif_bill_reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill Reminders'**
+  String get notif_bill_reminder;
+
+  /// No description provided for @notif_bill_reminder_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind about upcoming bills before due date'**
+  String get notif_bill_reminder_sub;
+
+  /// No description provided for @notif_recurring_reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Transactions'**
+  String get notif_recurring_reminder;
+
+  /// No description provided for @notif_recurring_reminder_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify when recurring transactions are due'**
+  String get notif_recurring_reminder_sub;
+
+  /// No description provided for @notif_section_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'Goals'**
+  String get notif_section_goals;
+
+  /// No description provided for @notif_goal_milestone.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal Milestones'**
+  String get notif_goal_milestone;
+
+  /// No description provided for @notif_goal_milestone_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Celebrate when you reach 25%, 50%, 75%, and 100% of a goal'**
+  String get notif_goal_milestone_sub;
+
+  /// No description provided for @notif_section_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Reminder'**
+  String get notif_section_daily;
+
+  /// No description provided for @notif_daily_reminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Your Expenses'**
+  String get notif_daily_reminder;
+
+  /// No description provided for @notif_daily_reminder_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'A gentle reminder to log today\'s transactions'**
+  String get notif_daily_reminder_sub;
+
+  /// No description provided for @notif_daily_reminder_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Time'**
+  String get notif_daily_reminder_time;
+
+  /// No description provided for @notif_section_quiet.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet Hours'**
+  String get notif_section_quiet;
+
+  /// No description provided for @notif_quiet_hours.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Quiet Hours'**
+  String get notif_quiet_hours;
+
+  /// No description provided for @notif_quiet_hours_sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause all notifications during set hours'**
+  String get notif_quiet_hours_sub;
+
+  /// No description provided for @notif_quiet_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get notif_quiet_start;
+
+  /// No description provided for @notif_quiet_end.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get notif_quiet_end;
+
+  /// No description provided for @period_3_months.
+  ///
+  /// In en, this message translates to:
+  /// **'3M'**
+  String get period_3_months;
+
+  /// No description provided for @period_6_months.
+  ///
+  /// In en, this message translates to:
+  /// **'6M'**
+  String get period_6_months;
+
+  /// No description provided for @period_1_year.
+  ///
+  /// In en, this message translates to:
+  /// **'1Y'**
+  String get period_1_year;
 }
 
 class _AppLocalizationsDelegate

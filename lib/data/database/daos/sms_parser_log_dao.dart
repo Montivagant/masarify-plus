@@ -38,7 +38,24 @@ class SmsParserLogDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit))
           .get();
 
+  Stream<List<SmsParserLog>> watchPending({int limit = 100}) =>
+      (select(smsParserLogs)
+            ..where((l) => l.parsedStatus.equals('pending'))
+            ..orderBy([(l) => OrderingTerm.desc(l.receivedAt)])
+            ..limit(limit))
+          .watch();
+
+  /// Update AI enrichment JSON for a log entry.
+  Future<void> updateEnrichment(int id, String enrichmentJson) =>
+      (update(smsParserLogs)..where((l) => l.id.equals(id))).write(
+        SmsParserLogsCompanion(
+          aiEnrichmentJson: Value(enrichmentJson),
+        ),
+      );
+
   /// Update the status of a log entry (approved/skipped/failed).
+  /// For non-approved statuses, clears the raw body to avoid storing
+  /// bank SMS content (partial account numbers, amounts) permanently.
   Future<void> markStatus(
     int id,
     String status, {
@@ -49,6 +66,10 @@ class SmsParserLogDao extends DatabaseAccessor<AppDatabase>
           parsedStatus: Value(status),
           transactionId: Value(transactionId),
           processedAt: Value(DateTime.now()),
+          // Redact body for non-approved entries to avoid storing bank data
+          body: status != 'approved'
+              ? const Value('[redacted]')
+              : const Value.absent(),
         ),
       );
 }

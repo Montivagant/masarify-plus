@@ -3,6 +3,7 @@ import 'dart:developer' as dev;
 
 import '../../../domain/entities/category_entity.dart';
 import '../../config/ai_config.dart';
+import '../../utils/money_formatter.dart';
 import 'openrouter_service.dart';
 
 /// AI enrichment result for a parsed SMS/notification transaction.
@@ -98,7 +99,7 @@ class AiTransactionParser {
     int amountPiastres,
     String type,
   ) {
-    final amountEgp = amountPiastres / 100;
+    final amountEgp = MoneyFormatter.toDisplayDouble(amountPiastres);
     return 'Sender: $sender\n'
         'Body: $body\n'
         'Amount: $amountEgp EGP\n'

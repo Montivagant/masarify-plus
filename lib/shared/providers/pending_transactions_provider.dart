@@ -5,9 +5,9 @@ import 'database_provider.dart';
 
 /// Pending parsed notification/SMS transactions awaiting user review.
 ///
-/// Returns logs with parsedStatus == 'pending', most recent first.
+/// Reactive stream — auto-updates when new logs are inserted or status changes.
 final pendingParsedTransactionsProvider =
-    FutureProvider<List<SmsParserLog>>((ref) async {
+    StreamProvider<List<SmsParserLog>>((ref) {
   final dao = ref.watch(smsParserLogDaoProvider);
-  return dao.getPending();
+  return dao.watchPending();
 });

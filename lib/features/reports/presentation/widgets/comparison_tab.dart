@@ -82,14 +82,14 @@ class ComparisonTab extends ConsumerWidget {
               lastMonth: comp.lastMonth.income,
               color: context.appTheme.incomeColor,
             ),
-            Divider(height: AppSizes.dividerHeight, color: Theme.of(context).colorScheme.outlineVariant),
+            Divider(height: AppSizes.dividerHeight, color: context.colors.outlineVariant),
             _ComparisonRow(
               label: context.l10n.reports_total_expense,
               thisMonth: comp.thisMonth.expense,
               lastMonth: comp.lastMonth.expense,
               color: context.appTheme.expenseColor,
             ),
-            Divider(height: AppSizes.dividerHeight, color: Theme.of(context).colorScheme.outlineVariant),
+            Divider(height: AppSizes.dividerHeight, color: context.colors.outlineVariant),
             _ComparisonRow(
               label: context.l10n.reports_net,
               thisMonth: comp.thisMonth.net.abs(),
@@ -135,8 +135,8 @@ class _ComparisonBarChart extends StatelessWidget {
                   : context.l10n.reports_last_month;
               return BarTooltipItem(
                 '$period\n${MoneyFormatter.format(rod.toY.toInt())}',
-                Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                context.textStyles.bodySmall!.copyWith(
+                      color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
               );
@@ -156,9 +156,9 @@ class _ComparisonBarChart extends StatelessWidget {
                 }
                 return Text(
                   MoneyFormatter.formatCompact(value.toInt()),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  style: context.textStyles.bodySmall?.copyWith(
                         fontSize: AppSizes.chartLabelSize,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: context.colors.onSurfaceVariant,
                       ),
                 );
               },
@@ -174,9 +174,9 @@ class _ComparisonBarChart extends StatelessWidget {
                     padding: const EdgeInsets.only(top: AppSizes.xs),
                     child: Text(
                       context.l10n.dashboard_income,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: context.textStyles.bodySmall?.copyWith(
                             fontSize: AppSizes.chartLabelSize,
-                            color: Theme.of(context).colorScheme.outline,
+                            color: context.colors.outline,
                           ),
                     ),
                   );
@@ -186,9 +186,9 @@ class _ComparisonBarChart extends StatelessWidget {
                     padding: const EdgeInsets.only(top: AppSizes.xs),
                     child: Text(
                       context.l10n.dashboard_expense,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: context.textStyles.bodySmall?.copyWith(
                             fontSize: AppSizes.chartLabelSize,
-                            color: Theme.of(context).colorScheme.outline,
+                            color: context.colors.outline,
                           ),
                     ),
                   );
@@ -281,7 +281,7 @@ class _LegendDot extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: AppSizes.xs),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
+        Text(label, style: context.textStyles.bodySmall),
       ],
     );
   }
@@ -320,13 +320,13 @@ class _ComparisonRow extends StatelessWidget {
             flex: 2,
             child: Text(
               label,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: context.textStyles.bodyMedium,
             ),
           ),
           Expanded(
             child: Text(
               MoneyFormatter.formatAmount(thisMonth),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: context.textStyles.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
               textAlign: TextAlign.end,
@@ -338,7 +338,7 @@ class _ComparisonRow extends StatelessWidget {
             child: diffPct != 0
                 ? Text(
                     '${isUp ? '+' : ''}$diffPct%',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style: context.textStyles.bodySmall?.copyWith(
                           color: color,
                           fontWeight: FontWeight.w600,
                         ),

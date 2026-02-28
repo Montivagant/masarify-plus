@@ -10,6 +10,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -84,15 +85,12 @@ class _TotalHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
+    final cs = context.colors;
+    return GlassCard(
+      showShadow: true,
       margin: const EdgeInsets.all(AppSizes.screenHPadding),
       padding: const EdgeInsets.all(AppSizes.lg),
-      decoration: BoxDecoration(
-        color: cs.primaryContainer,
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-      ),
+      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
       child: Column(
         children: [
           Text(
@@ -100,7 +98,7 @@ class _TotalHeader extends StatelessWidget {
             // NB: alpha 0.8 on onPrimaryContainer yields marginal contrast
             // on some primaryContainer tints. Kept at opacityHeavy (0.8) as
             // the header background is strong enough; revisit if palette shifts.
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: context.textStyles.bodyMedium?.copyWith(
                   color: cs.onPrimaryContainer
                       .withValues(alpha: AppSizes.opacityHeavy),
                 ),
@@ -109,7 +107,7 @@ class _TotalHeader extends StatelessWidget {
           totalAsync.when(
             data: (total) => Text(
               MoneyFormatter.format(total),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              style: context.textStyles.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: cs.onPrimaryContainer,
                   ),
@@ -152,20 +150,24 @@ class _WalletCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = ColorUtils.fromHex(wallet.colorHex);
-    return Card(
+    return GlassCard(
+      showShadow: true,
+      onTap: onTap,
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
       ),
       child: ListTile(
-        leading: Container(
-          width: AppSizes.iconContainerLg,
-          height: AppSizes.iconContainerLg,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: AppSizes.opacityLight2),
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        leading: GlassCard(
+          tier: GlassTier.inset,
+          padding: EdgeInsets.zero,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+          tintColor: color.withValues(alpha: AppSizes.opacityLight2),
+          child: SizedBox(
+            width: AppSizes.iconContainerLg,
+            height: AppSizes.iconContainerLg,
+            child: Icon(_typeIcon(wallet.type), color: color, size: AppSizes.iconSm),
           ),
-          child: Icon(_typeIcon(wallet.type), color: color, size: AppSizes.iconSm),
         ),
         title: Text(wallet.name),
         subtitle: Text(_typeLabel(context, wallet.type)),

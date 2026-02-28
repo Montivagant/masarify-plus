@@ -28,10 +28,18 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     with SingleTickerProviderStateMixin {
   String _pin = '';
   bool _biometricAvailable = false;
+  bool _lockedOut = false;
+  int _failedAttempts = 0;
   late final AnimationController _shakeController;
   final _auth = AuthService();
 
   static const _pinLength = 6;
+  static const _maxAttempts = 5;
+  static const _lockoutDurations = [
+    Duration(seconds: 30),
+    Duration(minutes: 5),
+    Duration(minutes: 30),
+  ];
 
   @override
   void initState() {
@@ -54,6 +62,7 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     if (!mounted) return;
 
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     final biometricEnabled = prefs.isBiometricEnabled;
 
     setState(() => _biometricAvailable = available && biometricEnabled);
@@ -73,7 +82,7 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
   }
 
   void _onDigit(int digit) {
-    if (_pin.length >= _pinLength) return;
+    if (_pin.length >= _pinLength || _lockedOut) return;
     HapticFeedback.lightImpact();
     setState(() => _pin += digit.toString());
     if (_pin.length == _pinLength) {
@@ -89,16 +98,36 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
 
   Future<void> _verifyPin() async {
     final ok = await _auth.verifyPin(_pin);
+    if (!mounted) return;
     if (ok) {
+      _failedAttempts = 0;
       _unlock();
     } else {
+      _failedAttempts++;
       HapticFeedback.heavyImpact();
       _shakeController.forward(from: 0);
       setState(() => _pin = '');
-      if (mounted) {
+      if (_failedAttempts >= _maxAttempts) {
+        _startLockout();
+      } else {
         SnackHelper.showError(context, context.l10n.auth_pin_wrong);
       }
     }
+  }
+
+  void _startLockout() {
+    // Exponential backoff: 30s, 5min, 30min (capped)
+    final lockoutIndex = ((_failedAttempts - _maxAttempts) ~/ _maxAttempts)
+        .clamp(0, _lockoutDurations.length - 1);
+    final duration = _lockoutDurations[lockoutIndex];
+    setState(() => _lockedOut = true);
+    SnackHelper.showError(
+      context,
+      'Too many attempts. Try again in ${duration.inSeconds >= 60 ? '${duration.inMinutes}m' : '${duration.inSeconds}s'}',
+    );
+    Future.delayed(duration, () {
+      if (mounted) setState(() => _lockedOut = false);
+    });
   }
 
   void _unlock() {
@@ -110,7 +139,7 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Scaffold(
       appBar: AppAppBar(

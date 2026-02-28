@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/app_lock_service.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 
@@ -30,7 +32,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: AppDurations.splashFade,
     );
     _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
@@ -44,7 +46,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _navigate() async {
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(AppDurations.splashHold);
     if (!mounted) return;
 
     final prefs = await ref.read(preferencesFutureProvider.future);
@@ -65,7 +67,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
@@ -82,7 +84,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               const SizedBox(height: AppSizes.md),
               Text(
                 'Masarify',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                style: context.textStyles.displaySmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: cs.onPrimary,
                     ),
@@ -90,8 +92,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               const SizedBox(height: AppSizes.sm),
               Text(
                 'مصاريفي',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: cs.onPrimary.withValues(alpha: 0.7),
+                style: context.textStyles.bodyLarge?.copyWith(
+                      color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
                     ),
               ),
             ],

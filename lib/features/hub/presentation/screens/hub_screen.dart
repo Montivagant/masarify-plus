@@ -10,6 +10,8 @@ import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/insight_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Hub / More tab — links to all secondary features.
@@ -109,21 +111,9 @@ class HubScreen extends ConsumerWidget {
   }
 
   Widget _section(BuildContext context, String title, List<Widget> tiles) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-          ),
-        ),
-        Card(child: Column(children: tiles)),
-        const SizedBox(height: AppSizes.md),
-      ],
+    return GlassSection(
+      header: title,
+      children: tiles,
     );
   }
 
@@ -134,18 +124,32 @@ class HubScreen extends ConsumerWidget {
     String route, {
     String? subtitle,
   }) {
+    final cs = context.colors;
     return ListTile(
-      leading: Icon(icon),
+      leading: GlassCard(
+        tier: GlassTier.inset,
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+        tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+        child: SizedBox(
+          width: AppSizes.colorSwatchSize,
+          height: AppSizes.colorSwatchSize,
+          child: Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
+        ),
+      ),
       title: Text(label),
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+              style: context.textStyles.bodySmall?.copyWith(
+                    color: context.colors.primary,
                   ),
             )
           : null,
-      trailing: const Icon(AppIcons.chevronRight, size: AppSizes.iconSm),
+      trailing: Icon(
+        context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+        size: AppSizes.iconSm,
+      ),
       onTap: () => context.push(route),
     );
   }

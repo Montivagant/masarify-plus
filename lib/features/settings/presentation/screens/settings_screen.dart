@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/config/ai_config.dart';
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -22,6 +23,7 @@ import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/theme_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -111,6 +113,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Future<void> _setCurrency(String code) async {
     setState(() => _currency = code);
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     await prefs.setCurrency(code);
   }
 
@@ -129,12 +132,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Future<void> _setFirstDayOfWeek(int day) async {
     setState(() => _firstDayOfWeek = day);
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     await prefs.setFirstDayOfWeek(day);
   }
 
   Future<void> _setFirstDayOfMonth(int day) async {
     setState(() => _firstDayOfMonth = day);
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     await prefs.setFirstDayOfMonth(day);
   }
 
@@ -191,7 +196,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
       // WS-38 fix: delay before starting listener — Android service needs
       // time to bind after permission is granted.
-      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(AppDurations.delaySmall);
       if (!mounted) return;
 
       // Start the listener.
@@ -281,6 +286,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   Future<void> _setAiModel(String model) async {
     setState(() => _aiModel = model);
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     await prefs.setAiModel(model);
     ref.invalidate(aiModelPreferenceProvider);
   }
@@ -314,7 +320,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: const EdgeInsets.all(AppSizes.md),
               child: Text(
                 l10n.settings_ai_model,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             ...options.map(
@@ -323,12 +329,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 trailing: o.id == _aiModel
                     ? Icon(
                         AppIcons.check,
-                        color: Theme.of(ctx).colorScheme.primary,
+                        color: ctx.colors.primary,
                       )
                     : null,
                 onTap: () {
                   _setAiModel(o.id);
-                  Navigator.pop(ctx);
+                  ctx.pop();
                 },
               ),
             ),
@@ -418,14 +424,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(l10n.common_cancel),
           ),
           FilledButton(
             onPressed: () async {
               final auth = AuthService();
               final ok = await auth.verifyPin(pin);
-              if (ctx.mounted) Navigator.pop(ctx, ok);
+              if (ctx.mounted) ctx.pop(ok);
             },
             child: Text(l10n.common_done),
           ),
@@ -441,12 +447,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     await context.push(AppRoutes.pinSetup);
   }
 
-  String _autoLockLabel(dynamic l10n) {
+  String _autoLockLabel() {
+    final l10n = context.l10n;
     return switch (_autoLockTimeoutMs) {
-      0 => l10n.settings_auto_lock_immediate as String,
-      60000 => l10n.settings_auto_lock_1_min as String,
-      300000 => l10n.settings_auto_lock_5_min as String,
-      _ => l10n.settings_auto_lock_immediate as String,
+      0 => l10n.settings_auto_lock_immediate,
+      60000 => l10n.settings_auto_lock_1_min,
+      300000 => l10n.settings_auto_lock_5_min,
+      _ => l10n.settings_auto_lock_immediate,
     };
   }
 
@@ -467,7 +474,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: const EdgeInsets.all(AppSizes.md),
               child: Text(
                 l10n.settings_auto_lock,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             ...options.map(
@@ -476,7 +483,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 trailing: o.ms == _autoLockTimeoutMs
                     ? Icon(
                         AppIcons.check,
-                        color: Theme.of(ctx).colorScheme.primary,
+                        color: ctx.colors.primary,
                       )
                     : null,
                 onTap: () async {
@@ -486,7 +493,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                   if (mounted) {
                     setState(() => _autoLockTimeoutMs = o.ms);
                   }
-                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (ctx.mounted) ctx.pop();
                 },
               ),
             ),
@@ -558,15 +565,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
+              onPressed: () => ctx.pop(false),
               child: Text(l10n.common_cancel),
             ),
             FilledButton(
               onPressed: controller.text == l10n.settings_delete_confirm_word
-                  ? () => Navigator.pop(ctx, true)
+                  ? () => ctx.pop(true)
                   : null,
               style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(ctx).colorScheme.error,
+                backgroundColor: ctx.colors.error,
               ),
               child: Text(l10n.settings_clear_data_permanent),
             ),
@@ -581,7 +588,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     final l10n = context.l10n;
 
@@ -702,17 +709,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           // ── Smart Input ──────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_smart_input),
           SwitchListTile(
-            secondary: Container(
-              width: AppSizes.colorSwatchSize,
-              height: AppSizes.colorSwatchSize,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: Icon(
-                AppIcons.notification,
-                size: AppSizes.iconSm,
-                color: cs.onPrimaryContainer,
+            secondary: GlassCard(
+              tier: GlassTier.inset,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+              child: SizedBox(
+                width: AppSizes.colorSwatchSize,
+                height: AppSizes.colorSwatchSize,
+                child: Icon(
+                  AppIcons.notification,
+                  size: AppSizes.iconSm,
+                  color: cs.onPrimaryContainer,
+                ),
               ),
             ),
             title: Text(l10n.settings_notification_parser),
@@ -721,17 +730,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             onChanged: _toggleNotificationParser,
           ),
           SwitchListTile(
-            secondary: Container(
-              width: AppSizes.colorSwatchSize,
-              height: AppSizes.colorSwatchSize,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: Icon(
-                AppIcons.sms,
-                size: AppSizes.iconSm,
-                color: cs.onPrimaryContainer,
+            secondary: GlassCard(
+              tier: GlassTier.inset,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+              child: SizedBox(
+                width: AppSizes.colorSwatchSize,
+                height: AppSizes.colorSwatchSize,
+                child: Icon(
+                  AppIcons.sms,
+                  size: AppSizes.iconSm,
+                  color: cs.onPrimaryContainer,
+                ),
               ),
             ),
             title: Text(l10n.settings_sms_parser),
@@ -745,21 +756,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             subtitle: _aiModelLabel(_aiModel),
             onTap: _showAiModelPicker,
           ),
+          _SettingsTile(
+            icon: AppIcons.notification,
+            label: l10n.notif_prefs_title,
+            onTap: () => context.push(AppRoutes.settingsNotifications),
+          ),
 
           // ── Security ────────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_security),
           SwitchListTile(
-            secondary: Container(
-              width: AppSizes.colorSwatchSize,
-              height: AppSizes.colorSwatchSize,
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: Icon(
-                AppIcons.pin,
-                size: AppSizes.iconSm,
-                color: cs.onPrimaryContainer,
+            secondary: GlassCard(
+              tier: GlassTier.inset,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+              child: SizedBox(
+                width: AppSizes.colorSwatchSize,
+                height: AppSizes.colorSwatchSize,
+                child: Icon(
+                  AppIcons.pin,
+                  size: AppSizes.iconSm,
+                  color: cs.onPrimaryContainer,
+                ),
               ),
             ),
             title: Text(l10n.settings_pin_lock_label),
@@ -768,19 +786,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             onChanged: _togglePin,
           ),
           SwitchListTile(
-            secondary: Container(
-              width: AppSizes.colorSwatchSize,
-              height: AppSizes.colorSwatchSize,
-              decoration: BoxDecoration(
-                color: _pinEnabled
-                    ? cs.primaryContainer
-                    : cs.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: Icon(
-                AppIcons.security,
-                size: AppSizes.iconSm,
-                color: _pinEnabled ? cs.onPrimaryContainer : cs.outline,
+            secondary: GlassCard(
+              tier: GlassTier.inset,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              tintColor: (_pinEnabled ? cs.primaryContainer : cs.surfaceContainerHighest)
+                  .withValues(alpha: AppSizes.opacityLight4),
+              child: SizedBox(
+                width: AppSizes.colorSwatchSize,
+                height: AppSizes.colorSwatchSize,
+                child: Icon(
+                  AppIcons.security,
+                  size: AppSizes.iconSm,
+                  color: _pinEnabled ? cs.onPrimaryContainer : cs.outline,
+                ),
               ),
             ),
             title: Text(
@@ -795,7 +814,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             _SettingsTile(
               icon: AppIcons.calendar,
               label: l10n.settings_auto_lock,
-              subtitle: _autoLockLabel(l10n),
+              subtitle: _autoLockLabel(),
               onTap: _showAutoLockPicker,
             ),
           if (_pinEnabled)
@@ -851,7 +870,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: const EdgeInsets.all(AppSizes.md),
               child: Text(
                 l10n.settings_currency,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             ...currencies.map(
@@ -860,12 +879,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 trailing: c.code == _currency
                     ? Icon(
                         AppIcons.check,
-                        color: Theme.of(ctx).colorScheme.primary,
+                        color: ctx.colors.primary,
                       )
                     : null,
                 onTap: () {
                   _setCurrency(c.code);
-                  Navigator.pop(ctx);
+                  ctx.pop();
                 },
               ),
             ),
@@ -888,7 +907,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: const EdgeInsets.all(AppSizes.md),
               child: Text(
                 l10n.settings_language,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             ListTile(
@@ -896,12 +915,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               trailing: _language == null
                   ? Icon(
                       AppIcons.check,
-                      color: Theme.of(ctx).colorScheme.primary,
+                      color: ctx.colors.primary,
                     )
                   : null,
               onTap: () {
                 _setLanguage(null);
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             ListTile(
@@ -909,12 +928,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               trailing: _language == 'ar'
                   ? Icon(
                       AppIcons.check,
-                      color: Theme.of(ctx).colorScheme.primary,
+                      color: ctx.colors.primary,
                     )
                   : null,
               onTap: () {
                 _setLanguage('ar');
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             ListTile(
@@ -922,12 +941,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               trailing: _language == 'en'
                   ? Icon(
                       AppIcons.check,
-                      color: Theme.of(ctx).colorScheme.primary,
+                      color: ctx.colors.primary,
                     )
                   : null,
               onTap: () {
                 _setLanguage('en');
-                Navigator.pop(ctx);
+                ctx.pop();
               },
             ),
             const SizedBox(height: AppSizes.sm),
@@ -950,7 +969,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               padding: const EdgeInsets.all(AppSizes.md),
               child: Text(
                 l10n.settings_first_day_of_week,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
             ),
             ...weekDays.map(
@@ -959,12 +978,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 trailing: d.value == _firstDayOfWeek
                     ? Icon(
                         AppIcons.check,
-                        color: Theme.of(ctx).colorScheme.primary,
+                        color: ctx.colors.primary,
                       )
                     : null,
                 onTap: () {
                   _setFirstDayOfWeek(d.value);
-                  Navigator.pop(ctx);
+                  ctx.pop();
                 },
               ),
             ),
@@ -987,13 +1006,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             children: [
               Text(
                 l10n.settings_first_day_of_month,
-                style: Theme.of(ctx).textTheme.titleMedium,
+                style: ctx.textStyles.titleMedium,
               ),
               const SizedBox(height: AppSizes.sm),
               Text(
                 l10n.settings_budget_cycle_subtitle,
-                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(ctx).colorScheme.outline,
+                style: ctx.textStyles.bodySmall?.copyWith(
+                      color: ctx.colors.outline,
                     ),
               ),
               const SizedBox(height: AppSizes.md),
@@ -1011,7 +1030,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     builder: (ctx, i) => Center(
                       child: Text(
                         '${i + 1}',
-                        style: Theme.of(ctx).textTheme.titleMedium,
+                        style: ctx.textStyles.titleMedium,
                       ),
                     ),
                   ),
@@ -1021,7 +1040,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               AppButton(
                 label: l10n.common_done,
                 icon: AppIcons.check,
-                onPressed: () => Navigator.pop(ctx),
+                onPressed: () => ctx.pop(),
               ),
             ],
           ),
@@ -1048,8 +1067,8 @@ class _SectionHeader extends StatelessWidget {
       ),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+        style: context.textStyles.labelLarge?.copyWith(
+              color: context.colors.primary,
               fontWeight: FontWeight.w700,
             ),
       ),
@@ -1074,23 +1093,24 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     final enabled = onTap != null;
 
     return ListTile(
-      leading: Container(
-        width: AppSizes.colorSwatchSize,
-        height: AppSizes.colorSwatchSize,
-        decoration: BoxDecoration(
-          color: enabled
-              ? cs.primaryContainer
-              : cs.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-        ),
-        child: Icon(
-          icon,
-          size: AppSizes.iconSm,
-          color: enabled ? cs.onPrimaryContainer : cs.outline,
+      leading: GlassCard(
+        tier: GlassTier.inset,
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+        tintColor: (enabled ? cs.primaryContainer : cs.surfaceContainerHighest)
+            .withValues(alpha: AppSizes.opacityLight4),
+        child: SizedBox(
+          width: AppSizes.colorSwatchSize,
+          height: AppSizes.colorSwatchSize,
+          child: Icon(
+            icon,
+            size: AppSizes.iconSm,
+            color: enabled ? cs.onPrimaryContainer : cs.outline,
+          ),
         ),
       ),
       title: Text(
@@ -1114,7 +1134,7 @@ class _SettingsTile extends StatelessWidget {
 class _ComingSoonChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.sm,
@@ -1126,7 +1146,7 @@ class _ComingSoonChip extends StatelessWidget {
       ),
       child: Text(
         context.l10n.common_coming_soon,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+        style: context.textStyles.labelSmall?.copyWith(
               color: cs.outline,
             ),
       ),
@@ -1144,17 +1164,20 @@ class _AppVersionTile extends StatelessWidget {
             ? '${snapshot.data!.version} (${snapshot.data!.buildNumber})'
             : '—';
         return ListTile(
-          leading: Container(
-            width: AppSizes.colorSwatchSize,
-            height: AppSizes.colorSwatchSize,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-            ),
-            child: Icon(
-              AppIcons.info,
-              size: AppSizes.iconSm,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
+          leading: GlassCard(
+            tier: GlassTier.inset,
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+            tintColor: context.colors.primaryContainer
+                .withValues(alpha: AppSizes.opacityLight4),
+            child: SizedBox(
+              width: AppSizes.colorSwatchSize,
+              height: AppSizes.colorSwatchSize,
+              child: Icon(
+                AppIcons.info,
+                size: AppSizes.iconSm,
+                color: context.colors.onPrimaryContainer,
+              ),
             ),
           ),
           title: Text(context.l10n.settings_version),

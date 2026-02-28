@@ -59,7 +59,7 @@ class CategoriesTab extends ConsumerWidget {
                   ),
                   Text(
                     MoneyFormatter.format(totalExpense),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style: context.textStyles.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: context.appTheme.expenseColor,
                         ),
@@ -79,7 +79,7 @@ class CategoriesTab extends ConsumerWidget {
               ),
             ),
 
-            Divider(height: AppSizes.dividerHeight, color: Theme.of(context).colorScheme.outlineVariant),
+            Divider(height: AppSizes.dividerHeight, color: context.colors.outlineVariant),
 
             // ── Ranked list ────────────────────────────────────────
             ...List.generate(breakdown.length, (i) {
@@ -122,8 +122,8 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                   : '';
               return BarTooltipItem(
                 '$name\n${MoneyFormatter.format(rod.toY.toInt())}',
-                Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                context.textStyles.bodySmall!.copyWith(
+                      color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
               );
@@ -147,7 +147,7 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                   padding: const EdgeInsetsDirectional.only(end: 8),
                   child: Text(
                     breakdown[idx].categoryName,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: context.textStyles.bodySmall,
                     overflow: TextOverflow.ellipsis,
                   ),
                 );
@@ -204,8 +204,8 @@ class _CategoryRow extends StatelessWidget {
             width: AppSizes.lg,
             child: Text(
               context.l10n.reports_category_rank(rank),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
+              style: context.textStyles.bodySmall?.copyWith(
+                    color: context.colors.outline,
                     fontWeight: FontWeight.w600,
                   ),
             ),
@@ -261,14 +261,14 @@ class _CategoryRow extends StatelessWidget {
             children: [
               Text(
                 MoneyFormatter.formatAmount(spending.amount),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: context.textStyles.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
               ),
               Text(
                 '${(spending.fraction * 100).round()}%',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
+                style: context.textStyles.bodySmall?.copyWith(
+                      color: context.colors.outline,
                     ),
               ),
             ],

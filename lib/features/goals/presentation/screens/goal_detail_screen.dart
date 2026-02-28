@@ -18,6 +18,7 @@ import '../../../../domain/entities/savings_goal_entity.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -191,12 +192,12 @@ class GoalDetailScreen extends ConsumerWidget {
                               actions: [
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(ctx, false),
+                                      ctx.pop(false),
                                   child: Text(context.l10n.common_cancel),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(ctx, true),
+                                      ctx.pop(true),
                                   child: Text(context.l10n.common_delete),
                                 ),
                               ],
@@ -240,14 +241,14 @@ class GoalDetailScreen extends ConsumerWidget {
         content: Text(context.l10n.goal_delete_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(context.l10n.common_cancel),
           ),
           AppButton(
             label: context.l10n.common_delete,
             variant: AppButtonVariant.danger,
             isFullWidth: false,
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
           ),
         ],
       ),
@@ -287,14 +288,14 @@ class GoalDetailScreen extends ConsumerWidget {
                     width: AppSizes.dragHandleWidth,
                     height: AppSizes.dragHandleHeight,
                     decoration: BoxDecoration(
-                      color: Theme.of(ctx).colorScheme.outlineVariant,
+                      color: ctx.colors.outlineVariant,
                       borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                     ),
                   ),
                 ),
                 Text(
                   context.l10n.goal_detail_add_savings,
-                  style: Theme.of(ctx).textTheme.titleMedium,
+                  style: ctx.textStyles.titleMedium,
                 ),
                 const SizedBox(height: AppSizes.md),
                 AmountInput(
@@ -323,7 +324,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                 : noteController.text.trim(),
                           );
                       HapticFeedback.mediumImpact();
-                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (ctx.mounted) ctx.pop();
                     } catch (e) {
                       if (ctx.mounted) {
                         ScaffoldMessenger.of(ctx).showSnackBar(
@@ -351,17 +352,13 @@ class _GoalHeader extends StatelessWidget {
     final color = ColorUtils.fromHex(goal.colorHex);
     final icon = CategoryIconMapper.fromName(goal.iconName);
     final pct = (goal.progressFraction * 100).clamp(0, 100).round();
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
-    return Container(
-      width: double.infinity,
+    return GlassCard(
+      showShadow: true,
       margin: const EdgeInsets.all(AppSizes.screenHPadding),
       padding: const EdgeInsets.all(AppSizes.lg),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        border: Border.all(color: color.withValues(alpha: AppSizes.opacityLight3)),
-      ),
+      tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
       child: Column(
         children: [
           Stack(
@@ -372,7 +369,9 @@ class _GoalHeader extends StatelessWidget {
                 height: AppSizes.progressRingLg,
                 child: TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: goal.progressFraction),
-                  duration: AppDurations.progressAnim,
+                  duration: context.reduceMotion
+                      ? Duration.zero
+                      : AppDurations.progressAnim,
                   curve: Curves.easeOutCubic,
                   builder: (_, value, __) => CircularProgressIndicator(
                     value: value,
@@ -382,21 +381,23 @@ class _GoalHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                width: AppSizes.progressRingInner,
-                height: AppSizes.progressRingInner,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: AppSizes.opacityLight2),
-                  shape: BoxShape.circle,
+              GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(AppSizes.progressRingInner / 2),
+                tintColor: color.withValues(alpha: AppSizes.opacityLight2),
+                child: SizedBox(
+                  width: AppSizes.progressRingInner,
+                  height: AppSizes.progressRingInner,
+                  child: Icon(icon, color: color, size: AppSizes.iconLg),
                 ),
-                child: Icon(icon, color: color, size: AppSizes.iconLg),
               ),
             ],
           ),
           const SizedBox(height: AppSizes.md),
           Text(
             '$pct%',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: context.textStyles.headlineMedium?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
                 ),
@@ -431,7 +432,7 @@ class _GoalHeader extends StatelessWidget {
                 const SizedBox(width: AppSizes.xs),
                 Text(
                   DateFormat.yMd(Localizations.localeOf(context).toString()).format(goal.deadline!),
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: context.textStyles.bodySmall,
                 ),
               ],
             ),
@@ -461,15 +462,15 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          style: context.textStyles.titleSmall?.copyWith(
                 color: color,
                 fontWeight: FontWeight.w700,
               ),
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
+          style: context.textStyles.bodySmall?.copyWith(
+                color: context.colors.outline,
               ),
         ),
       ],

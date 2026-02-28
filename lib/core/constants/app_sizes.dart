@@ -58,7 +58,7 @@ abstract final class AppSizes {
   // ── Progress rings ──────────────────────────────────────────────────
   static const double progressRingSm = 56;
   static const double progressRingInner = 72;
-  static const double voiceMicSize = 80;
+  static const double voiceMicSize = 72;
   static const double progressRingLg = 96;
   static const double onboardingIcon = 120;
 
@@ -86,6 +86,9 @@ abstract final class AppSizes {
   static const double progressBarHeight = 8;
   static const double chartLabelSize = 11;
 
+  // ── Color picker ────────────────────────────────────────────────────
+  static const double colorSwatchBorder = 3.0;
+
   // ── Misc ────────────────────────────────────────────────────────────
   static const double spinnerSize = 20;
   static const double dividerHeight = 1.0;
@@ -101,16 +104,20 @@ abstract final class AppSizes {
   static const double lineHeightNormal = 1.5;
 
   // ── Opacity scale ─────────────────────────────────────────────────────
+  static const double opacityXLight2 = 0.06;
   static const double opacitySubtle = 0.08;
   static const double opacityXLight = 0.1;
   static const double opacityLight2 = 0.12;
   static const double opacityLight = 0.15;
   static const double opacityLight3 = 0.2;
+  static const double opacityQuarter = 0.25;
   static const double opacityLight4 = 0.3;
   static const double opacityLight5 = 0.4;
   static const double opacityMedium = 0.5;
+  static const double opacityMedium2 = 0.6;
   static const double opacityStrong = 0.7;
   static const double opacityHeavy = 0.8;
+  static const double opacityNearFull = 0.85;
 
   // ── FAB (Expandable Radial) ───────────────────────────────────────────
   static const double fabHitRadius = 36.0;
@@ -137,6 +144,12 @@ abstract final class AppSizes {
   static const double glassBlurSigma = 12.0;
   static const double glassBorderWidth = 1.0;
   static const double gradientBorderRadius = 24.0;
+
+  // ── Glass hierarchy (3-tier iOS Control Center style) ──────────────
+  static const double glassBlurBackground = 20.0; // Tier 1: sheets, dialogs
+  static const double glassBlurCard = 12.0; // Tier 2: cards, sections
+  static const double glassBlurInset = 8.0; // Tier 3: nested elements
+  static const double glassBorderWidthSubtle = 0.5; // Tier 1 border
 
   // ── Decorative circles (balance card) ──────────────────────────────
   static const double decorCircleLg = 100.0;

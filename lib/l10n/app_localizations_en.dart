@@ -872,9 +872,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_fee => 'Transfer Fee (optional)';
 
   @override
-  String get transfer_success => 'Transfer completed successfully';
-
-  @override
   String get language_en => 'English';
 
   @override
@@ -1220,6 +1217,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get transfer_insufficient_body =>
       'Source wallet balance is less than the transfer amount. Continue anyway?';
+
+  @override
+  String get transfer_success => 'Transfer completed successfully';
 
   @override
   String get settings_appearance => 'Appearance';
@@ -1856,4 +1856,88 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wallet_archive_balance_warning =>
       'This wallet still has a remaining balance. The balance will be excluded from your totals after archiving.';
+
+  @override
+  String get notif_prefs_title => 'Notification Settings';
+
+  @override
+  String get notif_section_budget => 'Budget Alerts';
+
+  @override
+  String get notif_budget_warning => 'Budget Warning (80%)';
+
+  @override
+  String get notif_budget_warning_sub =>
+      'Notify when spending reaches 80% of budget';
+
+  @override
+  String get notif_budget_exceeded => 'Budget Exceeded (100%)';
+
+  @override
+  String get notif_budget_exceeded_sub => 'Notify when a budget is fully spent';
+
+  @override
+  String get notif_section_bills => 'Bills & Recurring';
+
+  @override
+  String get notif_bill_reminder => 'Bill Reminders';
+
+  @override
+  String get notif_bill_reminder_sub =>
+      'Remind about upcoming bills before due date';
+
+  @override
+  String get notif_recurring_reminder => 'Recurring Transactions';
+
+  @override
+  String get notif_recurring_reminder_sub =>
+      'Notify when recurring transactions are due';
+
+  @override
+  String get notif_section_goals => 'Goals';
+
+  @override
+  String get notif_goal_milestone => 'Goal Milestones';
+
+  @override
+  String get notif_goal_milestone_sub =>
+      'Celebrate when you reach 25%, 50%, 75%, and 100% of a goal';
+
+  @override
+  String get notif_section_daily => 'Daily Reminder';
+
+  @override
+  String get notif_daily_reminder => 'Log Your Expenses';
+
+  @override
+  String get notif_daily_reminder_sub =>
+      'A gentle reminder to log today\'s transactions';
+
+  @override
+  String get notif_daily_reminder_time => 'Reminder Time';
+
+  @override
+  String get notif_section_quiet => 'Quiet Hours';
+
+  @override
+  String get notif_quiet_hours => 'Enable Quiet Hours';
+
+  @override
+  String get notif_quiet_hours_sub =>
+      'Pause all notifications during set hours';
+
+  @override
+  String get notif_quiet_start => 'Start';
+
+  @override
+  String get notif_quiet_end => 'End';
+
+  @override
+  String get period_3_months => '3M';
+
+  @override
+  String get period_6_months => '6M';
+
+  @override
+  String get period_1_year => '1Y';
 }

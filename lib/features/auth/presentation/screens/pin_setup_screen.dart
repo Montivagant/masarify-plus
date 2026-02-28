@@ -96,7 +96,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.colors;
 
     return Scaffold(
       appBar: AppAppBar(title: l10n.auth_pin_setup_title),
@@ -112,7 +112,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
                 _isConfirming
                     ? l10n.auth_pin_confirm
                     : l10n.auth_pin_setup_subtitle,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: context.textStyles.bodyLarge?.copyWith(
                       color: cs.onSurfaceVariant,
                     ),
                 textAlign: TextAlign.center,
