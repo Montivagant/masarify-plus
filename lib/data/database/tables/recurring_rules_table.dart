@@ -15,8 +15,10 @@ class RecurringRules extends Table {
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   DateTimeColumn get nextDueDate => dateTime()();
-  BoolColumn get autoLog =>
+  BoolColumn get isPaid =>
       boolean().withDefault(const Constant(false))();
+  DateTimeColumn get paidAt => dateTime().nullable()();
+  IntColumn get linkedTransactionId => integer().nullable()();
   BoolColumn get isActive =>
       boolean().withDefault(const Constant(true))();
   DateTimeColumn get lastProcessedDate => dateTime().nullable()();
