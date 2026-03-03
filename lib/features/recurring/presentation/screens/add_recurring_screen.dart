@@ -13,7 +13,6 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -37,7 +36,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   int? _walletId;
   String _frequency = 'monthly';
   DateTime _startDate = DateTime.now();
-  bool _autoLog = false;
   bool _loading = false;
 
   static const _frequencies = [
@@ -93,7 +91,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       _walletId = rule.walletId;
       _frequency = rule.frequency;
       _startDate = rule.startDate;
-      _autoLog = rule.autoLog;
     });
   }
 
@@ -250,7 +247,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               startDate: _startDate,
               endDate: existing.endDate,
               nextDueDate: existing.nextDueDate,
-              autoLog: _autoLog,
               isActive: existing.isActive,
               lastProcessedDate: existing.lastProcessedDate,
             ),
@@ -266,7 +262,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           frequency: _frequency,
           startDate: _startDate,
           nextDueDate: _startDate,
-          autoLog: _autoLog,
         );
       }
 
@@ -504,16 +499,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             ),
             const SizedBox(height: AppSizes.lg),
 
-            // ── Auto-log toggle ───────────────────────────────────────
-            GlassCard(
-              child: SwitchListTile(
-                title: Text(context.l10n.recurring_auto_log_label),
-                subtitle: Text(context.l10n.recurring_auto_log_subtitle),
-                value: _autoLog,
-                onChanged: (v) => setState(() => _autoLog = v),
-                secondary: const Icon(AppIcons.recurring),
-              ),
-            ),
             const SizedBox(height: AppSizes.xl),
 
             // ── Save button ───────────────────────────────────────────

@@ -21,7 +21,6 @@ abstract interface class IRecurringRuleRepository {
     required DateTime startDate,
     required DateTime nextDueDate,
     DateTime? endDate,
-    bool autoLog = false,
   });
 
   Future<bool> update(RecurringRuleEntity rule);

@@ -75,7 +75,6 @@ Future<void> main() async {
   unawaited(
     RecurringScheduler(
       ruleRepository: container.read(recurringRuleRepositoryProvider),
-      transactionRepository: container.read(transactionRepositoryProvider),
       walletRepository: container.read(walletRepositoryProvider),
       categoryRepository: container.read(categoryRepositoryProvider),
     ).run(),

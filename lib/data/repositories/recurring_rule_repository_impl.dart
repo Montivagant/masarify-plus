@@ -43,7 +43,6 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
     required DateTime startDate,
     required DateTime nextDueDate,
     DateTime? endDate,
-    bool autoLog = false,
   }) =>
       _dao.insertRule(
         RecurringRulesCompanion.insert(
@@ -56,7 +55,7 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           startDate: startDate,
           nextDueDate: nextDueDate,
           endDate: Value(endDate),
-          autoLog: Value(autoLog),
+          autoLog: const Value(false),
         ),
       );
 
@@ -73,7 +72,7 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           startDate: Value(rule.startDate),
           endDate: Value(rule.endDate),
           nextDueDate: Value(rule.nextDueDate),
-          autoLog: Value(rule.autoLog),
+          autoLog: const Value(false),
           isActive: Value(rule.isActive),
           lastProcessedDate: Value(rule.lastProcessedDate),
         ),
@@ -95,7 +94,6 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
         startDate: r.startDate,
         endDate: r.endDate,
         nextDueDate: r.nextDueDate,
-        autoLog: r.autoLog,
         isActive: r.isActive,
         lastProcessedDate: r.lastProcessedDate,
       );

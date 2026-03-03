@@ -11,7 +11,6 @@ class RecurringRuleEntity {
     required this.startDate,
     this.endDate,
     required this.nextDueDate,
-    required this.autoLog,
     required this.isActive,
     this.lastProcessedDate,
   });
@@ -34,10 +33,6 @@ class RecurringRuleEntity {
   final DateTime startDate;
   final DateTime? endDate;
   final DateTime nextDueDate;
-
-  /// If true, auto-creates transaction when due.
-  /// If false, sends a local notification reminder.
-  final bool autoLog;
 
   final bool isActive;
   final DateTime? lastProcessedDate;

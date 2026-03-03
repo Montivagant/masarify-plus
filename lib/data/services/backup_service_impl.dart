@@ -74,6 +74,9 @@ class BackupServiceImpl implements BackupService {
   @override
   Future<void> importFromJson(String filePath) async {
     final file = File(filePath);
+    if (!file.existsSync()) {
+      throw FormatException('Backup file not found: $filePath');
+    }
     final content = await file.readAsString();
 
     // C4 fix: parse and validate the entire backup BEFORE deleting any data.
@@ -533,7 +536,7 @@ class BackupServiceImpl implements BackupService {
               : null,
         ),
         nextDueDate: Value(DateTime.parse(m['nextDueDate'] as String)),
-        autoLog: Value(m['autoLog'] as bool? ?? false),
+        autoLog: const Value(false),
         isActive: Value(m['isActive'] as bool? ?? true),
         lastProcessedDate: Value(
           m['lastProcessedDate'] != null

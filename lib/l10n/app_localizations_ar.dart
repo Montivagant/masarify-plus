@@ -322,9 +322,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_next_due => 'الموعد القادم';
 
   @override
-  String get recurring_auto_log => 'تسجيل تلقائي';
-
-  @override
   String get bills_title => 'الفواتير';
 
   @override
@@ -1460,13 +1457,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_start_date => 'تاريخ البدء';
-
-  @override
-  String get recurring_auto_log_label => 'تسجيل تلقائي للمعاملات';
-
-  @override
-  String get recurring_auto_log_subtitle =>
-      'إنشاء المعاملات تلقائياً عند استحقاقها';
 
   @override
   String get recurring_empty_sub => 'أضف معاملاتك المتكررة لتوفير الوقت';

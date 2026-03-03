@@ -114,8 +114,6 @@
   "recurring_frequency_quarterly": "Quarterly",
   "recurring_frequency_yearly": "Yearly",
   "recurring_next_due": "Next due",
-  "recurring_auto_log": "Auto-log",
-
   "bills_title": "Bills",
   "bills_empty_title": "No upcoming bills",
   "bills_empty_sub": "Track your bills to never miss a payment",
@@ -524,8 +522,6 @@
   "recurring_resume": "Resume",
   "recurring_frequency_label": "Frequency",
   "recurring_start_date": "Start Date",
-  "recurring_auto_log_label": "Auto-log transactions",
-  "recurring_auto_log_subtitle": "Automatically create transactions when due",
   "recurring_empty_sub": "Set up recurring transactions to save time",
   "recurring_delete_title": "Delete Recurring",
   "recurring_delete_confirm": "Are you sure you want to delete this recurring transaction?",

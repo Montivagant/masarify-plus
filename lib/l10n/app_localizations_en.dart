@@ -324,9 +324,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_next_due => 'Next due';
 
   @override
-  String get recurring_auto_log => 'Auto-log';
-
-  @override
   String get bills_title => 'Bills';
 
   @override
@@ -1469,13 +1466,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_start_date => 'Start Date';
-
-  @override
-  String get recurring_auto_log_label => 'Auto-log transactions';
-
-  @override
-  String get recurring_auto_log_subtitle =>
-      'Automatically create transactions when due';
 
   @override
   String get recurring_empty_sub =>

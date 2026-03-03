@@ -710,12 +710,6 @@ abstract class AppLocalizations {
   /// **'Next due'**
   String get recurring_next_due;
 
-  /// No description provided for @recurring_auto_log.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-log'**
-  String get recurring_auto_log;
-
   /// No description provided for @bills_title.
   ///
   /// In en, this message translates to:
@@ -2917,18 +2911,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get recurring_start_date;
-
-  /// No description provided for @recurring_auto_log_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-log transactions'**
-  String get recurring_auto_log_label;
-
-  /// No description provided for @recurring_auto_log_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Automatically create transactions when due'**
-  String get recurring_auto_log_subtitle;
 
   /// No description provided for @recurring_empty_sub.
   ///

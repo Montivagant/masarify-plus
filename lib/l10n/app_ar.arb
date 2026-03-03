@@ -114,8 +114,6 @@
   "recurring_frequency_quarterly": "ربع سنوي",
   "recurring_frequency_yearly": "سنوي",
   "recurring_next_due": "الموعد القادم",
-  "recurring_auto_log": "تسجيل تلقائي",
-
   "bills_title": "الفواتير",
   "bills_empty_title": "لا توجد فواتير قادمة",
   "bills_empty_sub": "تتبع فواتيرك حتى لا تنساها",
@@ -524,8 +522,6 @@
   "recurring_resume": "تفعيل",
   "recurring_frequency_label": "التكرار",
   "recurring_start_date": "تاريخ البدء",
-  "recurring_auto_log_label": "تسجيل تلقائي للمعاملات",
-  "recurring_auto_log_subtitle": "إنشاء المعاملات تلقائياً عند استحقاقها",
   "recurring_empty_sub": "أضف معاملاتك المتكررة لتوفير الوقت",
   "recurring_delete_title": "حذف المتكرر",
   "recurring_delete_confirm": "هل أنت متأكد من حذف هذه المعاملة المتكررة؟",

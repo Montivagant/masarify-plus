@@ -1,7 +1,6 @@
 import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/repositories/i_category_repository.dart';
 import '../../domain/repositories/i_recurring_rule_repository.dart';
-import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
 import '../extensions/datetime_extensions.dart';
 import '../utils/money_formatter.dart';
@@ -11,23 +10,20 @@ import 'notification_service.dart';
 /// Called on every app open (from main.dart via ProviderContainer).
 ///
 /// For each rule where [nextDueDate] ≤ today:
-/// - [autoLog = true]  → creates a Transaction + advances nextDueDate
-/// - [autoLog = false] → fire a local notification reminder (Phase 3)
+/// - Advances nextDueDate past today
+/// - Fires a local notification reminder
 ///
 /// All side-effects are idempotent: [lastProcessedDate] guards double-processing.
 class RecurringScheduler {
   const RecurringScheduler({
     required IRecurringRuleRepository ruleRepository,
-    required ITransactionRepository transactionRepository,
     required IWalletRepository walletRepository,
     required ICategoryRepository categoryRepository,
   })  : _ruleRepo = ruleRepository,
-        _txRepo = transactionRepository,
         _walletRepo = walletRepository,
         _categoryRepo = categoryRepository;
 
   final IRecurringRuleRepository _ruleRepo;
-  final ITransactionRepository _txRepo;
   final IWalletRepository _walletRepo;
   final ICategoryRepository _categoryRepo;
 
@@ -55,7 +51,6 @@ class RecurringScheduler {
               startDate: rule.startDate,
               endDate: rule.endDate,
               nextDueDate: rule.nextDueDate,
-              autoLog: rule.autoLog,
               isActive: false,
               lastProcessedDate: now,
             ),
@@ -86,7 +81,6 @@ class RecurringScheduler {
               startDate: rule.startDate,
               endDate: rule.endDate,
               nextDueDate: rule.nextDueDate,
-              autoLog: rule.autoLog,
               isActive: false,
               lastProcessedDate: now,
             ),
@@ -108,14 +102,10 @@ class RecurringScheduler {
             break;
           }
 
-          if (rule.autoLog) {
-            await _autoLogTransaction(rule, nextDue);
-          }
-
           nextDue = _computeNextDueDate(nextDue, rule.frequency);
 
           // Persist nextDueDate after each iteration so crash mid-loop
-          // doesn't re-run already-logged transactions on restart.
+          // doesn't re-run already-processed rules on restart.
           await _ruleRepo.update(
             RecurringRuleEntity(
               id: rule.id,
@@ -128,15 +118,14 @@ class RecurringScheduler {
               startDate: rule.startDate,
               endDate: rule.endDate,
               nextDueDate: nextDue,
-              autoLog: rule.autoLog,
               isActive: rule.isActive,
               lastProcessedDate: now,
             ),
           );
         }
 
-        // CR-13 fix: fire a single notification for overdue non-autoLog rules
-        if (!rule.autoLog && iterations > 0) {
+        // Fire a single notification reminder for overdue rules
+        if (iterations > 0) {
           await _fireReminder(rule);
         }
       } catch (e, stack) {
@@ -153,23 +142,6 @@ class RecurringScheduler {
       id: rule.id + 100000,
       title: rule.title,
       body: MoneyFormatter.format(rule.amount),
-    );
-  }
-
-  Future<void> _autoLogTransaction(
-    RecurringRuleEntity rule,
-    DateTime transactionDate,
-  ) async {
-    await _txRepo.create(
-      walletId: rule.walletId,
-      categoryId: rule.categoryId,
-      amount: rule.amount,
-      type: rule.type,
-      title: rule.title,
-      transactionDate: transactionDate,
-      isRecurring: true,
-      recurringRuleId: rule.id,
-      source: 'recurring',
     );
   }
 
