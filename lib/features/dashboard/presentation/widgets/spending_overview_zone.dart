@@ -14,8 +14,14 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Zone 4: Spending overview donut chart — watches only monthTxs + categories.
+///
+/// When [filterWalletId] is non-null, only expenses for that account
+/// are shown.
 class SpendingOverviewZone extends ConsumerWidget {
-  const SpendingOverviewZone({super.key});
+  const SpendingOverviewZone({super.key, this.filterWalletId});
+
+  /// When set, only expenses with this walletId are displayed.
+  final int? filterWalletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +32,13 @@ class SpendingOverviewZone extends ConsumerWidget {
 
     return monthTxs.when(
       data: (txList) {
-        final expenses = txList.where((tx) => tx.type == 'expense').toList();
+        final allExpenses =
+            txList.where((tx) => tx.type == 'expense');
+        final expenses = filterWalletId != null
+            ? allExpenses
+                .where((tx) => tx.walletId == filterWalletId)
+                .toList()
+            : allExpenses.toList();
         if (expenses.isEmpty) return const SizedBox.shrink();
 
         final catList = categories.valueOrNull ?? [];

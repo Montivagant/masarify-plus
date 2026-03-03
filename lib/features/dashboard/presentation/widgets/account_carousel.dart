@@ -117,15 +117,18 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
 
               final walletIncome = monthTxs
                   .where(
-                      (t) => t.type == 'income' && t.walletId == wallet.id)
+                    (t) => t.type == 'income' && t.walletId == wallet.id,
+                  )
                   .fold<int>(0, (s, t) => s + t.amount);
               final walletExpense = monthTxs
                   .where(
-                      (t) => t.type == 'expense' && t.walletId == wallet.id)
+                    (t) => t.type == 'expense' && t.walletId == wallet.id,
+                  )
                   .fold<int>(0, (s, t) => s + t.amount);
               final walletLastExpense = lastMonthTxs
                   .where(
-                      (t) => t.type == 'expense' && t.walletId == wallet.id)
+                    (t) => t.type == 'expense' && t.walletId == wallet.id,
+                  )
                   .fold<int>(0, (s, t) => s + t.amount);
 
               return Padding(

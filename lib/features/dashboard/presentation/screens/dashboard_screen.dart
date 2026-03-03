@@ -10,11 +10,12 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
+import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
-import '../widgets/balance_zone.dart';
+import '../widgets/account_carousel.dart';
 import '../widgets/budget_alerts_zone.dart';
 import '../widgets/recent_transactions_zone.dart';
 import '../widgets/spending_overview_zone.dart';
@@ -30,6 +31,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
+    final selectedWalletId = ref.watch(selectedAccountIdProvider);
 
     return Scaffold(
       appBar: AppAppBar(
@@ -61,7 +63,6 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(recentTransactionsProvider);
           ref.invalidate(transactionsByMonthProvider(monthKey));
           ref.invalidate(budgetsByMonthProvider(monthKey));
-
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -70,8 +71,8 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _staggerZones(context, [
-              // ── Zone 1: Hero Balance Card ───────────────────────
-              const BalanceZone(),
+              // ── Zone 1: Account Carousel ─────────────────────────
+              const AccountCarousel(),
 
               const SizedBox(height: AppSizes.sectionGap),
 
@@ -120,11 +121,11 @@ class DashboardScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSizes.sectionGap),
 
-              // ── Zone 3: Recent transactions ─────────────────────
-              const RecentTransactionsZone(),
+              // ── Zone 3: Recent transactions (filtered by account) ─
+              RecentTransactionsZone(filterWalletId: selectedWalletId),
 
-              // ── Zone 4: Spending Overview (donut chart) ─────────
-              const SpendingOverviewZone(),
+              // ── Zone 4: Spending Overview (filtered by account) ───
+              SpendingOverviewZone(filterWalletId: selectedWalletId),
 
               // ── Zone 5: Budget alerts ───────────────────────────
               const BudgetAlertsZone(),

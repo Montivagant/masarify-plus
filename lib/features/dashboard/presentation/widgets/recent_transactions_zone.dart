@@ -15,8 +15,14 @@ import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
 
 /// Zone 3: Recent 5 transactions — watches only recentTransactions + categories.
+///
+/// When [filterWalletId] is non-null, only transactions for that account
+/// are shown.
 class RecentTransactionsZone extends ConsumerWidget {
-  const RecentTransactionsZone({super.key});
+  const RecentTransactionsZone({super.key, this.filterWalletId});
+
+  /// When set, only transactions with this walletId are displayed.
+  final int? filterWalletId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,7 +38,10 @@ class RecentTransactionsZone extends ConsumerWidget {
 
     return recentTxs.when(
       data: (txList) {
-        final recent = txList.take(5).toList();
+        final filtered = filterWalletId != null
+            ? txList.where((tx) => tx.walletId == filterWalletId)
+            : txList;
+        final recent = filtered.take(5).toList();
         if (recent.isEmpty) {
           return EmptyState(
             title: context.l10n.dashboard_no_transactions,
