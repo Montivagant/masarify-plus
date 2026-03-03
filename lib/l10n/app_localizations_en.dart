@@ -324,31 +324,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_next_due => 'Next due';
 
   @override
-  String get bills_title => 'Bills';
+  String get recurring_and_bills_title => 'Recurring & Bills';
 
   @override
-  String get bills_empty_title => 'No upcoming bills';
+  String get recurring_overdue => 'Overdue';
 
   @override
-  String get bills_empty_sub => 'Track your bills to never miss a payment';
+  String get recurring_upcoming_bills => 'Upcoming Bills';
 
   @override
-  String get bills_add => 'Add Bill';
+  String get recurring_paid => 'Paid';
 
   @override
-  String get bills_edit => 'Edit Bill';
+  String get recurring_mark_paid => 'Mark Paid';
 
   @override
-  String get bills_due => 'Due';
+  String get recurring_bill_paid_success => 'Bill marked as paid';
 
   @override
-  String get bills_overdue => 'Overdue';
+  String get recurring_due_date_label => 'Due';
 
   @override
-  String get bills_mark_paid => 'Mark as Paid';
-
-  @override
-  String get bills_paid => 'Paid';
+  String get recurring_frequency_once => 'One-time';
 
   @override
   String get reports_title => 'Analytics';
@@ -400,9 +397,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hub_calendar => 'Calendar';
-
-  @override
-  String get hub_bills => 'Bills & Payments';
 
   @override
   String get hub_recurring => 'Recurring';
@@ -1444,13 +1438,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_total => 'Total';
 
   @override
-  String get bill_add_title => 'New Bill';
-
-  @override
-  String get bill_edit_title => 'Edit Bill';
-
-  @override
-  String get recurring_active => 'Active';
+  String get recurring_active => 'Active Recurring';
 
   @override
   String get recurring_paused => 'Paused';
@@ -1497,47 +1485,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_saved => 'Recurring transaction saved';
-
-  @override
-  String get bill_name_label => 'Bill Name';
-
-  @override
-  String get bill_name_hint => 'e.g. Electricity, Water';
-
-  @override
-  String get bill_amount_label => 'Amount';
-
-  @override
-  String get bill_due_date_label => 'Due Date';
-
-  @override
-  String get bill_mark_paid_confirm => 'Mark this bill as paid?';
-
-  @override
-  String get bill_paid_success => 'Bill marked as paid';
-
-  @override
-  String get bill_delete_title => 'Delete Bill';
-
-  @override
-  String get bill_delete_confirm =>
-      'Are you sure you want to delete this bill?';
-
-  @override
-  String get bill_delete_linked_tx_warning =>
-      'The linked transaction will also be deleted and the amount refunded to the wallet.';
-
-  @override
-  String get bill_overdue_section => 'Overdue';
-
-  @override
-  String get bill_upcoming_section => 'Upcoming';
-
-  @override
-  String get bill_paid_section => 'Paid';
-
-  @override
-  String get bill_saved => 'Bill saved';
 
   @override
   String get calendar_no_transactions_day => 'No transactions on this day';

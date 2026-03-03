@@ -12,14 +12,11 @@ class RecurringRuleDao extends DatabaseAccessor<AppDatabase>
 
   Stream<List<RecurringRule>> watchAll() =>
       (select(recurringRules)
-            ..where((r) => r.isActive.equals(true))
             ..orderBy([(r) => OrderingTerm.desc(r.nextDueDate)]))
           .watch();
 
   Future<List<RecurringRule>> getAll() =>
-      (select(recurringRules)
-            ..where((r) => r.isActive.equals(true)))
-          .get();
+      select(recurringRules).get();
 
   // H10 fix: filter by isActive to prevent disabled rules from generating transactions
   Future<List<RecurringRule>> getDue(DateTime asOf) =>

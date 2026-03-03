@@ -710,59 +710,53 @@ abstract class AppLocalizations {
   /// **'Next due'**
   String get recurring_next_due;
 
-  /// No description provided for @bills_title.
+  /// No description provided for @recurring_and_bills_title.
   ///
   /// In en, this message translates to:
-  /// **'Bills'**
-  String get bills_title;
+  /// **'Recurring & Bills'**
+  String get recurring_and_bills_title;
 
-  /// No description provided for @bills_empty_title.
-  ///
-  /// In en, this message translates to:
-  /// **'No upcoming bills'**
-  String get bills_empty_title;
-
-  /// No description provided for @bills_empty_sub.
-  ///
-  /// In en, this message translates to:
-  /// **'Track your bills to never miss a payment'**
-  String get bills_empty_sub;
-
-  /// No description provided for @bills_add.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Bill'**
-  String get bills_add;
-
-  /// No description provided for @bills_edit.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Bill'**
-  String get bills_edit;
-
-  /// No description provided for @bills_due.
-  ///
-  /// In en, this message translates to:
-  /// **'Due'**
-  String get bills_due;
-
-  /// No description provided for @bills_overdue.
+  /// No description provided for @recurring_overdue.
   ///
   /// In en, this message translates to:
   /// **'Overdue'**
-  String get bills_overdue;
+  String get recurring_overdue;
 
-  /// No description provided for @bills_mark_paid.
+  /// No description provided for @recurring_upcoming_bills.
   ///
   /// In en, this message translates to:
-  /// **'Mark as Paid'**
-  String get bills_mark_paid;
+  /// **'Upcoming Bills'**
+  String get recurring_upcoming_bills;
 
-  /// No description provided for @bills_paid.
+  /// No description provided for @recurring_paid.
   ///
   /// In en, this message translates to:
   /// **'Paid'**
-  String get bills_paid;
+  String get recurring_paid;
+
+  /// No description provided for @recurring_mark_paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark Paid'**
+  String get recurring_mark_paid;
+
+  /// No description provided for @recurring_bill_paid_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill marked as paid'**
+  String get recurring_bill_paid_success;
+
+  /// No description provided for @recurring_due_date_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get recurring_due_date_label;
+
+  /// No description provided for @recurring_frequency_once.
+  ///
+  /// In en, this message translates to:
+  /// **'One-time'**
+  String get recurring_frequency_once;
 
   /// No description provided for @reports_title.
   ///
@@ -865,12 +859,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calendar'**
   String get hub_calendar;
-
-  /// No description provided for @hub_bills.
-  ///
-  /// In en, this message translates to:
-  /// **'Bills & Payments'**
-  String get hub_bills;
 
   /// No description provided for @hub_recurring.
   ///
@@ -2864,22 +2852,10 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get dashboard_total;
 
-  /// No description provided for @bill_add_title.
-  ///
-  /// In en, this message translates to:
-  /// **'New Bill'**
-  String get bill_add_title;
-
-  /// No description provided for @bill_edit_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Bill'**
-  String get bill_edit_title;
-
   /// No description provided for @recurring_active.
   ///
   /// In en, this message translates to:
-  /// **'Active'**
+  /// **'Active Recurring'**
   String get recurring_active;
 
   /// No description provided for @recurring_paused.
@@ -2965,84 +2941,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recurring transaction saved'**
   String get recurring_saved;
-
-  /// No description provided for @bill_name_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Bill Name'**
-  String get bill_name_label;
-
-  /// No description provided for @bill_name_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g. Electricity, Water'**
-  String get bill_name_hint;
-
-  /// No description provided for @bill_amount_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Amount'**
-  String get bill_amount_label;
-
-  /// No description provided for @bill_due_date_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Due Date'**
-  String get bill_due_date_label;
-
-  /// No description provided for @bill_mark_paid_confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Mark this bill as paid?'**
-  String get bill_mark_paid_confirm;
-
-  /// No description provided for @bill_paid_success.
-  ///
-  /// In en, this message translates to:
-  /// **'Bill marked as paid'**
-  String get bill_paid_success;
-
-  /// No description provided for @bill_delete_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Bill'**
-  String get bill_delete_title;
-
-  /// No description provided for @bill_delete_confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete this bill?'**
-  String get bill_delete_confirm;
-
-  /// No description provided for @bill_delete_linked_tx_warning.
-  ///
-  /// In en, this message translates to:
-  /// **'The linked transaction will also be deleted and the amount refunded to the wallet.'**
-  String get bill_delete_linked_tx_warning;
-
-  /// No description provided for @bill_overdue_section.
-  ///
-  /// In en, this message translates to:
-  /// **'Overdue'**
-  String get bill_overdue_section;
-
-  /// No description provided for @bill_upcoming_section.
-  ///
-  /// In en, this message translates to:
-  /// **'Upcoming'**
-  String get bill_upcoming_section;
-
-  /// No description provided for @bill_paid_section.
-  ///
-  /// In en, this message translates to:
-  /// **'Paid'**
-  String get bill_paid_section;
-
-  /// No description provided for @bill_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'Bill saved'**
-  String get bill_saved;
 
   /// No description provided for @calendar_no_transactions_day.
   ///

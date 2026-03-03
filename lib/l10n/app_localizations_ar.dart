@@ -322,31 +322,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_next_due => 'الموعد القادم';
 
   @override
-  String get bills_title => 'الفواتير';
+  String get recurring_and_bills_title => 'المتكررة والفواتير';
 
   @override
-  String get bills_empty_title => 'لا توجد فواتير قادمة';
+  String get recurring_overdue => 'متأخرة';
 
   @override
-  String get bills_empty_sub => 'تتبع فواتيرك حتى لا تنساها';
+  String get recurring_upcoming_bills => 'فواتير قادمة';
 
   @override
-  String get bills_add => 'إضافة فاتورة';
+  String get recurring_paid => 'مدفوعة';
 
   @override
-  String get bills_edit => 'تعديل الفاتورة';
+  String get recurring_mark_paid => 'تم الدفع';
 
   @override
-  String get bills_due => 'موعد الدفع';
+  String get recurring_bill_paid_success => 'تم تسجيل دفع الفاتورة';
 
   @override
-  String get bills_overdue => 'متأخرة';
+  String get recurring_due_date_label => 'الاستحقاق';
 
   @override
-  String get bills_mark_paid => 'تم الدفع';
-
-  @override
-  String get bills_paid => 'مدفوعة';
+  String get recurring_frequency_once => 'مرة واحدة';
 
   @override
   String get reports_title => 'التقارير';
@@ -398,9 +395,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hub_calendar => 'التقويم';
-
-  @override
-  String get hub_bills => 'الفواتير والمدفوعات';
 
   @override
   String get hub_recurring => 'المعاملات المتكررة';
@@ -1435,13 +1429,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_total => 'إجمالي';
 
   @override
-  String get bill_add_title => 'فاتورة جديدة';
-
-  @override
-  String get bill_edit_title => 'تعديل الفاتورة';
-
-  @override
-  String get recurring_active => 'نشطة';
+  String get recurring_active => 'المتكررة النشطة';
 
   @override
   String get recurring_paused => 'متوقفة';
@@ -1487,46 +1475,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_saved => 'تم حفظ المعاملة المتكررة';
-
-  @override
-  String get bill_name_label => 'اسم الفاتورة';
-
-  @override
-  String get bill_name_hint => 'مثال: كهرباء، مياه';
-
-  @override
-  String get bill_amount_label => 'المبلغ';
-
-  @override
-  String get bill_due_date_label => 'تاريخ الاستحقاق';
-
-  @override
-  String get bill_mark_paid_confirm => 'تأكيد دفع الفاتورة؟';
-
-  @override
-  String get bill_paid_success => 'تم تسجيل دفع الفاتورة';
-
-  @override
-  String get bill_delete_title => 'حذف الفاتورة';
-
-  @override
-  String get bill_delete_confirm => 'هل أنت متأكد من حذف هذه الفاتورة؟';
-
-  @override
-  String get bill_delete_linked_tx_warning =>
-      'سيتم أيضاً حذف المعاملة المرتبطة وإعادة المبلغ للمحفظة.';
-
-  @override
-  String get bill_overdue_section => 'متأخرة';
-
-  @override
-  String get bill_upcoming_section => 'قادمة';
-
-  @override
-  String get bill_paid_section => 'مدفوعة';
-
-  @override
-  String get bill_saved => 'تم حفظ الفاتورة';
 
   @override
   String get calendar_no_transactions_day => 'لا توجد معاملات في هذا اليوم';

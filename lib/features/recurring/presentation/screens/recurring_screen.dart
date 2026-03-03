@@ -16,6 +16,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -28,7 +29,7 @@ class RecurringScreen extends ConsumerWidget {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
 
     return Scaffold(
-      appBar: AppAppBar(title: context.l10n.recurring_title),
+      appBar: AppAppBar(title: context.l10n.recurring_and_bills_title),
       body: rulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
@@ -37,33 +38,83 @@ class RecurringScreen extends ConsumerWidget {
         data: (rules) {
           if (rules.isEmpty) {
             return EmptyState(
-              title: context.l10n.recurring_title,
+              title: context.l10n.recurring_and_bills_title,
               subtitle: context.l10n.recurring_empty_sub,
               ctaLabel: context.l10n.recurring_add,
               onCta: () => context.push(AppRoutes.recurringAdd),
             );
           }
 
-          final active = rules.where((r) => r.isActive).toList();
-          final paused = rules.where((r) => !r.isActive).toList();
+          // Section 1: Overdue bills (once-frequency, not paid, past due)
+          final overdue = rules.where((r) => r.isOverdue).toList();
+          // Section 2: Upcoming bills (once-frequency, not paid, not overdue)
+          final upcomingBills = rules
+              .where((r) => r.isBill && !r.isPaid && !r.isOverdue)
+              .toList();
+          // Section 3: Active recurring (non-once frequency, active)
+          final activeRecurring = rules
+              .where((r) => !r.isBill && r.isActive)
+              .toList();
+          // Section 4: Paid / Completed (isPaid == true)
+          final paid = rules.where((r) => r.isPaid).toList();
+          // Also include inactive non-bill items in a sub-group at end
+          final inactive = rules
+              .where((r) => !r.isBill && !r.isActive)
+              .toList();
 
           return ListView(
             padding: const EdgeInsets.only(
               bottom: AppSizes.bottomScrollPadding,
             ),
             children: [
-              if (active.isNotEmpty) ...[
-                _SectionHeader(label: context.l10n.recurring_active),
-                ...active.map(
+              if (overdue.isNotEmpty) ...[
+                _SectionHeader(
+                  label: context.l10n.recurring_overdue,
+                  color: context.appTheme.expenseColor,
+                ),
+                ...overdue.map(
                   (r) => _RecurringCard(
                     rule: r,
                     categories: categories,
                   ),
                 ),
               ],
-              if (paused.isNotEmpty) ...[
-                _SectionHeader(label: context.l10n.recurring_paused),
-                ...paused.map(
+              if (upcomingBills.isNotEmpty) ...[
+                _SectionHeader(label: context.l10n.recurring_upcoming_bills),
+                ...upcomingBills.map(
+                  (r) => _RecurringCard(
+                    rule: r,
+                    categories: categories,
+                  ),
+                ),
+              ],
+              if (activeRecurring.isNotEmpty) ...[
+                _SectionHeader(label: context.l10n.recurring_active),
+                ...activeRecurring.map(
+                  (r) => _RecurringCard(
+                    rule: r,
+                    categories: categories,
+                  ),
+                ),
+              ],
+              if (paid.isNotEmpty) ...[
+                _SectionHeader(
+                  label: context.l10n.recurring_paid,
+                  color: context.colors.outline,
+                ),
+                ...paid.map(
+                  (r) => _RecurringCard(
+                    rule: r,
+                    categories: categories,
+                  ),
+                ),
+              ],
+              if (inactive.isNotEmpty) ...[
+                _SectionHeader(
+                  label: context.l10n.recurring_paused,
+                  color: context.colors.outline,
+                ),
+                ...inactive.map(
                   (r) => _RecurringCard(
                     rule: r,
                     categories: categories,
@@ -85,9 +136,10 @@ class RecurringScreen extends ConsumerWidget {
 // ── Section header ────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
+  const _SectionHeader({required this.label, this.color});
 
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +153,8 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label,
         style: context.textStyles.labelLarge?.copyWith(
-              color: context.colors.outline,
+              color: color ?? context.colors.outline,
+              fontWeight: color != null ? FontWeight.w700 : null,
             ),
       ),
     );
@@ -126,6 +179,7 @@ class _RecurringCard extends ConsumerWidget {
         'monthly' => context.l10n.recurring_frequency_monthly,
         'quarterly' => context.l10n.recurring_frequency_quarterly,
         'yearly' => context.l10n.recurring_frequency_yearly,
+        'once' => context.l10n.recurring_frequency_once,
         _ => freq,
       };
 
@@ -150,6 +204,8 @@ class _RecurringCard extends ConsumerWidget {
     final typeColor =
         rule.type == 'income' ? context.appTheme.incomeColor : context.appTheme.expenseColor;
     final prefix = rule.type == 'income' ? '+' : '\u2212';
+    final isBill = rule.isBill;
+    final isOverdue = rule.isOverdue;
 
     return Slidable(
       key: ValueKey(rule.id),
@@ -194,21 +250,29 @@ class _RecurringCard extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Category icon badge
+              // Category icon badge — overdue gets red tint
               GlassCard(
                 tier: GlassTier.inset,
                 padding: EdgeInsets.zero,
                 borderRadius:
                     BorderRadius.circular(AppSizes.borderRadiusSm),
-                tintColor: catColor.withValues(alpha: AppSizes.opacityLight2),
+                tintColor: isOverdue
+                    ? context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityLight2)
+                    : catColor.withValues(alpha: AppSizes.opacityLight2),
                 child: SizedBox(
                   width: AppSizes.iconContainerLg,
                   height: AppSizes.iconContainerLg,
-                  child: Icon(catIcon, size: AppSizes.iconMd, color: ColorUtils.contrastColor(catColor)),
+                  child: Icon(
+                    isBill ? AppIcons.bill : catIcon,
+                    size: AppSizes.iconMd,
+                    color: isOverdue
+                        ? context.appTheme.expenseColor
+                        : ColorUtils.contrastColor(catColor),
+                  ),
                 ),
               ),
               const SizedBox(width: AppSizes.md),
-              // Title + frequency + next due
+              // Title + subtitle row
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,41 +281,18 @@ class _RecurringCard extends ConsumerWidget {
                       rule.title,
                       style: context.textStyles.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
+                            decoration: rule.isPaid ? TextDecoration.lineThrough : null,
                           ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSizes.xxs),
-                    Row(
-                      children: [
-                        Icon(
-                          AppIcons.recurring,
-                          size: AppSizes.iconXxs,
-                          color: cs.outline,
-                        ),
-                        const SizedBox(width: AppSizes.xs),
-                        Text(
-                          _frequencyLabel(context, rule.frequency),
-                          style:
-                              context.textStyles.bodySmall?.copyWith(
-                                    color: cs.outline,
-                                  ),
-                        ),
-                        const SizedBox(width: AppSizes.sm),
-                        Text(
-                          '${context.l10n.recurring_next_due}: ${_formatDate(rule.nextDueDate)}',
-                          style:
-                              context.textStyles.bodySmall?.copyWith(
-                                    color: cs.outline,
-                                  ),
-                        ),
-                      ],
-                    ),
+                    if (isBill) _buildBillSubtitle(context) else _buildRecurringSubtitle(context),
                   ],
                 ),
               ),
               const SizedBox(width: AppSizes.sm),
-              // Amount + active toggle
+              // Amount + action
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -259,26 +300,99 @@ class _RecurringCard extends ConsumerWidget {
                     '$prefix ${MoneyFormatter.formatAmount(rule.amount)}',
                     style: context.textStyles.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: typeColor,
+                          color: rule.isPaid
+                              ? cs.outline
+                              : typeColor,
                         ),
                   ),
                   const SizedBox(height: AppSizes.xxs),
-                  SizedBox(
-                    height: AppSizes.iconMd,
-                    child: Switch.adaptive(
-                      value: rule.isActive,
-                      // I20 fix: confirm before toggling
-                      onChanged: (active) =>
-                          _confirmToggle(context, ref, active),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  if (isBill && !rule.isPaid)
+                    _MarkPaidButton(rule: rule)
+                  else if (!isBill)
+                    SizedBox(
+                      height: AppSizes.iconMd,
+                      child: Switch.adaptive(
+                        value: rule.isActive,
+                        onChanged: (active) =>
+                            _confirmToggle(context, ref, active),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Subtitle for bill items: due date, with overdue styling.
+  Widget _buildBillSubtitle(BuildContext context) {
+    final cs = context.colors;
+    final isOverdue = rule.isOverdue;
+    final dueDateColor = isOverdue ? context.appTheme.expenseColor : cs.outline;
+
+    return Row(
+      children: [
+        Icon(
+          AppIcons.calendar,
+          size: AppSizes.iconXxs,
+          color: dueDateColor,
+        ),
+        const SizedBox(width: AppSizes.xs),
+        Text(
+          '${context.l10n.recurring_due_date_label}: ${_formatDate(rule.nextDueDate)}',
+          style: context.textStyles.bodySmall?.copyWith(
+                color: dueDateColor,
+                fontWeight: isOverdue ? FontWeight.w600 : null,
+              ),
+        ),
+        if (isOverdue) ...[
+          const SizedBox(width: AppSizes.sm),
+          Icon(
+            AppIcons.warning,
+            size: AppSizes.iconXxs,
+            color: context.appTheme.expenseColor,
+          ),
+          const SizedBox(width: AppSizes.xxs),
+          Text(
+            context.l10n.recurring_overdue,
+            style: context.textStyles.bodySmall?.copyWith(
+                  color: context.appTheme.expenseColor,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Subtitle for recurring items: frequency badge + next due date.
+  Widget _buildRecurringSubtitle(BuildContext context) {
+    final cs = context.colors;
+    return Row(
+      children: [
+        Icon(
+          AppIcons.recurring,
+          size: AppSizes.iconXxs,
+          color: cs.outline,
+        ),
+        const SizedBox(width: AppSizes.xs),
+        Text(
+          _frequencyLabel(context, rule.frequency),
+          style: context.textStyles.bodySmall?.copyWith(
+                color: cs.outline,
+              ),
+        ),
+        const SizedBox(width: AppSizes.sm),
+        Text(
+          '${context.l10n.recurring_next_due}: ${_formatDate(rule.nextDueDate)}',
+          style: context.textStyles.bodySmall?.copyWith(
+                color: cs.outline,
+              ),
+        ),
+      ],
     );
   }
 
@@ -363,6 +477,44 @@ class _RecurringCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Mark Paid button ──────────────────────────────────────────────────────
+
+class _MarkPaidButton extends ConsumerWidget {
+  const _MarkPaidButton({required this.rule});
+
+  final RecurringRuleEntity rule;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      height: AppSizes.iconContainerSm,
+      child: FilledButton.tonal(
+        onPressed: () => _markPaid(context, ref),
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm),
+          visualDensity: VisualDensity.compact,
+        ),
+        child: Text(
+          context.l10n.recurring_mark_paid,
+          style: context.textStyles.labelSmall,
+        ),
+      ),
+    );
+  }
+
+  void _markPaid(BuildContext context, WidgetRef ref) {
+    HapticFeedback.mediumImpact();
+    ref
+        .read(recurringRuleRepositoryProvider)
+        .markPaid(rule.id, DateTime.now());
+    ref.invalidate(recurringRulesProvider);
+    SnackHelper.showSuccess(
+      context,
+      context.l10n.recurring_bill_paid_success,
     );
   }
 }
