@@ -13,7 +13,7 @@ import '../../../../shared/providers/calendar_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
+
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -294,21 +294,10 @@ class _DayTransactionList extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                GlassCard(
-                  tier: GlassTier.inset,
-                  padding: EdgeInsets.zero,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusSm),
-                  tintColor: catColor.withValues(alpha: AppSizes.opacityLight),
-                  child: SizedBox(
-                    width: AppSizes.iconContainerMd,
-                    height: AppSizes.iconContainerMd,
-                    child: Icon(
-                      catIcon,
-                      size: AppSizes.iconSm,
-                      color: ColorUtils.contrastColor(catColor),
-                    ),
-                  ),
+                Icon(
+                  catIcon,
+                  size: AppSizes.iconMd,
+                  color: catColor,
                 ),
                 const SizedBox(width: AppSizes.md),
                 Expanded(

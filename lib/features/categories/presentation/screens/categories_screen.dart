@@ -208,17 +208,7 @@ class _CategoryTile extends StatelessWidget {
         vertical: AppSizes.xs,
       ),
       child: ListTile(
-        leading: GlassCard(
-          tier: GlassTier.inset,
-          padding: EdgeInsets.zero,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-          tintColor: color.withValues(alpha: AppSizes.opacityLight),
-          child: SizedBox(
-            width: AppSizes.iconContainerLg,
-            height: AppSizes.iconContainerLg,
-            child: Icon(icon, color: ColorUtils.contrastColor(color), size: AppSizes.iconSm),
-          ),
-        ),
+        leading: Icon(icon, color: color, size: AppSizes.iconMd),
         title: Text(category.displayName(context.languageCode)),
         subtitle: category.groupType != null
             ? Text(_groupLabel(context, category.groupType!))

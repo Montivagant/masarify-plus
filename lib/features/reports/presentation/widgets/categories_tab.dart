@@ -52,9 +52,7 @@ class CategoriesTab extends ConsumerWidget {
                 children: [
                   Text(
                     context.l10n.reports_top_categories,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
+                    style: context.textStyles.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   Text(
@@ -70,16 +68,20 @@ class CategoriesTab extends ConsumerWidget {
 
             // ── Horizontal bar chart ───────────────────────────────
             SizedBox(
-              height: breakdown.length * 48.0 + 16,
+              height: breakdown.length.clamp(0, 5) * 64.0 + 48,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                 ),
-                child: _CategoryHorizontalBarChart(breakdown: breakdown),
+                child: _CategoryHorizontalBarChart(
+                  breakdown: breakdown.take(5).toList(),
+                ),
               ),
             ),
 
+            const SizedBox(height: AppSizes.sm),
             Divider(height: AppSizes.dividerHeight, color: context.colors.outlineVariant),
+            const SizedBox(height: AppSizes.sm),
 
             // ── Ranked list ────────────────────────────────────────
             ...List.generate(breakdown.length, (i) {
@@ -165,7 +167,7 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
               BarChartRodData(
                 toY: cat.amount.toDouble(),
                 color: ColorUtils.fromHex(cat.colorHex),
-                width: AppSizes.md,
+                width: AppSizes.barChartWidth,
                 borderRadius: const BorderRadius.horizontal(
                   right: Radius.circular(AppSizes.borderRadiusXs),
                 ),
@@ -211,18 +213,10 @@ class _CategoryRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSizes.sm),
-          Container(
-            width: AppSizes.colorSwatchSize,
-            height: AppSizes.colorSwatchSize,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: AppSizes.opacityLight),
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-            ),
-            child: Icon(
-              CategoryIconMapper.fromName(spending.iconName),
-              size: AppSizes.iconSm,
-              color: color,
-            ),
+          Icon(
+            CategoryIconMapper.fromName(spending.iconName),
+            size: AppSizes.iconMd,
+            color: color,
           ),
           const SizedBox(width: AppSizes.md),
           Expanded(
@@ -231,9 +225,7 @@ class _CategoryRow extends StatelessWidget {
               children: [
                 Text(
                   spending.categoryName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
+                  style: context.textStyles.bodyMedium
                       ?.copyWith(fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -244,9 +236,7 @@ class _CategoryRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSizes.borderRadiusXs),
                   child: LinearProgressIndicator(
                     value: spending.fraction,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant
+                    backgroundColor: context.colors.outlineVariant
                         .withValues(alpha: AppSizes.opacityLight3),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                     minHeight: 4,

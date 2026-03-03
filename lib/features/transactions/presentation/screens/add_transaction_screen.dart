@@ -22,6 +22,7 @@ import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -117,38 +118,45 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   // ── Location detection ──────────────────────────────────────────────────
 
   Future<void> _detectLocation() async {
-    // Per AGENTS.md Rule 6: show rationale BEFORE requesting permission.
-    final permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.deniedForever) {
-      if (!mounted) return;
-      await PermissionHelper.openAppSettings();
-      return;
-    }
-    if (permission == LocationPermission.denied) {
-      if (!mounted) return;
-      final allowed = await PermissionHelper.showRationale(
-        context,
-        title: context.l10n.permission_location_title,
-        rationale: context.l10n.permission_location_body,
-      );
-      if (!allowed || !mounted) return;
-    }
+    // Debounce: prevent concurrent requests
+    if (_detectingLocation) return;
 
-    setState(() => _detectingLocation = true);
-    final result = await LocationService.detect();
-    if (!mounted) return;
-    if (result != null) {
-      setState(() {
-        _locationName = result.name;
-        _latitude = result.lat;
-        _longitude = result.lng;
-        _detectingLocation = false;
-      });
-    } else {
+    try {
+      // Per AGENTS.md Rule 6: show rationale BEFORE requesting permission.
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        await PermissionHelper.openAppSettings();
+        return;
+      }
+      if (permission == LocationPermission.denied) {
+        if (!mounted) return;
+        final allowed = await PermissionHelper.showRationale(
+          context,
+          title: context.l10n.permission_location_title,
+          rationale: context.l10n.permission_location_body,
+        );
+        if (!allowed || !mounted) return;
+      }
+
+      setState(() => _detectingLocation = true);
+      final result = await LocationService.detect();
+      if (!mounted) return;
+      if (result != null) {
+        setState(() {
+          _locationName = result.name;
+          _latitude = result.lat;
+          _longitude = result.lng;
+          _detectingLocation = false;
+        });
+      } else {
+        setState(() => _detectingLocation = false);
+        SnackHelper.showError(context, context.l10n.location_failed);
+      }
+    } catch (e) {
+      if (!mounted) return;
       setState(() => _detectingLocation = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.location_failed)),
-      );
+      SnackHelper.showError(context, context.l10n.location_failed);
     }
   }
 
@@ -640,21 +648,15 @@ class _OptionalSection extends StatelessWidget {
                             child: locationName != null
                                 ? Text(
                                     locationName!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall,
+                                    style: context.textStyles.bodySmall,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   )
                                 : Text(
                                     context.l10n.location_hint,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: context.textStyles.bodySmall
                                         ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .outline,
+                                          color: context.colors.outline,
                                         ),
                                   ),
                           ),
@@ -767,19 +769,17 @@ class _CategoryPickerSheet extends StatelessWidget {
                       Container(
                         width: AppSizes.categoryChipSize,
                         height: AppSizes.categoryChipSize,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? cs.primaryContainer
-                              : color.withValues(alpha: AppSizes.opacityLight),
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.borderRadiusMd),
-                          border: isSelected
-                              ? Border.all(color: cs.primary, width: 2)
-                              : null,
-                        ),
+                        decoration: isSelected
+                            ? BoxDecoration(
+                                color: cs.primaryContainer,
+                                borderRadius:
+                                    BorderRadius.circular(AppSizes.borderRadiusMd),
+                                border: Border.all(color: cs.primary, width: 2),
+                              )
+                            : null,
                         child: Icon(
                           CategoryIconMapper.fromName(cat.iconName),
-                          size: AppSizes.iconSm,
+                          size: AppSizes.iconMd,
                           color: isSelected ? cs.primary : color,
                         ),
                       ),

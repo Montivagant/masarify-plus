@@ -6,7 +6,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../../domain/entities/transaction_entity.dart';
-import 'glass_card.dart';
+
 
 /// Single transaction row for TransactionListSection and Dashboard.
 ///
@@ -145,21 +145,11 @@ class _CardContent extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Category icon badge — glass inset (Tier 3)
-            GlassCard(
-              tier: GlassTier.inset,
-              padding: EdgeInsets.zero,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              tintColor: categoryColor.withValues(alpha: AppSizes.opacityLight),
-              child: SizedBox(
-                width: AppSizes.iconContainerLg,
-                height: AppSizes.iconContainerLg,
-                child: Icon(
-                  categoryIcon,
-                  size: AppSizes.iconMd,
-                  color: categoryColor,
-                ),
-              ),
+            // Category icon — plain colored icon
+            Icon(
+              categoryIcon,
+              size: AppSizes.iconMd,
+              color: categoryColor,
             ),
             const SizedBox(width: AppSizes.md),
             // Title + category

@@ -15,7 +15,7 @@ import '../../../../domain/entities/recurring_rule_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
+
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -249,26 +249,13 @@ class _RecurringCard extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              // Category icon badge — overdue gets red tint
-              GlassCard(
-                tier: GlassTier.inset,
-                padding: EdgeInsets.zero,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.borderRadiusSm),
-                tintColor: isOverdue
-                    ? context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityLight2)
-                    : catColor.withValues(alpha: AppSizes.opacityLight2),
-                child: SizedBox(
-                  width: AppSizes.iconContainerLg,
-                  height: AppSizes.iconContainerLg,
-                  child: Icon(
-                    isBill ? AppIcons.bill : catIcon,
-                    size: AppSizes.iconMd,
-                    color: isOverdue
-                        ? context.appTheme.expenseColor
-                        : ColorUtils.contrastColor(catColor),
-                  ),
-                ),
+              // Category icon — plain colored icon
+              Icon(
+                isBill ? AppIcons.bill : catIcon,
+                size: AppSizes.iconMd,
+                color: isOverdue
+                    ? context.appTheme.expenseColor
+                    : catColor,
               ),
               const SizedBox(width: AppSizes.md),
               // Title + subtitle row

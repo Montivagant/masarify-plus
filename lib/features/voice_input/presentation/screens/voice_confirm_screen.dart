@@ -323,19 +323,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             final cat = typeCats[i];
             final color = ColorUtils.fromHex(cat.colorHex);
             return ListTile(
-              leading: Container(
-                width: AppSizes.colorSwatchSize,
-                height: AppSizes.colorSwatchSize,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: AppSizes.opacityLight2),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusSm),
-                ),
-                child: Icon(
-                  CategoryIconMapper.fromName(cat.iconName),
-                  size: AppSizes.iconSm,
-                  color: color,
-                ),
+              leading: Icon(
+                CategoryIconMapper.fromName(cat.iconName),
+                size: AppSizes.iconMd,
+                color: color,
               ),
               title: Text(cat.displayName(context.languageCode)),
               selected: cat.id == draft.categoryId,
