@@ -10,6 +10,7 @@ import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
+import '../../../core/services/glass_config_service.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
 import '../../../shared/providers/notification_listener_provider.dart';
 import 'expandable_fab.dart';
@@ -36,57 +37,64 @@ class AppNavBar extends StatelessWidget {
     const radius = BorderRadius.all(Radius.circular(AppSizes.borderRadiusLg));
 
     final bottomInset = MediaQuery.of(context).padding.bottom;
+    final useBlur = GlassConfig.shouldBlur(context);
 
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        AppSizes.md,
-        0,
-        AppSizes.md,
-        AppSizes.md + bottomInset,
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: AppSizes.glassBlurSigma,
-            sigmaY: AppSizes.glassBlurSigma,
+    final navContent = Material(
+      type: MaterialType.transparency,
+      child: Container(
+        height: AppSizes.bottomNavHeight,
+        decoration: BoxDecoration(
+          color: cs.surface.withValues(alpha: AppSizes.opacityHeavy),
+          borderRadius: radius,
+          border: Border.all(
+            color: cs.outline.withValues(alpha: AppSizes.opacityXLight),
+            // ignore: avoid_redundant_argument_values
+            width: AppSizes.glassBorderWidth,
           ),
-          child: Material(
-            type: MaterialType.transparency,
-            child: Container(
-              height: AppSizes.bottomNavHeight,
-              decoration: BoxDecoration(
-                color: cs.surface.withValues(alpha: AppSizes.opacityHeavy),
-                borderRadius: radius,
-                border: Border.all(
-                  color: cs.outline.withValues(alpha: AppSizes.opacityXLight),
-                  // ignore: avoid_redundant_argument_values
-                  width: AppSizes.glassBorderWidth,
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < dests.length; i++)
+              Expanded(
+                child: _NavTab(
+                  icon: dests[i].icon,
+                  activeIcon: dests[i].activeIcon,
+                  label: dests[i].label(locale),
+                  isSelected: i == currentIndex,
+                  selectedColor: cs.primary,
+                  unselectedColor: cs.onSurfaceVariant,
+                  onTap: () {
+                    if (i != currentIndex) {
+                      HapticFeedback.selectionClick();
+                      onTap(i);
+                    }
+                  },
                 ),
               ),
-              child: Row(
-                children: [
-                  for (var i = 0; i < dests.length; i++)
-                    Expanded(
-                      child: _NavTab(
-                        icon: dests[i].icon,
-                        activeIcon: dests[i].activeIcon,
-                        label: dests[i].label(locale),
-                        isSelected: i == currentIndex,
-                        selectedColor: cs.primary,
-                        unselectedColor: cs.onSurfaceVariant,
-                        onTap: () {
-                          if (i != currentIndex) {
-                            HapticFeedback.selectionClick();
-                            onTap(i);
-                          }
-                        },
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          ],
+        ),
+      ),
+    );
+
+    return RepaintBoundary(
+      child: Container(
+        margin: EdgeInsets.fromLTRB(
+          AppSizes.md,
+          0,
+          AppSizes.md,
+          AppSizes.md + bottomInset,
+        ),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: useBlur
+              ? BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: AppSizes.glassBlurSigma,
+                    sigmaY: AppSizes.glassBlurSigma,
+                  ),
+                  child: navContent,
+                )
+              : navContent,
         ),
       ),
     );
@@ -230,7 +238,18 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
         },
         onVoice: () => VoiceInputButton.handleVoiceInput(context),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: const _LowerCenterFabLocation(),
     );
+  }
+}
+
+class _LowerCenterFabLocation extends FloatingActionButtonLocation {
+  const _LowerCenterFabLocation();
+
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    final baseOffset =
+        FloatingActionButtonLocation.centerFloat.getOffset(scaffoldGeometry);
+    return Offset(baseOffset.dx, baseOffset.dy + 10);
   }
 }
