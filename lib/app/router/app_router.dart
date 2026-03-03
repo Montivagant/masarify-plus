@@ -18,7 +18,6 @@ import '../../features/goals/presentation/screens/add_goal_screen.dart';
 import '../../features/goals/presentation/screens/goal_detail_screen.dart';
 import '../../features/goals/presentation/screens/goals_screen.dart';
 import '../../features/hub/presentation/screens/hub_screen.dart';
-import '../../features/insights/presentation/screens/insights_screen.dart';
 import '../../features/monetization/presentation/screens/paywall_screen.dart';
 import '../../features/monetization/presentation/screens/subscription_screen.dart';
 import '../../features/net_worth/presentation/screens/net_worth_screen.dart';
@@ -264,7 +263,7 @@ final appRouter = GoRouter(
       builder: (_, __) => const ParserReviewScreen(),
     ),
 
-    // Reports & Insights
+    // Reports
     GoRoute(
       path: AppRoutes.calendar,
       builder: (_, __) => const CalendarScreen(),
@@ -277,11 +276,6 @@ final appRouter = GoRouter(
       path: AppRoutes.netWorth,
       builder: (_, __) => const NetWorthScreen(),
     ),
-    GoRoute(
-      path: AppRoutes.insights,
-      builder: (_, __) => const InsightsScreen(),
-    ),
-
     // Settings
     GoRoute(
       path: AppRoutes.settings,

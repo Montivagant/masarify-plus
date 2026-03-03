@@ -824,18 +824,6 @@ abstract class AppLocalizations {
   /// **'No activity this month'**
   String get calendar_empty_title;
 
-  /// No description provided for @insights_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Smart Insights'**
-  String get insights_title;
-
-  /// No description provided for @insights_empty_title.
-  ///
-  /// In en, this message translates to:
-  /// **'No Insights Yet'**
-  String get insights_empty_title;
-
   /// No description provided for @net_worth_title.
   ///
   /// In en, this message translates to:
@@ -907,12 +895,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recurring'**
   String get hub_recurring;
-
-  /// No description provided for @hub_insights.
-  ///
-  /// In en, this message translates to:
-  /// **'Smart Insights'**
-  String get hub_insights;
 
   /// No description provided for @hub_settings.
   ///
@@ -3224,144 +3206,6 @@ abstract class AppLocalizations {
   /// **'#{rank}'**
   String reports_category_rank(int rank);
 
-  /// No description provided for @insight_overspend_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Overspending Alert'**
-  String get insight_overspend_title;
-
-  /// No description provided for @insight_overspend_body.
-  ///
-  /// In en, this message translates to:
-  /// **'{category} spending is {percent}% above your average'**
-  String insight_overspend_body(String category, int percent);
-
-  /// No description provided for @insight_budget_forecast_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Budget Forecast'**
-  String get insight_budget_forecast_title;
-
-  /// No description provided for @insight_budget_forecast_body.
-  ///
-  /// In en, this message translates to:
-  /// **'{category} is projected to exceed budget by month end'**
-  String insight_budget_forecast_body(String category);
-
-  /// No description provided for @insight_top_day_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Top Spending Day'**
-  String get insight_top_day_title;
-
-  /// No description provided for @insight_top_day_body.
-  ///
-  /// In en, this message translates to:
-  /// **'You spend the most on {dayName}'**
-  String insight_top_day_body(String dayName);
-
-  /// No description provided for @insight_savings_up_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Savings Up'**
-  String get insight_savings_up_title;
-
-  /// No description provided for @insight_savings_up_body.
-  ///
-  /// In en, this message translates to:
-  /// **'You saved {percent}% more than last month'**
-  String insight_savings_up_body(int percent);
-
-  /// No description provided for @insight_savings_down_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Savings Down'**
-  String get insight_savings_down_title;
-
-  /// No description provided for @insight_savings_down_body.
-  ///
-  /// In en, this message translates to:
-  /// **'You saved {percent}% less than last month'**
-  String insight_savings_down_body(int percent);
-
-  /// No description provided for @insight_top_category_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Top Spending Category'**
-  String get insight_top_category_title;
-
-  /// No description provided for @insight_top_category_body.
-  ///
-  /// In en, this message translates to:
-  /// **'{category} accounts for {percent}% of your spending this month'**
-  String insight_top_category_body(String category, int percent);
-
-  /// No description provided for @insight_streak_title.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'\'re on a Roll!'**
-  String get insight_streak_title;
-
-  /// No description provided for @insight_streak_body.
-  ///
-  /// In en, this message translates to:
-  /// **'You logged {count} transactions this week — keep it up!'**
-  String insight_streak_body(int count);
-
-  /// No description provided for @insight_no_income_title.
-  ///
-  /// In en, this message translates to:
-  /// **'No Income Logged'**
-  String get insight_no_income_title;
-
-  /// No description provided for @insight_no_income_body.
-  ///
-  /// In en, this message translates to:
-  /// **'You haven\'\'t recorded any income this month yet'**
-  String get insight_no_income_body;
-
-  /// No description provided for @insight_no_insights.
-  ///
-  /// In en, this message translates to:
-  /// **'Not enough data for insights yet'**
-  String get insight_no_insights;
-
-  /// No description provided for @insight_see_all.
-  ///
-  /// In en, this message translates to:
-  /// **'See All Insights'**
-  String get insight_see_all;
-
-  /// No description provided for @insight_view_transactions.
-  ///
-  /// In en, this message translates to:
-  /// **'View Transactions'**
-  String get insight_view_transactions;
-
-  /// No description provided for @insight_adjust_budget.
-  ///
-  /// In en, this message translates to:
-  /// **'Adjust Budget'**
-  String get insight_adjust_budget;
-
-  /// No description provided for @insight_see_trends.
-  ///
-  /// In en, this message translates to:
-  /// **'See Trends'**
-  String get insight_see_trends;
-
-  /// No description provided for @insight_view_analytics.
-  ///
-  /// In en, this message translates to:
-  /// **'View Analytics'**
-  String get insight_view_analytics;
-
-  /// No description provided for @insight_dismiss.
-  ///
-  /// In en, this message translates to:
-  /// **'Dismiss'**
-  String get insight_dismiss;
-
   /// No description provided for @day_saturday.
   ///
   /// In en, this message translates to:
@@ -3781,6 +3625,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'1Y'**
   String get period_1_year;
+
+  /// No description provided for @pdf_report_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Masarify Monthly Report'**
+  String get pdf_report_title;
+
+  /// No description provided for @pdf_top_categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Categories'**
+  String get pdf_top_categories;
+
+  /// No description provided for @pdf_transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get pdf_transactions;
+
+  /// No description provided for @pdf_income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get pdf_income;
+
+  /// No description provided for @pdf_expense.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get pdf_expense;
+
+  /// No description provided for @pdf_net.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get pdf_net;
+
+  /// No description provided for @pdf_col_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get pdf_col_date;
+
+  /// No description provided for @pdf_col_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get pdf_col_title;
+
+  /// No description provided for @pdf_col_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get pdf_col_amount;
+
+  /// No description provided for @pdf_col_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get pdf_col_type;
+
+  /// No description provided for @pdf_col_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get pdf_col_category;
+
+  /// No description provided for @pdf_col_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet'**
+  String get pdf_col_wallet;
 }
 
 class _AppLocalizationsDelegate

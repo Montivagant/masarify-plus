@@ -8,7 +8,6 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
-import '../../../../shared/providers/insight_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
@@ -28,12 +27,9 @@ class HubScreen extends ConsumerWidget {
     // Watch providers for summary badges
     final budgets = ref.watch(budgetsByMonthProvider(monthKey));
     final activeGoals = ref.watch(activeGoalsProvider);
-    final insightsAsync = ref.watch(insightsProvider);
-
     final pendingParsed = ref.watch(pendingParsedTransactionsProvider);
     final activeBudgetCount = budgets.valueOrNull?.length ?? 0;
     final activeGoalCount = activeGoals.valueOrNull?.length ?? 0;
-    final insightCount = insightsAsync.valueOrNull?.length ?? 0;
     final pendingCount = pendingParsed.valueOrNull?.length ?? 0;
 
     return Scaffold(
@@ -77,15 +73,6 @@ class HubScreen extends ConsumerWidget {
           // ── Reports ────────────────────────────────────────────────────────
           _section(context, context.l10n.hub_section_reports, [
             _tile(context, context.l10n.hub_calendar, AppIcons.calendar, AppRoutes.calendar),
-            _tile(
-              context,
-              context.l10n.hub_insights,
-              AppIcons.insights,
-              AppRoutes.insights,
-              subtitle: insightCount > 0
-                  ? '$insightCount ${context.l10n.hub_new_label}'
-                  : null,
-            ),
           ]),
 
           // ── App ─────────────────────────────────────────────────────────

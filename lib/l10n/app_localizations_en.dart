@@ -381,12 +381,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendar_empty_title => 'No activity this month';
 
   @override
-  String get insights_title => 'Smart Insights';
-
-  @override
-  String get insights_empty_title => 'No Insights Yet';
-
-  @override
   String get net_worth_title => 'Net Worth';
 
   @override
@@ -421,9 +415,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hub_recurring => 'Recurring';
-
-  @override
-  String get hub_insights => 'Smart Insights';
 
   @override
   String get hub_settings => 'Settings';
@@ -1633,90 +1624,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get insight_overspend_title => 'Overspending Alert';
-
-  @override
-  String insight_overspend_body(String category, int percent) {
-    return '$category spending is $percent% above your average';
-  }
-
-  @override
-  String get insight_budget_forecast_title => 'Budget Forecast';
-
-  @override
-  String insight_budget_forecast_body(String category) {
-    return '$category is projected to exceed budget by month end';
-  }
-
-  @override
-  String get insight_top_day_title => 'Top Spending Day';
-
-  @override
-  String insight_top_day_body(String dayName) {
-    return 'You spend the most on $dayName';
-  }
-
-  @override
-  String get insight_savings_up_title => 'Savings Up';
-
-  @override
-  String insight_savings_up_body(int percent) {
-    return 'You saved $percent% more than last month';
-  }
-
-  @override
-  String get insight_savings_down_title => 'Savings Down';
-
-  @override
-  String insight_savings_down_body(int percent) {
-    return 'You saved $percent% less than last month';
-  }
-
-  @override
-  String get insight_top_category_title => 'Top Spending Category';
-
-  @override
-  String insight_top_category_body(String category, int percent) {
-    return '$category accounts for $percent% of your spending this month';
-  }
-
-  @override
-  String get insight_streak_title => 'You\'\'re on a Roll!';
-
-  @override
-  String insight_streak_body(int count) {
-    return 'You logged $count transactions this week — keep it up!';
-  }
-
-  @override
-  String get insight_no_income_title => 'No Income Logged';
-
-  @override
-  String get insight_no_income_body =>
-      'You haven\'\'t recorded any income this month yet';
-
-  @override
-  String get insight_no_insights => 'Not enough data for insights yet';
-
-  @override
-  String get insight_see_all => 'See All Insights';
-
-  @override
-  String get insight_view_transactions => 'View Transactions';
-
-  @override
-  String get insight_adjust_budget => 'Adjust Budget';
-
-  @override
-  String get insight_see_trends => 'See Trends';
-
-  @override
-  String get insight_view_analytics => 'View Analytics';
-
-  @override
-  String get insight_dismiss => 'Dismiss';
-
-  @override
   String get day_saturday => 'Saturday';
 
   @override
@@ -1940,4 +1847,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get period_1_year => '1Y';
+
+  @override
+  String get pdf_report_title => 'Masarify Monthly Report';
+
+  @override
+  String get pdf_top_categories => 'Top Categories';
+
+  @override
+  String get pdf_transactions => 'Transactions';
+
+  @override
+  String get pdf_income => 'Income';
+
+  @override
+  String get pdf_expense => 'Expense';
+
+  @override
+  String get pdf_net => 'Net';
+
+  @override
+  String get pdf_col_date => 'Date';
+
+  @override
+  String get pdf_col_title => 'Title';
+
+  @override
+  String get pdf_col_amount => 'Amount';
+
+  @override
+  String get pdf_col_type => 'Type';
+
+  @override
+  String get pdf_col_category => 'Category';
+
+  @override
+  String get pdf_col_wallet => 'Wallet';
 }

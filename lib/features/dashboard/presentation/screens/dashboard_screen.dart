@@ -10,14 +10,12 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
-import '../../../../shared/providers/insight_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/balance_zone.dart';
 import '../widgets/budget_alerts_zone.dart';
-import '../widgets/insights_zone.dart';
 import '../widgets/recent_transactions_zone.dart';
 import '../widgets/spending_overview_zone.dart';
 
@@ -63,7 +61,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(recentTransactionsProvider);
           ref.invalidate(transactionsByMonthProvider(monthKey));
           ref.invalidate(budgetsByMonthProvider(monthKey));
-          ref.invalidate(insightsProvider);
+
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -131,8 +129,6 @@ class DashboardScreen extends ConsumerWidget {
               // ── Zone 5: Budget alerts ───────────────────────────
               const BudgetAlertsZone(),
 
-              // ── Zone 6: Smart Insights ──────────────────────────
-              const InsightsZone(),
             ]),
           ),
         ),
@@ -140,7 +136,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Wraps [children] in staggered fade+slideY animations, respecting
+  /// Wraps [children] in staggered fade animations, respecting
   /// the platform's reduce-motion setting.
   List<Widget> _staggerZones(BuildContext context, List<Widget> children) {
     if (context.reduceMotion) return children;
@@ -148,19 +144,12 @@ class DashboardScreen extends ConsumerWidget {
     var staggerIndex = 0;
     return [
       for (final child in children)
-        // Skip SizedBox spacers — don't animate empty gaps
         if (child is SizedBox)
           child
         else
           child
-              .animate(delay: AppDurations.listItemStagger * staggerIndex++)
-              .fadeIn(duration: AppDurations.listItemEntry)
-              .slideY(
-                begin: 0.05,
-                end: 0,
-                duration: AppDurations.listItemEntry,
-                curve: Curves.easeOutCubic,
-              ),
+              .animate(delay: Duration(milliseconds: 30 * staggerIndex++))
+              .fadeIn(duration: AppDurations.animQuick),
     ];
   }
 }

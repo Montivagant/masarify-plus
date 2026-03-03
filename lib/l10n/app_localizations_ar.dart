@@ -379,12 +379,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendar_empty_title => 'لا نشاط هذا الشهر';
 
   @override
-  String get insights_title => 'رؤى ذكية';
-
-  @override
-  String get insights_empty_title => 'لا توجد رؤى بعد';
-
-  @override
   String get net_worth_title => 'صافي الثروة';
 
   @override
@@ -419,9 +413,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hub_recurring => 'المعاملات المتكررة';
-
-  @override
-  String get hub_insights => 'رؤى ذكية';
 
   @override
   String get hub_settings => 'الإعدادات';
@@ -1622,89 +1613,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insight_overspend_title => 'تنبيه إنفاق زائد';
-
-  @override
-  String insight_overspend_body(String category, int percent) {
-    return 'إنفاق $category أعلى بنسبة $percent٪ من المتوسط';
-  }
-
-  @override
-  String get insight_budget_forecast_title => 'توقعات الميزانية';
-
-  @override
-  String insight_budget_forecast_body(String category) {
-    return 'من المتوقع تجاوز ميزانية $category بنهاية الشهر';
-  }
-
-  @override
-  String get insight_top_day_title => 'أعلى يوم إنفاق';
-
-  @override
-  String insight_top_day_body(String dayName) {
-    return 'أكثر إنفاقك يكون يوم $dayName';
-  }
-
-  @override
-  String get insight_savings_up_title => 'الادخار ارتفع';
-
-  @override
-  String insight_savings_up_body(int percent) {
-    return 'ادخرت $percent٪ أكثر من الشهر الماضي';
-  }
-
-  @override
-  String get insight_savings_down_title => 'الادخار انخفض';
-
-  @override
-  String insight_savings_down_body(int percent) {
-    return 'ادخرت $percent٪ أقل من الشهر الماضي';
-  }
-
-  @override
-  String get insight_top_category_title => 'أعلى تصنيف إنفاق';
-
-  @override
-  String insight_top_category_body(String category, int percent) {
-    return '$category يمثل $percent٪ من إنفاقك هذا الشهر';
-  }
-
-  @override
-  String get insight_streak_title => 'أنت على المسار الصحيح!';
-
-  @override
-  String insight_streak_body(int count) {
-    return 'سجلت $count معاملات هذا الأسبوع — استمر!';
-  }
-
-  @override
-  String get insight_no_income_title => 'لم يُسجل دخل';
-
-  @override
-  String get insight_no_income_body => 'لم تسجل أي دخل هذا الشهر بعد';
-
-  @override
-  String get insight_no_insights => 'لا توجد بيانات كافية للرؤى بعد';
-
-  @override
-  String get insight_see_all => 'عرض كل الرؤى';
-
-  @override
-  String get insight_view_transactions => 'عرض المعاملات';
-
-  @override
-  String get insight_adjust_budget => 'تعديل الميزانية';
-
-  @override
-  String get insight_see_trends => 'عرض الاتجاهات';
-
-  @override
-  String get insight_view_analytics => 'عرض التحليلات';
-
-  @override
-  String get insight_dismiss => 'تجاهل';
-
-  @override
   String get day_saturday => 'السبت';
 
   @override
@@ -1926,4 +1834,40 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get period_1_year => 'سنة';
+
+  @override
+  String get pdf_report_title => 'تقرير مصاريفي الشهري';
+
+  @override
+  String get pdf_top_categories => 'أعلى الفئات';
+
+  @override
+  String get pdf_transactions => 'المعاملات';
+
+  @override
+  String get pdf_income => 'الدخل';
+
+  @override
+  String get pdf_expense => 'المصروفات';
+
+  @override
+  String get pdf_net => 'الصافي';
+
+  @override
+  String get pdf_col_date => 'التاريخ';
+
+  @override
+  String get pdf_col_title => 'العنوان';
+
+  @override
+  String get pdf_col_amount => 'المبلغ';
+
+  @override
+  String get pdf_col_type => 'النوع';
+
+  @override
+  String get pdf_col_category => 'الفئة';
+
+  @override
+  String get pdf_col_wallet => 'المحفظة';
 }

@@ -46,12 +46,11 @@ abstract final class AppRoutes {
   static const String voiceConfirm = '/voice/confirm';
   static const String parserReview = '/parser/review';
 
-  // ── Reports & Insights ────────────────────────────────────────────────
+  // ── Reports ─────────────────────────────────────────────────────────
   static const String analytics = '/analytics';
   static const String calendar = '/calendar';
   static const String reports = '/reports';
   static const String netWorth = '/net-worth';
-  static const String insights = '/insights';
 
   // ── Settings ──────────────────────────────────────────────────────────
   static const String settings = '/settings';
