@@ -44,12 +44,16 @@ class TransactionDetailScreen extends ConsumerWidget {
           );
         }
 
-        final isExpense = tx.type == 'expense';
-        final typeColor =
-            isExpense ? context.appTheme.expenseColor : context.appTheme.incomeColor;
-        final typeLabel = isExpense
-            ? context.l10n.transaction_type_expense
-            : context.l10n.transaction_type_income;
+        final typeColor = switch (tx.type) {
+          'expense' => context.appTheme.expenseColor,
+          'income' => context.appTheme.incomeColor,
+          _ => context.appTheme.transferColor,
+        };
+        final typeLabel = switch (tx.type) {
+          'expense' => context.l10n.transaction_type_expense,
+          'income' => context.l10n.transaction_type_income,
+          _ => context.l10n.transaction_type_transfer,
+        };
 
         final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
         final cat =
@@ -95,7 +99,11 @@ class TransactionDetailScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       Icon(
-                        isExpense ? AppIcons.expense : AppIcons.income,
+                        switch (tx.type) {
+                          'expense' => AppIcons.expense,
+                          'income' => AppIcons.income,
+                          _ => AppIcons.transfer,
+                        },
                         color: typeColor,
                         size: AppSizes.iconLg,
                       ),

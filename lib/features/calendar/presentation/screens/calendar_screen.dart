@@ -282,9 +282,11 @@ class _DayTransactionList extends ConsumerWidget {
           final catColor = cat != null
               ? ColorUtils.fromHex(cat.colorHex)
               : context.colors.outline;
-          final typeColor = tx.type == 'income'
-              ? context.appTheme.incomeColor
-              : context.appTheme.expenseColor;
+          final typeColor = switch (tx.type) {
+            'income' => context.appTheme.incomeColor,
+            'expense' => context.appTheme.expenseColor,
+            _ => context.appTheme.transferColor,
+          };
           final prefix = tx.type == 'income' ? '+' : '\u2212';
 
           return Padding(
