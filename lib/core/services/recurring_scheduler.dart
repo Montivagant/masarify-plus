@@ -9,9 +9,12 @@ import 'notification_service.dart';
 
 /// Called on every app open (from main.dart via ProviderContainer).
 ///
-/// For each rule where [nextDueDate] ≤ today:
+/// For each **recurring** rule where [nextDueDate] ≤ today:
 /// - Advances nextDueDate past today
 /// - Fires a local notification reminder
+///
+/// One-time bills (frequency == 'once') are skipped entirely — they are
+/// managed through the UI's "Mark Paid" action and overdue display.
 ///
 /// All side-effects are idempotent: [lastProcessedDate] guards double-processing.
 class RecurringScheduler {
@@ -36,6 +39,12 @@ class RecurringScheduler {
       // M14 fix: wrap each rule in try/catch so one failure doesn't abort all
       try {
         if (!rule.isActive) continue;
+
+        // Skip one-time bills entirely — they are managed via the UI's
+        // "Mark Paid" action.  Paid ones need no processing; unpaid/overdue
+        // ones are shown in the recurring screen, not advanced by the
+        // scheduler.
+        if (rule.frequency == 'once') continue;
 
         // C7 fix: check endDate — deactivate expired rules
         if (rule.endDate != null && today.isAfter(rule.endDate!)) {
