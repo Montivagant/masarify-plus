@@ -18,7 +18,7 @@ import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
-/// Add / Edit recurring transaction rule.
+/// Add / Edit recurring transaction rule or one-time bill.
 class AddRecurringScreen extends ConsumerStatefulWidget {
   const AddRecurringScreen({super.key, this.editId});
 
@@ -36,26 +36,33 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   int? _walletId;
   String _frequency = 'monthly';
   DateTime _startDate = DateTime.now();
+  DateTime? _endDate;
   bool _loading = false;
 
   static const _frequencies = [
+    'once',
     'daily',
     'weekly',
-    'biweekly',
     'monthly',
-    'quarterly',
     'yearly',
+    'custom',
   ];
 
   String _frequencyLabel(BuildContext context, String freq) => switch (freq) {
+        'once' => context.l10n.recurring_frequency_once,
         'daily' => context.l10n.recurring_frequency_daily,
         'weekly' => context.l10n.recurring_frequency_weekly,
-        'biweekly' => context.l10n.recurring_frequency_biweekly,
         'monthly' => context.l10n.recurring_frequency_monthly,
-        'quarterly' => context.l10n.recurring_frequency_quarterly,
         'yearly' => context.l10n.recurring_frequency_yearly,
+        'custom' => context.l10n.recurring_frequency_custom,
         _ => freq,
       };
+
+  /// Whether the frequency is 'once' (one-time bill).
+  bool get _isOnce => _frequency == 'once';
+
+  /// Whether the frequency is 'custom' (both dates required).
+  bool get _isCustom => _frequency == 'custom';
 
   @override
   void initState() {
@@ -91,6 +98,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       _walletId = rule.walletId;
       _frequency = rule.frequency;
       _startDate = rule.startDate;
+      _endDate = rule.endDate;
     });
   }
 
@@ -229,9 +237,27 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       return;
     }
 
+    // For custom frequency, endDate is required.
+    if (_isCustom && _endDate == null) return;
+
     setState(() => _loading = true);
     try {
       final repo = ref.read(recurringRuleRepositoryProvider);
+
+      // Compute effective dates based on frequency.
+      final DateTime effectiveStartDate = _startDate;
+      final DateTime? effectiveEndDate;
+      final DateTime effectiveNextDue;
+
+      if (_isOnce) {
+        // One-time: endDate = startDate, nextDueDate = startDate
+        effectiveEndDate = effectiveStartDate;
+        effectiveNextDue = effectiveStartDate;
+      } else {
+        effectiveEndDate = _endDate;
+        effectiveNextDue = effectiveStartDate;
+      }
+
       if (widget.editId != null) {
         final existing = await repo.getById(widget.editId!);
         if (existing != null) {
@@ -244,9 +270,11 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               categoryId: _categoryId!,
               walletId: _walletId!,
               frequency: _frequency,
-              startDate: _startDate,
-              endDate: existing.endDate,
-              nextDueDate: existing.nextDueDate,
+              startDate: effectiveStartDate,
+              endDate: effectiveEndDate,
+              nextDueDate: _isOnce
+                  ? effectiveNextDue
+                  : existing.nextDueDate,
               isPaid: existing.isPaid,
               paidAt: existing.paidAt,
               linkedTransactionId: existing.linkedTransactionId,
@@ -263,8 +291,9 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           categoryId: _categoryId!,
           walletId: _walletId!,
           frequency: _frequency,
-          startDate: _startDate,
-          nextDueDate: _startDate,
+          startDate: effectiveStartDate,
+          nextDueDate: effectiveNextDue,
+          endDate: effectiveEndDate,
         );
       }
 
@@ -300,7 +329,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     final canSave = _titleController.text.trim().isNotEmpty &&
         _amountPiastres > 0 &&
         _categoryId != null &&
-        _walletId != null;
+        _walletId != null &&
+        (!_isCustom || _endDate != null);
 
     return Scaffold(
       appBar: AppAppBar(
@@ -478,29 +508,23 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                     (f) => ChoiceChip(
                       label: Text(_frequencyLabel(context, f)),
                       selected: _frequency == f,
-                      onSelected: (_) => setState(() => _frequency = f),
+                      onSelected: (_) => setState(() {
+                        _frequency = f;
+                        // Reset end date when switching frequency.
+                        if (f == 'once') {
+                          _endDate = _startDate;
+                        } else if (f != 'custom') {
+                          _endDate = null;
+                        }
+                      }),
                     ),
                   )
                   .toList(),
             ),
             const SizedBox(height: AppSizes.lg),
 
-            // ── Start date ────────────────────────────────────────────
-            Text(
-              context.l10n.recurring_start_date,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
-                  ?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            AppDatePicker(
-              selectedDate: _startDate,
-              onDateChanged: (d) => setState(() => _startDate = d),
-              firstDate: DateTime(2020),
-              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-            ),
-            const SizedBox(height: AppSizes.lg),
+            // ── Date pickers ──────────────────────────────────────────
+            ..._buildDatePickers(cs),
 
             const SizedBox(height: AppSizes.xl),
 
@@ -517,5 +541,158 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         ),
       ),
     );
+  }
+
+  // ── Date Picker Builders ────────────────────────────────────────────────
+
+  List<Widget> _buildDatePickers(ColorScheme cs) {
+    if (_isOnce) {
+      // One-time: single "Due Date" picker.
+      return [
+        Text(
+          context.l10n.recurring_due_date_label,
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        AppDatePicker(
+          selectedDate: _startDate,
+          onDateChanged: (d) => setState(() {
+            _startDate = d;
+            _endDate = d;
+          }),
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        ),
+        const SizedBox(height: AppSizes.lg),
+      ];
+    }
+
+    if (_isCustom) {
+      // Custom: both start and end date required.
+      return [
+        Text(
+          context.l10n.recurring_start_date,
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        AppDatePicker(
+          selectedDate: _startDate,
+          onDateChanged: (d) => setState(() => _startDate = d),
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        ),
+        const SizedBox(height: AppSizes.lg),
+        Text(
+          context.l10n.recurring_end_date_required,
+          style: Theme.of(context)
+              .textTheme
+              .labelLarge
+              ?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        AppDatePicker(
+          selectedDate: _endDate ?? _startDate,
+          onDateChanged: (d) => setState(() => _endDate = d),
+          firstDate: _startDate,
+          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        ),
+        const SizedBox(height: AppSizes.lg),
+      ];
+    }
+
+    // Standard recurring: start date + optional end date.
+    return [
+      Text(
+        context.l10n.recurring_start_date,
+        style: Theme.of(context)
+            .textTheme
+            .labelLarge
+            ?.copyWith(color: cs.outline),
+      ),
+      const SizedBox(height: AppSizes.sm),
+      AppDatePicker(
+        selectedDate: _startDate,
+        onDateChanged: (d) => setState(() => _startDate = d),
+        firstDate: DateTime(2020),
+        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      ),
+      const SizedBox(height: AppSizes.lg),
+      // Optional end date.
+      Row(
+        children: [
+          Expanded(
+            child: Text(
+              context.l10n.recurring_end_date,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge
+                  ?.copyWith(color: cs.outline),
+            ),
+          ),
+          if (_endDate != null)
+            IconButton(
+              icon: const Icon(AppIcons.close, size: AppSizes.iconXs),
+              tooltip: context.l10n.common_clear,
+              onPressed: () => setState(() => _endDate = null),
+            ),
+        ],
+      ),
+      const SizedBox(height: AppSizes.sm),
+      if (_endDate != null)
+        AppDatePicker(
+          selectedDate: _endDate!,
+          onDateChanged: (d) => setState(() => _endDate = d),
+          firstDate: _startDate,
+          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        )
+      else
+        GestureDetector(
+          onTap: () async {
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: _startDate,
+              firstDate: _startDate,
+              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+            );
+            if (picked != null && mounted) {
+              setState(() => _endDate = picked);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.md,
+              vertical: AppSizes.sm,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(color: cs.outlineVariant),
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.calendar,
+                  size: AppSizes.iconSm,
+                  color: cs.primary,
+                ),
+                const SizedBox(width: AppSizes.xs),
+                Text(
+                  '---',
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    color: cs.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      const SizedBox(height: AppSizes.lg),
+    ];
   }
 }

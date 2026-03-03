@@ -173,13 +173,12 @@ class _RecurringCard extends ConsumerWidget {
   final List categories;
 
   String _frequencyLabel(BuildContext context, String freq) => switch (freq) {
+        'once' => context.l10n.recurring_frequency_once,
         'daily' => context.l10n.recurring_frequency_daily,
         'weekly' => context.l10n.recurring_frequency_weekly,
-        'biweekly' => context.l10n.recurring_frequency_biweekly,
         'monthly' => context.l10n.recurring_frequency_monthly,
-        'quarterly' => context.l10n.recurring_frequency_quarterly,
         'yearly' => context.l10n.recurring_frequency_yearly,
-        'once' => context.l10n.recurring_frequency_once,
+        'custom' => context.l10n.recurring_frequency_custom,
         _ => freq,
       };
 

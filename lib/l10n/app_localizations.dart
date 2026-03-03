@@ -680,23 +680,11 @@ abstract class AppLocalizations {
   /// **'Weekly'**
   String get recurring_frequency_weekly;
 
-  /// No description provided for @recurring_frequency_biweekly.
-  ///
-  /// In en, this message translates to:
-  /// **'Every 2 Weeks'**
-  String get recurring_frequency_biweekly;
-
   /// No description provided for @recurring_frequency_monthly.
   ///
   /// In en, this message translates to:
   /// **'Monthly'**
   String get recurring_frequency_monthly;
-
-  /// No description provided for @recurring_frequency_quarterly.
-  ///
-  /// In en, this message translates to:
-  /// **'Quarterly'**
-  String get recurring_frequency_quarterly;
 
   /// No description provided for @recurring_frequency_yearly.
   ///
@@ -757,6 +745,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One-time'**
   String get recurring_frequency_once;
+
+  /// No description provided for @recurring_frequency_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get recurring_frequency_custom;
 
   /// No description provided for @reports_title.
   ///
@@ -2887,6 +2881,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Date'**
   String get recurring_start_date;
+
+  /// No description provided for @recurring_end_date.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date (optional)'**
+  String get recurring_end_date;
+
+  /// No description provided for @recurring_end_date_required.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get recurring_end_date_required;
 
   /// No description provided for @recurring_empty_sub.
   ///

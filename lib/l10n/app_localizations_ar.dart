@@ -307,13 +307,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_frequency_weekly => 'أسبوعي';
 
   @override
-  String get recurring_frequency_biweekly => 'كل أسبوعين';
-
-  @override
   String get recurring_frequency_monthly => 'شهري';
-
-  @override
-  String get recurring_frequency_quarterly => 'ربع سنوي';
 
   @override
   String get recurring_frequency_yearly => 'سنوي';
@@ -344,6 +338,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_frequency_once => 'مرة واحدة';
+
+  @override
+  String get recurring_frequency_custom => 'مخصص';
 
   @override
   String get reports_title => 'التقارير';
@@ -1445,6 +1442,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_start_date => 'تاريخ البدء';
+
+  @override
+  String get recurring_end_date => 'تاريخ الانتهاء (اختياري)';
+
+  @override
+  String get recurring_end_date_required => 'تاريخ الانتهاء';
 
   @override
   String get recurring_empty_sub => 'أضف معاملاتك المتكررة لتوفير الوقت';

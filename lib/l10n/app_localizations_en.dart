@@ -309,13 +309,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_frequency_weekly => 'Weekly';
 
   @override
-  String get recurring_frequency_biweekly => 'Every 2 Weeks';
-
-  @override
   String get recurring_frequency_monthly => 'Monthly';
-
-  @override
-  String get recurring_frequency_quarterly => 'Quarterly';
 
   @override
   String get recurring_frequency_yearly => 'Yearly';
@@ -346,6 +340,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_frequency_once => 'One-time';
+
+  @override
+  String get recurring_frequency_custom => 'Custom';
 
   @override
   String get reports_title => 'Analytics';
@@ -1454,6 +1451,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_start_date => 'Start Date';
+
+  @override
+  String get recurring_end_date => 'End Date (optional)';
+
+  @override
+  String get recurring_end_date_required => 'End Date';
 
   @override
   String get recurring_empty_sub =>
