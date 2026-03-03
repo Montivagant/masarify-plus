@@ -109,7 +109,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_date => 'Date';
 
   @override
-  String get transaction_wallet => 'Wallet';
+  String get transaction_wallet => 'Account';
 
   @override
   String get transaction_category => 'Category';
@@ -151,10 +151,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_source_import => 'Import';
 
   @override
-  String get wallets_title => 'Wallets';
+  String get wallets_title => 'Accounts';
 
   @override
-  String get wallets_add => 'Add Wallet';
+  String get wallets_add => 'Add Account';
 
   @override
   String get wallets_transfer => 'Transfer';
@@ -166,7 +166,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_bank => 'Bank Account';
 
   @override
-  String get wallet_type_mobile_wallet => 'Mobile Wallet';
+  String get wallet_type_mobile_wallet => 'Mobile Account';
 
   @override
   String get wallet_type_credit_card => 'Credit Card';
@@ -175,14 +175,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_savings => 'Savings';
 
   @override
-  String get wallet_name_hint => 'Wallet name';
+  String get wallet_name_hint => 'Account name';
 
   @override
   String get wallet_initial_balance => 'Initial Balance';
 
   @override
   String get wallet_delete_warning =>
-      'Cannot delete wallet with existing transactions';
+      'Cannot delete account with existing transactions';
 
   @override
   String get wallet_balance => 'Balance';
@@ -387,7 +387,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_section_app => 'App';
 
   @override
-  String get hub_wallets => 'Wallets';
+  String get hub_wallets => 'Accounts';
 
   @override
   String get hub_analytics => 'Analytics';
@@ -714,7 +714,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permission_notification_body =>
-      'Masarify can read bank/wallet notifications to automatically detect transactions. Nothing is sent to any server.';
+      'Masarify can read bank notifications to automatically detect transactions. Nothing is sent to any server.';
 
   @override
   String get error_amount_zero => 'Amount must be greater than zero';
@@ -723,7 +723,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error_category_required => 'Please select a category';
 
   @override
-  String get error_wallet_required => 'Please select a wallet';
+  String get error_wallet_required => 'Please select an account';
 
   @override
   String get error_name_required => 'Name is required';
@@ -952,38 +952,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_category_picker => 'Select Category';
 
   @override
-  String get transaction_wallet_picker => 'Select Wallet';
+  String get transaction_wallet_picker => 'Select Account';
 
   @override
-  String get wallet_detail_title => 'Wallet Details';
+  String get wallet_detail_title => 'Account Details';
 
   @override
-  String get wallet_not_found => 'Wallet not found';
+  String get wallet_not_found => 'Account not found';
 
   @override
-  String get wallet_add_title => 'New Wallet';
+  String get wallet_add_title => 'New Account';
 
   @override
-  String get wallet_edit_title => 'Edit Wallet';
+  String get wallet_edit_title => 'Edit Account';
 
   @override
-  String get wallet_delete_title => 'Delete Wallet';
+  String get wallet_delete_title => 'Delete Account';
 
   @override
   String get wallet_delete_confirm =>
-      'Are you sure you want to delete this wallet?';
+      'Are you sure you want to delete this account?';
 
   @override
-  String get wallet_cannot_delete_title => 'Cannot Delete Wallet';
+  String get wallet_cannot_delete_title => 'Cannot Delete Account';
 
   @override
-  String get wallet_name_label => 'Wallet Name';
+  String get wallet_name_label => 'Account Name';
 
   @override
-  String get wallet_name_hint_example => 'e.g. Main Wallet';
+  String get wallet_name_hint_example => 'e.g. Main Account';
 
   @override
-  String get wallet_name_duplicate => 'A wallet with this name already exists';
+  String get wallet_name_duplicate => 'An account with this name already exists';
 
   @override
   String get wallet_total_balance => 'Total Balance';
@@ -992,24 +992,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_current_balance => 'Current Balance';
 
   @override
-  String get wallet_transactions_header => 'Wallet Transactions';
+  String get wallet_transactions_header => 'Account Transactions';
 
   @override
   String get wallet_no_transactions_sub =>
-      'No transactions recorded for this wallet yet';
+      'No transactions recorded for this account yet';
 
   @override
   String get wallet_cannot_delete_body =>
       'This wallet has transactions.\nDelete or move them before deleting the wallet.';
 
   @override
-  String get wallet_type_label => 'Wallet Type';
+  String get wallet_type_label => 'Account Type';
 
   @override
-  String get wallet_color_label => 'Wallet Color';
+  String get wallet_color_label => 'Account Color';
 
   @override
-  String get wallet_add_button => 'Add Wallet';
+  String get wallet_add_button => 'Add Account';
 
   @override
   String get wallet_type_cash_short => 'Cash';
@@ -1018,7 +1018,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_bank_short => 'Bank';
 
   @override
-  String get wallet_type_mobile_wallet_short => 'Mobile Wallet';
+  String get wallet_type_mobile_wallet_short => 'Mobile';
 
   @override
   String get wallet_type_credit_card_short => 'Credit';
@@ -1027,13 +1027,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_savings_short => 'Savings';
 
   @override
-  String get wallets_empty_title => 'No wallets yet';
+  String get wallets_empty_title => 'No accounts yet';
 
   @override
-  String get wallets_empty_sub => 'Add your first wallet to start tracking';
+  String get wallets_empty_sub => 'Add your first account to start tracking';
 
   @override
-  String get wallets_transfer_button => 'Transfer Between Wallets';
+  String get wallets_transfer_button => 'Transfer Between Accounts';
 
   @override
   String get category_add_title => 'New Category';
@@ -1158,7 +1158,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Set a savings goal and start achieving it';
 
   @override
-  String get transfer_title => 'Transfer Between Wallets';
+  String get transfer_title => 'Transfer Between Accounts';
 
   @override
   String get transfer_amount_label => 'Amount';
@@ -1170,16 +1170,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_confirm_button => 'Confirm Transfer';
 
   @override
-  String get transfer_different_wallets => 'Select two different wallets';
+  String get transfer_different_wallets => 'Select two different accounts';
 
   @override
-  String get transfer_from_wallet => 'From Wallet';
+  String get transfer_from_wallet => 'From Account';
 
   @override
-  String get transfer_to_wallet => 'To Wallet';
+  String get transfer_to_wallet => 'To Account';
 
   @override
-  String get transfer_select_wallet => 'Select Wallet';
+  String get transfer_select_wallet => 'Select Account';
 
   @override
   String get transfer_swap => 'Swap';
@@ -1189,7 +1189,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_insufficient_body =>
-      'Source wallet balance is less than the transfer amount. Continue anyway?';
+      'Source account balance is less than the transfer amount. Continue anyway?';
 
   @override
   String get transfer_success => 'Transfer completed successfully';
@@ -1204,10 +1204,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_data_management => 'Data Management';
 
   @override
-  String get settings_wallets_label => 'Wallets';
+  String get settings_wallets_label => 'Accounts';
 
   @override
-  String get settings_wallets_subtitle => 'Manage your wallets and accounts';
+  String get settings_wallets_subtitle => 'Manage your accounts';
 
   @override
   String get settings_categories_label => 'Categories';
@@ -1245,7 +1245,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_clear_data_warning =>
-      'This action cannot be undone.\nAll wallets, transactions, budgets, and goals will be deleted.';
+      'This action cannot be undone.\nAll accounts, transactions, budgets, and goals will be deleted.';
 
   @override
   String get settings_clear_data_permanent => 'Permanent Delete';
@@ -1338,7 +1338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_expense_label => 'Expenses';
 
   @override
-  String get onboarding_feature_wallets => 'Multiple Wallets';
+  String get onboarding_feature_wallets => 'Multiple Accounts';
 
   @override
   String get onboarding_feature_budgets => 'Smart Budgets';
@@ -1681,7 +1681,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallet_archive_balance_warning =>
-      'This wallet still has a remaining balance. The balance will be excluded from your totals after archiving.';
+      'This account still has a remaining balance. The balance will be excluded from your totals after archiving.';
 
   @override
   String get notif_prefs_title => 'Notification Settings';
@@ -1801,5 +1801,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdf_col_category => 'Category';
 
   @override
-  String get pdf_col_wallet => 'Wallet';
+  String get pdf_col_wallet => 'Account';
 }

@@ -299,7 +299,7 @@ abstract class AppLocalizations {
   /// No description provided for @transaction_wallet.
   ///
   /// In en, this message translates to:
-  /// **'Wallet'**
+  /// **'Account'**
   String get transaction_wallet;
 
   /// No description provided for @transaction_category.
@@ -383,13 +383,13 @@ abstract class AppLocalizations {
   /// No description provided for @wallets_title.
   ///
   /// In en, this message translates to:
-  /// **'Wallets'**
+  /// **'Accounts'**
   String get wallets_title;
 
   /// No description provided for @wallets_add.
   ///
   /// In en, this message translates to:
-  /// **'Add Wallet'**
+  /// **'Add Account'**
   String get wallets_add;
 
   /// No description provided for @wallets_transfer.
@@ -413,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_mobile_wallet.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Wallet'**
+  /// **'Mobile Account'**
   String get wallet_type_mobile_wallet;
 
   /// No description provided for @wallet_type_credit_card.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_name_hint.
   ///
   /// In en, this message translates to:
-  /// **'Wallet name'**
+  /// **'Account name'**
   String get wallet_name_hint;
 
   /// No description provided for @wallet_initial_balance.
@@ -443,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_delete_warning.
   ///
   /// In en, this message translates to:
-  /// **'Cannot delete wallet with existing transactions'**
+  /// **'Cannot delete account with existing transactions'**
   String get wallet_delete_warning;
 
   /// No description provided for @wallet_balance.
@@ -839,7 +839,7 @@ abstract class AppLocalizations {
   /// No description provided for @hub_wallets.
   ///
   /// In en, this message translates to:
-  /// **'Wallets'**
+  /// **'Accounts'**
   String get hub_wallets;
 
   /// No description provided for @hub_analytics.
@@ -1289,7 +1289,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_page2_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'We\'ll create a Cash wallet for you. You can change this later.'**
+  /// **'We\'ll create a Cash account for you. You can change this later.'**
   String get onboarding_page2_subtitle;
 
   /// No description provided for @onboarding_page2_cta.
@@ -1475,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @permission_notification_body.
   ///
   /// In en, this message translates to:
-  /// **'Masarify can read bank/wallet notifications to automatically detect transactions. Nothing is sent to any server.'**
+  /// **'Masarify can read bank notifications to automatically detect transactions. Nothing is sent to any server.'**
   String get permission_notification_body;
 
   /// No description provided for @error_amount_zero.
@@ -1493,7 +1493,7 @@ abstract class AppLocalizations {
   /// No description provided for @error_wallet_required.
   ///
   /// In en, this message translates to:
-  /// **'Please select a wallet'**
+  /// **'Please select an account'**
   String get error_wallet_required;
 
   /// No description provided for @error_name_required.
@@ -1925,67 +1925,67 @@ abstract class AppLocalizations {
   /// No description provided for @transaction_wallet_picker.
   ///
   /// In en, this message translates to:
-  /// **'Select Wallet'**
+  /// **'Select Account'**
   String get transaction_wallet_picker;
 
   /// No description provided for @wallet_detail_title.
   ///
   /// In en, this message translates to:
-  /// **'Wallet Details'**
+  /// **'Account Details'**
   String get wallet_detail_title;
 
   /// No description provided for @wallet_not_found.
   ///
   /// In en, this message translates to:
-  /// **'Wallet not found'**
+  /// **'Account not found'**
   String get wallet_not_found;
 
   /// No description provided for @wallet_add_title.
   ///
   /// In en, this message translates to:
-  /// **'New Wallet'**
+  /// **'New Account'**
   String get wallet_add_title;
 
   /// No description provided for @wallet_edit_title.
   ///
   /// In en, this message translates to:
-  /// **'Edit Wallet'**
+  /// **'Edit Account'**
   String get wallet_edit_title;
 
   /// No description provided for @wallet_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete Wallet'**
+  /// **'Delete Account'**
   String get wallet_delete_title;
 
   /// No description provided for @wallet_delete_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete this wallet?'**
+  /// **'Are you sure you want to delete this account?'**
   String get wallet_delete_confirm;
 
   /// No description provided for @wallet_cannot_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Cannot Delete Wallet'**
+  /// **'Cannot Delete Account'**
   String get wallet_cannot_delete_title;
 
   /// No description provided for @wallet_name_label.
   ///
   /// In en, this message translates to:
-  /// **'Wallet Name'**
+  /// **'Account Name'**
   String get wallet_name_label;
 
   /// No description provided for @wallet_name_hint_example.
   ///
   /// In en, this message translates to:
-  /// **'e.g. Main Wallet'**
+  /// **'e.g. Main Account'**
   String get wallet_name_hint_example;
 
   /// No description provided for @wallet_name_duplicate.
   ///
   /// In en, this message translates to:
-  /// **'A wallet with this name already exists'**
+  /// **'An account with this name already exists'**
   String get wallet_name_duplicate;
 
   /// No description provided for @wallet_total_balance.
@@ -2003,37 +2003,37 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_transactions_header.
   ///
   /// In en, this message translates to:
-  /// **'Wallet Transactions'**
+  /// **'Account Transactions'**
   String get wallet_transactions_header;
 
   /// No description provided for @wallet_no_transactions_sub.
   ///
   /// In en, this message translates to:
-  /// **'No transactions recorded for this wallet yet'**
+  /// **'No transactions recorded for this account yet'**
   String get wallet_no_transactions_sub;
 
   /// No description provided for @wallet_cannot_delete_body.
   ///
   /// In en, this message translates to:
-  /// **'This wallet has transactions.\nDelete or move them before deleting the wallet.'**
+  /// **'This account has transactions.\nDelete or move them before deleting the account.'**
   String get wallet_cannot_delete_body;
 
   /// No description provided for @wallet_type_label.
   ///
   /// In en, this message translates to:
-  /// **'Wallet Type'**
+  /// **'Account Type'**
   String get wallet_type_label;
 
   /// No description provided for @wallet_color_label.
   ///
   /// In en, this message translates to:
-  /// **'Wallet Color'**
+  /// **'Account Color'**
   String get wallet_color_label;
 
   /// No description provided for @wallet_add_button.
   ///
   /// In en, this message translates to:
-  /// **'Add Wallet'**
+  /// **'Add Account'**
   String get wallet_add_button;
 
   /// No description provided for @wallet_type_cash_short.
@@ -2051,7 +2051,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_mobile_wallet_short.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Wallet'**
+  /// **'Mobile Account'**
   String get wallet_type_mobile_wallet_short;
 
   /// No description provided for @wallet_type_credit_card_short.
@@ -2069,19 +2069,19 @@ abstract class AppLocalizations {
   /// No description provided for @wallets_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'No wallets yet'**
+  /// **'No accounts yet'**
   String get wallets_empty_title;
 
   /// No description provided for @wallets_empty_sub.
   ///
   /// In en, this message translates to:
-  /// **'Add your first wallet to start tracking'**
+  /// **'Add your first account to start tracking'**
   String get wallets_empty_sub;
 
   /// No description provided for @wallets_transfer_button.
   ///
   /// In en, this message translates to:
-  /// **'Transfer Between Wallets'**
+  /// **'Transfer Between Accounts'**
   String get wallets_transfer_button;
 
   /// No description provided for @category_add_title.
@@ -2315,7 +2315,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_title.
   ///
   /// In en, this message translates to:
-  /// **'Transfer Between Wallets'**
+  /// **'Transfer Between Accounts'**
   String get transfer_title;
 
   /// No description provided for @transfer_amount_label.
@@ -2339,25 +2339,25 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_different_wallets.
   ///
   /// In en, this message translates to:
-  /// **'Select two different wallets'**
+  /// **'Select two different accounts'**
   String get transfer_different_wallets;
 
   /// No description provided for @transfer_from_wallet.
   ///
   /// In en, this message translates to:
-  /// **'From Wallet'**
+  /// **'From Account'**
   String get transfer_from_wallet;
 
   /// No description provided for @transfer_to_wallet.
   ///
   /// In en, this message translates to:
-  /// **'To Wallet'**
+  /// **'To Account'**
   String get transfer_to_wallet;
 
   /// No description provided for @transfer_select_wallet.
   ///
   /// In en, this message translates to:
-  /// **'Select Wallet'**
+  /// **'Select Account'**
   String get transfer_select_wallet;
 
   /// No description provided for @transfer_swap.
@@ -2375,7 +2375,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer_insufficient_body.
   ///
   /// In en, this message translates to:
-  /// **'Source wallet balance is less than the transfer amount. Continue anyway?'**
+  /// **'Source account balance is less than the transfer amount. Continue anyway?'**
   String get transfer_insufficient_body;
 
   /// No description provided for @transfer_success.
@@ -2405,13 +2405,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_wallets_label.
   ///
   /// In en, this message translates to:
-  /// **'Wallets'**
+  /// **'Accounts'**
   String get settings_wallets_label;
 
   /// No description provided for @settings_wallets_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage your wallets and accounts'**
+  /// **'Manage your accounts'**
   String get settings_wallets_subtitle;
 
   /// No description provided for @settings_categories_label.
@@ -2483,7 +2483,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_clear_data_warning.
   ///
   /// In en, this message translates to:
-  /// **'This action cannot be undone.\nAll wallets, transactions, budgets, and goals will be deleted.'**
+  /// **'This action cannot be undone.\nAll accounts, transactions, budgets, and goals will be deleted.'**
   String get settings_clear_data_warning;
 
   /// No description provided for @settings_clear_data_permanent.
@@ -2663,7 +2663,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_feature_wallets.
   ///
   /// In en, this message translates to:
-  /// **'Multiple Wallets'**
+  /// **'Multiple Accounts'**
   String get onboarding_feature_wallets;
 
   /// No description provided for @onboarding_feature_budgets.
@@ -3311,7 +3311,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_archive_balance_warning.
   ///
   /// In en, this message translates to:
-  /// **'This wallet still has a remaining balance. The balance will be excluded from your totals after archiving.'**
+  /// **'This account still has a remaining balance. The balance will be excluded from your totals after archiving.'**
   String get wallet_archive_balance_warning;
 
   /// No description provided for @notif_prefs_title.
@@ -3539,7 +3539,7 @@ abstract class AppLocalizations {
   /// No description provided for @pdf_col_wallet.
   ///
   /// In en, this message translates to:
-  /// **'Wallet'**
+  /// **'Account'**
   String get pdf_col_wallet;
 }
 

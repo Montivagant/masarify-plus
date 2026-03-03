@@ -108,7 +108,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transaction_date => 'التاريخ';
 
   @override
-  String get transaction_wallet => 'المحفظة';
+  String get transaction_wallet => 'الحساب';
 
   @override
   String get transaction_category => 'التصنيف';
@@ -150,10 +150,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transaction_source_import => 'استيراد';
 
   @override
-  String get wallets_title => 'المحافظ';
+  String get wallets_title => 'الحسابات';
 
   @override
-  String get wallets_add => 'إضافة محفظة';
+  String get wallets_add => 'إضافة حساب';
 
   @override
   String get wallets_transfer => 'تحويل';
@@ -165,7 +165,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_type_bank => 'حساب بنكي';
 
   @override
-  String get wallet_type_mobile_wallet => 'محفظة إلكترونية';
+  String get wallet_type_mobile_wallet => 'حساب إلكتروني';
 
   @override
   String get wallet_type_credit_card => 'بطاقة ائتمانية';
@@ -174,13 +174,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_type_savings => 'ادخار';
 
   @override
-  String get wallet_name_hint => 'اسم المحفظة';
+  String get wallet_name_hint => 'اسم الحساب';
 
   @override
   String get wallet_initial_balance => 'الرصيد الابتدائي';
 
   @override
-  String get wallet_delete_warning => 'لا يمكن حذف محفظة بها معاملات';
+  String get wallet_delete_warning => 'لا يمكن حذف حساب به معاملات';
 
   @override
   String get wallet_balance => 'الرصيد';
@@ -385,7 +385,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_section_app => 'التطبيق';
 
   @override
-  String get hub_wallets => 'المحافظ';
+  String get hub_wallets => 'الحسابات';
 
   @override
   String get hub_analytics => 'التحليلات';
@@ -617,7 +617,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_page2_subtitle =>
-      'سننشئ لك محفظة نقدية. يمكنك تغيير هذا لاحقاً.';
+      'سننشئ لك حساباً نقدياً. يمكنك تغيير هذا لاحقاً.';
 
   @override
   String get onboarding_page2_cta => 'ابدأ التتبع';
@@ -723,7 +723,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get error_category_required => 'يرجى اختيار تصنيف';
 
   @override
-  String get error_wallet_required => 'يرجى اختيار محفظة';
+  String get error_wallet_required => 'يرجى اختيار حساب';
 
   @override
   String get error_name_required => 'الاسم مطلوب';
@@ -950,37 +950,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transaction_category_picker => 'اختر الفئة';
 
   @override
-  String get transaction_wallet_picker => 'اختر المحفظة';
+  String get transaction_wallet_picker => 'اختر الحساب';
 
   @override
-  String get wallet_detail_title => 'تفاصيل المحفظة';
+  String get wallet_detail_title => 'تفاصيل الحساب';
 
   @override
-  String get wallet_not_found => 'المحفظة غير موجودة';
+  String get wallet_not_found => 'الحساب غير موجود';
 
   @override
-  String get wallet_add_title => 'محفظة جديدة';
+  String get wallet_add_title => 'حساب جديد';
 
   @override
-  String get wallet_edit_title => 'تعديل المحفظة';
+  String get wallet_edit_title => 'تعديل الحساب';
 
   @override
-  String get wallet_delete_title => 'حذف المحفظة';
+  String get wallet_delete_title => 'حذف الحساب';
 
   @override
-  String get wallet_delete_confirm => 'هل أنت متأكد من حذف هذه المحفظة؟';
+  String get wallet_delete_confirm => 'هل أنت متأكد من حذف هذا الحساب؟';
 
   @override
-  String get wallet_cannot_delete_title => 'لا يمكن حذف المحفظة';
+  String get wallet_cannot_delete_title => 'لا يمكن حذف الحساب';
 
   @override
-  String get wallet_name_label => 'اسم المحفظة';
+  String get wallet_name_label => 'اسم الحساب';
 
   @override
-  String get wallet_name_hint_example => 'مثال: المحفظة الرئيسية';
+  String get wallet_name_hint_example => 'مثال: الحساب الرئيسي';
 
   @override
-  String get wallet_name_duplicate => 'يوجد محفظة بنفس الاسم بالفعل';
+  String get wallet_name_duplicate => 'يوجد حساب بنفس الاسم بالفعل';
 
   @override
   String get wallet_total_balance => 'إجمالي الرصيد';
@@ -989,24 +989,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_current_balance => 'الرصيد الحالي';
 
   @override
-  String get wallet_transactions_header => 'معاملات هذه المحفظة';
+  String get wallet_transactions_header => 'معاملات هذا الحساب';
 
   @override
   String get wallet_no_transactions_sub =>
-      'لم تُسجَّل معاملات لهذه المحفظة بعد';
+      'لم تُسجَّل معاملات لهذا الحساب بعد';
 
   @override
   String get wallet_cannot_delete_body =>
-      'هذه المحفظة تحتوي على معاملات.\nاحذف أو انقل المعاملات أولاً قبل حذف المحفظة.';
+      'هذا الحساب يحتوي على معاملات.\nاحذف أو انقل المعاملات أولاً قبل حذف الحساب.';
 
   @override
-  String get wallet_type_label => 'نوع المحفظة';
+  String get wallet_type_label => 'نوع الحساب';
 
   @override
-  String get wallet_color_label => 'لون المحفظة';
+  String get wallet_color_label => 'لون الحساب';
 
   @override
-  String get wallet_add_button => 'إضافة المحفظة';
+  String get wallet_add_button => 'إضافة الحساب';
 
   @override
   String get wallet_type_cash_short => 'نقدي';
@@ -1015,7 +1015,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_type_bank_short => 'بنك';
 
   @override
-  String get wallet_type_mobile_wallet_short => 'محفظة رقمية';
+  String get wallet_type_mobile_wallet_short => 'رقمي';
 
   @override
   String get wallet_type_credit_card_short => 'ائتمان';
@@ -1024,13 +1024,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_type_savings_short => 'توفير';
 
   @override
-  String get wallets_empty_title => 'لا توجد محافظ';
+  String get wallets_empty_title => 'لا توجد حسابات';
 
   @override
-  String get wallets_empty_sub => 'أضف محفظتك الأولى لتبدأ تتبع فلوسك';
+  String get wallets_empty_sub => 'أضف حسابك الأول لتبدأ تتبع فلوسك';
 
   @override
-  String get wallets_transfer_button => 'تحويل بين المحافظ';
+  String get wallets_transfer_button => 'تحويل بين الحسابات';
 
   @override
   String get category_add_title => 'فئة جديدة';
@@ -1151,7 +1151,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goals_empty_sub_long => 'ضع لنفسك هدفاً ادخارياً وابدأ تحقيقه';
 
   @override
-  String get transfer_title => 'تحويل بين المحافظ';
+  String get transfer_title => 'تحويل بين الحسابات';
 
   @override
   String get transfer_amount_label => 'المبلغ';
@@ -1163,16 +1163,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transfer_confirm_button => 'تأكيد التحويل';
 
   @override
-  String get transfer_different_wallets => 'اختر محفظتين مختلفتين';
+  String get transfer_different_wallets => 'اختر حسابين مختلفين';
 
   @override
-  String get transfer_from_wallet => 'من محفظة';
+  String get transfer_from_wallet => 'من حساب';
 
   @override
-  String get transfer_to_wallet => 'إلى محفظة';
+  String get transfer_to_wallet => 'إلى حساب';
 
   @override
-  String get transfer_select_wallet => 'اختر المحفظة';
+  String get transfer_select_wallet => 'اختر الحساب';
 
   @override
   String get transfer_swap => 'تبديل';
@@ -1182,7 +1182,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_insufficient_body =>
-      'رصيد المحفظة المصدر أقل من مبلغ التحويل. هل تريد المتابعة؟';
+      'رصيد الحساب المصدر أقل من مبلغ التحويل. هل تريد المتابعة؟';
 
   @override
   String get transfer_success => 'تم التحويل بنجاح';
@@ -1197,10 +1197,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_data_management => 'إدارة البيانات';
 
   @override
-  String get settings_wallets_label => 'المحافظ';
+  String get settings_wallets_label => 'الحسابات';
 
   @override
-  String get settings_wallets_subtitle => 'إدارة محافظك وحساباتك';
+  String get settings_wallets_subtitle => 'إدارة حساباتك';
 
   @override
   String get settings_categories_label => 'الفئات';
@@ -1237,7 +1237,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_clear_data_warning =>
-      'هذا الإجراء لا يمكن التراجع عنه.\nسيتم حذف جميع المحافظ والمعاملات والميزانيات والأهداف.';
+      'هذا الإجراء لا يمكن التراجع عنه.\nسيتم حذف جميع الحسابات والمعاملات والميزانيات والأهداف.';
 
   @override
   String get settings_clear_data_permanent => 'حذف نهائي';
@@ -1329,7 +1329,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get balance_expense_label => 'المصروفات';
 
   @override
-  String get onboarding_feature_wallets => 'محافظ متعددة';
+  String get onboarding_feature_wallets => 'حسابات متعددة';
 
   @override
   String get onboarding_feature_budgets => 'ميزانيات ذكية';
@@ -1671,7 +1671,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get wallet_archive_balance_warning =>
-      'هذه المحفظة لا تزال تحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.';
+      'هذا الحساب لا يزال يحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.';
 
   @override
   String get notif_prefs_title => 'إعدادات الإشعارات';
@@ -1789,5 +1789,5 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_col_category => 'الفئة';
 
   @override
-  String get pdf_col_wallet => 'المحفظة';
+  String get pdf_col_wallet => 'الحساب';
 }
