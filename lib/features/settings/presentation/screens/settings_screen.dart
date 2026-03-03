@@ -115,6 +115,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final prefs = await ref.read(preferencesFutureProvider.future);
     if (!mounted) return;
     await prefs.setCurrency(code);
+    ref.invalidate(currencyCodeProvider);
   }
 
   Future<void> _setLanguage(String? lang) async {
@@ -134,6 +135,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final prefs = await ref.read(preferencesFutureProvider.future);
     if (!mounted) return;
     await prefs.setFirstDayOfWeek(day);
+    ref.invalidate(firstDayOfWeekProvider);
   }
 
   Future<void> _setFirstDayOfMonth(int day) async {
@@ -162,7 +164,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         // _finishNotificationPermission() runs on lifecycle resume.
       } else {
         // Stop listener and save pref.
-        ref.read(notificationListenerProvider).stop();
+        try {
+          ref.read(notificationListenerProvider).stop();
+        } catch (e) {
+          CrashLogService.log(e, StackTrace.current);
+        }
         final prefs = await ref.read(preferencesFutureProvider.future);
         await prefs.setNotificationParserEnabled(false);
         if (!mounted) return;
@@ -196,20 +202,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
       // WS-38 fix: delay before starting listener — Android service needs
       // time to bind after permission is granted.
-      await Future<void>.delayed(AppDurations.delaySmall);
+      await Future<void>.delayed(AppDurations.listenerBindDelay);
       if (!mounted) return;
 
-      // Start the listener.
-      final listener = ref.read(notificationListenerProvider);
-      listener.onNewPending = () {
-        ref.invalidate(pendingParsedTransactionsProvider);
-      };
+      // Start the listener — service may not be fully bound yet.
       try {
+        final listener = ref.read(notificationListenerProvider);
+        listener.onNewPending = () {
+          ref.invalidate(pendingParsedTransactionsProvider);
+        };
         await listener.start();
       } catch (e) {
         CrashLogService.log(e, StackTrace.current);
         if (!mounted) return;
-        SnackHelper.showError(context, context.l10n.common_error_generic);
+        SnackHelper.showInfo(
+          context,
+          context.l10n.common_error_generic,
+        );
       }
     } catch (e) {
       CrashLogService.log(e, StackTrace.current);
@@ -295,7 +304,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final l10n = context.l10n;
     return switch (model) {
       'auto' => l10n.settings_ai_model_auto,
-      AiConfig.modelGeminiFlash => l10n.settings_ai_model_gemini_flash,
       AiConfig.modelGemma27b => l10n.settings_ai_model_gemma_27b,
       AiConfig.modelQwen3_4b => l10n.settings_ai_model_qwen3_4b,
       _ => model,
@@ -306,7 +314,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final l10n = context.l10n;
     final options = [
       (id: 'auto', label: l10n.settings_ai_model_auto),
-      (id: AiConfig.modelGeminiFlash, label: l10n.settings_ai_model_gemini_flash),
       (id: AiConfig.modelGemma27b, label: l10n.settings_ai_model_gemma_27b),
       (id: AiConfig.modelQwen3_4b, label: l10n.settings_ai_model_qwen3_4b),
     ];
@@ -518,7 +525,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       await db.customStatement('DELETE FROM goal_contributions');
       await db.customStatement('DELETE FROM savings_goals');
       await db.customStatement('DELETE FROM recurring_rules');
-      await db.customStatement('DELETE FROM bills');
       await db.customStatement('DELETE FROM sms_parser_logs');
       await db.customStatement('DELETE FROM exchange_rates');
       await db.customStatement('DELETE FROM wallets');
@@ -616,9 +622,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               children: [
                 Text(
                   l10n.settings_theme,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
+                  style: context.textStyles.bodyMedium
                       ?.copyWith(color: cs.outline),
                 ),
                 const SizedBox(height: AppSizes.sm),
@@ -672,16 +676,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             icon: AppIcons.currency,
             label: l10n.settings_currency,
             subtitle: _currencies(context)
-                .firstWhere((c) => c.code == _currency, orElse: () => _currencies(context).first)
-                .label,
+                .where((c) => c.code == _currency)
+                .firstOrNull
+                ?.label ?? _currency,
             onTap: () => _showCurrencyPicker(),
           ),
           _SettingsTile(
             icon: AppIcons.calendar,
             label: l10n.settings_first_day_of_week,
             subtitle: _weekDays(context)
-                .firstWhere((d) => d.value == _firstDayOfWeek, orElse: () => _weekDays(context).first)
-                .label,
+                .where((d) => d.value == _firstDayOfWeek)
+                .firstOrNull
+                ?.label ?? '$_firstDayOfWeek',
             onTap: () => _showWeekDayPicker(),
           ),
           _SettingsTile(

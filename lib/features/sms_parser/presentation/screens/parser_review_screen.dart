@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -79,7 +81,10 @@ class ParserReviewScreen extends ConsumerWidget {
     }
 
     final wallets = ref.read(walletsProvider).valueOrNull ?? [];
-    if (wallets.isEmpty) return;
+    if (wallets.isEmpty) {
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+      return;
+    }
 
     final txRepo = ref.read(transactionRepositoryProvider);
     final dao = ref.read(smsParserLogDaoProvider);
@@ -98,7 +103,12 @@ class ParserReviewScreen extends ConsumerWidget {
         (c) => c.iconName == enrichment.categoryIcon,
       );
       if (match.isNotEmpty) categoryId = match.first.id;
-      if (enrichment.merchant.isNotEmpty) title = enrichment.merchant;
+      // Prefer AI title > merchant name > sender address
+      if (enrichment.title.isNotEmpty) {
+        title = enrichment.title;
+      } else if (enrichment.merchant.isNotEmpty) {
+        title = enrichment.merchant;
+      }
     }
     // Fall back to a category matching the transaction type
     categoryId ??= categories
@@ -124,7 +134,8 @@ class ParserReviewScreen extends ConsumerWidget {
       await dao.markStatus(log.id, 'approved', transactionId: txId);
       ref.invalidate(pendingParsedTransactionsProvider);
       messenger.showSnackBar(SnackBar(content: Text(approvedMsg)));
-    } catch (_) {
+    } catch (e) {
+      dev.log('Approve failed: $e', name: 'ParserReview');
       messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
     }
   }
@@ -185,11 +196,19 @@ class _PendingLogCard extends StatelessWidget {
         parsed != null ? MoneyFormatter.format(parsed.amountPiastres) : '—';
     final isIncome = parsed?.type == 'income';
 
-    // Use AI merchant name if available, otherwise sender address.
-    final displayTitle =
-        enrichment?.merchant.isNotEmpty == true
+    // Prefer AI title > merchant name > sender address for display.
+    final displayTitle = enrichment?.title.isNotEmpty == true
+        ? enrichment!.title
+        : enrichment?.merchant.isNotEmpty == true
             ? enrichment!.merchant
             : log.senderAddress;
+
+    // Show merchant as subtitle when title already covers the label.
+    final displaySubtitle = enrichment?.title.isNotEmpty == true &&
+            enrichment!.merchant.isNotEmpty &&
+            enrichment.title != enrichment.merchant
+        ? enrichment.merchant
+        : null;
 
     return Card(
       margin: const EdgeInsets.symmetric(
@@ -206,7 +225,7 @@ class _PendingLogCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header: category icon + merchant/sender + amount ──
+            // ── Header: category icon + title + amount ──
             Row(
               children: [
                 if (enrichment != null &&
@@ -228,13 +247,27 @@ class _PendingLogCard extends StatelessWidget {
                   const SizedBox(width: AppSizes.xs),
                 ],
                 Expanded(
-                  child: Text(
-                    displayTitle,
-                    style: context.textStyles.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        displayTitle,
+                        style: context.textStyles.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (displaySubtitle != null)
+                        Text(
+                          displaySubtitle,
+                          style: context.textStyles.bodySmall?.copyWith(
+                                color: cs.outline,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    ],
                   ),
                 ),
                 if (parsed != null)

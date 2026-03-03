@@ -74,6 +74,15 @@ class AppTextField extends StatelessWidget {
           errorText: errorText,
           prefixIcon: prefixIcon,
           suffixIcon: suffixIcon,
+          hintStyle: context.textStyles.bodyLarge?.copyWith(
+            color: context.colors.onSurfaceVariant,
+          ),
+          labelStyle: context.textStyles.bodyLarge?.copyWith(
+            color: context.colors.onSurfaceVariant,
+          ),
+          floatingLabelStyle: context.textStyles.bodySmall?.copyWith(
+            color: context.colors.primary,
+          ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSizes.md,
             vertical: AppSizes.md,

@@ -18,7 +18,7 @@ abstract final class SnackHelper {
       context,
       message: message,
       icon: AppIcons.checkCircle,
-      color: Theme.of(context).extension<AppThemeExtension>()!.incomeColor,
+      color: context.appTheme.incomeColor,
       action: action,
       duration: duration,
     );
@@ -34,7 +34,7 @@ abstract final class SnackHelper {
       context,
       message: message,
       icon: AppIcons.errorCircle,
-      color: Theme.of(context).extension<AppThemeExtension>()!.expenseColor,
+      color: context.appTheme.expenseColor,
       action: action,
       duration: duration,
     );

@@ -593,7 +593,6 @@
   "settings_ai_model": "AI Model",
   "settings_ai_model_subtitle": "Choose which AI model processes voice input",
   "settings_ai_model_auto": "Auto (Recommended)",
-  "settings_ai_model_gemini_flash": "Gemini 2.0 Flash",
   "settings_ai_model_gemma_27b": "Gemma 3 27B",
   "settings_ai_model_qwen3_4b": "Qwen3 4B",
 

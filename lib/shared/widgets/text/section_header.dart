@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/extensions/build_context_extensions.dart';
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({
@@ -27,9 +28,7 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: context.textStyles.titleMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           if (actionLabel != null && onAction != null)

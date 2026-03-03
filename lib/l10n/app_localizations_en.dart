@@ -1663,9 +1663,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_ai_model_auto => 'Auto (Recommended)';
 
   @override
-  String get settings_ai_model_gemini_flash => 'Gemini 2.0 Flash';
-
-  @override
   String get settings_ai_model_gemma_27b => 'Gemma 3 27B';
 
   @override

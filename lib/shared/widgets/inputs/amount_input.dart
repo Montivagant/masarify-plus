@@ -120,11 +120,11 @@ class _AmountInputState extends State<AmountInput> {
     final hintStyle = widget.compact
         ? context.textStyles.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: cs.outline.withValues(alpha: AppSizes.opacityMedium),
+              color: cs.onSurfaceVariant,
             )
         : context.textStyles.displaySmall?.copyWith(
               fontWeight: FontWeight.w700,
-              color: cs.outline.withValues(alpha: AppSizes.opacityMedium),
+              color: cs.onSurfaceVariant,
             );
 
     return Semantics(

@@ -35,7 +35,6 @@ class BackupServiceImpl implements BackupService {
     final goals = await _db.select(_db.savingsGoals).get();
     final contributions = await _db.select(_db.goalContributions).get();
     final rules = await _db.select(_db.recurringRules).get();
-    final bills = await _db.select(_db.bills).get();
     final smsLogs = await _db.select(_db.smsParserLogs).get();
     final rates = await _db.select(_db.exchangeRates).get();
 
@@ -53,7 +52,6 @@ class BackupServiceImpl implements BackupService {
         'savings_goals': goals.map(_goalToMap).toList(),
         'goal_contributions': contributions.map(_contributionToMap).toList(),
         'recurring_rules': rules.map(_ruleToMap).toList(),
-        'bills': bills.map(_billToMap).toList(),
         'sms_parser_logs': smsLogs.map(_smsLogToMap).toList(),
         'exchange_rates': rates.map(_rateToMap).toList(),
       },
@@ -106,7 +104,6 @@ class BackupServiceImpl implements BackupService {
       // Clear all tables in dependency-safe order.
       await _db.customStatement('DELETE FROM sms_parser_logs');
       await _db.customStatement('DELETE FROM goal_contributions');
-      await _db.customStatement('DELETE FROM bills');
       await _db.customStatement('DELETE FROM recurring_rules');
       await _db.customStatement('DELETE FROM budgets');
       await _db.customStatement('DELETE FROM savings_goals');
@@ -146,7 +143,6 @@ class BackupServiceImpl implements BackupService {
         _db.recurringRules,
         _mapToRule,
       );
-      await _insertAll(tables, 'bills', _db.bills, _mapToBill);
       await _insertAll(
         tables,
         'sms_parser_logs',
@@ -173,7 +169,6 @@ class BackupServiceImpl implements BackupService {
     _tryDeserializeAll(tables, 'savings_goals', _mapToGoal);
     _tryDeserializeAll(tables, 'goal_contributions', _mapToContribution);
     _tryDeserializeAll(tables, 'recurring_rules', _mapToRule);
-    _tryDeserializeAll(tables, 'bills', _mapToBill);
     _tryDeserializeAll(
       tables,
       'sms_parser_logs',
@@ -377,18 +372,6 @@ class BackupServiceImpl implements BackupService {
         'lastProcessedDate': r.lastProcessedDate?.toIso8601String(),
       };
 
-  Map<String, dynamic> _billToMap(Bill b) => {
-        'id': b.id,
-        'name': b.name,
-        'amount': b.amount,
-        'walletId': b.walletId,
-        'categoryId': b.categoryId,
-        'dueDate': b.dueDate.toIso8601String(),
-        'isPaid': b.isPaid,
-        'paidAt': b.paidAt?.toIso8601String(),
-        'linkedTransactionId': b.linkedTransactionId,
-      };
-
   // C3 fix: include aiEnrichmentJson in serialization
   Map<String, dynamic> _smsLogToMap(SmsParserLog l) => {
         'id': l.id,
@@ -551,22 +534,6 @@ class BackupServiceImpl implements BackupService {
               ? DateTime.parse(m['lastProcessedDate'] as String)
               : null,
         ),
-      );
-
-  BillsCompanion _mapToBill(Map<String, dynamic> m) => BillsCompanion(
-        id: Value(m['id'] as int),
-        name: Value(m['name'] as String),
-        amount: Value(m['amount'] as int),
-        walletId: Value(m['walletId'] as int),
-        categoryId: Value(m['categoryId'] as int),
-        dueDate: Value(DateTime.parse(m['dueDate'] as String)),
-        isPaid: Value(m['isPaid'] as bool? ?? false),
-        paidAt: Value(
-          m['paidAt'] != null
-              ? DateTime.parse(m['paidAt'] as String)
-              : null,
-        ),
-        linkedTransactionId: Value(m['linkedTransactionId'] as int?),
       );
 
   // C3 fix: include aiEnrichmentJson in deserialization, handle v1 backups

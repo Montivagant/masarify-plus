@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -30,28 +28,17 @@ class VoiceInputButton extends StatelessWidget {
   }
 
   static Future<void> _handlePress(BuildContext context) async {
-    // On iOS, we need both microphone AND speech recognition permissions.
-    // On Android, only microphone is needed (speech uses Google services).
-    final permissions = <Permission>[Permission.microphone];
-    if (Platform.isIOS) {
-      permissions.add(Permission.speech);
-    }
+    // Only microphone permission is needed — audio is transcribed via
+    // device STT and parsed by AI via OpenRouter.
+    final status = await Permission.microphone.status;
 
-    // Check if all permissions are already granted
-    final statuses = await Future.wait(
-      permissions.map((p) => p.status),
-    );
-
-    final allGranted = statuses.every((s) => s.isGranted);
-    if (allGranted) {
+    if (status.isGranted) {
       if (!context.mounted) return;
       await VoiceInputSheet.show(context);
       return;
     }
 
-    // Check if any are permanently denied
-    final anyPermanentlyDenied = statuses.any((s) => s.isPermanentlyDenied);
-    if (anyPermanentlyDenied) {
+    if (status.isPermanentlyDenied) {
       if (!context.mounted) return;
       await PermissionHelper.openAppSettings();
       return;
@@ -64,9 +51,8 @@ class VoiceInputButton extends StatelessWidget {
       title: context.l10n.permission_mic_title,
       rationale: context.l10n.permission_mic_body,
       onGranted: () async {
-        final results = await permissions.request();
-        final granted = results.values.every((s) => s.isGranted);
-        if (granted && context.mounted) {
+        final result = await Permission.microphone.request();
+        if (result.isGranted && context.mounted) {
           await VoiceInputSheet.show(context);
         }
       },

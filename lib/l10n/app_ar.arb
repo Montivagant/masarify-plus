@@ -593,7 +593,6 @@
   "settings_ai_model": "نموذج الذكاء الاصطناعي",
   "settings_ai_model_subtitle": "اختر النموذج الذي يعالج الإدخال الصوتي",
   "settings_ai_model_auto": "تلقائي (موصى به)",
-  "settings_ai_model_gemini_flash": "Gemini 2.0 Flash",
   "settings_ai_model_gemma_27b": "Gemma 3 27B",
   "settings_ai_model_qwen3_4b": "Qwen3 4B",
 

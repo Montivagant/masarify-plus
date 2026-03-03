@@ -2,13 +2,13 @@ import 'env.dart';
 
 /// AI feature configuration — OpenRouter integration.
 ///
-/// The API key is loaded from [Env.openRouterApiKey] (gitignored env.dart).
+/// API keys are loaded from [Env] (gitignored env.dart).
 /// Can be overridden at build time via `--dart-define=OPENROUTER_API_KEY=...`.
 abstract final class AiConfig {
   /// Master gate — enables AI-powered voice parsing.
   static const bool isEnabled = true;
 
-  /// Build-time override (optional).
+  /// Build-time overrides (optional).
   static const String _envOverride =
       String.fromEnvironment('OPENROUTER_API_KEY');
 
@@ -20,17 +20,14 @@ abstract final class AiConfig {
   static const String openRouterBaseUrl = 'https://openrouter.ai/api/v1';
 
   /// Default model for voice transcript parsing.
-  /// Gemini 2.0 Flash: fast, cheap, excellent JSON output.
-  static const String defaultModel = modelGeminiFlash;
+  static const String defaultModel = modelGemma27b;
 
-  /// ── Model IDs ──────────────────────────────────────────────────────────
-  static const String modelGeminiFlash = 'google/gemini-2.0-flash-001';
+  /// ── Model IDs (OpenRouter format) ──────────────────────────────────────
   static const String modelGemma27b = 'google/gemma-3-27b-it:free';
   static const String modelQwen3_4b = 'qwen/qwen3-4b:free';
 
-  /// Priority-ordered fallback chain for Auto mode.
+  /// Priority-ordered fallback chain for Auto mode (free models only).
   static const List<String> fallbackChain = [
-    modelGeminiFlash,
     modelGemma27b,
     modelQwen3_4b,
   ];
@@ -41,6 +38,6 @@ abstract final class AiConfig {
   /// Maximum tokens in the LLM response.
   static const int maxResponseTokens = 1024;
 
-  /// Whether a valid API key has been provided.
+  /// Whether a valid OpenRouter API key has been provided.
   static bool get hasApiKey => openRouterApiKey.isNotEmpty;
 }

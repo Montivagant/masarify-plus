@@ -36,7 +36,7 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
   static const _pinLength = 6;
   static const _maxAttempts = 5;
   static const _lockoutDurations = [
-    Duration(seconds: 30),
+    AppDurations.lockoutDuration,
     Duration(minutes: 5),
     Duration(minutes: 30),
   ];
@@ -58,26 +58,36 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
   }
 
   Future<void> _checkBiometric() async {
-    final available = await _auth.isBiometricAvailable();
-    if (!mounted) return;
+    try {
+      final available = await _auth.isBiometricAvailable();
+      if (!mounted) return;
 
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    if (!mounted) return;
-    final biometricEnabled = prefs.isBiometricEnabled;
+      final prefs = await ref.read(preferencesFutureProvider.future);
+      if (!mounted) return;
+      final biometricEnabled = prefs.isBiometricEnabled;
 
-    setState(() => _biometricAvailable = available && biometricEnabled);
+      setState(() => _biometricAvailable = available && biometricEnabled);
 
-    if (_biometricAvailable) {
-      _tryBiometric();
+      if (_biometricAvailable) {
+        _tryBiometric();
+      }
+    } catch (_) {
+      // Biometric check failed — PIN entry remains available
+      if (mounted) setState(() => _biometricAvailable = false);
     }
   }
 
   Future<void> _tryBiometric() async {
-    final ok = await _auth.authenticateWithBiometric(
-      localizedReason: context.l10n.auth_biometric_prompt,
-    );
-    if (ok && mounted) {
-      _unlock();
+    try {
+      final ok = await _auth.authenticateWithBiometric(
+        localizedReason: context.l10n.auth_biometric_prompt,
+      );
+      if (!mounted) return;
+      if (ok) {
+        _unlock();
+      }
+    } catch (_) {
+      // Biometric hardware error — silently fall back to PIN
     }
   }
 

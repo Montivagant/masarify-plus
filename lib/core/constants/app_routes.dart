@@ -38,9 +38,6 @@ abstract final class AppRoutes {
   static const String recurring = '/recurring';
   static const String recurringAdd = '/recurring/add';
   static const String recurringEdit = '/recurring/:id/edit';
-  static const String bills = '/bills';
-  static const String billAdd = '/bills/add';
-  static const String billEdit = '/bills/:id/edit';
 
   // ── Smart input ───────────────────────────────────────────────────────
   static const String voiceConfirm = '/voice/confirm';

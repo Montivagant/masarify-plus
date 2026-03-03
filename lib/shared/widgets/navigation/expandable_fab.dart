@@ -199,8 +199,11 @@ class _ExpandableFabState extends State<ExpandableFab>
               ),
             ),
 
-          // Bubbles
-          ..._buildBubbles(cs),
+          // Bubbles — IgnorePointer prevents the 200dp container from
+          // intercepting taps on content below when the menu is collapsed.
+          ..._buildBubbles(cs).map(
+            (w) => IgnorePointer(ignoring: !_isExpanded, child: w),
+          ),
 
           // Main FAB
           Positioned(

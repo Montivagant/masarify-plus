@@ -68,8 +68,10 @@ class _TrendsTabState extends ConsumerState<TrendsTab> {
               }
 
               return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
+                padding: const EdgeInsets.only(
+                  left: AppSizes.screenHPadding,
+                  right: AppSizes.screenHPadding,
+                  bottom: AppSizes.bottomScrollPadding,
                 ),
                 child: _SpendingLineChart(
                   data: dailyData,
@@ -177,9 +179,7 @@ class _SpendingLineChart extends StatelessWidget {
         gridData: FlGridData(
           drawVerticalLine: false,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant
+            color: context.colors.outlineVariant
                 .withValues(alpha: AppSizes.opacityMedium),
             strokeWidth: 1,
           ),
@@ -215,7 +215,7 @@ class _SpendingLineChart extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityQuarter),
-                  context.appTheme.expenseColor.withValues(alpha: 0.0),
+                  context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityNone),
                 ],
               ),
             ),

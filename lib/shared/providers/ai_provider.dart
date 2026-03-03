@@ -12,13 +12,13 @@ final openRouterServiceProvider = Provider<OpenRouterService>(
 
 /// AI-powered voice transcript parser with rule-based fallback.
 final aiVoiceParserProvider = Provider<AiVoiceParser>(
-  (ref) => AiVoiceParser(openRouter: ref.watch(openRouterServiceProvider)),
+  (ref) => AiVoiceParser(openRouter: ref.read(openRouterServiceProvider)),
 );
 
 /// AI-powered SMS/notification transaction enricher.
 final aiTransactionParserProvider = Provider<AiTransactionParser>(
   (ref) =>
-      AiTransactionParser(openRouter: ref.watch(openRouterServiceProvider)),
+      AiTransactionParser(openRouter: ref.read(openRouterServiceProvider)),
 );
 
 /// User's AI model preference ('auto' or a specific model ID).

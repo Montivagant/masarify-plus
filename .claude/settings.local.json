@@ -58,7 +58,15 @@
       "Bash(adb -s 192.168.8.110:38509 install /d/Masarify-Plus/build/app/outputs/flutter-apk/app-debug.apk)",
       "WebFetch(domain:www.figma.com)",
       "Bash(wc:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(flutter test:*)",
+      "Bash(flutter build:*)",
+      "Bash(done)",
+      "Bash(xargs:*)",
+      "Bash(do echo:*)",
+      "Bash(rm:*)",
+      "Bash(adb:*)",
+      "Bash(curl:*)"
     ]
   }
 }

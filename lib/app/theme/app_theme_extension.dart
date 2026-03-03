@@ -2,6 +2,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_sizes.dart';
 import 'app_colors.dart';
 
 /// Custom semantic color tokens not covered by Material ColorScheme.
@@ -71,9 +72,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     previousPeriodColor: AppColors.lastMonthGray, // Slate 400
     previousPeriodColorAlt: AppColors.lastMonthGrayLight, // Slate 300
     cardSurface: AppColors.surfaceCard,
-    cardBorderRadius: 16.0,
-    listItemRadius: 12.0,
-    cardElevation: 1.0,
+    cardBorderRadius: AppSizes.borderRadiusMd,
+    listItemRadius: AppSizes.borderRadiusMdSm,
+    cardElevation: AppSizes.elevationLow,
     disabledColor: AppColors.disabled,
     onDisabledColor: AppColors.onDisabled,
     heroGradient: LinearGradient(
@@ -102,9 +103,9 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     previousPeriodColor: AppColors.lastMonthGrayDark, // Slate 400 (brighter)
     previousPeriodColorAlt: AppColors.lastMonthGrayLightDark, // Slate 500
     cardSurface: AppColors.surfaceCardDark, // #27274F
-    cardBorderRadius: 16.0,
-    listItemRadius: 12.0,
-    cardElevation: 0.0, // dark mode uses border instead of elevation
+    cardBorderRadius: AppSizes.borderRadiusMd,
+    listItemRadius: AppSizes.borderRadiusMdSm,
+    cardElevation: AppSizes.elevationNone, // dark mode uses border instead of elevation
     disabledColor: AppColors.disabledDark,
     onDisabledColor: AppColors.onDisabled,
     heroGradient: LinearGradient(
@@ -228,8 +229,12 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
 
 // ── BuildContext shorthand extensions ────────────────────────────────────────
 extension AppThemeX on BuildContext {
-  AppThemeExtension get appTheme =>
-      Theme.of(this).extension<AppThemeExtension>()!;
+  AppThemeExtension get appTheme {
+    final ext = Theme.of(this).extension<AppThemeExtension>();
+    assert(ext != null, 'AppThemeExtension not registered in Theme');
+    return ext ?? AppThemeExtension.light;
+  }
+
   ColorScheme get colors => Theme.of(this).colorScheme;
   TextTheme get textStyles => Theme.of(this).textTheme;
 }

@@ -9,6 +9,7 @@ import 'openrouter_service.dart';
 /// AI enrichment result for a parsed SMS/notification transaction.
 class AiTransactionEnrichment {
   const AiTransactionEnrichment({
+    required this.title,
     required this.categoryIcon,
     required this.merchant,
     required this.note,
@@ -17,6 +18,7 @@ class AiTransactionEnrichment {
 
   factory AiTransactionEnrichment.fromJson(Map<String, dynamic> json) {
     return AiTransactionEnrichment(
+      title: json['title'] as String? ?? '',
       categoryIcon: json['category_icon'] as String? ?? '',
       merchant: json['merchant'] as String? ?? '',
       note: json['note'] as String? ?? '',
@@ -24,12 +26,15 @@ class AiTransactionEnrichment {
     );
   }
 
+  /// Short human-readable transaction title (e.g., "Uber trip", "Vodafone recharge").
+  final String title;
   final String categoryIcon;
   final String merchant;
   final String note;
   final double confidence;
 
   Map<String, dynamic> toJson() => {
+        'title': title,
         'category_icon': categoryIcon,
         'merchant': merchant,
         'note': note,
@@ -117,20 +122,22 @@ class AiTransactionParser {
 
   static const _systemPrompt = '''
 You parse Egyptian bank/wallet SMS and notification messages.
-Given a sender, body, amount, and type, return JSON with:
-- category_icon: best matching iconName from the list
-- merchant: clean merchant/store name extracted from body
-- note: short Arabic or English description of the transaction
-- confidence: 0.0-1.0
+Given a sender, body, amount, and type, return JSON with these fields:
+- title: short human-readable transaction label (2-4 words) summarizing what happened (e.g., "Uber trip", "Vodafone recharge", "Carrefour groceries", "Salary deposit", "ATM withdrawal"). Derive from merchant + context in the message body.
+- category_icon: the single best matching iconName from the Categories list below
+- merchant: clean merchant or store name extracted from body (e.g., "Carrefour", "Uber", "Vodafone")
+- note: short Arabic or English note about the transaction (max 6 words)
+- confidence: 0.0-1.0 how certain you are about the category match
 
-Categories: {{CATEGORIES}}
+Categories (format: iconName|nameEn|nameAr|type):
+{{CATEGORIES}}
 
 Rules:
-1. Return ONLY valid JSON. No markdown, no explanation.
-2. category_icon MUST be one of the iconName values from the Categories list. Match expense categories for expense type, income for income type
-3. Extract merchant name from body (e.g., "Carrefour", "Uber", "Vodafone")
-4. If merchant unclear, use sender name cleaned up
-5. Note should be concise (max 6 words)
-6. If unsure about category, use the closest match with lower confidence
+1. Return ONLY valid JSON. No markdown, no explanation, no extra keys.
+2. category_icon MUST be exactly one of the iconName values listed above. When type is "expense", only pick from categories with type "expense" or "both". When type is "income", only pick from categories with type "income" or "both".
+3. Category matching priority: (a) merchant name implies a category (e.g., restaurant name → food/dining icon, Uber → transport icon, Vodafone → bills/phone icon), (b) transaction keywords in the body (e.g., "bill payment", "salary", "transfer"), (c) sender name as last resort.
+4. Extract the merchant/store name from the body. If a specific merchant is named (e.g., "Purchase at Carrefour"), use it. If no merchant found, clean up the sender name.
+5. The title field should be a natural, readable label a user would want to see in their transaction list — NOT the raw SMS text. Combine merchant + transaction context (e.g., "Uber ride", "Netflix subscription", "CIB ATM withdrawal").
+6. If unsure about category, pick the closest match and set confidence below 0.5.
 ''';
 }

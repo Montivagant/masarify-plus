@@ -3272,12 +3272,6 @@ abstract class AppLocalizations {
   /// **'Auto (Recommended)'**
   String get settings_ai_model_auto;
 
-  /// No description provided for @settings_ai_model_gemini_flash.
-  ///
-  /// In en, this message translates to:
-  /// **'Gemini 2.0 Flash'**
-  String get settings_ai_model_gemini_flash;
-
   /// No description provided for @settings_ai_model_gemma_27b.
   ///
   /// In en, this message translates to:

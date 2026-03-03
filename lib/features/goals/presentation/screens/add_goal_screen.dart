@@ -211,9 +211,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Target amount
             Text(
               context.l10n.goal_target,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -226,9 +224,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Deadline
             Text(
               context.l10n.goal_deadline,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -260,9 +256,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Keywords
             Text(
               context.l10n.goal_keywords,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -304,9 +298,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Color picker
             Text(
               context.l10n.goal_color_label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -340,9 +332,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Icon picker
             Text(
               context.l10n.goal_icon_label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -351,7 +341,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: _icons.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 6,
+                crossAxisCount: 5,
                 mainAxisSpacing: AppSizes.sm,
                 crossAxisSpacing: AppSizes.sm,
               ),

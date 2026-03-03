@@ -6,8 +6,32 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../../core/constants/app_sizes.dart';
 import '../../core/utils/money_formatter.dart';
 import '../database/app_database.dart';
+
+/// Localized labels for PDF report generation.
+class PdfLabels {
+  const PdfLabels({
+    required this.reportTitle,
+    required this.topCategories,
+    required this.transactions,
+    required this.income,
+    required this.expense,
+    required this.net,
+    required this.categoryHeaders,
+    required this.txHeaders,
+  });
+
+  final String reportTitle;
+  final String topCategories;
+  final String transactions;
+  final String income;
+  final String expense;
+  final String net;
+  final List<String> categoryHeaders;
+  final List<String> txHeaders;
+}
 
 /// Generates a monthly financial summary PDF.
 ///
@@ -20,7 +44,11 @@ class PdfExportService {
 
   final AppDatabase _db;
 
-  Future<String> generate({required int year, required int month}) async {
+  Future<String> generate({
+    required int year,
+    required int month,
+    required PdfLabels labels,
+  }) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
     final monthLabel = DateFormat.yMMMM().format(start);
@@ -69,14 +97,14 @@ class PdfExportService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
+        margin: const pw.EdgeInsets.all(AppSizes.pdfMargin),
         build: (context) => [
           // Header
           pw.Center(
             child: pw.Text(
-              'Masarify Monthly Report',
+              labels.reportTitle,
               style: pw.TextStyle(
-                fontSize: 20,
+                fontSize: AppSizes.pdfTitleFontSize,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
@@ -84,39 +112,39 @@ class PdfExportService {
           pw.Center(
             child: pw.Text(
               monthLabel,
-              style: const pw.TextStyle(fontSize: 14),
+              style: const pw.TextStyle(fontSize: AppSizes.pdfSubtitleFontSize),
             ),
           ),
-          pw.SizedBox(height: 24),
+          pw.SizedBox(height: AppSizes.lg),
 
           // Summary
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
             children: [
-              _summaryColumn('Income', MoneyFormatter.format(totalIncome)),
-              _summaryColumn('Expense', MoneyFormatter.format(totalExpense)),
-              _summaryColumn('Net', MoneyFormatter.format(net)),
+              _summaryColumn(labels.income, MoneyFormatter.format(totalIncome)),
+              _summaryColumn(labels.expense, MoneyFormatter.format(totalExpense)),
+              _summaryColumn(labels.net, MoneyFormatter.format(net)),
             ],
           ),
-          pw.SizedBox(height: 24),
+          pw.SizedBox(height: AppSizes.lg),
 
           // Top 5 categories
           if (top5.isNotEmpty) ...[
             pw.Text(
-              'Top Categories',
+              labels.topCategories,
               style: pw.TextStyle(
-                fontSize: 14,
+                fontSize: AppSizes.pdfSubtitleFontSize,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 8),
+            pw.SizedBox(height: AppSizes.sm),
             pw.TableHelper.fromTextArray(
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               headerDecoration: const pw.BoxDecoration(
                 color: PdfColors.grey200,
               ),
-              cellPadding: const pw.EdgeInsets.all(6),
-              headers: ['Category', 'Amount'],
+              cellPadding: const pw.EdgeInsets.all(AppSizes.pdfCellPadding),
+              headers: labels.categoryHeaders,
               data: top5.map((e) {
                 return [
                   catMap[e.key] ?? 'Unknown',
@@ -124,26 +152,26 @@ class PdfExportService {
                 ];
               }).toList(),
             ),
-            pw.SizedBox(height: 24),
+            pw.SizedBox(height: AppSizes.lg),
           ],
 
           // Transaction table
           pw.Text(
-            'Transactions',
+            labels.transactions,
             style: pw.TextStyle(
-              fontSize: 14,
+              fontSize: AppSizes.pdfSubtitleFontSize,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          pw.SizedBox(height: 8),
+          pw.SizedBox(height: AppSizes.sm),
           pw.TableHelper.fromTextArray(
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             headerDecoration: const pw.BoxDecoration(
               color: PdfColors.grey200,
             ),
-            cellPadding: const pw.EdgeInsets.all(4),
-            cellStyle: const pw.TextStyle(fontSize: 9),
-            headers: ['Date', 'Title', 'Amount', 'Type', 'Category', 'Wallet'],
+            cellPadding: const pw.EdgeInsets.all(AppSizes.pdfCellPaddingSm),
+            cellStyle: const pw.TextStyle(fontSize: AppSizes.pdfSmallFontSize),
+            headers: labels.txHeaders,
             data: txs.map((tx) {
               return [
                 DateFormat('MM/dd').format(tx.transactionDate),
@@ -160,7 +188,7 @@ class PdfExportService {
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
             'Page ${context.pageNumber} of ${context.pagesCount}',
-            style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey),
+            style: const pw.TextStyle(fontSize: AppSizes.pdfSmallFontSize, color: PdfColors.grey),
           ),
         ),
       ),
@@ -179,12 +207,12 @@ class PdfExportService {
       children: [
         pw.Text(
           label,
-          style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
+          style: const pw.TextStyle(fontSize: AppSizes.pdfBodyFontSize, color: PdfColors.grey700),
         ),
-        pw.SizedBox(height: 4),
+        pw.SizedBox(height: AppSizes.xs),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(fontSize: AppSizes.pdfSummaryFontSize, fontWeight: pw.FontWeight.bold),
         ),
       ],
     );

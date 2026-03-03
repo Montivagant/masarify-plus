@@ -98,7 +98,6 @@ class AuthService {
         localizedReason: localizedReason,
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
         ),
       );
     } on PlatformException {

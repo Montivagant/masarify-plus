@@ -103,8 +103,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 controller: _pageController,
                 count: 2,
                 effect: WormEffect(
-                  dotHeight: 8,
-                  dotWidth: 8,
+                  dotHeight: AppSizes.indicatorDotSize,
+                  dotWidth: AppSizes.indicatorDotSize,
                   activeDotColor: cs.primary,
                   dotColor: cs.outlineVariant,
                 ),

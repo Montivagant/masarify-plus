@@ -6,8 +6,6 @@ import '../../core/services/app_lock_service.dart';
 import '../../core/utils/voice_transaction_parser.dart';
 import '../../features/auth/presentation/screens/pin_entry_screen.dart';
 import '../../features/auth/presentation/screens/pin_setup_screen.dart';
-import '../../features/bills/presentation/screens/add_bill_screen.dart';
-import '../../features/bills/presentation/screens/bills_screen.dart';
 import '../../features/budgets/presentation/screens/budgets_screen.dart';
 import '../../features/budgets/presentation/screens/set_budget_screen.dart';
 import '../../features/calendar/presentation/screens/calendar_screen.dart';
@@ -233,21 +231,6 @@ final appRouter = GoRouter(
       path: AppRoutes.recurringEdit,
       redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => AddRecurringScreen(editId: _parseId(state)!),
-    ),
-
-    // Bills — static routes before parameterised ones
-    GoRoute(
-      path: AppRoutes.bills,
-      builder: (_, __) => const BillsScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.billAdd,
-      builder: (_, __) => const AddBillScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.billEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
-      builder: (context, state) => AddBillScreen(editId: _parseId(state)!),
     ),
 
     // Smart input

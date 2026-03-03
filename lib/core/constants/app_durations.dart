@@ -30,7 +30,13 @@ abstract final class AppDurations {
 
   // Timeouts
   static const Duration voiceTimeout = Duration(seconds: 2);
+  static const Duration geocodeTimeout = Duration(seconds: 5);
   static const Duration locationTimeout = Duration(seconds: 10);
   static const Duration voiceListenTimeout = Duration(seconds: 20);
+  static const Duration aiHttpTimeout = Duration(seconds: 30);
   static const Duration lockoutDuration = Duration(seconds: 30);
+  static const Duration voiceMaxRecording = Duration(seconds: 60);
+
+  // Service delays
+  static const Duration listenerBindDelay = Duration(seconds: 3);
 }

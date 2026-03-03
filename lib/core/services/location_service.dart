@@ -45,7 +45,7 @@ abstract final class LocationService {
       final placemarks = await geo.placemarkFromCoordinates(
         latitude,
         longitude,
-      );
+      ).timeout(AppDurations.geocodeTimeout);
       if (placemarks.isEmpty) return null;
 
       final p = placemarks.first;

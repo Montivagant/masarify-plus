@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database/app_database.dart';
-import '../../data/database/daos/bill_dao.dart';
 import '../../data/database/daos/budget_dao.dart';
 import '../../data/database/daos/category_dao.dart';
 import '../../data/database/daos/goal_dao.dart';
@@ -46,10 +45,6 @@ final goalDaoProvider = Provider<GoalDao>(
 
 final recurringRuleDaoProvider = Provider<RecurringRuleDao>(
   (ref) => ref.watch(databaseProvider).recurringRuleDao,
-);
-
-final billDaoProvider = Provider<BillDao>(
-  (ref) => ref.watch(databaseProvider).billDao,
 );
 
 final smsParserLogDaoProvider = Provider<SmsParserLogDao>(

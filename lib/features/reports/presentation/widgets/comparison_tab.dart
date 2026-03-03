@@ -201,9 +201,7 @@ class _ComparisonBarChart extends StatelessWidget {
         gridData: FlGridData(
           drawVerticalLine: false,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant
+            color: context.colors.outlineVariant
                 .withValues(alpha: AppSizes.opacityMedium),
             strokeWidth: 1,
           ),

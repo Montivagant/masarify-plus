@@ -8,7 +8,6 @@ import 'package:notification_listener_service/notification_listener_service.dart
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
-import '../constants/app_durations.dart';
 import 'ai/ai_transaction_parser.dart';
 import 'crash_log_service.dart';
 import 'notification_transaction_parser.dart';
@@ -61,11 +60,18 @@ class NotificationListenerWrapper {
   Future<void> start() => _start(0);
 
   Future<void> _start(int retryCount) async {
-    if (_subscription != null) return;
+    // Guard against double-subscribe
+    _subscription?.cancel();
+    _subscription = null;
 
-    final hasAccess = await hasPermission();
-    if (!hasAccess) {
-      CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
+    try {
+      final hasAccess = await hasPermission();
+      if (!hasAccess) {
+        CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
+        return;
+      }
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
       return;
     }
 
@@ -78,9 +84,11 @@ class NotificationListenerWrapper {
       );
     } catch (e, stack) {
       CrashLogService.log(e, stack);
-      // Retry once after a delay — service may not be bound yet.
-      if (retryCount < 1) {
-        await Future<void>.delayed(AppDurations.retryDelay);
+      // Retry up to 3 times — service may not be bound yet after permission grant.
+      if (retryCount < 3) {
+        await Future<void>.delayed(
+          Duration(seconds: 1 + retryCount), // 1s, 2s, 3s backoff
+        );
         await _start(retryCount + 1);
       }
     }
@@ -88,7 +96,11 @@ class NotificationListenerWrapper {
 
   /// Stop listening.
   void stop() {
-    _subscription?.cancel();
+    try {
+      _subscription?.cancel();
+    } catch (_) {
+      // Subscription already cancelled or stream closed
+    }
     _subscription = null;
   }
 

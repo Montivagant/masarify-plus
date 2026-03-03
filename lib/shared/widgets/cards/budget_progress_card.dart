@@ -56,9 +56,7 @@ class BudgetProgressCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   categoryName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
+                  style: context.textStyles.bodyMedium
                       ?.copyWith(fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -89,9 +87,7 @@ class BudgetProgressCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: value,
                     minHeight: AppSizes.progressBarHeight,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    backgroundColor: context.colors.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation(barColor),
                   ),
                 ),

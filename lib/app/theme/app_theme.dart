@@ -23,19 +23,23 @@ abstract final class AppTheme {
       surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
       blendLevel: 7,
       subThemesData: const FlexSubThemesData(
-
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
         cardRadius: AppSizes.borderRadiusMd,
         inputDecoratorRadius: AppSizes.borderRadiusMd,
+        inputDecoratorSchemeColor: SchemeColor.primary,
+        inputDecoratorBorderSchemeColor: SchemeColor.outline,
+        inputDecoratorUnfocusedBorderIsColored: false,
         dialogRadius: AppSizes.borderRadiusLg,
         bottomSheetRadius: AppSizes.borderRadiusLg,
         bottomNavigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarIndicatorSchemeColor: SchemeColor.primaryContainer,
+        textButtonSchemeColor: SchemeColor.primary,
+        filledButtonSchemeColor: SchemeColor.primary,
+        outlinedButtonSchemeColor: SchemeColor.primary,
       ),
       visualDensity: FlexColorScheme.comfortablePlatformDensity,
-
       fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
     );
 
@@ -62,19 +66,23 @@ abstract final class AppTheme {
       surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
       blendLevel: 13,
       subThemesData: const FlexSubThemesData(
-
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
         cardRadius: AppSizes.borderRadiusMd,
         inputDecoratorRadius: AppSizes.borderRadiusMd,
+        inputDecoratorSchemeColor: SchemeColor.primary,
+        inputDecoratorBorderSchemeColor: SchemeColor.outline,
+        inputDecoratorUnfocusedBorderIsColored: false,
         dialogRadius: AppSizes.borderRadiusLg,
         bottomSheetRadius: AppSizes.borderRadiusLg,
         bottomNavigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarSelectedLabelSchemeColor: SchemeColor.primary,
         navigationBarIndicatorSchemeColor: SchemeColor.primaryContainer,
+        textButtonSchemeColor: SchemeColor.primary,
+        filledButtonSchemeColor: SchemeColor.primary,
+        outlinedButtonSchemeColor: SchemeColor.primary,
       ),
       visualDensity: FlexColorScheme.comfortablePlatformDensity,
-
       fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
     );
 

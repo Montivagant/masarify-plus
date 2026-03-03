@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../data/services/pdf_export_service.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
@@ -156,6 +157,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   // ── Export PDF ──────────────────────────────────────────────────────────
 
   Future<void> _exportPdf() async {
+    final l10n = context.l10n;
     final picked = await _pickMonth();
     if (picked == null || _busy) return;
 
@@ -165,6 +167,23 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       path = await ref.read(pdfExportServiceProvider).generate(
             year: picked.year,
             month: picked.month,
+            labels: PdfLabels(
+              reportTitle: l10n.pdf_report_title,
+              topCategories: l10n.pdf_top_categories,
+              transactions: l10n.pdf_transactions,
+              income: l10n.pdf_income,
+              expense: l10n.pdf_expense,
+              net: l10n.pdf_net,
+              categoryHeaders: [l10n.pdf_col_category, l10n.pdf_col_amount],
+              txHeaders: [
+                l10n.pdf_col_date,
+                l10n.pdf_col_title,
+                l10n.pdf_col_amount,
+                l10n.pdf_col_type,
+                l10n.pdf_col_category,
+                l10n.pdf_col_wallet,
+              ],
+            ),
           );
       if (!mounted) return;
       await Share.shareXFiles([XFile(path)]);

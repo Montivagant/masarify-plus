@@ -26,6 +26,10 @@ migrate_working_dir/
 # API keys (never commit)
 lib/core/config/env.dart
 
+# Release signing (never commit)
+android/masarify-release.jks
+android/key.properties
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id

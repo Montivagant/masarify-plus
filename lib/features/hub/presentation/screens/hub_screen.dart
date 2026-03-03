@@ -45,7 +45,7 @@ class HubScreen extends ConsumerWidget {
             _tile(context, context.l10n.hub_wallets, AppIcons.wallet, AppRoutes.wallets),
           ]),
 
-          // ── Planning (Budgets + Goals + Bills + Recurring) ──────────────
+          // ── Planning (Budgets + Goals + Recurring & Bills) ──────────────
           _section(context, context.l10n.hub_section_planning, [
             _tile(
               context,
@@ -65,8 +65,7 @@ class HubScreen extends ConsumerWidget {
                   ? '$activeGoalCount ${context.l10n.hub_in_progress}'
                   : null,
             ),
-            _tile(context, context.l10n.hub_bills, AppIcons.bill, AppRoutes.bills),
-            _tile(context, context.l10n.hub_recurring, AppIcons.recurring, AppRoutes.recurring),
+            _tile(context, context.l10n.recurring_and_bills_title, AppIcons.recurring, AppRoutes.recurring),
           ]),
 
           // ── Reports ────────────────────────────────────────────────────────

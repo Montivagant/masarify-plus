@@ -105,9 +105,7 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
               ),
               child: Text(
                 context.l10n.reports_income_vs_expense,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
+                style: context.textStyles.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),

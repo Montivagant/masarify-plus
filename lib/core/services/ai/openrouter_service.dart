@@ -90,7 +90,14 @@ class OpenRouterService {
       throw const OpenRouterException(500, 'Empty choices array');
     }
 
-    final message = choices[0]['message'] as Map<String, dynamic>;
+    final firstChoice = choices[0];
+    if (firstChoice is! Map<String, dynamic>) {
+      throw const OpenRouterException(500, 'Invalid choice format');
+    }
+    final message = firstChoice['message'];
+    if (message is! Map<String, dynamic>) {
+      throw const OpenRouterException(500, 'Invalid message format');
+    }
     final content = message['content'] as String? ?? '';
 
     final usage = json['usage'] as Map<String, dynamic>?;

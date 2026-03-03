@@ -14,6 +14,7 @@ abstract final class AppSizes {
   // ── Border radius ──────────────────────────────────────────────────────
   static const double borderRadiusXs = 4;
   static const double borderRadiusSm = 8;
+  static const double borderRadiusMdSm = 12; // Between sm(8) and md(16)
   static const double borderRadiusMd = 16;
   static const double borderRadiusLg = 24;
   static const double borderRadiusFull = 100;
@@ -38,7 +39,7 @@ abstract final class AppSizes {
 
   // ── Layout ────────────────────────────────────────────────────────────
   static const double screenHPadding = md; // Horizontal screen edge padding
-  static const double bottomScrollPadding = xxl; // 48dp bottom scroll clearance
+  static const double bottomScrollPadding = 120; // nav bar (64) + margin (16) + FAB clearance (40)
   static const double bottomNavHeight = 64; // WS-6: M3 standard height
   static const double appBarHeight = 56;
   static const double fabSize = 56;
@@ -78,6 +79,7 @@ abstract final class AppSizes {
 
   // ── Dots / indicators ───────────────────────────────────────────────
   static const double dotSm = 6;
+  static const double indicatorDotSize = 8.0;
   static const double dotMd = 10;
   static const double dotLg = 12;
 
@@ -104,6 +106,7 @@ abstract final class AppSizes {
   static const double lineHeightNormal = 1.5;
 
   // ── Opacity scale ─────────────────────────────────────────────────────
+  static const double opacityNone = 0.0;
   static const double opacityXLight2 = 0.06;
   static const double opacitySubtle = 0.08;
   static const double opacityXLight = 0.1;
@@ -124,7 +127,7 @@ abstract final class AppSizes {
   static const double fabBubbleSize = 48.0;
   static const double fabRadialDistance = 70.0;
   static const double fabRadialDistanceTop = 90.0;
-  static const double fabContainerSize = 200.0;
+  static const double fabContainerSize = 160.0;
   static const double fabHoverScale = 1.2;
   static const double fabElevationResting = 2.0;
   static const double fabElevationHovered = 6.0;
@@ -165,4 +168,14 @@ abstract final class AppSizes {
 
   // ── Bottom sheet (WS-22) ─────────────────────────────────────────────
   static const double bottomSheetHeightRatio = 0.5;
+
+  // ── PDF layout ────────────────────────────────────────────────────────
+  static const double pdfMargin = 32.0;
+  static const double pdfCellPadding = 6.0;
+  static const double pdfCellPaddingSm = 4.0;
+  static const double pdfTitleFontSize = 20.0;
+  static const double pdfSubtitleFontSize = 14.0;
+  static const double pdfBodyFontSize = 11.0;
+  static const double pdfSmallFontSize = 9.0;
+  static const double pdfSummaryFontSize = 16.0;
 }
