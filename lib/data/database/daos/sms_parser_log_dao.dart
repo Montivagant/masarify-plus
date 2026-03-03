@@ -45,6 +45,15 @@ class SmsParserLogDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit))
           .watch();
 
+  /// Get pending logs that have no AI enrichment yet (for sync-on-reconnect).
+  Future<List<SmsParserLog>> getPendingUnenriched({int limit = 20}) =>
+      (select(smsParserLogs)
+            ..where((l) => l.parsedStatus.equals('pending'))
+            ..where((l) => l.aiEnrichmentJson.isNull())
+            ..orderBy([(l) => OrderingTerm.desc(l.receivedAt)])
+            ..limit(limit))
+          .get();
+
   /// Update AI enrichment JSON for a log entry.
   Future<void> updateEnrichment(int id, String enrichmentJson) =>
       (update(smsParserLogs)..where((l) => l.id.equals(id))).write(

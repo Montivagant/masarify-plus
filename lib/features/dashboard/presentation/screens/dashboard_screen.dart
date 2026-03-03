@@ -9,6 +9,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
+import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
@@ -32,6 +33,7 @@ class DashboardScreen extends ConsumerWidget {
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
     final selectedWalletId = ref.watch(selectedAccountIdProvider);
+    final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
 
     return Scaffold(
       appBar: AppAppBar(
@@ -70,7 +72,37 @@ class DashboardScreen extends ConsumerWidget {
               const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: _staggerZones(context, [
+            children: [
+              // ── Offline banner ──────────────────────────────────
+              if (!isOnline)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.screenHPadding,
+                    vertical: AppSizes.sm,
+                  ),
+                  color: context.colors.errorContainer,
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.warning,
+                        size: AppSizes.iconSm,
+                        color: context.colors.onErrorContainer,
+                      ),
+                      const SizedBox(width: AppSizes.sm),
+                      Expanded(
+                        child: Text(
+                          context.l10n.dashboard_offline_banner,
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.colors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              ..._staggerZones(context, [
               // ── Zone 1: Account Carousel ─────────────────────────
               const AccountCarousel(),
 
@@ -131,6 +163,7 @@ class DashboardScreen extends ConsumerWidget {
               const BudgetAlertsZone(),
 
             ]),
+            ],
           ),
         ),
       ),

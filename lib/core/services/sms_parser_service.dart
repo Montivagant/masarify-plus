@@ -7,6 +7,7 @@ import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
 import '../config/app_config.dart';
 import 'ai/ai_transaction_parser.dart';
+import 'connectivity_service.dart';
 import 'notification_transaction_parser.dart';
 
 /// SMS inbox parser — reuses [NotificationTransactionParser] regex patterns.
@@ -47,6 +48,10 @@ class SmsParserService {
     // CR-5 fix: cap AI enrichment to prevent unbounded API calls
     const maxEnrichmentCalls = 20;
     var enrichmentCalls = 0;
+
+    // Only attempt AI enrichment if online
+    final connectivityService = ConnectivityService();
+    final isOnline = await connectivityService.isOnline;
 
     for (final sms in messages) {
       final address = sms.address ?? '';
@@ -90,8 +95,9 @@ class SmsParserService {
       // Only count and enrich truly new entries
       if (inserted.source != 'sms') continue;
 
-      // AI enrichment (optional — null on failure).
-      if (aiParser != null &&
+      // AI enrichment (optional — null on failure). Skipped when offline.
+      if (isOnline &&
+          aiParser != null &&
           categories != null &&
           enrichmentCalls < maxEnrichmentCalls) {
         enrichmentCalls++;

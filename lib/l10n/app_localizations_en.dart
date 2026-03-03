@@ -1803,4 +1803,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard_all_accounts => 'All Accounts';
+
+  @override
+  String get voice_offline_message => 'AI parsing needs internet. You can add the transaction manually.';
+
+  @override
+  String get dashboard_offline_banner => 'Offline — AI features unavailable. Add transactions manually.';
 }

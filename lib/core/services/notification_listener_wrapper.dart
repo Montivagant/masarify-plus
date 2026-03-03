@@ -9,6 +9,7 @@ import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
 import 'ai/ai_transaction_parser.dart';
+import 'connectivity_service.dart';
 import 'crash_log_service.dart';
 import 'notification_transaction_parser.dart';
 
@@ -158,6 +159,17 @@ class NotificationListenerWrapper {
     final inserted = await _dao.getByHash(parsed.bodyHash);
     if (inserted == null || inserted.aiEnrichmentJson != null) return;
     if (inserted.source != 'notification') return;
+
+    // Skip AI enrichment when offline — item stays pending without enrichment.
+    // Will be enriched when back online via sync-on-reconnect.
+    final connectivityService = ConnectivityService();
+    final online = await connectivityService.isOnline;
+    if (!online) {
+      _pendingCount++;
+      pendingStream.add(_pendingCount);
+      onNewPending?.call();
+      return;
+    }
 
     // AI enrichment (optional — null on failure).
     if (aiParser != null && categories != null) {

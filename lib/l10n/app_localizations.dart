@@ -3541,6 +3541,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Accounts'**
   String get dashboard_all_accounts;
+
+  /// No description provided for @voice_offline_message.
+  ///
+  /// In en, this message translates to:
+  /// **'AI parsing needs internet. You can add the transaction manually.'**
+  String get voice_offline_message;
+
+  /// No description provided for @dashboard_offline_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline — AI features unavailable. Add transactions manually.'**
+  String get dashboard_offline_banner;
 }
 
 class _AppLocalizationsDelegate

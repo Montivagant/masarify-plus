@@ -643,5 +643,8 @@
   "pdf_col_category": "الفئة",
   "pdf_col_wallet": "الحساب",
 
-  "dashboard_all_accounts": "جميع الحسابات"
+  "dashboard_all_accounts": "جميع الحسابات",
+
+  "voice_offline_message": "التحليل الذكي يحتاج إنترنت. يمكنك إضافة المعاملة يدوياً.",
+  "dashboard_offline_banner": "غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً."
 }

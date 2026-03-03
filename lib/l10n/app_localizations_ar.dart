@@ -1789,4 +1789,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboard_all_accounts => 'جميع الحسابات';
+
+  @override
+  String get voice_offline_message => 'التحليل الذكي يحتاج إنترنت. يمكنك إضافة المعاملة يدوياً.';
+
+  @override
+  String get dashboard_offline_banner => 'غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.';
 }

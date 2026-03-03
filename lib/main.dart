@@ -9,6 +9,7 @@ import 'app/app.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/glass_config_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/offline_sync_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/recurring_scheduler.dart';
 import 'core/services/sms_parser_service.dart';
@@ -84,6 +85,22 @@ Future<void> main() async {
   if (PreferencesService(prefs).isSmsParserEnabled) {
     _scanSmsInBackground(container);
   }
+
+  // Start sync-on-reconnect service to enrich pending items when back online.
+  _startOfflineSyncService(container);
+}
+
+/// Start the offline sync service to enrich pending items when reconnecting.
+void _startOfflineSyncService(ProviderContainer container) {
+  final smsDao = container.read(smsParserLogDaoProvider);
+  final aiParser = container.read(aiTransactionParserProvider);
+  final categoryRepo = container.read(categoryRepositoryProvider);
+
+  OfflineSyncService(
+    dao: smsDao,
+    aiParser: aiParser,
+    getCategories: () => categoryRepo.getAll(),
+  ).start();
 }
 
 /// H1 fix: run SMS scan asynchronously after app launch.
