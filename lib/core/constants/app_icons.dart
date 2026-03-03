@@ -64,7 +64,7 @@ abstract final class AppIcons {
   static const IconData crown = PhosphorIconsFill.crown;
   static const IconData goals = PhosphorIconsFill.target;
   static const IconData insights = PhosphorIconsFill.lightbulb;
-  static const IconData netWorth = PhosphorIconsFill.bank;
+  static const IconData bank = PhosphorIconsFill.bank;
   static const IconData export_ = PhosphorIconsRegular.uploadSimple;
   static const IconData import_ = PhosphorIconsRegular.downloadSimple;
   static const IconData tag = PhosphorIconsFill.tag;

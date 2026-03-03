@@ -42,7 +42,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   ) =>
       [
         (value: 'cash',          label: context.l10n.wallet_type_cash_short,          icon: AppIcons.wallet),
-        (value: 'bank',          label: context.l10n.wallet_type_bank_short,           icon: AppIcons.netWorth),
+        (value: 'bank',          label: context.l10n.wallet_type_bank_short,           icon: AppIcons.bank),
         (value: 'mobile_wallet', label: context.l10n.wallet_type_mobile_wallet_short, icon: AppIcons.phone),
         (value: 'credit_card',   label: context.l10n.wallet_type_credit_card_short,    icon: AppIcons.creditCard),
         (value: 'savings',       label: context.l10n.wallet_type_savings_short,        icon: AppIcons.goals),

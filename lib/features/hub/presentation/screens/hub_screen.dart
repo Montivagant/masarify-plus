@@ -43,7 +43,6 @@ class HubScreen extends ConsumerWidget {
           // ── Money ──────────────────────────────────────────────────────────
           _section(context, context.l10n.hub_section_money, [
             _tile(context, context.l10n.hub_wallets, AppIcons.wallet, AppRoutes.wallets),
-            _tile(context, context.l10n.hub_net_worth, AppIcons.netWorth, AppRoutes.netWorth),
           ]),
 
           // ── Planning (Budgets + Goals + Bills + Recurring) ──────────────

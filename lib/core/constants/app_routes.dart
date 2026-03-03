@@ -50,8 +50,6 @@ abstract final class AppRoutes {
   static const String analytics = '/analytics';
   static const String calendar = '/calendar';
   static const String reports = '/reports';
-  static const String netWorth = '/net-worth';
-
   // ── Settings ──────────────────────────────────────────────────────────
   static const String settings = '/settings';
   static const String settingsBackup = '/settings/backup';

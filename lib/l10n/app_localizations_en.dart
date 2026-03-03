@@ -381,9 +381,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendar_empty_title => 'No activity this month';
 
   @override
-  String get net_worth_title => 'Net Worth';
-
-  @override
   String get hub_title => 'More';
 
   @override
@@ -406,9 +403,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hub_calendar => 'Calendar';
-
-  @override
-  String get hub_net_worth => 'Net Worth';
 
   @override
   String get hub_bills => 'Bills & Payments';
@@ -1563,21 +1557,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendar_day_expense => 'Expenses';
-
-  @override
-  String get net_worth_current => 'Current Net Worth';
-
-  @override
-  String get net_worth_assets => 'Assets';
-
-  @override
-  String get net_worth_liabilities => 'Liabilities';
-
-  @override
-  String get net_worth_wallet_breakdown => 'Wallet Breakdown';
-
-  @override
-  String get net_worth_no_wallets => 'Add wallets to see your net worth';
 
   @override
   String get reports_period_7d => '7 Days';

@@ -379,9 +379,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendar_empty_title => 'لا نشاط هذا الشهر';
 
   @override
-  String get net_worth_title => 'صافي الثروة';
-
-  @override
   String get hub_title => 'المزيد';
 
   @override
@@ -404,9 +401,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hub_calendar => 'التقويم';
-
-  @override
-  String get hub_net_worth => 'صافي الثروة';
 
   @override
   String get hub_bills => 'الفواتير والمدفوعات';
@@ -1552,21 +1546,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get calendar_day_expense => 'مصروفات';
-
-  @override
-  String get net_worth_current => 'صافي الثروة الحالي';
-
-  @override
-  String get net_worth_assets => 'الأصول';
-
-  @override
-  String get net_worth_liabilities => 'الالتزامات';
-
-  @override
-  String get net_worth_wallet_breakdown => 'تفصيل المحافظ';
-
-  @override
-  String get net_worth_no_wallets => 'أضف محافظ لعرض صافي ثروتك';
 
   @override
   String get reports_period_7d => '٧ أيام';

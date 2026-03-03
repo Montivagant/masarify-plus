@@ -140,7 +140,7 @@ class _WalletCard extends StatelessWidget {
       };
 
   static IconData _typeIcon(String type) => switch (type) {
-        'bank' => AppIcons.netWorth,
+        'bank' => AppIcons.bank,
         'mobile_wallet' => AppIcons.phone,
         'credit_card' => AppIcons.creditCard,
         'savings' => AppIcons.goals,

@@ -824,12 +824,6 @@ abstract class AppLocalizations {
   /// **'No activity this month'**
   String get calendar_empty_title;
 
-  /// No description provided for @net_worth_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Net Worth'**
-  String get net_worth_title;
-
   /// No description provided for @hub_title.
   ///
   /// In en, this message translates to:
@@ -877,12 +871,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calendar'**
   String get hub_calendar;
-
-  /// No description provided for @hub_net_worth.
-  ///
-  /// In en, this message translates to:
-  /// **'Net Worth'**
-  String get hub_net_worth;
 
   /// No description provided for @hub_bills.
   ///
@@ -3091,36 +3079,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expenses'**
   String get calendar_day_expense;
-
-  /// No description provided for @net_worth_current.
-  ///
-  /// In en, this message translates to:
-  /// **'Current Net Worth'**
-  String get net_worth_current;
-
-  /// No description provided for @net_worth_assets.
-  ///
-  /// In en, this message translates to:
-  /// **'Assets'**
-  String get net_worth_assets;
-
-  /// No description provided for @net_worth_liabilities.
-  ///
-  /// In en, this message translates to:
-  /// **'Liabilities'**
-  String get net_worth_liabilities;
-
-  /// No description provided for @net_worth_wallet_breakdown.
-  ///
-  /// In en, this message translates to:
-  /// **'Wallet Breakdown'**
-  String get net_worth_wallet_breakdown;
-
-  /// No description provided for @net_worth_no_wallets.
-  ///
-  /// In en, this message translates to:
-  /// **'Add wallets to see your net worth'**
-  String get net_worth_no_wallets;
 
   /// No description provided for @reports_period_7d.
   ///

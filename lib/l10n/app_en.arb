@@ -137,8 +137,6 @@
   "calendar_title": "Calendar",
   "calendar_empty_title": "No activity this month",
 
-  "net_worth_title": "Net Worth",
-
   "hub_title": "More",
   "hub_section_money": "Money",
   "hub_section_reports": "Reports",
@@ -147,7 +145,6 @@
   "hub_wallets": "Wallets",
   "hub_analytics": "Analytics",
   "hub_calendar": "Calendar",
-  "hub_net_worth": "Net Worth",
   "hub_bills": "Bills & Payments",
   "hub_recurring": "Recurring",
   "hub_settings": "Settings",
@@ -556,12 +553,6 @@
   "calendar_no_transactions_day": "No transactions on this day",
   "calendar_day_income": "Income",
   "calendar_day_expense": "Expenses",
-
-  "net_worth_current": "Current Net Worth",
-  "net_worth_assets": "Assets",
-  "net_worth_liabilities": "Liabilities",
-  "net_worth_wallet_breakdown": "Wallet Breakdown",
-  "net_worth_no_wallets": "Add wallets to see your net worth",
 
   "reports_period_7d": "7 Days",
   "reports_period_30d": "30 Days",
