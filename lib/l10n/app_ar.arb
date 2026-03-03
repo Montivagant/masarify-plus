@@ -642,5 +642,7 @@
   "pdf_col_amount": "المبلغ",
   "pdf_col_type": "النوع",
   "pdf_col_category": "الفئة",
-  "pdf_col_wallet": "الحساب"
+  "pdf_col_wallet": "الحساب",
+
+  "dashboard_all_accounts": "جميع الحسابات"
 }

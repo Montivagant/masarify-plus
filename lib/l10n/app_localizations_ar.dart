@@ -313,6 +313,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_frequency_yearly => 'سنوي';
 
   @override
+  String get recurring_frequency_custom => 'مخصص';
+
+  @override
   String get recurring_next_due => 'الموعد القادم';
 
   @override
@@ -338,9 +341,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_frequency_once => 'مرة واحدة';
-
-  @override
-  String get recurring_frequency_custom => 'مخصص';
 
   @override
   String get reports_title => 'التقارير';
@@ -992,8 +992,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_transactions_header => 'معاملات هذا الحساب';
 
   @override
-  String get wallet_no_transactions_sub =>
-      'لم تُسجَّل معاملات لهذا الحساب بعد';
+  String get wallet_no_transactions_sub => 'لم تُسجَّل معاملات لهذا الحساب بعد';
 
   @override
   String get wallet_cannot_delete_body =>
@@ -1790,4 +1789,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pdf_col_wallet => 'الحساب';
+
+  @override
+  String get dashboard_all_accounts => 'جميع الحسابات';
 }

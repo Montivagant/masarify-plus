@@ -642,5 +642,7 @@
   "pdf_col_amount": "Amount",
   "pdf_col_type": "Type",
   "pdf_col_category": "Category",
-  "pdf_col_wallet": "Account"
+  "pdf_col_wallet": "Account",
+
+  "dashboard_all_accounts": "All Accounts"
 }

@@ -315,6 +315,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_frequency_yearly => 'Yearly';
 
   @override
+  String get recurring_frequency_custom => 'Custom';
+
+  @override
   String get recurring_next_due => 'Next due';
 
   @override
@@ -340,9 +343,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_frequency_once => 'One-time';
-
-  @override
-  String get recurring_frequency_custom => 'Custom';
 
   @override
   String get reports_title => 'Analytics';
@@ -618,7 +618,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_page2_subtitle =>
-      'We\'ll create a Cash wallet for you. You can change this later.';
+      'We\'ll create a Cash account for you. You can change this later.';
 
   @override
   String get onboarding_page2_cta => 'Start Tracking';
@@ -983,7 +983,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_name_hint_example => 'e.g. Main Account';
 
   @override
-  String get wallet_name_duplicate => 'An account with this name already exists';
+  String get wallet_name_duplicate =>
+      'An account with this name already exists';
 
   @override
   String get wallet_total_balance => 'Total Balance';
@@ -1000,7 +1001,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallet_cannot_delete_body =>
-      'This wallet has transactions.\nDelete or move them before deleting the wallet.';
+      'This account has transactions.\nDelete or move them before deleting the account.';
 
   @override
   String get wallet_type_label => 'Account Type';
@@ -1802,4 +1803,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pdf_col_wallet => 'Account';
+
+  @override
+  String get dashboard_all_accounts => 'All Accounts';
 }

@@ -25,6 +25,7 @@ class BalanceCard extends StatelessWidget {
     this.currencyCode = 'EGP',
     this.hidden = false,
     this.onToggleHide,
+    this.accountName,
   });
 
   final int totalPiastres;
@@ -34,6 +35,9 @@ class BalanceCard extends StatelessWidget {
   final String currencyCode;
   final bool hidden;
   final VoidCallback? onToggleHide;
+
+  /// When non-null, displayed instead of the l10n "Total Balance" label.
+  final String? accountName;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +95,7 @@ class BalanceCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      context.l10n.wallet_total_balance,
+                      accountName ?? context.l10n.wallet_total_balance,
                       style: context.textStyles.bodyMedium?.copyWith(
                             color: cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
                           ),

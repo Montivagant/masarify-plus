@@ -692,6 +692,12 @@ abstract class AppLocalizations {
   /// **'Yearly'**
   String get recurring_frequency_yearly;
 
+  /// No description provided for @recurring_frequency_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get recurring_frequency_custom;
+
   /// No description provided for @recurring_next_due.
   ///
   /// In en, this message translates to:
@@ -745,12 +751,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One-time'**
   String get recurring_frequency_once;
-
-  /// No description provided for @recurring_frequency_custom.
-  ///
-  /// In en, this message translates to:
-  /// **'Custom'**
-  String get recurring_frequency_custom;
 
   /// No description provided for @reports_title.
   ///
@@ -2051,7 +2051,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_mobile_wallet_short.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Account'**
+  /// **'Mobile'**
   String get wallet_type_mobile_wallet_short;
 
   /// No description provided for @wallet_type_credit_card_short.
@@ -3541,6 +3541,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account'**
   String get pdf_col_wallet;
+
+  /// No description provided for @dashboard_all_accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get dashboard_all_accounts;
 }
 
 class _AppLocalizationsDelegate
