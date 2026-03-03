@@ -26,4 +26,10 @@ abstract interface class IRecurringRuleRepository {
   Future<bool> update(RecurringRuleEntity rule);
 
   Future<bool> delete(int id);
+
+  /// Watch all unpaid one-time bills.
+  Stream<List<RecurringRuleEntity>> watchUnpaid();
+
+  /// Mark a bill as paid.
+  Future<bool> markPaid(int id, DateTime paidAt, {int? transactionId});
 }

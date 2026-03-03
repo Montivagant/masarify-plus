@@ -328,6 +328,9 @@ class _RecurringCard extends ConsumerWidget {
             startDate: rule.startDate,
             endDate: rule.endDate,
             nextDueDate: nextDue,
+            isPaid: rule.isPaid,
+            paidAt: rule.paidAt,
+            linkedTransactionId: rule.linkedTransactionId,
             isActive: active,
             // IM-31 fix: clear lastProcessedDate on re-activation so scheduler
             // doesn't skip today's check

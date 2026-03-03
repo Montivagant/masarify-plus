@@ -370,7 +370,9 @@ class BackupServiceImpl implements BackupService {
         'startDate': r.startDate.toIso8601String(),
         'endDate': r.endDate?.toIso8601String(),
         'nextDueDate': r.nextDueDate.toIso8601String(),
-        'autoLog': r.autoLog,
+        'isPaid': r.isPaid,
+        'paidAt': r.paidAt?.toIso8601String(),
+        'linkedTransactionId': r.linkedTransactionId,
         'isActive': r.isActive,
         'lastProcessedDate': r.lastProcessedDate?.toIso8601String(),
       };
@@ -536,7 +538,13 @@ class BackupServiceImpl implements BackupService {
               : null,
         ),
         nextDueDate: Value(DateTime.parse(m['nextDueDate'] as String)),
-        autoLog: const Value(false),
+        isPaid: Value(m['isPaid'] as bool? ?? false),
+        paidAt: Value(
+          m['paidAt'] != null
+              ? DateTime.parse(m['paidAt'] as String)
+              : null,
+        ),
+        linkedTransactionId: Value(m['linkedTransactionId'] as int?),
         isActive: Value(m['isActive'] as bool? ?? true),
         lastProcessedDate: Value(
           m['lastProcessedDate'] != null

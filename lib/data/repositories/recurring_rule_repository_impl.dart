@@ -55,7 +55,6 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           startDate: startDate,
           nextDueDate: nextDueDate,
           endDate: Value(endDate),
-          autoLog: const Value(false),
         ),
       );
 
@@ -72,7 +71,9 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           startDate: Value(rule.startDate),
           endDate: Value(rule.endDate),
           nextDueDate: Value(rule.nextDueDate),
-          autoLog: const Value(false),
+          isPaid: Value(rule.isPaid),
+          paidAt: Value(rule.paidAt),
+          linkedTransactionId: Value(rule.linkedTransactionId),
           isActive: Value(rule.isActive),
           lastProcessedDate: Value(rule.lastProcessedDate),
         ),
@@ -80,6 +81,14 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
 
   @override
   Future<bool> delete(int id) => _dao.deleteById(id);
+
+  @override
+  Stream<List<RecurringRuleEntity>> watchUnpaid() =>
+      _dao.watchUnpaid().map((list) => list.map(_toEntity).toList());
+
+  @override
+  Future<bool> markPaid(int id, DateTime paidAt, {int? transactionId}) =>
+      _dao.markPaid(id, paidAt, transactionId: transactionId);
 
   // ── Mapping ───────────────────────────────────────────────────────────────
 
@@ -94,6 +103,9 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
         startDate: r.startDate,
         endDate: r.endDate,
         nextDueDate: r.nextDueDate,
+        isPaid: r.isPaid,
+        paidAt: r.paidAt,
+        linkedTransactionId: r.linkedTransactionId,
         isActive: r.isActive,
         lastProcessedDate: r.lastProcessedDate,
       );
