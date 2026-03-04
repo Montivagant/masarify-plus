@@ -198,7 +198,7 @@ class _WelcomePage extends ConsumerWidget {
               _FeatureChip(icon: AppIcons.wallet, label: context.l10n.onboarding_feature_wallets),
               _FeatureChip(icon: AppIcons.budget, label: context.l10n.onboarding_feature_budgets),
               _FeatureChip(icon: AppIcons.goals, label: context.l10n.onboarding_feature_goals),
-              _FeatureChip(icon: AppIcons.insights, label: context.l10n.onboarding_feature_reports),
+              _FeatureChip(icon: AppIcons.reports, label: context.l10n.onboarding_feature_reports),
             ],
           ),
           const Spacer(),

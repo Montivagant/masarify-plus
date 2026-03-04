@@ -7,8 +7,3 @@ import 'repository_providers.dart';
 final recurringRulesProvider = StreamProvider<List<RecurringRuleEntity>>(
   (ref) => ref.watch(recurringRuleRepositoryProvider).watchAll(),
 );
-
-/// All unpaid one-time bills, ordered by due date.
-final unpaidBillsProvider = StreamProvider<List<RecurringRuleEntity>>(
-  (ref) => ref.watch(recurringRuleRepositoryProvider).watchUnpaid(),
-);
