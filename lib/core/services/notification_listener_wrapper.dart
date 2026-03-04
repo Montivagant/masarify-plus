@@ -25,6 +25,7 @@ class NotificationListenerWrapper {
   final AiTransactionParser? aiParser;
   List<CategoryEntity>? categories;
   StreamSubscription<ServiceNotificationEvent>? _subscription;
+  bool _disposed = false;
 
   /// Pending parsed transactions awaiting user review.
   final pendingStream = StreamController<int>.broadcast();
@@ -97,6 +98,7 @@ class NotificationListenerWrapper {
 
   /// Stop listening.
   void stop() {
+    _disposed = true;
     try {
       _subscription?.cancel();
     } catch (_) {
@@ -123,74 +125,80 @@ class NotificationListenerWrapper {
   // ── Internal ──────────────────────────────────────────────────────────────
 
   Future<void> _onNotification(ServiceNotificationEvent event) async {
-    final packageName = event.packageName ?? '';
-    final title = event.title ?? '';
-    final body = event.content ?? '';
+    if (_disposed) return;
 
-    if (body.isEmpty) return;
+    try {
+      final packageName = event.packageName ?? '';
+      final title = event.title ?? '';
+      final body = event.content ?? '';
 
-    // IM-34 fix: check both package name AND extracted sender for financial match
-    final sender = _extractSender(packageName, title);
-    if (!NotificationTransactionParser.isFinancialSender(sender) &&
-        !NotificationTransactionParser.isFinancialPackage(packageName)) {
-      return;
-    }
+      if (body.isEmpty) return;
 
-    // Parse
-    final parsed = NotificationTransactionParser.parse(
-      sender: sender,
-      body: body,
-      receivedAt: DateTime.now(),
-    );
-    if (parsed == null) return;
+      // IM-34 fix: check both package name AND extracted sender for financial match
+      final sender = _extractSender(packageName, title);
+      if (!NotificationTransactionParser.isFinancialSender(sender) &&
+          !NotificationTransactionParser.isFinancialPackage(packageName)) {
+        return;
+      }
 
-    // Insert-first dedup: ON CONFLICT DO NOTHING prevents duplicates
-    // without a check-then-act race with the SMS parser.
-    await _dao.insertLog(
-      SmsParserLogsCompanion.insert(
-        senderAddress: parsed.senderAddress,
-        bodyHash: parsed.bodyHash,
-        body: parsed.body,
-        parsedStatus: 'pending',
-        source: 'notification',
-        receivedAt: parsed.receivedAt,
-      ),
-    );
-    final inserted = await _dao.getByHash(parsed.bodyHash);
-    if (inserted == null || inserted.aiEnrichmentJson != null) return;
-    if (inserted.source != 'notification') return;
+      // Parse
+      final parsed = NotificationTransactionParser.parse(
+        sender: sender,
+        body: body,
+        receivedAt: DateTime.now(),
+      );
+      if (parsed == null) return;
 
-    // Skip AI enrichment when offline — item stays pending without enrichment.
-    // Will be enriched when back online via sync-on-reconnect.
-    final connectivityService = ConnectivityService();
-    final online = await connectivityService.isOnline;
-    if (!online) {
+      // Insert-first dedup: ON CONFLICT DO NOTHING prevents duplicates
+      // without a check-then-act race with the SMS parser.
+      await _dao.insertLog(
+        SmsParserLogsCompanion.insert(
+          senderAddress: parsed.senderAddress,
+          bodyHash: parsed.bodyHash,
+          body: parsed.body,
+          parsedStatus: 'pending',
+          source: 'notification',
+          receivedAt: parsed.receivedAt,
+        ),
+      );
+      final inserted = await _dao.getByHash(parsed.bodyHash);
+      if (inserted == null || inserted.aiEnrichmentJson != null) return;
+      if (inserted.source != 'notification') return;
+
+      // Skip AI enrichment when offline — item stays pending without enrichment.
+      // Will be enriched when back online via sync-on-reconnect.
+      final connectivityService = ConnectivityService();
+      final online = await connectivityService.isOnline;
+      if (!online) {
+        _pendingCount++;
+        pendingStream.add(_pendingCount);
+        onNewPending?.call();
+        return;
+      }
+
+      // AI enrichment (optional — null on failure).
+      if (aiParser != null && categories != null) {
+        final enrichment = await aiParser!.enrich(
+          sender: sender,
+          body: body,
+          amountPiastres: parsed.amountPiastres,
+          type: parsed.type,
+          categories: categories!,
+        );
+        if (enrichment != null) {
+          await _dao.updateEnrichment(
+            inserted.id,
+            jsonEncode(enrichment.toJson()),
+          );
+        }
+      }
+
       _pendingCount++;
       pendingStream.add(_pendingCount);
       onNewPending?.call();
-      return;
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
     }
-
-    // AI enrichment (optional — null on failure).
-    if (aiParser != null && categories != null) {
-      final enrichment = await aiParser!.enrich(
-        sender: sender,
-        body: body,
-        amountPiastres: parsed.amountPiastres,
-        type: parsed.type,
-        categories: categories!,
-      );
-      if (enrichment != null) {
-        await _dao.updateEnrichment(
-          inserted.id,
-          jsonEncode(enrichment.toJson()),
-        );
-      }
-    }
-
-    _pendingCount++;
-    pendingStream.add(_pendingCount);
-    onNewPending?.call();
   }
 
   String _extractSender(String packageName, String title) {
