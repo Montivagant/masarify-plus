@@ -30,7 +30,8 @@ class RecurringRuleEntity {
 
   final String title;
 
-  /// 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly' | 'once'
+  /// 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom'
+  /// Legacy: 'biweekly' | 'quarterly' still supported in scheduler.
   final String frequency;
 
   final DateTime startDate;
@@ -53,9 +54,9 @@ class RecurringRuleEntity {
   bool get isDue {
     final now = DateTime.now();
     final due = nextDueDate.isBefore(now) ||
-        nextDueDate.year == now.year &&
+        (nextDueDate.year == now.year &&
             nextDueDate.month == now.month &&
-            nextDueDate.day == now.day;
+            nextDueDate.day == now.day);
     if (frequency == 'once') return due && !isPaid;
     return due;
   }
@@ -74,6 +75,47 @@ class RecurringRuleEntity {
 
   /// Convenience getter: true for one-time bills.
   bool get isBill => frequency == 'once';
+
+  /// Creates a copy with the given fields replaced.
+  RecurringRuleEntity copyWith({
+    int? id,
+    int? walletId,
+    int? categoryId,
+    int? amount,
+    String? type,
+    String? title,
+    String? frequency,
+    DateTime? startDate,
+    DateTime? Function()? endDate,
+    DateTime? nextDueDate,
+    bool? isPaid,
+    DateTime? Function()? paidAt,
+    int? Function()? linkedTransactionId,
+    bool? isActive,
+    DateTime? Function()? lastProcessedDate,
+  }) {
+    return RecurringRuleEntity(
+      id: id ?? this.id,
+      walletId: walletId ?? this.walletId,
+      categoryId: categoryId ?? this.categoryId,
+      amount: amount ?? this.amount,
+      type: type ?? this.type,
+      title: title ?? this.title,
+      frequency: frequency ?? this.frequency,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate != null ? endDate() : this.endDate,
+      nextDueDate: nextDueDate ?? this.nextDueDate,
+      isPaid: isPaid ?? this.isPaid,
+      paidAt: paidAt != null ? paidAt() : this.paidAt,
+      linkedTransactionId: linkedTransactionId != null
+          ? linkedTransactionId()
+          : this.linkedTransactionId,
+      isActive: isActive ?? this.isActive,
+      lastProcessedDate: lastProcessedDate != null
+          ? lastProcessedDate()
+          : this.lastProcessedDate,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

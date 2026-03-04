@@ -44,10 +44,15 @@ class RecurringRuleDao extends DatabaseAccessor<AppDatabase>
           .go()
           .then((count) => count > 0);
 
-  /// Watch all unpaid one-time bills, ordered by due date ascending.
+  /// Watch all active unpaid one-time bills, ordered by due date ascending.
   Stream<List<RecurringRule>> watchUnpaid() =>
       (select(recurringRules)
-            ..where((r) => r.isPaid.not() & r.frequency.equals('once'))
+            ..where(
+              (r) =>
+                  r.isActive.equals(true) &
+                  r.isPaid.not() &
+                  r.frequency.equals('once'),
+            )
             ..orderBy([(r) => OrderingTerm.asc(r.nextDueDate)]))
           .watch();
 

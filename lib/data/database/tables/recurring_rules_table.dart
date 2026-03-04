@@ -10,14 +10,17 @@ class RecurringRules extends Table {
   IntColumn get amount => integer()(); // piastres
   TextColumn get type => text()(); // 'income' | 'expense'
   TextColumn get title => text()();
+  // 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'custom'
+  // Legacy values 'biweekly' | 'quarterly' still supported in scheduler.
   TextColumn get frequency => text()();
-  // 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
   DateTimeColumn get startDate => dateTime()();
   DateTimeColumn get endDate => dateTime().nullable()();
   DateTimeColumn get nextDueDate => dateTime()();
   BoolColumn get isPaid =>
       boolean().withDefault(const Constant(false))();
   DateTimeColumn get paidAt => dateTime().nullable()();
+  // No FK to Transactions — intentional: deleting a transaction should not
+  // cascade-unpay a bill. A dangling ID is harmless (display-only link).
   IntColumn get linkedTransactionId => integer().nullable()();
   BoolColumn get isActive =>
       boolean().withDefault(const Constant(true))();

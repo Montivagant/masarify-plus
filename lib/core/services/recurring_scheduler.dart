@@ -40,11 +40,11 @@ class RecurringScheduler {
       try {
         if (!rule.isActive) continue;
 
-        // Skip one-time bills entirely — they are managed via the UI's
-        // "Mark Paid" action.  Paid ones need no processing; unpaid/overdue
-        // ones are shown in the recurring screen, not advanced by the
-        // scheduler.
-        if (rule.frequency == 'once') continue;
+        // Skip one-time bills and custom-period rules — they are managed
+        // via the UI's "Mark Paid" action.  Paid ones need no processing;
+        // unpaid/overdue ones are shown in the recurring screen, not
+        // advanced by the scheduler.
+        if (rule.frequency == 'once' || rule.frequency == 'custom') continue;
 
         // C7 fix: check endDate — deactivate expired rules
         if (rule.endDate != null && today.isAfter(rule.endDate!)) {
