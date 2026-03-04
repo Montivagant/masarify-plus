@@ -790,6 +790,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sms_review_title => 'Transactions Found';
 
   @override
+  String get parsed_transactions_title => 'Parsed Transactions';
+
+  @override
   String get sms_review_approve => 'Approve';
 
   @override

@@ -279,6 +279,7 @@
   "permission_deny": "Deny",
 
   "sms_review_title": "Transactions Found",
+  "parsed_transactions_title": "Parsed Transactions",
   "sms_review_approve": "Approve",
   "sms_review_skip": "Skip",
   "sms_review_edit": "Edit",

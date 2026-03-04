@@ -31,7 +31,7 @@ class ParserReviewScreen extends ConsumerWidget {
     final pendingAsync = ref.watch(pendingParsedTransactionsProvider);
 
     return Scaffold(
-      appBar: AppAppBar(title: context.l10n.sms_review_title),
+      appBar: AppAppBar(title: context.l10n.parsed_transactions_title),
       body: pendingAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
@@ -302,10 +302,24 @@ class _PendingLogCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.md),
 
-            // ── Actions ───────────────────────────────────────────
+            // ── Source indicator + Actions ─────────────────────────
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                Icon(
+                  log.source == 'sms'
+                      ? AppIcons.sms
+                      : AppIcons.notification,
+                  size: AppSizes.iconXs,
+                  color: cs.outline,
+                ),
+                const SizedBox(width: AppSizes.xxs),
+                Text(
+                  log.source == 'sms' ? 'SMS' : 'Notification',
+                  style: context.textStyles.labelSmall?.copyWith(
+                        color: cs.outline,
+                      ),
+                ),
+                const Spacer(),
                 TextButton(
                   onPressed: onSkip,
                   child: Text(context.l10n.sms_review_skip),

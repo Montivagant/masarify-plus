@@ -279,6 +279,7 @@
   "permission_deny": "رفض",
 
   "sms_review_title": "معاملات مكتشفة",
+  "parsed_transactions_title": "المعاملات المستخرجة",
   "sms_review_approve": "موافقة",
   "sms_review_skip": "تخطي",
   "sms_review_edit": "تعديل",

@@ -1616,6 +1616,12 @@ abstract class AppLocalizations {
   /// **'Transactions Found'**
   String get sms_review_title;
 
+  /// No description provided for @parsed_transactions_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsed Transactions'**
+  String get parsed_transactions_title;
+
   /// No description provided for @sms_review_approve.
   ///
   /// In en, this message translates to:

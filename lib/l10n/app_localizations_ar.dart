@@ -789,6 +789,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sms_review_title => 'معاملات مكتشفة';
 
   @override
+  String get parsed_transactions_title => 'المعاملات المستخرجة';
+
+  @override
   String get sms_review_approve => 'موافقة';
 
   @override
