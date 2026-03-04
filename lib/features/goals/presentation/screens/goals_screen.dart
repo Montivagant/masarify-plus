@@ -100,9 +100,7 @@ class _SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: context.textStyles.titleMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: AppSizes.sm),
@@ -162,9 +160,7 @@ class _GoalCard extends StatelessWidget {
                   children: [
                     Text(
                       goal.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
+                      style: context.textStyles.bodyLarge
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     if (daysLeft != null)
@@ -174,9 +170,7 @@ class _GoalCard extends StatelessWidget {
                             : goal.isCompleted
                                 ? context.l10n.goal_completed_chip
                                 : context.l10n.goal_overdue,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
+                        style: context.textStyles.bodySmall
                             ?.copyWith(
                               color: context.colors.outline,
                             ),

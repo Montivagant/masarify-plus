@@ -497,9 +497,7 @@ class _DraftCard extends StatelessWidget {
                         Text(
                           categoryName ??
                               context.l10n.transaction_category,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: context.textStyles.bodySmall
                               ?.copyWith(
                                 color: categoryColor,
                                 fontWeight: FontWeight.w600,

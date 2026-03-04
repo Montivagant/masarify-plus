@@ -148,9 +148,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             if (!isEdit) ...[
               Text(
                 context.l10n.category_type,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
+                style: context.textStyles.labelLarge
                     ?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
@@ -180,9 +178,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             if (_type == 'expense') ...[
               Text(
                 context.l10n.transaction_category,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
+                style: context.textStyles.labelLarge
                     ?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
@@ -210,9 +206,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             // Color picker
             Text(
               context.l10n.category_color,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -246,9 +240,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             // Icon picker
             Text(
               context.l10n.category_icon,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),

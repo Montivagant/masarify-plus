@@ -212,7 +212,6 @@ class _PendingLogCard extends StatelessWidget {
 
     final amount =
         parsed != null ? MoneyFormatter.format(parsed.amountPiastres) : '—';
-    final isIncome = parsed?.type == 'income';
 
     // Prefer AI title > merchant name > sender address for display.
     final displayTitle = enrichment?.title.isNotEmpty == true
@@ -293,9 +292,11 @@ class _PendingLogCard extends StatelessWidget {
                     amount,
                     style: context.textStyles.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: isIncome
-                              ? context.appTheme.incomeColor
-                              : context.appTheme.expenseColor,
+                          color: switch (parsed.type) {
+                            'income' => context.appTheme.incomeColor,
+                            'transfer' => context.appTheme.transferColor,
+                            _ => context.appTheme.expenseColor,
+                          },
                         ),
                   ),
               ],

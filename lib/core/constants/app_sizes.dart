@@ -91,6 +91,10 @@ abstract final class AppSizes {
   // ── Color picker ────────────────────────────────────────────────────
   static const double colorSwatchBorder = 3.0;
 
+  // ── Dashboard carousel ─────────────────────────────────────────────
+  static const double carouselHeight = 180;
+  static const double fabVerticalOffset = 10;
+
   // ── Misc ────────────────────────────────────────────────────────────
   static const double spinnerSize = 20;
   static const double dividerHeight = 1.0;

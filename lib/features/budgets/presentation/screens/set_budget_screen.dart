@@ -242,9 +242,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             if (!isEdit) ...[
               Text(
                 context.l10n.transaction_category,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
+                style: context.textStyles.labelLarge
                     ?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
@@ -288,9 +286,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             // Budget limit
             Text(
               context.l10n.budget_limit,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),

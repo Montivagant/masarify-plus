@@ -109,9 +109,7 @@ class GoalDetailScreen extends ConsumerWidget {
                     children: [
                       Text(
                         context.l10n.goal_keywords,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall
+                        style: context.textStyles.titleSmall
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: AppSizes.sm),
@@ -143,9 +141,7 @@ class GoalDetailScreen extends ConsumerWidget {
               ),
               child: Text(
                 context.l10n.goal_saved_label,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
+                style: context.textStyles.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ),

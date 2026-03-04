@@ -360,9 +360,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Type toggle ───────────────────────────────────────────
             Text(
               context.l10n.recurring_type_label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -390,9 +388,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Category picker ───────────────────────────────────────
             Text(
               context.l10n.transaction_category,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -438,9 +434,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Wallet picker ─────────────────────────────────────────
             Text(
               context.l10n.transaction_wallet,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -479,9 +473,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Amount ────────────────────────────────────────────────
             Text(
               context.l10n.recurring_amount_label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -494,9 +486,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Frequency ─────────────────────────────────────────────
             Text(
               context.l10n.recurring_frequency_label,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
@@ -551,9 +541,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       return [
         Text(
           context.l10n.recurring_due_date_label,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
+          style: context.textStyles.labelLarge
               ?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
@@ -575,9 +563,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       return [
         Text(
           context.l10n.recurring_start_date,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
+          style: context.textStyles.labelLarge
               ?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
@@ -590,9 +576,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         const SizedBox(height: AppSizes.lg),
         Text(
           context.l10n.recurring_end_date_required,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge
+          style: context.textStyles.labelLarge
               ?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
@@ -610,9 +594,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     return [
       Text(
         context.l10n.recurring_start_date,
-        style: Theme.of(context)
-            .textTheme
-            .labelLarge
+        style: context.textStyles.labelLarge
             ?.copyWith(color: cs.outline),
       ),
       const SizedBox(height: AppSizes.sm),
@@ -629,9 +611,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           Expanded(
             child: Text(
               context.l10n.recurring_end_date,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge
+              style: context.textStyles.labelLarge
                   ?.copyWith(color: cs.outline),
             ),
           ),

@@ -200,8 +200,11 @@ class _RecurringCard extends ConsumerWidget {
     final catColor = cat != null
         ? ColorUtils.fromHex(cat.colorHex)
         : cs.outline;
-    final typeColor =
-        rule.type == 'income' ? context.appTheme.incomeColor : context.appTheme.expenseColor;
+    final typeColor = switch (rule.type) {
+      'income' => context.appTheme.incomeColor,
+      'transfer' => context.appTheme.transferColor,
+      _ => context.appTheme.expenseColor,
+    };
     final prefix = rule.type == 'income' ? '+' : '\u2212';
     final isBill = rule.isBill;
     final isOverdue = rule.isOverdue;

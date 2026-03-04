@@ -50,9 +50,7 @@ class BudgetAlertsZone extends ConsumerWidget {
                 children: [
                   Text(
                     context.l10n.dashboard_budget_alerts,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
+                    style: context.textStyles.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   TextButton.icon(

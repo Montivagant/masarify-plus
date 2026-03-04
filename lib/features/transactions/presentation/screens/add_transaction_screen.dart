@@ -373,8 +373,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
     final topCats = typeCats.take(6).toList();
 
-    final typeColor =
-        _type == 'income' ? context.appTheme.incomeColor : context.appTheme.expenseColor;
+    final typeColor = switch (_type) {
+      'income' => context.appTheme.incomeColor,
+      'transfer' => context.appTheme.transferColor,
+      _ => context.appTheme.expenseColor,
+    };
     final canSave =
         _amountPiastres > 0 && _selectedCategoryId != null && _walletId != null;
 

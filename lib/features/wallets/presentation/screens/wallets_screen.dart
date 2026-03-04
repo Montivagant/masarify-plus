@@ -173,9 +173,7 @@ class _WalletCard extends StatelessWidget {
         subtitle: Text(_typeLabel(context, wallet.type)),
         trailing: Text(
           MoneyFormatter.format(wallet.balance),
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
+          style: context.textStyles.bodyMedium
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
         onTap: onTap,

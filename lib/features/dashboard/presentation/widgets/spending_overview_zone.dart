@@ -157,9 +157,7 @@ class _SpendingOverviewState extends State<_SpendingOverview> {
           ),
           child: Text(
             context.l10n.dashboard_spending_overview,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: context.textStyles.titleMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),

@@ -247,9 +247,7 @@ class _MonthNavigator extends StatelessWidget {
           ),
           Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: context.textStyles.titleMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           IconButton(

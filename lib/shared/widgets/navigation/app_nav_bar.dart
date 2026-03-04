@@ -250,6 +250,6 @@ class _LowerCenterFabLocation extends FloatingActionButtonLocation {
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
     final baseOffset =
         FloatingActionButtonLocation.centerFloat.getOffset(scaffoldGeometry);
-    return Offset(baseOffset.dx, baseOffset.dy + 10);
+    return Offset(baseOffset.dx, baseOffset.dy + AppSizes.fabVerticalOffset);
   }
 }

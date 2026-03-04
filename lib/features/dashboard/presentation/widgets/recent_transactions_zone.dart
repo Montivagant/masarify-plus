@@ -63,9 +63,7 @@ class RecentTransactionsZone extends ConsumerWidget {
                 children: [
                   Text(
                     context.l10n.dashboard_recent_transactions,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
+                    style: context.textStyles.titleMedium
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   TextButton.icon(

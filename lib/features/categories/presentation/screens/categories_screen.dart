@@ -156,9 +156,7 @@ class _SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
+            style: context.textStyles.titleMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: AppSizes.sm),

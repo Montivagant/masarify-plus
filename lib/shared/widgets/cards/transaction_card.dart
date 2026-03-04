@@ -35,7 +35,11 @@ class TransactionCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
 
-  String get _amountPrefix => transaction.type == 'income' ? '+' : '−';
+  String get _amountPrefix => switch (transaction.type) {
+        'income' => '+',
+        'transfer' => '',
+        _ => '\u2212',
+      };
 
   IconData? get _sourceIcon => switch (transaction.source) {
         'voice' => AppIcons.mic,

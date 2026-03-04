@@ -177,9 +177,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     : Center(
                         child: Text(
                           context.l10n.calendar_empty_title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
+                          style: context.textStyles.bodyMedium
                               ?.copyWith(color: cs.outline),
                         ),
                       ),
@@ -205,9 +203,7 @@ class _DayTransactionList extends ConsumerWidget {
       return Center(
         child: Text(
           context.l10n.calendar_no_transactions_day,
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
+          style: context.textStyles.bodyMedium
               ?.copyWith(color: context.colors.outline),
         ),
       );
@@ -308,9 +304,7 @@ class _DayTransactionList extends ConsumerWidget {
                     children: [
                       Text(
                         tx.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
+                        style: context.textStyles.bodyMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -318,9 +312,7 @@ class _DayTransactionList extends ConsumerWidget {
                       if (cat != null)
                         Text(
                           cat.displayName(context.languageCode),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: context.textStyles.bodySmall
                               ?.copyWith(
                                 color:
                                     context.colors.outline,
