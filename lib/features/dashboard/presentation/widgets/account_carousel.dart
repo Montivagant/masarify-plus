@@ -61,10 +61,13 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     final pageCount = 1 + wallets.length;
 
     // Clamp selected index if wallets were removed.
+    final safeIndex = selectedIndex.clamp(0, pageCount - 1);
     if (selectedIndex >= pageCount) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          ref.read(selectedAccountIndexProvider.notifier).state = 0;
+        if (!mounted) return;
+        ref.read(selectedAccountIndexProvider.notifier).state = 0;
+        if (_pageController.hasClients) {
+          _pageController.jumpToPage(0);
         }
       });
     }
@@ -113,6 +116,9 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
               }
 
               // Pages 1-N: Individual account cards.
+              if (index - 1 >= wallets.length) {
+                return const SizedBox.shrink();
+              }
               final wallet = wallets[index - 1];
 
               final walletIncome = monthTxs
@@ -160,7 +166,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(pageCount, (i) {
-                final isActive = i == selectedIndex;
+                final isActive = i == safeIndex;
                 return Container(
                   width: AppSizes.indicatorDotSize,
                   height: AppSizes.indicatorDotSize,

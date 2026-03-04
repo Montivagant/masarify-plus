@@ -13,7 +13,7 @@ import '../database/app_database.dart';
 
 /// Concrete implementation of [BackupService].
 ///
-/// - JSON export/import: all 11 DB tables + crash log + schema version.
+/// - JSON export/import: all 10 DB tables + crash log + schema version.
 /// - CSV export: monthly transactions with readable columns.
 class BackupServiceImpl implements BackupService {
   BackupServiceImpl(this._db);
@@ -21,7 +21,7 @@ class BackupServiceImpl implements BackupService {
   final AppDatabase _db;
 
   // Must match AppDatabase.schemaVersion — bump when schema changes
-  static const _schemaVersion = 3;
+  static const _schemaVersion = 4;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 

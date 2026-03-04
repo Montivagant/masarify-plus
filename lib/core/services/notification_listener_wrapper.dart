@@ -19,11 +19,17 @@ import 'notification_transaction_parser.dart';
 /// deduplicates via SHA-256 hash, and stores pending candidates in
 /// [SmsParserLogs] for user review.
 class NotificationListenerWrapper {
-  NotificationListenerWrapper(this._dao, {this.aiParser, this.categories});
+  NotificationListenerWrapper(
+    this._dao, {
+    this.aiParser,
+    this.categories,
+    ConnectivityService? connectivityService,
+  }) : _connectivityService = connectivityService ?? ConnectivityService();
 
   final SmsParserLogDao _dao;
   final AiTransactionParser? aiParser;
   List<CategoryEntity>? categories;
+  final ConnectivityService _connectivityService;
   StreamSubscription<ServiceNotificationEvent>? _subscription;
   bool _disposed = false;
 
@@ -167,8 +173,7 @@ class NotificationListenerWrapper {
 
       // Skip AI enrichment when offline — item stays pending without enrichment.
       // Will be enriched when back online via sync-on-reconnect.
-      final connectivityService = ConnectivityService();
-      final online = await connectivityService.isOnline;
+      final online = await _connectivityService.isOnline;
       if (!online) {
         _pendingCount++;
         pendingStream.add(_pendingCount);

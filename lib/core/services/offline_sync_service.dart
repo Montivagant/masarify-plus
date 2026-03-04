@@ -8,6 +8,7 @@ import 'ai/ai_transaction_parser.dart';
 import 'connectivity_service.dart';
 import 'notification_transaction_parser.dart';
 
+
 /// Listens for offline-to-online transitions and enriches pending
 /// SMS/notification parser logs that were stored without AI enrichment
 /// because the device was offline at the time.
@@ -16,28 +17,38 @@ class OfflineSyncService {
     required SmsParserLogDao dao,
     required AiTransactionParser aiParser,
     required this.getCategories,
+    required ConnectivityService connectivityService,
   })  : _dao = dao,
-        _aiParser = aiParser;
+        _aiParser = aiParser,
+        _connectivityService = connectivityService;
 
   final SmsParserLogDao _dao;
   final AiTransactionParser _aiParser;
+  final ConnectivityService _connectivityService;
 
   /// Callback to get the current categories list.
   /// Uses a callback to avoid stale data.
   final Future<List<CategoryEntity>> Function() getCategories;
 
   StreamSubscription<bool>? _subscription;
-  bool _wasOffline = false;
   bool _syncing = false;
 
   /// Start listening for connectivity changes.
-  void start() {
-    final service = ConnectivityService();
-    _subscription = service.onlineStream.listen((online) {
-      if (online && _wasOffline) {
+  /// Also immediately syncs if the device is already online and there
+  /// are pending unenriched items from a previous session.
+  void start() async {
+    // Sync any pending items from previous sessions if already online.
+    final currentlyOnline = await _connectivityService.isOnline;
+    if (currentlyOnline) {
+      _onReconnect();
+    }
+
+    bool wasOffline = !currentlyOnline;
+    _subscription = _connectivityService.onlineStream.listen((online) {
+      if (online && wasOffline) {
         _onReconnect();
       }
-      _wasOffline = !online;
+      wasOffline = !online;
     });
   }
 

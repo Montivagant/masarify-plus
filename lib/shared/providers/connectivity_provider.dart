@@ -9,9 +9,12 @@ final connectivityServiceProvider = Provider<ConnectivityService>(
 
 /// Emits `true` when online, `false` when offline.
 ///
+/// Seeds the initial connectivity state before listening for changes,
+/// so the provider is never in `AsyncLoading` with an unknown state.
 /// Used by AI-dependent screens to gate network calls and show
 /// offline banners (Tasks 19-20).
-final isOnlineProvider = StreamProvider<bool>((ref) {
+final isOnlineProvider = StreamProvider<bool>((ref) async* {
   final service = ref.watch(connectivityServiceProvider);
-  return service.onlineStream;
+  yield await service.isOnline;
+  yield* service.onlineStream;
 });

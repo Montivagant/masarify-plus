@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/notification_listener_wrapper.dart';
 import 'ai_provider.dart';
 import 'category_provider.dart';
+import 'connectivity_provider.dart';
 import 'database_provider.dart';
 
 /// Provides a singleton [NotificationListenerWrapper] for the app lifetime.
@@ -16,10 +17,12 @@ final notificationListenerProvider =
   final dao = ref.watch(smsParserLogDaoProvider);
   final aiParser = ref.read(aiTransactionParserProvider);
   final categories = ref.read(categoriesProvider).valueOrNull;
+  final connectivity = ref.read(connectivityServiceProvider);
   final wrapper = NotificationListenerWrapper(
     dao,
     aiParser: aiParser,
     categories: categories,
+    connectivityService: connectivity,
   );
 
   // Update categories in-place without disposing the wrapper

@@ -19,11 +19,17 @@ import 'notification_transaction_parser.dart';
 /// Optionally enriches via AI for better category/merchant extraction.
 /// Shares [ParserReviewScreen] with the notification parser flow.
 class SmsParserService {
-  SmsParserService(this._dao, {this.aiParser, this.categories});
+  SmsParserService(
+    this._dao, {
+    this.aiParser,
+    this.categories,
+    ConnectivityService? connectivityService,
+  }) : _connectivityService = connectivityService ?? ConnectivityService();
 
   final SmsParserLogDao _dao;
   final AiTransactionParser? aiParser;
   final List<CategoryEntity>? categories;
+  final ConnectivityService _connectivityService;
 
   /// Scan SMS inbox for financial messages. No-op if feature is disabled.
   Future<int> scanInbox() async {
@@ -58,8 +64,7 @@ class SmsParserService {
     var enrichmentCalls = 0;
 
     // Only attempt AI enrichment if online
-    final connectivityService = ConnectivityService();
-    final isOnline = await connectivityService.isOnline;
+    final isOnline = await _connectivityService.isOnline;
 
     for (final sms in messages) {
       final address = sms.address ?? '';
