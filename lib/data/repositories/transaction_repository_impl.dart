@@ -114,6 +114,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       if (wallet == null) {
         throw ArgumentError('Wallet with id $walletId does not exist');
       }
+      if (wallet.isArchived) {
+        throw ArgumentError('Cannot create transaction on archived account');
+      }
       final id = await _dao.insertTransaction(
         TransactionsCompanion.insert(
           walletId: walletId,

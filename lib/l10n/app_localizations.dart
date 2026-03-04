@@ -650,12 +650,6 @@ abstract class AppLocalizations {
   /// **'{percent}% reached'**
   String goal_progress(int percent);
 
-  /// No description provided for @recurring_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Recurring'**
-  String get recurring_title;
-
   /// No description provided for @recurring_add.
   ///
   /// In en, this message translates to:
@@ -733,6 +727,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark Paid'**
   String get recurring_mark_paid;
+
+  /// No description provided for @recurring_mark_paid_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark this bill as paid? A transaction will be recorded.'**
+  String get recurring_mark_paid_confirm;
 
   /// No description provided for @recurring_bill_paid_success.
   ///
@@ -2240,6 +2240,12 @@ abstract class AppLocalizations {
   /// **'Add Savings'**
   String get goal_detail_add_savings;
 
+  /// No description provided for @goal_already_funded.
+  ///
+  /// In en, this message translates to:
+  /// **'This goal is already fully funded.'**
+  String get goal_already_funded;
+
   /// No description provided for @goal_detail_no_savings.
   ///
   /// In en, this message translates to:
@@ -2900,6 +2906,12 @@ abstract class AppLocalizations {
   /// **'End Date'**
   String get recurring_end_date_required;
 
+  /// No description provided for @recurring_empty_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No Recurring Rules'**
+  String get recurring_empty_title;
+
   /// No description provided for @recurring_empty_sub.
   ///
   /// In en, this message translates to:
@@ -3055,48 +3067,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'#{rank}'**
   String reports_category_rank(int rank);
-
-  /// No description provided for @day_saturday.
-  ///
-  /// In en, this message translates to:
-  /// **'Saturday'**
-  String get day_saturday;
-
-  /// No description provided for @day_sunday.
-  ///
-  /// In en, this message translates to:
-  /// **'Sunday'**
-  String get day_sunday;
-
-  /// No description provided for @day_monday.
-  ///
-  /// In en, this message translates to:
-  /// **'Monday'**
-  String get day_monday;
-
-  /// No description provided for @day_tuesday.
-  ///
-  /// In en, this message translates to:
-  /// **'Tuesday'**
-  String get day_tuesday;
-
-  /// No description provided for @day_wednesday.
-  ///
-  /// In en, this message translates to:
-  /// **'Wednesday'**
-  String get day_wednesday;
-
-  /// No description provided for @day_thursday.
-  ///
-  /// In en, this message translates to:
-  /// **'Thursday'**
-  String get day_thursday;
-
-  /// No description provided for @day_friday.
-  ///
-  /// In en, this message translates to:
-  /// **'Friday'**
-  String get day_friday;
 
   /// No description provided for @balance_show.
   ///
@@ -3559,6 +3529,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Offline — AI features unavailable. Add transactions manually.'**
   String get dashboard_offline_banner;
+
+  /// No description provided for @budget_over_by.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by'**
+  String get budget_over_by;
 }
 
 class _AppLocalizationsDelegate

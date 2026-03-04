@@ -34,8 +34,7 @@ class AppDatePicker extends StatelessWidget {
   }
 
   String _formatDate(BuildContext context, DateTime date) {
-    final locale = Localizations.localeOf(context).toString();
-    return DateFormat.yMd(locale).format(date);
+    return DateFormat.yMd(context.languageCode).format(date);
   }
 
   @override

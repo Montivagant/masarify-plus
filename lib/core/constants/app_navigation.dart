@@ -19,8 +19,8 @@ class AppNavDest {
   final IconData activeIcon;
   final String route;
 
-  /// Returns the label for the given locale.
-  String label(Locale locale) => locale.languageCode == 'ar' ? labelAr : labelEn;
+  /// Returns the label for the given language code (e.g. 'ar', 'en').
+  String label(String languageCode) => languageCode == 'ar' ? labelAr : labelEn;
 }
 
 /// 4-tab navigation configuration with center FAB.

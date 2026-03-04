@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -13,6 +14,8 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -84,18 +87,10 @@ class TransactionDetailScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Hero: Amount + type ──────────────────────────────────
-                Container(
-                  width: double.infinity,
+                GlassCard(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.all(AppSizes.lg),
-                  decoration: BoxDecoration(
-                    color: typeColor.withValues(alpha: AppSizes.opacitySubtle),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusMd),
-                    border: Border.all(
-                      color: typeColor.withValues(alpha: AppSizes.opacityLight3),
-                    ),
-                  ),
+                  tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
                   child: Column(
                     children: [
                       Icon(
@@ -121,7 +116,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         label: Text(typeLabel),
                         backgroundColor: typeColor.withValues(alpha: AppSizes.opacityLight2),
                         side: BorderSide.none,
-                        labelStyle: TextStyle(
+                        labelStyle: context.textStyles.bodyMedium?.copyWith(
                           color: typeColor,
                           fontWeight: FontWeight.w600,
                         ),
@@ -151,8 +146,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   icon: AppIcons.calendar,
                   iconColor: cs.outline,
                   label: context.l10n.transaction_date,
-                  value:
-                      '${tx.transactionDate.day}/${tx.transactionDate.month}/${tx.transactionDate.year}',
+                  value: DateFormat.yMd(context.languageCode).format(tx.transactionDate),
                 ),
                 if (tx.note != null && tx.note!.isNotEmpty)
                   _DetailRow(
@@ -247,9 +241,19 @@ class TransactionDetailScreen extends ConsumerWidget {
           FilledButton(
             onPressed: () async {
               ctx.pop();
-              await ref.read(transactionRepositoryProvider).delete(id);
-              HapticFeedback.mediumImpact();
-              if (context.mounted) context.pop();
+              // H1 fix: wrap delete in try/catch
+              try {
+                await ref.read(transactionRepositoryProvider).delete(id);
+                HapticFeedback.mediumImpact();
+                if (context.mounted) context.pop();
+              } catch (e) {
+                if (context.mounted) {
+                  SnackHelper.showError(
+                    context,
+                    context.l10n.common_error_generic,
+                  );
+                }
+              }
             },
             style: FilledButton.styleFrom(
               backgroundColor: context.appTheme.expenseColor,
@@ -303,20 +307,24 @@ class _DetailRow extends StatelessWidget {
         children: [
           Icon(icon, size: AppSizes.iconSm, color: iconColor),
           const SizedBox(width: AppSizes.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.outline,
-                    ),
-              ),
-              Text(
-                value,
-                style: context.textStyles.bodyLarge,
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: context.textStyles.bodySmall?.copyWith(
+                        color: context.colors.outline,
+                      ),
+                ),
+                Text(
+                  value,
+                  style: context.textStyles.bodyLarge,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

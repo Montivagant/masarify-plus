@@ -195,12 +195,22 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     try {
       final repo = ref.read(transactionRepositoryProvider);
       final cats = ref.read(categoriesProvider).valueOrNull ?? [];
-      // R5-C1 fix: use firstOrNull to avoid StateError on empty list
-      final cat = cats.where((c) => c.id == categoryId).firstOrNull ??
-          cats.firstOrNull;
+      // H3 fix: don't silently fallback to wrong category
+      final cat = cats.where((c) => c.id == categoryId).firstOrNull;
       if (cat == null) {
-        // IM-27 fix: reset loading and show error instead of silently aborting
+        // Category was deleted between form open and save
         setState(() => _loading = false);
+        if (mounted) {
+          SnackHelper.showError(context, context.l10n.common_error_generic);
+        }
+        return;
+      }
+      // H4 fix: verify category type matches transaction type
+      if (cat.type != _type && cat.type != 'both') {
+        setState(() => _loading = false);
+        if (mounted) {
+          SnackHelper.showError(context, context.l10n.common_error_generic);
+        }
         return;
       }
 
@@ -267,7 +277,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     await repo.update(tx.copyWith(goalId: match.goalId));
                   }
                 } catch (_) {
-                  // Goal linking is best-effort; failure is acceptable
+                  // M12 fix: show error feedback for goal link failure
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.common_error_generic)),
+                  );
                 }
               },
             ),
@@ -615,7 +628,7 @@ class _OptionalSection extends StatelessWidget {
           ),
         ),
         AnimatedSize(
-          duration: AppDurations.animQuick,
+          duration: context.reduceMotion ? Duration.zero : AppDurations.animQuick,
           curve: Curves.easeInOut,
           child: expanded
               ? Padding(
@@ -671,8 +684,7 @@ class _OptionalSection extends StatelessWidget {
                               ),
                               onPressed: () => onLocationChanged(null),
                               visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                              tooltip: context.l10n.common_delete,
                             ),
                           const SizedBox(width: AppSizes.xs),
                           TextButton(

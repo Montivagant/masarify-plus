@@ -48,7 +48,22 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
       vsync: this,
       duration: AppDurations.pinPadAnim,
     );
+    _restoreLockoutState();
     _checkBiometric();
+  }
+
+  Future<void> _restoreLockoutState() async {
+    final attempts = await _auth.getFailedAttempts();
+    final lockoutUntil = await _auth.getLockoutUntil();
+    if (!mounted) return;
+    setState(() => _failedAttempts = attempts);
+    if (lockoutUntil != null && lockoutUntil.isAfter(DateTime.now())) {
+      final remaining = lockoutUntil.difference(DateTime.now());
+      setState(() => _lockedOut = true);
+      Future.delayed(remaining, () {
+        if (mounted) setState(() => _lockedOut = false);
+      });
+    }
   }
 
   @override
@@ -111,11 +126,14 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     if (!mounted) return;
     if (ok) {
       _failedAttempts = 0;
+      await _auth.clearLockout();
       _unlock();
     } else {
       _failedAttempts++;
+      await _auth.setFailedAttempts(_failedAttempts);
+      if (!mounted) return;
       HapticFeedback.heavyImpact();
-      _shakeController.forward(from: 0);
+      if (!context.reduceMotion) _shakeController.forward(from: 0);
       setState(() => _pin = '');
       if (_failedAttempts >= _maxAttempts) {
         _startLockout();
@@ -125,11 +143,14 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     }
   }
 
-  void _startLockout() {
+  Future<void> _startLockout() async {
     // Exponential backoff: 30s, 5min, 30min (capped)
     final lockoutIndex = ((_failedAttempts - _maxAttempts) ~/ _maxAttempts)
         .clamp(0, _lockoutDurations.length - 1);
     final duration = _lockoutDurations[lockoutIndex];
+    final lockoutUntil = DateTime.now().add(duration);
+    await _auth.setLockoutUntil(lockoutUntil);
+    if (!mounted) return;
     setState(() => _lockedOut = true);
     SnackHelper.showError(
       context,

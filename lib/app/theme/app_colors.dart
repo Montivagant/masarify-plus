@@ -97,6 +97,11 @@ abstract final class AppColors {
   static const Color barrierScrim = Color(0x26000000); // Black at 15%
   static const Color dragHandle = Color(0x4DFFFFFF); // White at 30%
 
+  // ── Utility ────────────────────────────────────────────────────────────
+  static const Color transparent = Color(0x00000000);
+  static const Color black = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
+
   // ── Color picker options ────────────────────────────────────────────────
   /// Shared palette for category, wallet, and goal color pickers.
   static const List<String> pickerOptions = [

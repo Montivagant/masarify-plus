@@ -40,6 +40,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (context.reduceMotion) {
+      _controller.duration = Duration.zero;
+      _controller.forward();
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

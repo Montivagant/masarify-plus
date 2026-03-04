@@ -9,11 +9,21 @@ import '../../../../shared/providers/analytics_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Comparison tab — this month vs last month side-by-side bars.
-class ComparisonTab extends ConsumerWidget {
+class ComparisonTab extends ConsumerStatefulWidget {
   const ComparisonTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ComparisonTab> createState() => _ComparisonTabState();
+}
+
+class _ComparisonTabState extends ConsumerState<ComparisonTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final compAsync = ref.watch(monthComparisonProvider);
 
     return compAsync.when(
@@ -46,7 +56,9 @@ class ComparisonTab extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                 ),
-                child: _ComparisonBarChart(comp: comp),
+                child: RepaintBoundary(
+                  child: _ComparisonBarChart(comp: comp),
+                ),
               ),
             ),
 

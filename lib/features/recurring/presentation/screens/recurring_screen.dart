@@ -9,14 +9,17 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/extensions/frequency_label_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
+import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -171,17 +174,7 @@ class _RecurringCard extends ConsumerWidget {
   });
 
   final RecurringRuleEntity rule;
-  final List categories;
-
-  String _frequencyLabel(BuildContext context, String freq) => switch (freq) {
-        'once' => context.l10n.recurring_frequency_once,
-        'daily' => context.l10n.recurring_frequency_daily,
-        'weekly' => context.l10n.recurring_frequency_weekly,
-        'monthly' => context.l10n.recurring_frequency_monthly,
-        'yearly' => context.l10n.recurring_frequency_yearly,
-        'custom' => context.l10n.recurring_frequency_custom,
-        _ => freq,
-      };
+  final List<CategoryEntity> categories;
 
   String _formatDate(BuildContext context, DateTime date) {
     return DateFormat.yMd(context.languageCode).format(date);
@@ -368,7 +361,7 @@ class _RecurringCard extends ConsumerWidget {
         ),
         const SizedBox(width: AppSizes.xs),
         Text(
-          _frequencyLabel(context, rule.frequency),
+          context.l10n.frequencyLabel(rule.frequency),
           style: context.textStyles.bodySmall?.copyWith(
                 color: cs.outline,
               ),
@@ -389,24 +382,13 @@ class _RecurringCard extends ConsumerWidget {
     final message = active
         ? context.l10n.recurring_confirm_activate
         : context.l10n.recurring_confirm_pause;
-    showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(rule.title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          FilledButton(
-            onPressed: () => ctx.pop(true),
-            child: Text(context.l10n.common_confirm),
-          ),
-        ],
-      ),
+    ConfirmDialog.show(
+      context,
+      title: rule.title,
+      message: message,
+      confirmLabel: context.l10n.common_confirm,
     ).then((confirmed) {
-      if (confirmed == true) _toggleActive(ref, active);
+      if (confirmed) _toggleActive(ref, active);
     });
   }
 
@@ -442,46 +424,44 @@ class _RecurringCard extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.recurring_delete_title),
-        content: Text(context.l10n.recurring_delete_confirm),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(),
-            child: Text(context.l10n.common_cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              ref.read(recurringRuleRepositoryProvider).delete(rule.id);
-              HapticFeedback.mediumImpact();
-              ctx.pop();
-            },
-            child: Text(
-              context.l10n.common_delete,
-              style: context.textStyles.bodyMedium?.copyWith(color: context.appTheme.expenseColor),
-            ),
-          ),
-        ],
-      ),
-    );
+    ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.recurring_delete_title,
+      message: context.l10n.recurring_delete_confirm,
+    ).then((confirmed) async {
+      if (!confirmed) return;
+      try {
+        await ref.read(recurringRuleRepositoryProvider).delete(rule.id);
+        HapticFeedback.mediumImpact();
+      } catch (e) {
+        if (context.mounted) {
+          SnackHelper.showError(context, context.l10n.common_error_title);
+        }
+      }
+    });
   }
 }
 
 // ── Mark Paid button ──────────────────────────────────────────────────────
 
-class _MarkPaidButton extends ConsumerWidget {
+class _MarkPaidButton extends ConsumerStatefulWidget {
   const _MarkPaidButton({required this.rule});
 
   final RecurringRuleEntity rule;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MarkPaidButton> createState() => _MarkPaidButtonState();
+}
+
+class _MarkPaidButtonState extends ConsumerState<_MarkPaidButton> {
+  bool _processing = false;
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       height: AppSizes.iconContainerSm,
       child: FilledButton.tonal(
-        onPressed: () => _markPaid(context, ref),
+        onPressed: _processing ? null : () => _markPaid(context),
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm),
           visualDensity: VisualDensity.compact,
@@ -494,15 +474,42 @@ class _MarkPaidButton extends ConsumerWidget {
     );
   }
 
-  void _markPaid(BuildContext context, WidgetRef ref) {
-    HapticFeedback.mediumImpact();
-    ref
-        .read(recurringRuleRepositoryProvider)
-        .markPaid(rule.id, DateTime.now());
-    ref.invalidate(recurringRulesProvider);
-    SnackHelper.showSuccess(
+  Future<void> _markPaid(BuildContext context) async {
+    // M1 fix: confirmation dialog before marking paid
+    final confirmed = await ConfirmDialog.show(
       context,
-      context.l10n.recurring_bill_paid_success,
+      title: widget.rule.title,
+      message: context.l10n.recurring_mark_paid_confirm,
+      confirmLabel: context.l10n.recurring_mark_paid,
     );
+    if (!confirmed || !mounted) return;
+
+    // M2 fix: loading guard prevents double-tap
+    setState(() => _processing = true);
+    HapticFeedback.mediumImpact();
+
+    try {
+      final rule = widget.rule;
+      // C5 fix: atomic — create transaction + adjust wallet + mark paid
+      await ref.read(recurringRuleRepositoryProvider).payBill(
+        ruleId: rule.id,
+        walletId: rule.walletId,
+        categoryId: rule.categoryId,
+        amount: rule.amount,
+        type: rule.type,
+        title: rule.title,
+      );
+      if (!context.mounted) return;
+      ref.invalidate(recurringRulesProvider);
+      SnackHelper.showSuccess(
+        context,
+        context.l10n.recurring_bill_paid_success,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+    } finally {
+      if (context.mounted) setState(() => _processing = false);
+    }
   }
 }

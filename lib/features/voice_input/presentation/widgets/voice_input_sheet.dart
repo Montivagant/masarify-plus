@@ -198,11 +198,11 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     final cs = context.colors;
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: AppSizes.screenHPadding,
-        right: AppSizes.screenHPadding,
+      padding: EdgeInsetsDirectional.only(
+        start: AppSizes.screenHPadding,
+        end: AppSizes.screenHPadding,
         top: AppSizes.sm,
-        bottom: MediaQuery.of(context).viewInsets.bottom + AppSizes.lg,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSizes.lg,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -235,7 +235,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
 
           // -- Mic button with avatar_glow pulse --
           Builder(builder: (context) {
-            final reduceMotion = MediaQuery.of(context).disableAnimations;
+            final reduceMotion = MediaQuery.disableAnimationsOf(context);
             return Semantics(
               button: true,
               label: _state == _VoiceState.idle

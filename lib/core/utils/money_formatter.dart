@@ -94,6 +94,14 @@ abstract final class MoneyFormatter {
   /// Convert piastres to display double (for UI only — never store doubles).
   static double toDisplayDouble(int piastres) => piastres / 100.0;
 
+  /// Format an integer percentage with locale-aware digits.
+  ///
+  /// Returns e.g. `"75%"` in English, `"٧٥%"` in Arabic.
+  static String formatPercent(int pct, {String? locale}) {
+    final effectiveLocale = locale ?? _activeLocale;
+    return '${NumberFormat.decimalPattern(effectiveLocale).format(pct)}%';
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────
 
   static String _symbol(String currency, String locale) {

@@ -8,14 +8,15 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/extensions/month_name_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
-import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/budget_progress_card.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -31,22 +32,6 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
   late int _year;
   late int _month;
 
-  String _monthName(BuildContext context, int month) => switch (month) {
-        1 => context.l10n.month_1,
-        2 => context.l10n.month_2,
-        3 => context.l10n.month_3,
-        4 => context.l10n.month_4,
-        5 => context.l10n.month_5,
-        6 => context.l10n.month_6,
-        7 => context.l10n.month_7,
-        8 => context.l10n.month_8,
-        9 => context.l10n.month_9,
-        10 => context.l10n.month_10,
-        11 => context.l10n.month_11,
-        12 => context.l10n.month_12,
-        _ => '',
-      };
-
   @override
   void initState() {
     super.initState();
@@ -55,14 +40,19 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
     _month = now.month;
   }
 
-  void _prevMonth() => setState(() {
-        if (_month == 1) {
-          _month = 12;
-          _year--;
-        } else {
-          _month--;
-        }
-      });
+  void _prevMonth() {
+    // M4 fix: cap backward navigation to 10 years ago
+    final minYear = DateTime.now().year - 10;
+    if (_year <= minYear && _month == 1) return;
+    setState(() {
+      if (_month == 1) {
+        _month = 12;
+        _year--;
+      } else {
+        _month--;
+      }
+    });
+  }
 
   void _nextMonth() {
     // I17 fix: cap forward navigation to current year + 1
@@ -79,27 +69,13 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
   }
 
   Future<void> _confirmDeleteBudget(BuildContext context, int budgetId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.budget_delete_title),
-        content: Text(context.l10n.budget_delete_confirm),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          AppButton(
-            label: context.l10n.common_delete,
-            variant: AppButtonVariant.danger,
-            isFullWidth: false,
-            onPressed: () => ctx.pop(true),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.budget_delete_title,
+      message: context.l10n.budget_delete_confirm,
     );
     // MD-12 fix: check mounted after async gap
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       await ref.read(budgetRepositoryProvider).delete(budgetId);
       HapticFeedback.mediumImpact();
     }
@@ -128,7 +104,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
       body: Column(
         children: [
           _MonthNavigator(
-            label: '${_monthName(context, _month)} $_year',
+            label: '${context.l10n.monthName(_month)} $_year',
             onPrev: _prevMonth,
             onNext: _nextMonth,
           ),
@@ -288,12 +264,14 @@ class _SummaryCard extends StatelessWidget {
             child: _Stat(
               label: context.l10n.budget_spent_label,
               value: MoneyFormatter.formatCompact(totalSpent),
-              color: cs.onPrimaryContainer,
+              // M3 fix: highlight spent amount when over budget
+              color: isOver ? cs.error : cs.onPrimaryContainer,
             ),
           ),
           Expanded(
             child: _Stat(
-              label: isOver ? context.l10n.budget_spent : context.l10n.budget_remaining,
+              // M3 fix: show "Over by" when over budget
+              label: isOver ? context.l10n.budget_over_by : context.l10n.budget_remaining,
               value: MoneyFormatter.formatCompact(remaining.abs()),
               color: isOver
                   ? cs.error

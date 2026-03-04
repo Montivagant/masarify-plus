@@ -294,9 +294,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recurring_title => 'Recurring';
-
-  @override
   String get recurring_add => 'Add Recurring';
 
   @override
@@ -334,6 +331,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_mark_paid => 'Mark Paid';
+
+  @override
+  String get recurring_mark_paid_confirm =>
+      'Mark this bill as paid? A transaction will be recorded.';
 
   @override
   String get recurring_bill_paid_success => 'Bill marked as paid';
@@ -1119,6 +1120,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goal_detail_add_savings => 'Add Savings';
 
   @override
+  String get goal_already_funded => 'This goal is already fully funded.';
+
+  @override
   String get goal_detail_no_savings => 'No savings yet';
 
   @override
@@ -1463,6 +1467,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_end_date_required => 'End Date';
 
   @override
+  String get recurring_empty_title => 'No Recurring Rules';
+
+  @override
   String get recurring_empty_sub =>
       'Set up recurring transactions to save time';
 
@@ -1545,27 +1552,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String reports_category_rank(int rank) {
     return '#$rank';
   }
-
-  @override
-  String get day_saturday => 'Saturday';
-
-  @override
-  String get day_sunday => 'Sunday';
-
-  @override
-  String get day_monday => 'Monday';
-
-  @override
-  String get day_tuesday => 'Tuesday';
-
-  @override
-  String get day_wednesday => 'Wednesday';
-
-  @override
-  String get day_thursday => 'Thursday';
-
-  @override
-  String get day_friday => 'Friday';
 
   @override
   String get balance_show => 'Show';
@@ -1808,8 +1794,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_all_accounts => 'All Accounts';
 
   @override
-  String get voice_offline_message => 'AI parsing needs internet. You can add the transaction manually.';
+  String get voice_offline_message =>
+      'AI parsing needs internet. You can add the transaction manually.';
 
   @override
-  String get dashboard_offline_banner => 'Offline — AI features unavailable. Add transactions manually.';
+  String get dashboard_offline_banner =>
+      'Offline — AI features unavailable. Add transactions manually.';
+
+  @override
+  String get budget_over_by => 'Over by';
 }

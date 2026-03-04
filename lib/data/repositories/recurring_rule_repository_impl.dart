@@ -4,11 +4,16 @@ import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/repositories/i_recurring_rule_repository.dart';
 import '../database/app_database.dart';
 import '../database/daos/recurring_rule_dao.dart';
+import '../database/daos/transaction_dao.dart';
+import '../database/daos/wallet_dao.dart';
 
 class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
-  const RecurringRuleRepositoryImpl(this._dao);
+  const RecurringRuleRepositoryImpl(this._dao, this._db, this._walletDao, this._transactionDao);
 
   final RecurringRuleDao _dao;
+  final AppDatabase _db;
+  final WalletDao _walletDao;
+  final TransactionDao _transactionDao;
 
   @override
   Stream<List<RecurringRuleEntity>> watchAll() =>
@@ -89,6 +94,52 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
   @override
   Future<bool> markPaid(int id, DateTime paidAt, {int? transactionId}) =>
       _dao.markPaid(id, paidAt, transactionId: transactionId);
+
+  @override
+  Future<int> payBill({
+    required int ruleId,
+    required int walletId,
+    required int categoryId,
+    required int amount,
+    required String type,
+    required String title,
+  }) async {
+    // Atomic: create transaction + adjust wallet + mark rule paid
+    return _db.transaction(() async {
+      // Validate wallet is not archived
+      final wallet = await _walletDao.getById(walletId);
+      if (wallet == null) {
+        throw ArgumentError('Wallet does not exist');
+      }
+      if (wallet.isArchived) {
+        throw ArgumentError('Cannot pay bill with archived account');
+      }
+
+      final now = DateTime.now();
+      final txType = type == 'income' ? 'income' : 'expense';
+
+      final txId = await _transactionDao.insertTransaction(
+        TransactionsCompanion.insert(
+          walletId: walletId,
+          categoryId: categoryId,
+          amount: amount,
+          type: txType,
+          title: title,
+          transactionDate: now,
+          source: const Value('recurring'),
+        ),
+      );
+
+      // Adjust wallet balance
+      final delta = txType == 'income' ? amount : -amount;
+      await _walletDao.adjustBalance(walletId, delta);
+
+      // Mark rule as paid with linked transaction
+      await _dao.markPaid(ruleId, now, transactionId: txId);
+
+      return txId;
+    });
+  }
 
   // ── Mapping ───────────────────────────────────────────────────────────────
 

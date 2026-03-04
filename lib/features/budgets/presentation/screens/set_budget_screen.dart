@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/extensions/month_name_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/budget_entity.dart';
 import '../../../../domain/entities/category_entity.dart';
@@ -13,6 +14,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -39,22 +41,6 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
   late int _year;
   late int _month;
   bool _loading = false;
-
-  String _monthName(BuildContext context, int month) => switch (month) {
-        1 => context.l10n.month_1,
-        2 => context.l10n.month_2,
-        3 => context.l10n.month_3,
-        4 => context.l10n.month_4,
-        5 => context.l10n.month_5,
-        6 => context.l10n.month_6,
-        7 => context.l10n.month_7,
-        8 => context.l10n.month_8,
-        9 => context.l10n.month_9,
-        10 => context.l10n.month_10,
-        11 => context.l10n.month_11,
-        12 => context.l10n.month_12,
-        _ => '',
-      };
 
   @override
   void initState() {
@@ -190,6 +176,14 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
       }
       HapticFeedback.heavyImpact();
       if (!mounted) return;
+      // M5 fix: show appropriate toast for update vs create
+      // (existing != null means we upserted an existing budget)
+      SnackHelper.showSuccess(
+        context,
+        widget.editId != null
+            ? context.l10n.common_save_changes
+            : context.l10n.budget_set,
+      );
       context.pop();
     } catch (_) {
       // M1 fix: show error feedback instead of silently stopping spinner
@@ -230,7 +224,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                   const Icon(AppIcons.calendar, size: AppSizes.iconSm),
                   const SizedBox(width: AppSizes.sm),
                   Text(
-                    '${_monthName(context, _month)} $_year',
+                    '${context.l10n.monthName(_month)} $_year',
                     style: context.textStyles.bodyLarge,
                   ),
                 ],

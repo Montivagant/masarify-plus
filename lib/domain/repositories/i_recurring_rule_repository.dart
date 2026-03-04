@@ -32,4 +32,15 @@ abstract interface class IRecurringRuleRepository {
 
   /// Mark a bill as paid.
   Future<bool> markPaid(int id, DateTime paidAt, {int? transactionId});
+
+  /// Atomically create a payment transaction and mark the bill as paid.
+  /// Returns the created transaction ID.
+  Future<int> payBill({
+    required int ruleId,
+    required int walletId,
+    required int categoryId,
+    required int amount,
+    required String type,
+    required String title,
+  });
 }

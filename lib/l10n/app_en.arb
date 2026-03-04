@@ -104,7 +104,6 @@
   "goal_progress": "{percent}% reached",
   "@goal_progress": {"placeholders": {"percent": {"type": "int"}}},
 
-  "recurring_title": "Recurring",
   "recurring_add": "Add Recurring",
   "recurring_edit": "Edit Recurring",
   "recurring_frequency_daily": "Daily",
@@ -118,6 +117,7 @@
   "recurring_upcoming_bills": "Upcoming Bills",
   "recurring_paid": "Paid",
   "recurring_mark_paid": "Mark Paid",
+  "recurring_mark_paid_confirm": "Mark this bill as paid? A transaction will be created.",
   "recurring_bill_paid_success": "Bill marked as paid",
   "recurring_due_date_label": "Due",
   "recurring_frequency_once": "One-time",
@@ -399,6 +399,7 @@
   "goal_name_label": "Goal Name",
   "goal_name_hint": "e.g. Japan Trip, New Car",
   "goal_detail_add_savings": "Add Savings",
+  "goal_already_funded": "This goal is already fully funded.",
   "goal_detail_no_savings": "No savings yet",
   "goal_detail_no_savings_sub": "Add your first amount to this goal",
   "goal_saved_label": "Saved",
@@ -519,6 +520,7 @@
   "recurring_start_date": "Start Date",
   "recurring_end_date": "End Date (optional)",
   "recurring_end_date_required": "End Date",
+  "recurring_empty_title": "No Recurring Rules",
   "recurring_empty_sub": "Set up recurring transactions to save time",
   "recurring_delete_title": "Delete Recurring",
   "recurring_delete_confirm": "Are you sure you want to delete this recurring transaction?",
@@ -548,14 +550,6 @@
   "reports_daily_average": "Daily Average",
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
-
-  "day_saturday": "Saturday",
-  "day_sunday": "Sunday",
-  "day_monday": "Monday",
-  "day_tuesday": "Tuesday",
-  "day_wednesday": "Wednesday",
-  "day_thursday": "Thursday",
-  "day_friday": "Friday",
 
   "balance_show": "Show",
   "balance_hide": "Hide",
@@ -647,5 +641,8 @@
   "dashboard_all_accounts": "All Accounts",
 
   "voice_offline_message": "AI parsing needs internet. You can add the transaction manually.",
-  "dashboard_offline_banner": "Offline — AI features unavailable. Add transactions manually."
+  "dashboard_offline_banner": "Offline — AI features unavailable. Add transactions manually.",
+
+  "budget_over_by": "Over by",
+  "recurring_mark_paid_confirm": "Mark this bill as paid? A transaction will be recorded."
 }

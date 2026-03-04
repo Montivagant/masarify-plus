@@ -26,8 +26,6 @@ class GlassSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,7 +37,7 @@ class GlassSection extends StatelessWidget {
             ),
             child: Text(
               header!,
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: context.textStyles.titleSmall?.copyWith(
                 color: context.colors.onSurface.withValues(alpha: AppSizes.opacityMedium2),
                 fontWeight: FontWeight.w600,
               ),

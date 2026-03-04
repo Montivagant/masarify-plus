@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
@@ -33,10 +34,10 @@ class AppNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     const dests = AppNavigation.destinations;
     final cs = context.colors;
-    final locale = Localizations.localeOf(context);
+    final langCode = context.languageCode;
     const radius = BorderRadius.all(Radius.circular(AppSizes.borderRadiusLg));
 
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final useBlur = GlassConfig.shouldBlur(context);
 
     final navContent = Material(
@@ -59,7 +60,7 @@ class AppNavBar extends StatelessWidget {
                 child: _NavTab(
                   icon: dests[i].icon,
                   activeIcon: dests[i].activeIcon,
-                  label: dests[i].label(locale),
+                  label: dests[i].label(langCode),
                   isSelected: i == currentIndex,
                   selectedColor: cs.primary,
                   unselectedColor: cs.onSurfaceVariant,
@@ -125,41 +126,48 @@ class _NavTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = isSelected ? selectedColor : unselectedColor;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-      child: SizedBox.expand(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: color,
-              size: AppSizes.iconMd,
-            ),
-            const SizedBox(height: AppSizes.xxs),
-            Text(
-              label,
-              style: context.textStyles.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.w400,
+    return Semantics(
+      label: label,
+      selected: isSelected,
+      button: true,
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+          child: SizedBox.expand(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isSelected ? activeIcon : icon,
+                  color: color,
+                  size: AppSizes.iconMd,
+                ),
+                const SizedBox(height: AppSizes.xxs),
+                Text(
+                  label,
+                  style: context.textStyles.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // Selected indicator dot (always rendered to prevent layout shift)
+                const SizedBox(height: AppSizes.xxs),
+                Container(
+                  width: AppSizes.dotSm,
+                  height: AppSizes.xxs,
+                  decoration: BoxDecoration(
+                    color: isSelected ? selectedColor : AppColors.transparent,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusFull),
                   ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            // Selected indicator dot (always rendered to prevent layout shift)
-            const SizedBox(height: AppSizes.xxs),
-            Container(
-              width: AppSizes.dotSm,
-              height: AppSizes.xxs,
-              decoration: BoxDecoration(
-                color: isSelected ? selectedColor : Colors.transparent,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.borderRadiusFull),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

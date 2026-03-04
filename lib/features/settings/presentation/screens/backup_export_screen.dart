@@ -158,6 +158,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
 
   Future<void> _exportPdf() async {
     final l10n = context.l10n;
+    final langCode = context.languageCode;
     final picked = await _pickMonth();
     if (picked == null || _busy) return;
 
@@ -167,6 +168,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       path = await ref.read(pdfExportServiceProvider).generate(
             year: picked.year,
             month: picked.month,
+            locale: langCode,
             labels: PdfLabels(
               reportTitle: l10n.pdf_report_title,
               topCategories: l10n.pdf_top_categories,
@@ -318,7 +320,9 @@ class _ActionTile extends StatelessWidget {
       ),
       title: Text(
         label,
-        style: TextStyle(color: enabled ? null : cs.outline),
+        style: context.textStyles.bodyLarge?.copyWith(
+          color: enabled ? null : cs.outline,
+        ),
       ),
       subtitle: Text(subtitle),
       trailing: enabled

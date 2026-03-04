@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_colors.dart';
+
 /// Utility for converting hex color strings to [Color] values.
 abstract final class ColorUtils {
   /// Parses a hex color string to a [Color].
   ///
   /// Accepts formats: "#RRGGBB", "#AARRGGBB", "RRGGBB", "AARRGGBB".
   /// Falls back to [fallback] if parsing fails.
-  static Color fromHex(String hex, {Color fallback = Colors.grey}) {
+  static Color fromHex(String hex, {Color fallback = const Color(0xFF9E9E9E)}) {
     try {
       final clean = hex.replaceFirst('#', '');
       if (clean.length == 6) {
@@ -24,7 +26,6 @@ abstract final class ColorUtils {
   /// for text/icons placed on top of [background].
   static Color contrastColor(Color background) {
     final luminance = background.computeLuminance();
-    return luminance > 0.35 ? Colors.black : Colors.white;
+    return luminance > 0.35 ? AppColors.black : AppColors.white;
   }
-
 }

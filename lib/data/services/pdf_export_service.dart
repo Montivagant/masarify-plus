@@ -48,10 +48,11 @@ class PdfExportService {
     required int year,
     required int month,
     required PdfLabels labels,
+    String? locale,
   }) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
-    final monthLabel = DateFormat.yMMMM().format(start);
+    final monthLabel = DateFormat.yMMMM(locale).format(start);
 
     // Query data.
     final txs = await (_db.select(_db.transactions)
@@ -174,7 +175,7 @@ class PdfExportService {
             headers: labels.txHeaders,
             data: txs.map((tx) {
               return [
-                DateFormat('MM/dd').format(tx.transactionDate),
+                DateFormat('MM/dd', locale).format(tx.transactionDate),
                 tx.title,
                 MoneyFormatter.format(tx.amount),
                 tx.type,

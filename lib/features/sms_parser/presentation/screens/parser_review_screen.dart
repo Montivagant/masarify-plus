@@ -18,6 +18,7 @@ import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -130,8 +131,11 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     var title = log.senderAddress;
     int? categoryId;
     if (enrichment != null) {
+      // M8 fix: also match transaction type when resolving AI category suggestion
       final match = categories.where(
-        (c) => c.iconName == enrichment.categoryIcon,
+        (c) =>
+            c.iconName == enrichment.categoryIcon &&
+            (c.type == txType || c.type == 'both'),
       );
       if (match.isNotEmpty) categoryId = match.first.id;
       // Prefer AI title > merchant name > sender address
@@ -229,19 +233,12 @@ class _PendingLogCard extends StatelessWidget {
         ? enrichment.merchant
         : null;
 
-    return Card(
+    return GlassCard(
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
       ),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.md),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header: category icon + title + amount ──
@@ -335,7 +332,9 @@ class _PendingLogCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSizes.xxs),
                 Text(
-                  log.source == 'sms' ? 'SMS' : 'Notification',
+                  log.source == 'sms'
+                      ? context.l10n.transaction_source_sms
+                      : context.l10n.transaction_source_notification,
                   style: context.textStyles.labelSmall?.copyWith(
                         color: cs.outline,
                       ),
@@ -360,7 +359,6 @@ class _PendingLogCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

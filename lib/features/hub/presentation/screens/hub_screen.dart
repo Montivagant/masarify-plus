@@ -35,9 +35,10 @@ class HubScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppAppBar(title: context.l10n.hub_title, showBack: false),
       body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.screenHPadding,
-          vertical: AppSizes.md,
+        padding: const EdgeInsets.only(
+          left: AppSizes.screenHPadding,
+          right: AppSizes.screenHPadding,
+          top: AppSizes.md,
         ),
         children: [
           // ── Money ──────────────────────────────────────────────────────────

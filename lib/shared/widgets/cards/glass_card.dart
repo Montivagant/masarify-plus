@@ -110,13 +110,17 @@ class GlassCard extends StatelessWidget {
       child: child,
     );
 
-    // Wrap in BackdropFilter only when device supports it.
-    if (useBlur) {
-      content = ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-          child: content,
+    // Wrap in BackdropFilter only for background tier (sheets/dialogs).
+    // Card and inset tiers skip blur — stacking 8+ BackdropFilters causes
+    // GPU compositing overload (grey overlay / frozen screen on Android).
+    if (useBlur && tier == GlassTier.background) {
+      content = RepaintBoundary(
+        child: ClipRRect(
+          borderRadius: radius,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+            child: content,
+          ),
         ),
       );
     } else {

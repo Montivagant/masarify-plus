@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -16,12 +17,16 @@ class OverviewTab extends ConsumerStatefulWidget {
   ConsumerState<OverviewTab> createState() => _OverviewTabState();
 }
 
-class _OverviewTabState extends ConsumerState<OverviewTab> {
+class _OverviewTabState extends ConsumerState<OverviewTab>
+    with AutomaticKeepAliveClientMixin {
   int _months = 6;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    final ref = this.ref;
+    super.build(context);
     final totalsAsync = ref.watch(monthlyTotalsProvider(_months));
 
     return totalsAsync.when(
@@ -118,7 +123,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                 ),
-                child: _IncomeExpenseBarChart(totals: totals),
+                child: RepaintBoundary(
+                  child: _IncomeExpenseBarChart(totals: totals),
+                ),
               ),
             ),
 
@@ -163,7 +170,7 @@ class _SummaryTile extends StatelessWidget {
       padding: const EdgeInsets.all(AppSizes.sm),
       decoration: BoxDecoration(
         color: color.withValues(alpha: AppSizes.opacitySubtle),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,7 +270,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
-                    '${totals[idx].month}/${totals[idx].year % 100}',
+                    DateFormat('M/yy', context.languageCode)
+                        .format(DateTime(totals[idx].year, totals[idx].month)),
                     style: context.textStyles.bodySmall?.copyWith(
                           fontSize: AppSizes.chartLabelSize,
                           color: context.colors.outline,
@@ -343,7 +351,7 @@ class _DailyAverageRow extends StatelessWidget {
       padding: const EdgeInsets.all(AppSizes.md),
       decoration: BoxDecoration(
         color: context.colors.surfaceContainerHighest.withValues(
-              alpha: 0.4,
+              alpha: AppSizes.opacityLight5,
             ),
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
       ),

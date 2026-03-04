@@ -162,6 +162,8 @@ class _GoalCard extends StatelessWidget {
                       goal.name,
                       style: context.textStyles.bodyLarge
                           ?.copyWith(fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                     if (daysLeft != null)
                       Text(
@@ -179,7 +181,7 @@ class _GoalCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '$pct%',
+                MoneyFormatter.formatPercent(pct),
                 style: context.textStyles.titleMedium?.copyWith(
                       color: color,
                       fontWeight: FontWeight.w700,

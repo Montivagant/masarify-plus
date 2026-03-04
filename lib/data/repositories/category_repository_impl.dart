@@ -93,6 +93,21 @@ class CategoryRepositoryImpl implements ICategoryRepository {
         'DELETE FROM budgets WHERE category_id = ?',
         [id],
       );
+      // C4 fix: reassign orphaned transactions to the first default category
+      final defaults = await _db.customSelect(
+        'SELECT id FROM categories WHERE is_default = 1 AND is_archived = 0 AND id != ? LIMIT 1',
+        variables: [Variable.withInt(id)],
+      ).get();
+      if (defaults.isEmpty) {
+        throw StateError(
+          'Cannot archive: no default category available for transaction reassignment',
+        );
+      }
+      final fallbackId = defaults.first.read<int>('id');
+      await _db.customStatement(
+        'UPDATE transactions SET category_id = ? WHERE category_id = ?',
+        [fallbackId, id],
+      );
       return _dao.archive(id);
     });
   }

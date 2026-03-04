@@ -236,7 +236,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                     icon: const Icon(AppIcons.calendar, size: AppSizes.iconSm),
                     label: Text(
                       _deadline != null
-                          ? DateFormat.yMd(Localizations.localeOf(context).toString()).format(_deadline!)
+                          ? DateFormat.yMd(context.languageCode).format(_deadline!)
                           : context.l10n.goal_pick_date,
                     ),
                   ),
@@ -308,21 +308,32 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
               children: _colorOptions.map((hex) {
                 final color = ColorUtils.fromHex(hex);
                 final isSelected = hex == _colorHex;
-                return GestureDetector(
-                  onTap: () => setState(() => _colorHex = hex),
-                  child: Container(
-                    width: AppSizes.colorSwatchSize,
-                    height: AppSizes.colorSwatchSize,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                          : Border.all(color: Colors.transparent, width: AppSizes.colorSwatchBorder),
+                return Semantics(
+                  label: context.l10n.goal_color_label,
+                  selected: isSelected,
+                  button: true,
+                  child: SizedBox(
+                    width: AppSizes.minTapTarget,
+                    height: AppSizes.minTapTarget,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _colorHex = hex),
+                        child: Container(
+                          width: AppSizes.colorSwatchSize,
+                          height: AppSizes.colorSwatchSize,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: isSelected
+                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
+                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                          ),
+                          child: isSelected
+                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              : null,
+                        ),
+                      ),
                     ),
-                    child: isSelected
-                        ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
-                        : null,
                   ),
                 );
               }).toList(),
@@ -348,23 +359,28 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
               itemBuilder: (_, i) {
                 final item = _icons[i];
                 final isSelected = item.name == _iconName;
-                return GestureDetector(
-                  onTap: () => setState(() => _iconName = item.name),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? selectedColor.withValues(alpha: AppSizes.opacityLight)
-                          : cs.surfaceContainerHighest,
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadiusSm),
-                      border: isSelected
-                          ? Border.all(color: selectedColor, width: 2)
-                          : null,
-                    ),
-                    child: Icon(
-                      CategoryIconMapper.fromName(item.name),
-                      color: isSelected ? selectedColor : cs.onSurfaceVariant,
-                      size: AppSizes.iconSm,
+                return Semantics(
+                  label: 'Icon: ${item.name}',
+                  button: true,
+                  selected: isSelected,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _iconName = item.name),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? selectedColor.withValues(alpha: AppSizes.opacityLight)
+                            : cs.surfaceContainerHighest,
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.borderRadiusSm),
+                        border: isSelected
+                            ? Border.all(color: selectedColor, width: 2)
+                            : null,
+                      ),
+                      child: Icon(
+                        CategoryIconMapper.fromName(item.name),
+                        color: isSelected ? selectedColor : cs.onSurfaceVariant,
+                        size: AppSizes.iconSm,
+                      ),
                     ),
                   ),
                 );

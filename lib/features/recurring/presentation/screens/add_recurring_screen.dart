@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/extensions/frequency_label_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
@@ -47,16 +48,6 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     'yearly',
     'custom',
   ];
-
-  String _frequencyLabel(BuildContext context, String freq) => switch (freq) {
-        'once' => context.l10n.recurring_frequency_once,
-        'daily' => context.l10n.recurring_frequency_daily,
-        'weekly' => context.l10n.recurring_frequency_weekly,
-        'monthly' => context.l10n.recurring_frequency_monthly,
-        'yearly' => context.l10n.recurring_frequency_yearly,
-        'custom' => context.l10n.recurring_frequency_custom,
-        _ => freq,
-      };
 
   /// Whether the frequency is 'once' (one-time bill).
   bool get _isOnce => _frequency == 'once';
@@ -240,6 +231,9 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     // For custom frequency, endDate is required.
     if (_isCustom && _endDate == null) return;
 
+    // M9 fix: guard end date < start date
+    if (_endDate != null && _endDate!.isBefore(_startDate)) return;
+
     setState(() => _loading = true);
     try {
       final repo = ref.read(recurringRuleRepositoryProvider);
@@ -272,9 +266,12 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               frequency: _frequency,
               startDate: effectiveStartDate,
               endDate: effectiveEndDate,
+              // C6 fix: reset nextDueDate if start date changed
               nextDueDate: _isOnce
                   ? effectiveNextDue
-                  : existing.nextDueDate,
+                  : (_startDate != existing.startDate
+                      ? effectiveStartDate
+                      : existing.nextDueDate),
               isPaid: existing.isPaid,
               paidAt: existing.paidAt,
               linkedTransactionId: existing.linkedTransactionId,
@@ -496,7 +493,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               children: _frequencies
                   .map(
                     (f) => ChoiceChip(
-                      label: Text(_frequencyLabel(context, f)),
+                      label: Text(context.l10n.frequencyLabel(f)),
                       selected: _frequency == f,
                       onSelected: (_) => setState(() {
                         _frequency = f;

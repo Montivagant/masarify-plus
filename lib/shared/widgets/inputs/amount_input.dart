@@ -153,7 +153,7 @@ class _AmountInputState extends State<AmountInput> {
           prefixIconConstraints: widget.compact
               ? null
               : const BoxConstraints(),
-          hintText: '0.00',
+          hintText: context.l10n.transaction_amount_hint,
           hintStyle: hintStyle,
           // I14 fix: show error when pasted text is invalid
           errorText: _hasInvalidInput ? context.l10n.common_invalid_amount : null,

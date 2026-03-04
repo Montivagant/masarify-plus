@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,7 +6,6 @@ import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
-import '../../../core/services/glass_config_service.dart';
 import '../../../core/utils/money_formatter.dart';
 
 /// Hero balance card for the Dashboard (Zone 1).
@@ -60,9 +57,9 @@ class BalanceCard extends StatelessWidget {
       child: Stack(
         children: [
           // Decorative background circles
-          Positioned(
+          PositionedDirectional(
             top: AppSizes.decorCircleLgOffset,
-            right: AppSizes.decorCircleLgOffset,
+            end: AppSizes.decorCircleLgOffset,
             child: Container(
               width: AppSizes.decorCircleLg,
               height: AppSizes.decorCircleLg,
@@ -72,9 +69,9 @@ class BalanceCard extends StatelessWidget {
               ),
             ),
           ),
-          Positioned(
+          PositionedDirectional(
             bottom: AppSizes.decorCircleSmOffsetBottom,
-            left: AppSizes.decorCircleSmOffsetStart,
+            start: AppSizes.decorCircleSmOffsetStart,
             child: Container(
               width: AppSizes.decorCircleSm,
               height: AppSizes.decorCircleSm,
@@ -166,7 +163,7 @@ class BalanceCard extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSizes.xs),
                         Text(
-                          '${isUp ? '+' : ''}$pct% ${context.l10n.reports_vs_last_month}',
+                          '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
                           style: context.textStyles.bodySmall?.copyWith(
                                 color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
                               ),
@@ -303,19 +300,9 @@ class _GlassInsetRow extends StatelessWidget {
       child: Row(children: children),
     );
 
-    if (!GlassConfig.shouldBlur(context)) {
-      return ClipRRect(borderRadius: radius, child: content);
-    }
-
-    return ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: AppSizes.glassBlurInset,
-          sigmaY: AppSizes.glassBlurInset,
-        ),
-        child: content,
-      ),
-    );
+    // Inset-tier blur (sigma 8) removed — imperceptible on small rows and
+    // stacking multiple BackdropFilters in a scrollable body causes GPU
+    // compositing overload (grey overlay / frozen screen).
+    return ClipRRect(borderRadius: radius, child: content);
   }
 }

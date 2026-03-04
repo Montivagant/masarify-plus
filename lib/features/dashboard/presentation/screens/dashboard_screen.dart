@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -65,6 +63,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(recentTransactionsProvider);
           ref.invalidate(transactionsByMonthProvider(monthKey));
           ref.invalidate(budgetsByMonthProvider(monthKey));
+          await ref.read(recentTransactionsProvider.future);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -102,7 +101,6 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
 
-              ..._staggerZones(context, [
               // ── Zone 1: Account Carousel ─────────────────────────
               const AccountCarousel(),
 
@@ -161,8 +159,6 @@ class DashboardScreen extends ConsumerWidget {
 
               // ── Zone 5: Budget alerts ───────────────────────────
               const BudgetAlertsZone(),
-
-            ]),
             ],
           ),
         ),
@@ -170,22 +166,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Wraps [children] in staggered fade animations, respecting
-  /// the platform's reduce-motion setting.
-  List<Widget> _staggerZones(BuildContext context, List<Widget> children) {
-    if (context.reduceMotion) return children;
-
-    var staggerIndex = 0;
-    return [
-      for (final child in children)
-        if (child is SizedBox)
-          child
-        else
-          child
-              .animate(delay: Duration(milliseconds: 30 * staggerIndex++))
-              .fadeIn(duration: AppDurations.animQuick),
-    ];
-  }
 }
 
 class _GlassQuickAction extends StatelessWidget {
@@ -204,7 +184,6 @@ class _GlassQuickAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      tier: GlassTier.inset,
       onTap: onTap,
       padding: const EdgeInsets.symmetric(
         vertical: AppSizes.sm,

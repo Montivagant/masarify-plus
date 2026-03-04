@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -16,11 +17,16 @@ class TrendsTab extends ConsumerStatefulWidget {
   ConsumerState<TrendsTab> createState() => _TrendsTabState();
 }
 
-class _TrendsTabState extends ConsumerState<TrendsTab> {
+class _TrendsTabState extends ConsumerState<TrendsTab>
+    with AutomaticKeepAliveClientMixin {
   int _selectedDays = 30;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final dailyAsync = ref.watch(dailySpendingProvider(_selectedDays));
 
     return Column(
@@ -73,9 +79,11 @@ class _TrendsTabState extends ConsumerState<TrendsTab> {
                   right: AppSizes.screenHPadding,
                   bottom: AppSizes.bottomScrollPadding,
                 ),
-                child: _SpendingLineChart(
-                  data: dailyData,
-                  days: _selectedDays,
+                child: RepaintBoundary(
+                  child: _SpendingLineChart(
+                    data: dailyData,
+                    days: _selectedDays,
+                  ),
                 ),
               );
             },
@@ -119,7 +127,7 @@ class _SpendingLineChart extends StatelessWidget {
                 final d = data[idx];
                 final baseStyle = context.textStyles.bodySmall ?? const TextStyle();
                 return LineTooltipItem(
-                  '${d.date.day}/${d.date.month}\n',
+                  '${DateFormat.MMMd(context.languageCode).format(d.date)}\n',
                   baseStyle.copyWith(color: tooltipColor),
                   children: [
                     TextSpan(
@@ -165,7 +173,8 @@ class _SpendingLineChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
-                    '${data[idx].date.day}/${data[idx].date.month}',
+                    DateFormat('d/M', context.languageCode)
+                        .format(data[idx].date),
                     style: context.textStyles.bodySmall?.copyWith(
                           fontSize: AppSizes.chartLabelSize,
                           color: context.colors.onSurfaceVariant,

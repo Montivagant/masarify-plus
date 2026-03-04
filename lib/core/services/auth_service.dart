@@ -28,6 +28,8 @@ class AuthService {
   // H3: legacy key for migration detection
   static const _iterations = 100000;
   static const _keyLength = 32; // 256 bits
+  static const _failedAttemptsKey = 'masarify_pin_failed_attempts';
+  static const _lockoutUntilKey = 'masarify_pin_lockout_until';
 
   // ── PIN ─────────────────────────────────────────────────────────────────
 
@@ -73,6 +75,42 @@ class AuthService {
   Future<void> removePin() async {
     await _secure.delete(key: _pinHashKey);
     await _secure.delete(key: _pinSaltKey);
+  }
+
+  // ── Lockout persistence ─────────────────────────────────────────────────
+
+  /// Read the persisted failed-attempt count.
+  Future<int> getFailedAttempts() async {
+    final val = await _secure.read(key: _failedAttemptsKey);
+    return val != null ? int.tryParse(val) ?? 0 : 0;
+  }
+
+  /// Persist the failed-attempt count.
+  Future<void> setFailedAttempts(int count) async {
+    await _secure.write(key: _failedAttemptsKey, value: count.toString());
+  }
+
+  /// Read the persisted lockout-until timestamp (ms since epoch).
+  Future<DateTime?> getLockoutUntil() async {
+    final val = await _secure.read(key: _lockoutUntilKey);
+    if (val == null) return null;
+    final ms = int.tryParse(val);
+    if (ms == null) return null;
+    return DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /// Persist a lockout-until timestamp.
+  Future<void> setLockoutUntil(DateTime until) async {
+    await _secure.write(
+      key: _lockoutUntilKey,
+      value: until.millisecondsSinceEpoch.toString(),
+    );
+  }
+
+  /// Clear all lockout state (on successful unlock or PIN removal).
+  Future<void> clearLockout() async {
+    await _secure.delete(key: _failedAttemptsKey);
+    await _secure.delete(key: _lockoutUntilKey);
   }
 
   // ── Biometric ───────────────────────────────────────────────────────────

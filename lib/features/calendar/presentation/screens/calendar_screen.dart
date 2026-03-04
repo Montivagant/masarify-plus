@@ -91,12 +91,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   titleTextStyle:
                       context.textStyles.titleMedium ??
                           const TextStyle(),
-                  leftChevronIcon: const Icon(
-                    AppIcons.chevronLeft,
+                  leftChevronIcon: Icon(
+                    context.isRtl ? AppIcons.chevronRight : AppIcons.chevronLeft,
                     size: AppSizes.iconSm,
                   ),
-                  rightChevronIcon: const Icon(
-                    AppIcons.chevronRight,
+                  rightChevronIcon: Icon(
+                    context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
                     size: AppSizes.iconSm,
                   ),
                 ),

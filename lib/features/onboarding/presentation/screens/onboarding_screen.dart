@@ -149,7 +149,7 @@ class _WelcomePage extends ConsumerWidget {
                   ButtonSegment(value: 'ar', label: Text(context.l10n.language_ar)),
                   ButtonSegment(value: 'en', label: Text(context.l10n.language_en)),
                 ],
-                selected: {currentLocale ?? (Localizations.localeOf(context).languageCode == 'ar' ? 'ar' : 'en')},
+                selected: {currentLocale ?? (context.languageCode == 'ar' ? 'ar' : 'en')},
                 onSelectionChanged: (set) =>
                     ref.read(localeProvider.notifier).setLocale(set.first),
                 style: const ButtonStyle(

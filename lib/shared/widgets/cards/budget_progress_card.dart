@@ -63,7 +63,7 @@ class BudgetProgressCard extends StatelessWidget {
                 ),
               ),
               Text(
-                isOver ? context.l10n.budget_exceeded : '$pct%',
+                isOver ? context.l10n.budget_exceeded : MoneyFormatter.formatPercent(pct),
                 style: context.textStyles.bodySmall?.copyWith(
                       color: barColor,
                       fontWeight: FontWeight.w700,
@@ -74,7 +74,7 @@ class BudgetProgressCard extends StatelessWidget {
           const SizedBox(height: AppSizes.sm),
           RepaintBoundary(
             child: Semantics(
-              label: '$categoryName: $pct%',
+              label: '$categoryName: ${MoneyFormatter.formatPercent(pct)}',
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: _fraction.clamp(0.0, 1.0)),
                 duration: context.reduceMotion

@@ -15,8 +15,8 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
-import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
@@ -185,18 +185,11 @@ class WalletDetailScreen extends ConsumerWidget {
 
     if (hasReferences) {
       if (!context.mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(context.l10n.wallet_cannot_delete_title),
-          content: Text(context.l10n.wallet_cannot_delete_body),
-          actions: [
-            FilledButton(
-              onPressed: () => ctx.pop(),
-              child: Text(context.l10n.common_ok),
-            ),
-          ],
-        ),
+      await ConfirmDialog.show(
+        context,
+        title: context.l10n.wallet_cannot_delete_title,
+        message: context.l10n.wallet_cannot_delete_body,
+        confirmLabel: context.l10n.common_ok,
       );
       return;
     }
@@ -210,27 +203,13 @@ class WalletDetailScreen extends ConsumerWidget {
         ? '\n\n${context.l10n.wallet_archive_balance_warning}'
         : '';
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.wallet_delete_title),
-        content: Text('${context.l10n.wallet_delete_confirm}$balanceWarning'),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          AppButton(
-            label: context.l10n.common_delete,
-            variant: AppButtonVariant.danger,
-            isFullWidth: false,
-            onPressed: () => ctx.pop(true),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.wallet_delete_title,
+      message: '${context.l10n.wallet_delete_confirm}$balanceWarning',
     );
 
-    if (confirmed == true && context.mounted) {
+    if (confirmed && context.mounted) {
       await ref.read(walletRepositoryProvider).archive(walletId);
       HapticFeedback.mediumImpact();
       if (context.mounted) context.pop();

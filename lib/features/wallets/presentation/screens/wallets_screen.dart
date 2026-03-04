@@ -169,14 +169,17 @@ class _WalletCard extends StatelessWidget {
             child: Icon(_typeIcon(wallet.type), color: color, size: AppSizes.iconSm),
           ),
         ),
-        title: Text(wallet.name),
+        title: Text(
+          wallet.name,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
         subtitle: Text(_typeLabel(context, wallet.type)),
         trailing: Text(
           MoneyFormatter.format(wallet.balance),
           style: context.textStyles.bodyMedium
               ?.copyWith(fontWeight: FontWeight.w600),
         ),
-        onTap: onTap,
         onLongPress: onEdit,
       ),
     );

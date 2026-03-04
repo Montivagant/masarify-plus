@@ -79,12 +79,19 @@ class TransferRepositoryImpl implements ITransferRepository {
     return _db.transaction(() async {
       final existing = await _dao.getById(id);
       if (existing == null) return false;
-      // Reverse: restore source, deduct from destination
-      await _walletDao.adjustBalance(
-        existing.fromWalletId,
-        existing.amount + existing.fee,
-      );
-      await _walletDao.adjustBalance(existing.toWalletId, -existing.amount);
+      // H8 fix: check wallet existence before balance reversal
+      final fromWallet = await _walletDao.getById(existing.fromWalletId);
+      final toWallet = await _walletDao.getById(existing.toWalletId);
+      // Reverse: restore source, deduct from destination (skip if archived/deleted)
+      if (fromWallet != null) {
+        await _walletDao.adjustBalance(
+          existing.fromWalletId,
+          existing.amount + existing.fee,
+        );
+      }
+      if (toWallet != null) {
+        await _walletDao.adjustBalance(existing.toWalletId, -existing.amount);
+      }
       return _dao.deleteById(id);
     });
   }

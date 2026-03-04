@@ -81,7 +81,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen>
       context.pop();
     } else {
       HapticFeedback.heavyImpact();
-      _shakeController.forward(from: 0);
+      if (!context.reduceMotion) _shakeController.forward(from: 0);
       setState(() {
         _pin = '';
         _firstPin = '';

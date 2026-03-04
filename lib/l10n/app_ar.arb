@@ -104,7 +104,6 @@
   "goal_progress": "تم {percent}٪",
   "@goal_progress": {"placeholders": {"percent": {"type": "int"}}},
 
-  "recurring_title": "المتكررة",
   "recurring_add": "إضافة متكرر",
   "recurring_edit": "تعديل التكرار",
   "recurring_frequency_daily": "يومي",
@@ -118,6 +117,7 @@
   "recurring_upcoming_bills": "فواتير قادمة",
   "recurring_paid": "مدفوعة",
   "recurring_mark_paid": "تم الدفع",
+  "recurring_mark_paid_confirm": "هل تريد تسجيل دفع هذه الفاتورة؟ سيتم إنشاء معاملة.",
   "recurring_bill_paid_success": "تم تسجيل دفع الفاتورة",
   "recurring_due_date_label": "الاستحقاق",
   "recurring_frequency_once": "مرة واحدة",
@@ -178,7 +178,7 @@
   "settings_biometric_unavailable": "المصادقة البيومترية غير متوفرة على هذا الجهاز",
   "settings_verify_pin_first": "تحقق من رمز PIN الحالي",
   "settings_clear_data": "مسح جميع البيانات",
-  "settings_clear_data_confirm": "اكتب DELETE للتأكيد",
+  "settings_clear_data_confirm": "اكتب حذف للتأكيد",
   "settings_smart_input": "الإدخال الذكي",
   "settings_voice_input": "الإدخال الصوتي",
   "settings_notification_parser": "تحليل الإشعارات",
@@ -399,6 +399,7 @@
   "goal_name_label": "اسم الهدف",
   "goal_name_hint": "مثال: سفر اليابان، سيارة جديدة",
   "goal_detail_add_savings": "إضافة مدخرات",
+  "goal_already_funded": "تم تمويل هذا الهدف بالكامل.",
   "goal_detail_no_savings": "لا توجد مدخرات بعد",
   "goal_detail_no_savings_sub": "أضف أول مبلغ لهذا الهدف",
   "goal_saved_label": "المدخر",
@@ -519,6 +520,7 @@
   "recurring_start_date": "تاريخ البدء",
   "recurring_end_date": "تاريخ الانتهاء (اختياري)",
   "recurring_end_date_required": "تاريخ الانتهاء",
+  "recurring_empty_title": "لا توجد قواعد متكررة",
   "recurring_empty_sub": "أضف معاملاتك المتكررة لتوفير الوقت",
   "recurring_delete_title": "حذف المتكرر",
   "recurring_delete_confirm": "هل أنت متأكد من حذف هذه المعاملة المتكررة؟",
@@ -548,14 +550,6 @@
   "reports_daily_average": "المتوسط اليومي",
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
-
-  "day_saturday": "السبت",
-  "day_sunday": "الأحد",
-  "day_monday": "الاثنين",
-  "day_tuesday": "الثلاثاء",
-  "day_wednesday": "الأربعاء",
-  "day_thursday": "الخميس",
-  "day_friday": "الجمعة",
 
   "balance_show": "إظهار",
   "balance_hide": "إخفاء",
@@ -647,5 +641,8 @@
   "dashboard_all_accounts": "جميع الحسابات",
 
   "voice_offline_message": "التحليل الذكي يحتاج إنترنت. يمكنك إضافة المعاملة يدوياً.",
-  "dashboard_offline_banner": "غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً."
+  "dashboard_offline_banner": "غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.",
+
+  "budget_over_by": "تجاوز بـ",
+  "recurring_mark_paid_confirm": "هل تريد تسجيل هذا الدفع؟ سيتم إنشاء معاملة."
 }

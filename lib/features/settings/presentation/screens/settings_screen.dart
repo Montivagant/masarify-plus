@@ -2,6 +2,7 @@ import 'package:another_telephony/telephony.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show NumberFormat;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../../core/config/ai_config.dart';
@@ -410,6 +411,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   Future<bool> _verifyCurrentPin() async {
+    final auth = AuthService();
+    // C2 fix: check persisted lockout before showing dialog
+    final lockoutUntil = await auth.getLockoutUntil();
+    if (lockoutUntil != null && lockoutUntil.isAfter(DateTime.now())) {
+      if (!mounted) return false;
+      final remaining = lockoutUntil.difference(DateTime.now());
+      SnackHelper.showError(
+        context,
+        'Too many attempts. Try again in ${remaining.inSeconds >= 60 ? '${remaining.inMinutes}m' : '${remaining.inSeconds}s'}',
+      );
+      return false;
+    }
+
+    if (!mounted) return false;
     final l10n = context.l10n;
     var pin = '';
     final result = await showDialog<bool>(
@@ -436,8 +451,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
           FilledButton(
             onPressed: () async {
-              final auth = AuthService();
               final ok = await auth.verifyPin(pin);
+              if (!ok) {
+                // C2 fix: persist failed attempts using shared lockout
+                final attempts = await auth.getFailedAttempts() + 1;
+                await auth.setFailedAttempts(attempts);
+                if (attempts >= 5) {
+                  await auth.setLockoutUntil(
+                    DateTime.now().add(const Duration(seconds: 30)),
+                  );
+                }
+              } else {
+                await auth.clearLockout();
+              }
               if (ctx.mounted) ctx.pop(ok);
             },
             child: Text(l10n.common_done),
@@ -530,6 +556,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       await db.customStatement('DELETE FROM wallets');
       await db.customStatement('DELETE FROM categories');
     });
+
+    // C3 fix: clear PIN and lockout state before clearing prefs
+    await AuthService().removePin();
+    await AuthService().clearLockout();
 
     final prefs = await ref.read(preferencesFutureProvider.future);
     await prefs.clearAll();
@@ -693,7 +723,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           _SettingsTile(
             icon: AppIcons.calendar,
             label: l10n.settings_first_day_budget_cycle,
-            subtitle: '$_firstDayOfMonth',
+            subtitle: NumberFormat.decimalPattern(context.languageCode).format(_firstDayOfMonth),
             onTap: () => _showMonthDayPicker(),
           ),
 
@@ -810,7 +840,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             ),
             title: Text(
               l10n.settings_biometric,
-              style: TextStyle(color: _pinEnabled ? null : cs.outline),
+              style: context.textStyles.bodyLarge?.copyWith(
+                color: _pinEnabled ? null : cs.outline,
+              ),
             ),
             subtitle: Text(l10n.settings_biometric_subtitle),
             value: _biometricEnabled,
@@ -818,7 +850,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
           if (_pinEnabled)
             _SettingsTile(
-              icon: AppIcons.calendar,
+              icon: AppIcons.security,
               label: l10n.settings_auto_lock,
               subtitle: _autoLockLabel(),
               onTap: _showAutoLockPicker,
@@ -1035,7 +1067,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     childCount: 28,
                     builder: (ctx, i) => Center(
                       child: Text(
-                        '${i + 1}',
+                        NumberFormat.decimalPattern(context.languageCode).format(i + 1),
                         style: ctx.textStyles.titleMedium,
                       ),
                     ),
@@ -1121,7 +1153,9 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(
         label,
-        style: TextStyle(color: enabled ? null : cs.outline),
+        style: context.textStyles.bodyLarge?.copyWith(
+          color: enabled ? null : cs.outline,
+        ),
       ),
       subtitle: subtitle != null ? Text(subtitle!) : null,
       trailing: trailing ??

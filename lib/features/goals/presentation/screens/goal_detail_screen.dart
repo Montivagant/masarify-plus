@@ -19,6 +19,7 @@ import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -31,24 +32,27 @@ class GoalDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final activeAsync = ref.watch(activeGoalsProvider);
-    final completedAsync = ref.watch(completedGoalsProvider);
+    final goalAsync = ref.watch(goalByIdProvider(id));
     final contributionsAsync = ref.watch(goalContributionsProvider(id));
 
-    final allGoals = [
-      ...activeAsync.valueOrNull ?? [],
-      ...completedAsync.valueOrNull ?? [],
-    ];
-    final goal = allGoals.where((g) => g.id == id).firstOrNull;
-
-    if (goal == null) {
-      return Scaffold(
+    return goalAsync.when(
+      loading: () => Scaffold(
         appBar: AppAppBar(title: context.l10n.goal_detail_title),
-        body: EmptyState(title: context.l10n.goal_not_found),
-      );
-    }
+        body: const Center(child: CircularProgressIndicator.adaptive()),
+      ),
+      error: (_, __) => Scaffold(
+        appBar: AppAppBar(title: context.l10n.goal_detail_title),
+        body: EmptyState(title: context.l10n.common_error_title),
+      ),
+      data: (goal) {
+        if (goal == null) {
+          return Scaffold(
+            appBar: AppAppBar(title: context.l10n.goal_detail_title),
+            body: EmptyState(title: context.l10n.goal_not_found),
+          );
+        }
 
-    return Scaffold(
+        return Scaffold(
       appBar: AppAppBar(
         title: goal.name,
         actions: [
@@ -166,7 +170,7 @@ class GoalDetailScreen extends ConsumerWidget {
                       ),
                       title: Text(MoneyFormatter.format(c.amount)),
                       subtitle: Text(
-                        '${DateFormat.yMd(Localizations.localeOf(context).toString()).format(c.date)}'
+                        '${DateFormat.yMd(context.languageCode).format(c.date)}'
                         '${c.note != null ? " · ${c.note}" : ""}',
                       ),
                       trailing: IconButton(
@@ -176,30 +180,12 @@ class GoalDetailScreen extends ConsumerWidget {
                         ),
                         // M11 fix: add confirmation dialog
                         onPressed: () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: Text(
-                                context.l10n.common_delete,
-                              ),
-                              content: Text(
-                                context.l10n.goal_delete_contribution_confirm,
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      ctx.pop(false),
-                                  child: Text(context.l10n.common_cancel),
-                                ),
-                                TextButton(
-                                  onPressed: () =>
-                                      ctx.pop(true),
-                                  child: Text(context.l10n.common_delete),
-                                ),
-                              ],
-                            ),
+                          final confirmed = await ConfirmDialog.confirmDelete(
+                            context,
+                            title: context.l10n.common_delete,
+                            message: context.l10n.goal_delete_contribution_confirm,
                           );
-                          if (confirmed == true) {
+                          if (confirmed) {
                             // CR-19 fix: await the async delete
                             await ref
                                 .read(goalRepositoryProvider)
@@ -222,6 +208,8 @@ class GoalDetailScreen extends ConsumerWidget {
           ],
         ),
       ),
+        );
+      },
     );
   }
 
@@ -230,26 +218,12 @@ class GoalDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     int goalId,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.goal_delete_title),
-        content: Text(context.l10n.goal_delete_confirm),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          AppButton(
-            label: context.l10n.common_delete,
-            variant: AppButtonVariant.danger,
-            isFullWidth: false,
-            onPressed: () => ctx.pop(true),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.goal_delete_title,
+      message: context.l10n.goal_delete_confirm,
     );
-    if (confirmed == true) {
+    if (confirmed) {
       await ref.read(goalRepositoryProvider).deleteGoal(goalId);
       HapticFeedback.mediumImpact();
       if (context.mounted) context.pop();
@@ -308,6 +282,26 @@ class GoalDetailScreen extends ConsumerWidget {
                   icon: AppIcons.check,
                   onPressed: () async {
                     if (amountPiastres <= 0) return;
+                    // H6 fix: pre-validate contribution doesn't exceed remaining
+                    final remaining = goal.targetAmount - goal.currentAmount;
+                    if (remaining <= 0) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(ctx.l10n.goal_already_funded),
+                        ),
+                      );
+                      return;
+                    }
+                    if (amountPiastres > remaining) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
+                          ),
+                        ),
+                      );
+                      return;
+                    }
                     try {
                       await ref
                           .read(goalRepositoryProvider)
@@ -392,7 +386,7 @@ class _GoalHeader extends StatelessWidget {
           ),
           const SizedBox(height: AppSizes.md),
           Text(
-            '$pct%',
+            MoneyFormatter.formatPercent(pct),
             style: context.textStyles.headlineMedium?.copyWith(
                   color: color,
                   fontWeight: FontWeight.w700,
@@ -427,7 +421,7 @@ class _GoalHeader extends StatelessWidget {
                 const Icon(AppIcons.calendar, size: AppSizes.iconXs),
                 const SizedBox(width: AppSizes.xs),
                 Text(
-                  DateFormat.yMd(Localizations.localeOf(context).toString()).format(goal.deadline!),
+                  DateFormat.yMd(context.languageCode).format(goal.deadline!),
                   style: context.textStyles.bodySmall,
                 ),
               ],

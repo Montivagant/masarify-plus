@@ -72,16 +72,28 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
       });
     }
 
-    // Total income/expense across all accounts for current month.
-    final totalIncome = monthTxs
-        .where((t) => t.type == 'income')
-        .fold<int>(0, (s, t) => s + t.amount);
-    final totalExpense = monthTxs
-        .where((t) => t.type == 'expense')
-        .fold<int>(0, (s, t) => s + t.amount);
-    final lastMonthExpenseTotal = lastMonthTxs
-        .where((t) => t.type == 'expense')
-        .fold<int>(0, (s, t) => s + t.amount);
+    // Pre-compute aggregates once (avoid O(wallets * transactions) in itemBuilder).
+    final incomeByWallet = <int, int>{};
+    final expenseByWallet = <int, int>{};
+    int totalIncome = 0;
+    int totalExpense = 0;
+    for (final t in monthTxs) {
+      if (t.type == 'income') {
+        totalIncome += t.amount;
+        incomeByWallet[t.walletId] = (incomeByWallet[t.walletId] ?? 0) + t.amount;
+      } else if (t.type == 'expense') {
+        totalExpense += t.amount;
+        expenseByWallet[t.walletId] = (expenseByWallet[t.walletId] ?? 0) + t.amount;
+      }
+    }
+    final lastExpenseByWallet = <int, int>{};
+    int lastMonthExpenseTotal = 0;
+    for (final t in lastMonthTxs) {
+      if (t.type == 'expense') {
+        lastMonthExpenseTotal += t.amount;
+        lastExpenseByWallet[t.walletId] = (lastExpenseByWallet[t.walletId] ?? 0) + t.amount;
+      }
+    }
 
     return Column(
       children: [
@@ -121,21 +133,9 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
               }
               final wallet = wallets[index - 1];
 
-              final walletIncome = monthTxs
-                  .where(
-                    (t) => t.type == 'income' && t.walletId == wallet.id,
-                  )
-                  .fold<int>(0, (s, t) => s + t.amount);
-              final walletExpense = monthTxs
-                  .where(
-                    (t) => t.type == 'expense' && t.walletId == wallet.id,
-                  )
-                  .fold<int>(0, (s, t) => s + t.amount);
-              final walletLastExpense = lastMonthTxs
-                  .where(
-                    (t) => t.type == 'expense' && t.walletId == wallet.id,
-                  )
-                  .fold<int>(0, (s, t) => s + t.amount);
+              final walletIncome = incomeByWallet[wallet.id] ?? 0;
+              final walletExpense = expenseByWallet[wallet.id] ?? 0;
+              final walletLastExpense = lastExpenseByWallet[wallet.id] ?? 0;
 
               return Padding(
                 padding: const EdgeInsets.symmetric(

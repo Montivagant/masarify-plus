@@ -12,8 +12,8 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
-import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -94,43 +94,22 @@ class CategoriesScreen extends ConsumerWidget {
     CategoryEntity category,
   ) async {
     if (category.isDefault) {
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(ctx.l10n.category_default_title),
-          content: Text(ctx.l10n.category_delete_default_warning),
-          actions: [
-            FilledButton(
-              onPressed: () => ctx.pop(),
-              child: Text(ctx.l10n.common_ok),
-            ),
-          ],
-        ),
+      await ConfirmDialog.show(
+        context,
+        title: context.l10n.category_default_title,
+        message: context.l10n.category_delete_default_warning,
+        confirmLabel: context.l10n.common_ok,
       );
       return;
     }
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(ctx.l10n.category_delete_title),
-        content: Text(ctx.l10n.category_delete_confirm(category.displayName(ctx.languageCode))),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(ctx.l10n.common_cancel),
-          ),
-          AppButton(
-            label: ctx.l10n.common_delete,
-            variant: AppButtonVariant.danger,
-            isFullWidth: false,
-            onPressed: () => ctx.pop(true),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.category_delete_title,
+      message: context.l10n.category_delete_confirm(category.displayName(context.languageCode)),
     );
 
-    if (confirmed == true) {
+    if (confirmed) {
       await ref.read(categoryRepositoryProvider).archive(category.id);
       HapticFeedback.mediumImpact();
     }
@@ -227,7 +206,6 @@ class _CategoryTile extends StatelessWidget {
                 tooltip: context.l10n.common_delete,
                 onPressed: onDelete,
               ),
-        onTap: onTap,
       ),
     );
   }

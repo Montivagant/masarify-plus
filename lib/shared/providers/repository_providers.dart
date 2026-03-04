@@ -62,7 +62,12 @@ final goalRepositoryProvider = Provider<IGoalRepository>(
 );
 
 final recurringRuleRepositoryProvider = Provider<IRecurringRuleRepository>(
-  (ref) => RecurringRuleRepositoryImpl(ref.watch(recurringRuleDaoProvider)),
+  (ref) => RecurringRuleRepositoryImpl(
+    ref.watch(recurringRuleDaoProvider),
+    ref.watch(databaseProvider),
+    ref.watch(walletDaoProvider),
+    ref.watch(transactionDaoProvider),
+  ),
 );
 
 final backupServiceProvider = Provider<BackupServiceImpl>(

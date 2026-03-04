@@ -14,6 +14,11 @@ final completedGoalsProvider = StreamProvider<List<SavingsGoalEntity>>(
   (ref) => ref.watch(goalRepositoryProvider).watchCompleted(),
 );
 
+/// Single goal by ID — avoids watching full active+completed lists.
+final goalByIdProvider = FutureProvider.family<SavingsGoalEntity?, int>(
+  (ref, id) => ref.watch(goalRepositoryProvider).getById(id),
+);
+
 /// Contributions for a specific goal.
 final goalContributionsProvider =
     StreamProvider.family<List<GoalContributionEntity>, int>(

@@ -5,7 +5,6 @@ import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
-import '../cards/glass_card.dart';
 
 /// Data for a single radial menu bubble.
 class _FabBubble {
@@ -208,52 +207,58 @@ class _ExpandableFabState extends State<ExpandableFab>
           // Main FAB
           Positioned(
             bottom: 0,
-            child: GestureDetector(
-              onTap: () {
-                if (_isExpanded) {
-                  _collapse();
-                } else {
-                  HapticFeedback.mediumImpact();
-                  widget.onTap();
-                }
-              },
-              onLongPressStart: (details) {
-                _expand();
-              },
-              onLongPressMoveUpdate: (details) {
-                // Compute offset relative to FAB center
-                const fabCenter = Offset(
-                  AppSizes.fabSize / 2,
-                  AppSizes.fabSize / 2,
-                );
-                final dragOffset = details.localPosition - fabCenter;
-                setState(() {
-                  final newHovered = _findClosestBubble(dragOffset);
-                  if (newHovered != _hoveredIndex) {
-                    _hoveredIndex = newHovered;
-                    if (newHovered >= 0) {
-                      HapticFeedback.selectionClick();
-                    }
+            child: Semantics(
+              label: context.l10n.fab_expense,
+              button: true,
+              child: GestureDetector(
+                onTap: () {
+                  if (_isExpanded) {
+                    _collapse();
+                  } else {
+                    HapticFeedback.mediumImpact();
+                    widget.onTap();
                   }
-                });
-              },
-              onLongPressEnd: (details) {
-                _collapse(selectedIndex: _hoveredIndex);
-              },
-              child: AnimatedBuilder(
-                animation: _expandAnimation,
-                builder: (context, child) {
-                  final rotation = _expandAnimation.value * AppSizes.fabRotationAngle;
-                  return Transform.rotate(
-                    angle: rotation,
-                    child: child,
-                  );
                 },
-                child: const FloatingActionButton(
-                  heroTag: 'nav_fab',
-                  onPressed: null, // Handled by GestureDetector
-                  elevation: AppSizes.elevationHigh,
-                  child: Icon(AppIcons.add),
+                onLongPressStart: (details) {
+                  _expand();
+                },
+                onLongPressMoveUpdate: (details) {
+                  // Compute offset relative to FAB center
+                  const fabCenter = Offset(
+                    AppSizes.fabSize / 2,
+                    AppSizes.fabSize / 2,
+                  );
+                  final dragOffset = details.localPosition - fabCenter;
+                  setState(() {
+                    final newHovered = _findClosestBubble(dragOffset);
+                    if (newHovered != _hoveredIndex) {
+                      _hoveredIndex = newHovered;
+                      if (newHovered >= 0) {
+                        HapticFeedback.selectionClick();
+                      }
+                    }
+                  });
+                },
+                onLongPressEnd: (details) {
+                  _collapse(selectedIndex: _hoveredIndex);
+                },
+                child: AnimatedBuilder(
+                  animation: _expandAnimation,
+                  builder: (context, child) {
+                    final rotation = _expandAnimation.value * AppSizes.fabRotationAngle;
+                    return Transform.rotate(
+                      angle: rotation,
+                      child: child,
+                    );
+                  },
+                  child: const ExcludeSemantics(
+                    child: FloatingActionButton(
+                      heroTag: 'nav_fab',
+                      onPressed: null, // Handled by GestureDetector
+                      elevation: AppSizes.elevationHigh,
+                      child: Icon(AppIcons.add),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -319,18 +324,25 @@ class _ExpandableFabState extends State<ExpandableFab>
                   ),
                 ),
                 const SizedBox(height: AppSizes.xs),
-                GlassCard(
-                  tier: GlassTier.inset,
+                Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.sm,
                     vertical: AppSizes.xxs,
                   ),
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                  tintColor: cs.shadow.withValues(alpha: AppSizes.opacityLight5),
+                  decoration: BoxDecoration(
+                    color: Color.alphaBlend(
+                      cs.shadow.withValues(alpha: AppSizes.opacityLight5),
+                      context.appTheme.glassInsetSurface,
+                    ),
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+                    border: Border.all(
+                      color: context.appTheme.glassInsetBorder,
+                    ),
+                  ),
                   child: Text(
                     bubble.labelKey(context),
                     style: context.textStyles.labelSmall?.copyWith(
-                          color: cs.onPrimary,
+                          color: cs.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                   ),

@@ -216,21 +216,32 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
               children: _colorOptions.map((hex) {
                 final color = ColorUtils.fromHex(hex);
                 final isSelected = hex == _colorHex;
-                return GestureDetector(
-                  onTap: () => setState(() => _colorHex = hex),
-                  child: Container(
-                    width: AppSizes.colorSwatchSize,
-                    height: AppSizes.colorSwatchSize,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                          : Border.all(color: Colors.transparent, width: AppSizes.colorSwatchBorder),
+                return Semantics(
+                  label: context.l10n.category_color,
+                  selected: isSelected,
+                  button: true,
+                  child: SizedBox(
+                    width: AppSizes.minTapTarget,
+                    height: AppSizes.minTapTarget,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _colorHex = hex),
+                        child: Container(
+                          width: AppSizes.colorSwatchSize,
+                          height: AppSizes.colorSwatchSize,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: isSelected
+                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
+                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                          ),
+                          child: isSelected
+                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              : null,
+                        ),
+                      ),
                     ),
-                    child: isSelected
-                        ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
-                        : null,
                   ),
                 );
               }).toList(),
@@ -256,23 +267,28 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
               itemBuilder: (_, i) {
                 final iconName = _iconNames[i];
                 final isSelected = iconName == _iconName;
-                return GestureDetector(
-                  onTap: () => setState(() => _iconName = iconName),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? selectedColor.withValues(alpha: AppSizes.opacityLight)
-                          : cs.surfaceContainerHighest,
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadiusSm),
-                      border: isSelected
-                          ? Border.all(color: selectedColor, width: 2)
-                          : null,
-                    ),
-                    child: Icon(
-                      CategoryIconMapper.fromName(iconName),
-                      color: isSelected ? selectedColor : cs.onSurfaceVariant,
-                      size: AppSizes.iconSm,
+                return Semantics(
+                  label: 'Icon: $iconName',
+                  button: true,
+                  selected: isSelected,
+                  child: GestureDetector(
+                    onTap: () => setState(() => _iconName = iconName),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? selectedColor.withValues(alpha: AppSizes.opacityLight)
+                            : cs.surfaceContainerHighest,
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.borderRadiusSm),
+                        border: isSelected
+                            ? Border.all(color: selectedColor, width: 2)
+                            : null,
+                      ),
+                      child: Icon(
+                        CategoryIconMapper.fromName(iconName),
+                        color: isSelected ? selectedColor : cs.onSurfaceVariant,
+                        size: AppSizes.iconSm,
+                      ),
                     ),
                   ),
                 );

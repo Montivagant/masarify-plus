@@ -87,10 +87,13 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
 
     try {
       final repo = ref.read(walletRepositoryProvider);
-      // M3 fix: check for duplicate wallet name
-      if (widget.editId == null) {
-        final exists = await repo.existsByName(name);
-        if (exists && mounted) {
+      // H5 fix: check for duplicate wallet name on both create AND edit
+      final exists = await repo.existsByName(name);
+      if (exists && mounted) {
+        // On edit, allow keeping the same name (only block if it's a different wallet's name)
+        final isSameName = widget.editId != null &&
+            (await repo.getById(widget.editId!))?.name == name;
+        if (!isSameName) {
           setState(() {
             _nameError = context.l10n.wallet_name_duplicate;
             _loading = false;
@@ -202,21 +205,32 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               children: _colorOptions.map((hex) {
                 final color = ColorUtils.fromHex(hex);
                 final isSelected = hex == _colorHex;
-                return GestureDetector(
-                  onTap: () => setState(() => _colorHex = hex),
-                  child: Container(
-                    width: AppSizes.colorSwatchSize,
-                    height: AppSizes.colorSwatchSize,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                          : Border.all(color: Colors.transparent, width: AppSizes.colorSwatchBorder),
+                return Semantics(
+                  label: context.l10n.wallet_color_label,
+                  selected: isSelected,
+                  button: true,
+                  child: SizedBox(
+                    width: AppSizes.minTapTarget,
+                    height: AppSizes.minTapTarget,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _colorHex = hex),
+                        child: Container(
+                          width: AppSizes.colorSwatchSize,
+                          height: AppSizes.colorSwatchSize,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: isSelected
+                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
+                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                          ),
+                          child: isSelected
+                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              : null,
+                        ),
+                      ),
                     ),
-                    child: isSelected
-                        ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
-                        : null,
                   ),
                 );
               }).toList(),

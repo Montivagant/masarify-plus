@@ -292,9 +292,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recurring_title => 'المتكررة';
-
-  @override
   String get recurring_add => 'إضافة متكرر';
 
   @override
@@ -332,6 +329,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_mark_paid => 'تم الدفع';
+
+  @override
+  String get recurring_mark_paid_confirm =>
+      'هل تريد تسجيل هذا الدفع؟ سيتم إنشاء معاملة.';
 
   @override
   String get recurring_bill_paid_success => 'تم تسجيل دفع الفاتورة';
@@ -504,7 +505,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_clear_data => 'مسح جميع البيانات';
 
   @override
-  String get settings_clear_data_confirm => 'اكتب DELETE للتأكيد';
+  String get settings_clear_data_confirm => 'اكتب حذف للتأكيد';
 
   @override
   String get settings_smart_input => 'الإدخال الذكي';
@@ -1112,6 +1113,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goal_detail_add_savings => 'إضافة مدخرات';
 
   @override
+  String get goal_already_funded => 'تم تمويل هذا الهدف بالكامل.';
+
+  @override
   String get goal_detail_no_savings => 'لا توجد مدخرات بعد';
 
   @override
@@ -1452,6 +1456,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_end_date_required => 'تاريخ الانتهاء';
 
   @override
+  String get recurring_empty_title => 'لا توجد قواعد متكررة';
+
+  @override
   String get recurring_empty_sub => 'أضف معاملاتك المتكررة لتوفير الوقت';
 
   @override
@@ -1533,27 +1540,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String reports_category_rank(int rank) {
     return '#$rank';
   }
-
-  @override
-  String get day_saturday => 'السبت';
-
-  @override
-  String get day_sunday => 'الأحد';
-
-  @override
-  String get day_monday => 'الاثنين';
-
-  @override
-  String get day_tuesday => 'الثلاثاء';
-
-  @override
-  String get day_wednesday => 'الأربعاء';
-
-  @override
-  String get day_thursday => 'الخميس';
-
-  @override
-  String get day_friday => 'الجمعة';
 
   @override
   String get balance_show => 'إظهار';
@@ -1794,8 +1780,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_all_accounts => 'جميع الحسابات';
 
   @override
-  String get voice_offline_message => 'التحليل الذكي يحتاج إنترنت. يمكنك إضافة المعاملة يدوياً.';
+  String get voice_offline_message =>
+      'التحليل الذكي يحتاج إنترنت. يمكنك إضافة المعاملة يدوياً.';
 
   @override
-  String get dashboard_offline_banner => 'غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.';
+  String get dashboard_offline_banner =>
+      'غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.';
+
+  @override
+  String get budget_over_by => 'تجاوز بـ';
 }

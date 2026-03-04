@@ -29,7 +29,7 @@ Future<T?> showMasarifyBottomSheet<T>({
     enableDrag: enableDrag,
     useSafeArea: useSafeArea,
     isScrollControlled: isScrollControlled,
-    backgroundColor: Colors.transparent,
+    backgroundColor: AppColors.transparent,
     barrierColor: AppColors.barrierScrim,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(

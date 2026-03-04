@@ -12,11 +12,21 @@ import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Categories tab — horizontal bar chart + ranked list of expense categories.
-class CategoriesTab extends ConsumerWidget {
+class CategoriesTab extends ConsumerStatefulWidget {
   const CategoriesTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CategoriesTab> createState() => _CategoriesTabState();
+}
+
+class _CategoriesTabState extends ConsumerState<CategoriesTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final now = DateTime.now();
     final txAsync =
         ref.watch(transactionsByMonthProvider((now.year, now.month)));
@@ -73,8 +83,10 @@ class CategoriesTab extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                 ),
-                child: _CategoryHorizontalBarChart(
-                  breakdown: breakdown.take(5).toList(),
+                child: RepaintBoundary(
+                  child: _CategoryHorizontalBarChart(
+                    breakdown: breakdown.take(5).toList(),
+                  ),
                 ),
               ),
             ),

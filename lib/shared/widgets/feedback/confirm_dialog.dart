@@ -34,10 +34,10 @@ abstract final class ConfirmDialog {
         final radius = BorderRadius.circular(AppSizes.borderRadiusLg);
 
         Widget dialog = AlertDialog(
-          backgroundColor: theme.glassCardSurface,
+          backgroundColor: theme.glassSheetSurface,
           shape: RoundedRectangleBorder(
             borderRadius: radius,
-            side: BorderSide(color: theme.glassCardBorder),
+            side: BorderSide(color: theme.glassSheetBorder),
           ),
           title: Text(title),
           content: Text(message),
@@ -62,12 +62,15 @@ abstract final class ConfirmDialog {
         );
 
         if (useBlur) {
-          dialog = BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: AppSizes.glassBlurBackground,
-              sigmaY: AppSizes.glassBlurBackground,
+          dialog = ClipRRect(
+            borderRadius: radius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: AppSizes.glassBlurBackground,
+                sigmaY: AppSizes.glassBlurBackground,
+              ),
+              child: dialog,
             ),
-            child: dialog,
           );
         }
 

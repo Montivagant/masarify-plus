@@ -14,6 +14,7 @@ import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/transaction_provider.dart';
+import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/app_search_bar.dart';
@@ -98,30 +99,24 @@ class _TransactionListScreenState
 
   Future<void> _deleteTransaction(TransactionEntity tx) async {
     // L6 fix: confirm before deleting
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.transaction_delete_title),
-        content: Text(context.l10n.transaction_delete_confirm),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          TextButton(
-            onPressed: () => ctx.pop(true),
-            child: Text(
-              context.l10n.common_delete,
-              style: TextStyle(color: context.colors.error),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await ConfirmDialog.confirmDelete(
+      context,
+      title: context.l10n.transaction_delete_title,
+      message: context.l10n.transaction_delete_confirm,
     );
-    if (confirmed != true || !mounted) return;
+    if (!confirmed || !mounted) return;
 
     final repo = ref.read(transactionRepositoryProvider);
-    final deleted = await repo.delete(tx.id);
+    // H2 fix: wrap in try/catch for exception handling
+    final bool deleted;
+    try {
+      deleted = await repo.delete(tx.id);
+    } catch (e) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
+      return;
+    }
     if (!deleted || !mounted) return;
 
     HapticFeedback.mediumImpact();
@@ -238,15 +233,16 @@ class _TransactionListScreenState
                 }
 
                 final grouped = groupTransactionsByDate(context, filtered);
+                final entries = grouped.entries.toList();
 
                 return ListView.builder(
                   padding: const EdgeInsets.only(
                     top: AppSizes.xs,
                     bottom: AppSizes.bottomScrollPadding,
                   ),
-                  itemCount: grouped.length,
+                  itemCount: entries.length,
                   itemBuilder: (_, i) {
-                    final entry = grouped.entries.elementAt(i);
+                    final entry = entries[i];
                     final section = TransactionListSection(
                       dateLabel: entry.key,
                       transactions: entry.value,

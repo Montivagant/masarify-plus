@@ -20,6 +20,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -92,8 +93,13 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final defaultWalletId = wallets.isNotEmpty ? wallets.first.id : null;
 
     // Apply auto-matching once when categories/wallets become available.
-    if (categories.isNotEmpty && defaultWalletId != null) {
-      _applyDefaults(categories, defaultWalletId);
+    if (categories.isNotEmpty && defaultWalletId != null && !_defaultsApplied) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _applyDefaults(categories, defaultWalletId);
+          setState(() {});
+        }
+      });
     }
 
     return Scaffold(
@@ -403,19 +409,12 @@ class _DraftCard extends StatelessWidget {
         ? context.appTheme.incomeColor
         : context.appTheme.expenseColor;
 
-    return Card(
+    return GlassCard(
       margin: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
         vertical: AppSizes.xs,
       ),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.md),
-        child: Column(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header: raw text + remove ───────────────────────
@@ -436,8 +435,7 @@ class _DraftCard extends StatelessWidget {
                   icon: const Icon(AppIcons.close, size: AppSizes.iconXs),
                   onPressed: onRemove,
                   visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  tooltip: context.l10n.common_delete,
                 ),
               ],
             ),
@@ -520,7 +518,6 @@ class _DraftCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
