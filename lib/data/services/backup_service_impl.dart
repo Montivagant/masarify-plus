@@ -235,7 +235,7 @@ class BackupServiceImpl implements BackupService {
     final walletMap = {for (final w in wallets) w.id: w.name};
 
     final rows = <List<dynamic>>[
-      ['Date', 'Title', 'Amount', 'Type', 'Category', 'Wallet', 'Location', 'Notes'],
+      ['Date', 'Title', 'Amount', 'Type', 'Category', 'Account', 'Location', 'Notes'],
       ...txs.map((tx) => [
             DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
             tx.title,

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -182,10 +183,8 @@ class _RecurringCard extends ConsumerWidget {
         _ => freq,
       };
 
-  String _formatDate(DateTime date) {
-    final d = date.day.toString().padLeft(2, '0');
-    final m = date.month.toString().padLeft(2, '0');
-    return '${date.year}/$m/$d';
+  String _formatDate(BuildContext context, DateTime date) {
+    return DateFormat.yMd(context.languageCode).format(date);
   }
 
   @override
@@ -331,7 +330,7 @@ class _RecurringCard extends ConsumerWidget {
         ),
         const SizedBox(width: AppSizes.xs),
         Text(
-          '${context.l10n.recurring_due_date_label}: ${_formatDate(rule.nextDueDate)}',
+          '${context.l10n.recurring_due_date_label}: ${_formatDate(context, rule.nextDueDate)}',
           style: context.textStyles.bodySmall?.copyWith(
                 color: dueDateColor,
                 fontWeight: isOverdue ? FontWeight.w600 : null,
@@ -376,7 +375,7 @@ class _RecurringCard extends ConsumerWidget {
         ),
         const SizedBox(width: AppSizes.sm),
         Text(
-          '${context.l10n.recurring_next_due}: ${_formatDate(rule.nextDueDate)}',
+          '${context.l10n.recurring_next_due}: ${_formatDate(context, rule.nextDueDate)}',
           style: context.textStyles.bodySmall?.copyWith(
                 color: cs.outline,
               ),

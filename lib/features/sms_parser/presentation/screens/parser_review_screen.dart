@@ -77,7 +77,9 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
                 onApprove: _processingIds.contains(log.id)
                     ? null
                     : () => _approveWithGuard(log),
-                onSkip: () => _skip(log),
+                onSkip: _processingIds.contains(log.id)
+                    ? null
+                    : () => _skip(log),
               );
             },
           );
@@ -195,7 +197,7 @@ class _PendingLogCard extends StatelessWidget {
   final SmsParserLog log;
   final bool isProcessing;
   final VoidCallback? onApprove;
-  final VoidCallback onSkip;
+  final VoidCallback? onSkip;
 
   @override
   Widget build(BuildContext context) {

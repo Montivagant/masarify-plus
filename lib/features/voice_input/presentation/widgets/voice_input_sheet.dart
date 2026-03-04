@@ -85,10 +85,12 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     }
   }
 
-  void _startListening() {
+  Future<void> _startListening() async {
     if (!_sttAvailable) return;
 
     _transcript = '';
+    final localeId = await _getLocaleId();
+    if (!mounted) return;
     _stt.listen(
       onResult: (result) {
         if (!mounted) return;
@@ -96,7 +98,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
           _transcript = result.recognizedWords;
         });
       },
-      localeId: _getLocaleId(),
+      localeId: localeId,
       listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 3),
     );
@@ -145,10 +147,11 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         return;
       }
 
-      // Navigate to confirm screen with parsed drafts
+      // Capture router before popping — the bottom sheet's context becomes
+      // invalid after pop, so we need a reference that survives dismissal.
+      final router = GoRouter.of(context);
       context.pop(); // Close the bottom sheet first
-      if (!mounted) return;
-      context.push(
+      router.push(
         AppRoutes.voiceConfirm,
         extra: result.drafts,
       );
@@ -159,9 +162,23 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     }
   }
 
-  String _getLocaleId() {
+  /// Returns the best STT locale ID, preferring the app language.
+  /// Falls back to device-supported locales if the preferred one isn't available.
+  Future<String> _getLocaleId() async {
     final langCode = context.languageCode;
-    return langCode == 'ar' ? 'ar_EG' : 'en_US';
+    final preferred = langCode == 'ar' ? 'ar_EG' : 'en_US';
+
+    // Check if the device actually supports the preferred locale.
+    final locales = await _stt.locales();
+    final supported = locales.map((l) => l.localeId).toSet();
+    if (supported.contains(preferred)) return preferred;
+
+    // Fallback: find any locale matching the language code.
+    final fallback = locales.firstWhere(
+      (l) => l.localeId.startsWith(langCode),
+      orElse: () => locales.first,
+    );
+    return fallback.localeId;
   }
 
   void _popAndShowInfo(String message) {
