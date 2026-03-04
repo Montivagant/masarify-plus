@@ -23,11 +23,29 @@ import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Rule #7: SMS/notification-parsed transactions MUST pass review — never auto-save.
-class ParserReviewScreen extends ConsumerWidget {
+class ParserReviewScreen extends ConsumerStatefulWidget {
   const ParserReviewScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ParserReviewScreen> createState() =>
+      _ParserReviewScreenState();
+
+  static AiTransactionEnrichment? parseEnrichment(String? json) {
+    if (json == null || json.isEmpty) return null;
+    try {
+      final map = jsonDecode(json) as Map<String, dynamic>;
+      return AiTransactionEnrichment.fromJson(map);
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
+  final _processingIds = <int>{};
+
+  @override
+  Widget build(BuildContext context) {
     final pendingAsync = ref.watch(pendingParsedTransactionsProvider);
 
     return Scaffold(
@@ -55,8 +73,11 @@ class ParserReviewScreen extends ConsumerWidget {
               final log = logs[index];
               return _PendingLogCard(
                 log: log,
-                onApprove: () => _approve(context, ref, log),
-                onSkip: () => _skip(context, ref, log),
+                isProcessing: _processingIds.contains(log.id),
+                onApprove: _processingIds.contains(log.id)
+                    ? null
+                    : () => _approveWithGuard(log),
+                onSkip: () => _skip(log),
               );
             },
           );
@@ -65,23 +86,30 @@ class ParserReviewScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _approve(
-    BuildContext context,
-    WidgetRef ref,
-    SmsParserLog log,
-  ) async {
+  Future<void> _approveWithGuard(SmsParserLog log) async {
+    if (_processingIds.contains(log.id)) return;
+    setState(() => _processingIds.add(log.id));
+    try {
+      await _approve(log);
+    } finally {
+      if (mounted) setState(() => _processingIds.remove(log.id));
+    }
+  }
+
+  Future<void> _approve(SmsParserLog log) async {
     final parsed = NotificationTransactionParser.parse(
       sender: log.senderAddress,
       body: log.body,
       receivedAt: log.receivedAt,
     );
     if (parsed == null) {
-      _skip(context, ref, log);
+      _skip(log);
       return;
     }
 
     final wallets = ref.read(walletsProvider).valueOrNull ?? [];
     if (wallets.isEmpty) {
+      if (!mounted) return;
       SnackHelper.showError(context, context.l10n.common_error_generic);
       return;
     }
@@ -89,12 +117,13 @@ class ParserReviewScreen extends ConsumerWidget {
     final txRepo = ref.read(transactionRepositoryProvider);
     final dao = ref.read(smsParserLogDaoProvider);
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final approvedMsg = context.l10n.parser_approved_msg;
     final errorMsg = context.l10n.common_error_generic;
 
     // Resolve AI-suggested category or fall back to a matching-type category.
-    final enrichment = _parseEnrichment(log.aiEnrichmentJson);
+    final enrichment = ParserReviewScreen.parseEnrichment(log.aiEnrichmentJson);
     final txType = parsed.type;
     var title = log.senderAddress;
     int? categoryId;
@@ -140,12 +169,9 @@ class ParserReviewScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _skip(
-    BuildContext context,
-    WidgetRef ref,
-    SmsParserLog log,
-  ) async {
+  Future<void> _skip(SmsParserLog log) async {
     final dao = ref.read(smsParserLogDaoProvider);
+    if (!mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final skippedMsg = context.l10n.parser_skipped_msg;
 
@@ -154,16 +180,6 @@ class ParserReviewScreen extends ConsumerWidget {
     ref.invalidate(pendingParsedTransactionsProvider);
     messenger.showSnackBar(SnackBar(content: Text(skippedMsg)));
   }
-
-  static AiTransactionEnrichment? _parseEnrichment(String? json) {
-    if (json == null || json.isEmpty) return null;
-    try {
-      final map = jsonDecode(json) as Map<String, dynamic>;
-      return AiTransactionEnrichment.fromJson(map);
-    } catch (_) {
-      return null;
-    }
-  }
 }
 
 // ── Pending log card ──────────────────────────────────────────────────────
@@ -171,12 +187,14 @@ class ParserReviewScreen extends ConsumerWidget {
 class _PendingLogCard extends StatelessWidget {
   const _PendingLogCard({
     required this.log,
+    required this.isProcessing,
     required this.onApprove,
     required this.onSkip,
   });
 
   final SmsParserLog log;
-  final VoidCallback onApprove;
+  final bool isProcessing;
+  final VoidCallback? onApprove;
   final VoidCallback onSkip;
 
   @override
@@ -188,7 +206,7 @@ class _PendingLogCard extends StatelessWidget {
       body: log.body,
       receivedAt: log.receivedAt,
     );
-    final enrichment = ParserReviewScreen._parseEnrichment(
+    final enrichment = ParserReviewScreen.parseEnrichment(
       log.aiEnrichmentJson,
     );
 
@@ -327,7 +345,13 @@ class _PendingLogCard extends StatelessWidget {
                 const SizedBox(width: AppSizes.sm),
                 FilledButton.tonal(
                   onPressed: onApprove,
-                  child: Text(context.l10n.sms_review_approve),
+                  child: isProcessing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(context.l10n.sms_review_approve),
                 ),
               ],
             ),
