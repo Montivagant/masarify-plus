@@ -27,7 +27,7 @@ class CategoriesTab extends ConsumerWidget {
         child: Text(context.l10n.common_error_generic),
       ),
       data: (transactions) {
-        final breakdown = ref.read(
+        final breakdown = ref.watch(
           categoryBreakdownProvider((now.year, now.month, transactions)),
         );
 
