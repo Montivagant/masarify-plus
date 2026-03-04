@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:another_telephony/telephony.dart';
 
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
+import '../config/ai_config.dart';
 import '../config/app_config.dart';
 import 'ai/ai_transaction_parser.dart';
 import 'connectivity_service.dart';
@@ -26,6 +28,12 @@ class SmsParserService {
   /// Scan SMS inbox for financial messages. No-op if feature is disabled.
   Future<int> scanInbox() async {
     if (!AppConfig.kSmsEnabled) return 0;
+
+    dev.log(
+      'scanInbox: aiParser=${aiParser != null}, '
+      'categories=${categories?.length}, hasApiKey=${AiConfig.hasApiKey}',
+      name: 'SmsParserService',
+    );
 
     final telephony = Telephony.instance;
 
@@ -96,6 +104,11 @@ class SmsParserService {
       if (inserted.source != 'sms') continue;
 
       // AI enrichment (optional — null on failure). Skipped when offline.
+      dev.log(
+        'SMS enrichment: aiParser=${aiParser != null}, online=$isOnline, '
+        'categories=${categories?.length}, calls=$enrichmentCalls/$maxEnrichmentCalls',
+        name: 'SmsParserService',
+      );
       if (isOnline &&
           aiParser != null &&
           categories != null &&
