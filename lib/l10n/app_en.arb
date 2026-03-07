@@ -243,7 +243,7 @@
   "common_maybe_later": "Maybe Later",
 
   "permission_mic_title": "Microphone Access",
-  "permission_mic_body": "Masarify uses your microphone to let you add transactions by speaking. Your audio is never stored or sent anywhere.",
+  "permission_mic_body": "Masarify uses your microphone to record voice commands. Audio is sent to Google AI for transcription when you have internet access. Nothing is stored permanently.",
   "permission_location_title": "Location Access",
   "permission_location_body": "Masarify can tag your transaction with the location name. This is completely optional.",
   "location_detect": "Detect Location",
@@ -260,13 +260,13 @@
   "error_pin_too_short": "PIN must be 6 digits",
 
   "voice_tap_to_start": "Tap the mic to start",
-  "voice_listening": "Listening...",
+  "voice_listening": "Recording...",
   "voice_processing": "Processing...",
   "voice_confirm_title": "Review Transactions",
   "voice_confirm_all": "Confirm All",
   "voice_remove": "Remove",
   "voice_unavailable": "Voice input is not available on this device",
-  "voice_error_no_service": "Speech recognition is not available. Please ensure Google app is installed and updated.",
+  "voice_error_no_service": "Voice input is not available. Please check your internet connection.",
   "voice_error_no_locale": "No language packs found for speech recognition. Please install one in your device settings.",
   "voice_error_speech": "Speech recognition error. Please try again.",
   "voice_no_results": "Nothing detected. Please try again.",
@@ -589,6 +589,7 @@
   "settings_ai_model_subtitle": "Choose which AI model processes voice input",
   "settings_ai_model_auto": "Auto (Recommended)",
   "settings_ai_model_gemma_27b": "Gemma 3 27B",
+  "settings_ai_model_gemini_flash": "Gemini 2.0 Flash",
   "settings_ai_model_qwen3_4b": "Qwen3 4B",
 
   "fab_expense": "Expense",

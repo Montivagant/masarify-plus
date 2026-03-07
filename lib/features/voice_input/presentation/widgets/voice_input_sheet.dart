@@ -1,15 +1,19 @@
+import 'dart:async';
 import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:speech_to_text/speech_to_text.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/ai/gemini_audio_service.dart';
 import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
@@ -17,12 +21,12 @@ import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 
 /// Voice input states.
-enum _VoiceState { idle, listening, processing, error }
+enum _VoiceState { idle, recording, processing, error }
 
-/// Bottom sheet for AI voice input using device STT.
+/// Bottom sheet for AI voice input using audio recording + Gemini API.
 ///
-/// Uses [SpeechToText] for live on-device transcription, then sends the
-/// transcript to the AI voice parser (OpenRouter) for structured parsing.
+/// Records audio via [AudioRecorder], sends WAV bytes to Gemini for
+/// transcription + transaction parsing in a single API call.
 class VoiceInputSheet extends ConsumerStatefulWidget {
   const VoiceInputSheet({super.key});
 
@@ -46,140 +50,192 @@ class VoiceInputSheet extends ConsumerStatefulWidget {
 }
 
 class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
-  final _stt = SpeechToText();
+  final _recorder = AudioRecorder();
 
   _VoiceState _state = _VoiceState.idle;
-  String _transcript = '';
-  bool _sttAvailable = false;
+  String? _tempFilePath;
+
+  /// Synchronous guard against concurrent `_stopAndProcess` calls.
+  bool _isStopping = false;
+
+  /// Recording duration displayed as MM:SS.
+  int _recordingSeconds = 0;
+  Timer? _durationTimer;
+
+  /// Safety limit — auto-stop after 60 seconds.
+  static const _maxRecordingSeconds = 60;
 
   @override
-  void initState() {
-    super.initState();
-    _initStt();
+  void dispose() {
+    _durationTimer?.cancel();
+    _recorder.dispose();
+    _cleanupTempFile();
+    super.dispose();
   }
 
-  Future<void> _initStt() async {
+  // ── Recording ───────────────────────────────────────────────────────────
+
+  Future<void> _startRecording() async {
     try {
-      _sttAvailable = await _stt.initialize(
-        onStatus: (status) {
-          if (status == 'done' || status == 'notListening') {
-            if (mounted && _state == _VoiceState.listening) {
-              setState(() => _state = _VoiceState.idle);
-            }
-          }
-        },
-        onError: (error) {
-          dev.log('STT error: ${error.errorMsg}', name: 'VoiceInputSheet');
-          if (mounted) {
-            setState(() => _state = _VoiceState.error);
-          }
-        },
-      );
-      if (!mounted) return;
-      if (!_sttAvailable) {
-        setState(() => _state = _VoiceState.error);
-      }
-    } catch (e) {
-      dev.log('STT init failed: $e', name: 'VoiceInputSheet');
-      if (mounted) setState(() => _state = _VoiceState.error);
-    }
-  }
-
-  Future<void> _startListening() async {
-    if (!_sttAvailable) return;
-
-    _transcript = '';
-    final localeId = await _getLocaleId();
-    if (!mounted) return;
-    _stt.listen(
-      onResult: (result) {
+      final hasPermission = await _recorder.hasPermission();
+      if (!hasPermission) {
+        dev.log('Microphone permission denied', name: 'VoiceInputSheet');
         if (!mounted) return;
-        setState(() {
-          _transcript = result.recognizedWords;
-        });
-      },
-      localeId: localeId,
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 3),
-    );
-    setState(() => _state = _VoiceState.listening);
-  }
-
-  Future<void> _stopAndProcess() async {
-    await _stt.stop();
-    if (!mounted) return;
-
-    if (_transcript.trim().isEmpty) {
-      _popAndShowInfo(context.l10n.voice_no_results);
-      return;
-    }
-
-    setState(() => _state = _VoiceState.processing);
-
-    // Check connectivity before calling AI
-    final online = ref.read(isOnlineProvider).valueOrNull ?? true;
-    if (!online) {
-      if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_offline_message);
-      return;
-    }
-
-    try {
-      final parser = ref.read(aiVoiceParserProvider);
-      final categories = ref.read(categoriesProvider).valueOrNull ?? [];
-      final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
-      final modelPref =
-          ref.read(aiModelPreferenceProvider).valueOrNull ?? 'auto';
-
-      final result = await parser.parse(
-        transcript: _transcript,
-        categories: categories,
-        goals: goals,
-        modelPreference: modelPref,
-      );
-
-      if (!mounted) return;
-
-      if (result.drafts.isEmpty) {
-        _popAndShowInfo(
-          result.errorMessage ?? context.l10n.voice_ai_error,
-        );
+        setState(() => _state = _VoiceState.error);
         return;
       }
 
-      // Capture router before popping — the bottom sheet's context becomes
-      // invalid after pop, so we need a reference that survives dismissal.
-      final router = GoRouter.of(context);
-      context.pop(); // Close the bottom sheet first
-      router.push(
-        AppRoutes.voiceConfirm,
-        extra: result.drafts,
+      final dir = await getTemporaryDirectory();
+      _tempFilePath =
+          '${dir.path}/masarify_voice_${DateTime.now().millisecondsSinceEpoch}.wav';
+
+      await _recorder.start(
+        const RecordConfig(
+          encoder: AudioEncoder.wav,
+          sampleRate: 16000,
+          numChannels: 1,
+          autoGain: true,
+          echoCancel: true,
+          noiseSuppress: true,
+        ),
+        path: _tempFilePath!,
       );
-    } catch (e) {
-      dev.log('AI parsing failed: $e', name: 'VoiceInputSheet');
+
       if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_ai_error);
+
+      _recordingSeconds = 0;
+      _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() => _recordingSeconds++);
+        if (_recordingSeconds >= _maxRecordingSeconds) {
+          timer.cancel();
+          _stopAndProcess();
+        }
+      });
+
+      setState(() => _state = _VoiceState.recording);
+      dev.log('Recording started → $_tempFilePath', name: 'VoiceInputSheet');
+    } catch (e) {
+      dev.log('Recording start failed: $e', name: 'VoiceInputSheet');
+      if (mounted) {
+        setState(() => _state = _VoiceState.error);
+      }
     }
   }
 
-  /// Returns the best STT locale ID, preferring the app language.
-  /// Falls back to device-supported locales if the preferred one isn't available.
-  Future<String> _getLocaleId() async {
-    final langCode = context.languageCode;
-    final preferred = langCode == 'ar' ? 'ar_EG' : 'en_US';
+  Future<void> _stopAndProcess() async {
+    // Synchronous guard against concurrent calls from timer + user tap.
+    if (_state != _VoiceState.recording || _isStopping) return;
+    _isStopping = true;
+    _durationTimer?.cancel();
+    setState(() => _state = _VoiceState.processing);
 
-    // Check if the device actually supports the preferred locale.
-    final locales = await _stt.locales();
-    final supported = locales.map((l) => l.localeId).toSet();
-    if (supported.contains(preferred)) return preferred;
+    try {
+      final path = await _recorder.stop();
+      dev.log('Recording stopped → $path', name: 'VoiceInputSheet');
 
-    // Fallback: find any locale matching the language code.
-    final fallback = locales.firstWhere(
-      (l) => l.localeId.startsWith(langCode),
-      orElse: () => locales.first,
-    );
-    return fallback.localeId;
+      if (path == null || path.isEmpty) {
+        await _cleanupTempFile();
+        if (!mounted) return;
+        _popAndShowInfo(context.l10n.voice_no_results);
+        return;
+      }
+
+      // Read WAV bytes and clean up temp file.
+      final file = File(path);
+      if (!file.existsSync()) {
+        await _cleanupTempFile();
+        if (!mounted) return;
+        _popAndShowInfo(context.l10n.voice_no_results);
+        return;
+      }
+
+      final audioBytes = await file.readAsBytes();
+      await _cleanupTempFile();
+
+      dev.log(
+        'Audio recorded: ${audioBytes.length} bytes',
+        name: 'VoiceInputSheet',
+      );
+
+      // ~1 second of 16kHz mono WAV — reject sub-second noise.
+      if (audioBytes.length < 32000) {
+        if (!mounted) return;
+        _popAndShowInfo(context.l10n.voice_no_results);
+        return;
+      }
+
+      // Check connectivity before calling Gemini.
+      final online = ref.read(isOnlineProvider).valueOrNull ?? true;
+      dev.log(
+        'Connectivity before Gemini call: $online',
+        name: 'VoiceInputSheet',
+      );
+      if (!online) {
+        if (!mounted) return;
+        _popAndShowInfo(context.l10n.voice_error_no_service);
+        return;
+      }
+
+      // Send audio to Gemini for transcription + parsing.
+      final gemini = ref.read(geminiAudioServiceProvider);
+      final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+      final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
+
+      final drafts = await gemini.parseAudio(
+        audioBytes: audioBytes,
+        mimeType: 'audio/wav',
+        categories: categories,
+        goals: goals,
+      );
+
+      if (!mounted) return;
+
+      dev.log(
+        'Gemini result: ${drafts.length} drafts',
+        name: 'VoiceInputSheet',
+      );
+
+      if (drafts.isEmpty) {
+        _popAndShowInfo(context.l10n.voice_ai_error);
+        return;
+      }
+
+      // Navigate to confirm screen.
+      final router = GoRouter.of(context);
+      context.pop();
+      router.push(AppRoutes.voiceConfirm, extra: drafts);
+    } on GeminiAudioException catch (e) {
+      dev.log(
+        'Gemini error: ${e.statusCode} — ${e.message}'
+        '${e.isRateLimit ? " (RATE LIMITED)" : ""}'
+        '${e.isUnauthorized ? " (AUTH FAILED)" : ""}'
+        '${e.isServerError ? " (SERVER ERROR)" : ""}',
+        name: 'VoiceInputSheet',
+      );
+      if (!mounted) return;
+      _popAndShowInfo(context.l10n.voice_ai_error);
+    } on TimeoutException {
+      dev.log('Gemini request timed out', name: 'VoiceInputSheet');
+      if (!mounted) return;
+      _popAndShowInfo(context.l10n.voice_ai_error);
+    } on SocketException {
+      dev.log('Network lost during Gemini call', name: 'VoiceInputSheet');
+      if (!mounted) return;
+      _popAndShowInfo(context.l10n.voice_error_no_service);
+    } catch (e) {
+      dev.log('Voice processing failed: $e', name: 'VoiceInputSheet');
+      if (!mounted) return;
+      _popAndShowInfo(context.l10n.voice_ai_error);
+    } finally {
+      _isStopping = false;
+    }
   }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
 
   void _popAndShowInfo(String message) {
     if (!mounted) return;
@@ -187,11 +243,23 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     context.pop();
   }
 
-  @override
-  void dispose() {
-    _stt.stop();
-    super.dispose();
+  Future<void> _cleanupTempFile() async {
+    if (_tempFilePath != null) {
+      try {
+        final file = File(_tempFilePath!);
+        if (file.existsSync()) await file.delete();
+      } catch (_) {}
+      _tempFilePath = null;
+    }
   }
+
+  String _formatDuration(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  // ── UI ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -224,9 +292,12 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             alignment: AlignmentDirectional.centerEnd,
             child: IconButton(
               icon: const Icon(AppIcons.close, size: AppSizes.iconSm),
-              onPressed: () {
-                _stt.stop();
-                context.pop();
+              onPressed: () async {
+                final nav = GoRouter.of(context);
+                if (_state == _VoiceState.recording) {
+                  await _recorder.stop();
+                }
+                nav.pop();
               },
               visualDensity: VisualDensity.compact,
               tooltip: context.l10n.common_close,
@@ -234,53 +305,55 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
           ),
 
           // -- Mic button with avatar_glow pulse --
-          Builder(builder: (context) {
-            final reduceMotion = MediaQuery.disableAnimationsOf(context);
-            return Semantics(
-              button: true,
-              label: _state == _VoiceState.idle
-                  ? context.l10n.voice_tap_to_start
-                  : _state == _VoiceState.listening
-                      ? context.l10n.common_done
-                      : null,
-              child: GestureDetector(
-                onTap: _state == _VoiceState.idle
-                    ? _startListening
-                    : _state == _VoiceState.listening
-                        ? _stopAndProcess
+          Builder(
+            builder: (context) {
+              final reduceMotion = MediaQuery.disableAnimationsOf(context);
+              return Semantics(
+                button: true,
+                label: _state == _VoiceState.idle
+                    ? context.l10n.voice_tap_to_start
+                    : _state == _VoiceState.recording
+                        ? context.l10n.common_done
                         : null,
-                child: AvatarGlow(
-                  animate:
-                      !reduceMotion && _state == _VoiceState.listening,
-                  glowRadiusFactor: 0.3,
-                  glowColor: cs.primary,
-                  child: Container(
-                    width: AppSizes.voiceMicSize,
-                    height: AppSizes.voiceMicSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _state == _VoiceState.listening
-                          ? cs.primary
-                          : _state == _VoiceState.error
-                              ? cs.error
-                              : cs.primaryContainer,
-                    ),
-                    child: Icon(
-                      _state == _VoiceState.error
-                          ? AppIcons.close
-                          : AppIcons.mic,
-                      size: AppSizes.iconLg,
-                      color: _state == _VoiceState.listening
-                          ? cs.onPrimary
-                          : _state == _VoiceState.error
-                              ? cs.onError
-                              : cs.onPrimaryContainer,
+                child: GestureDetector(
+                  onTap: _state == _VoiceState.idle
+                      ? _startRecording
+                      : _state == _VoiceState.recording
+                          ? _stopAndProcess
+                          : null,
+                  child: AvatarGlow(
+                    animate:
+                        !reduceMotion && _state == _VoiceState.recording,
+                    glowRadiusFactor: 0.3,
+                    glowColor: cs.primary,
+                    child: Container(
+                      width: AppSizes.voiceMicSize,
+                      height: AppSizes.voiceMicSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _state == _VoiceState.recording
+                            ? cs.primary
+                            : _state == _VoiceState.error
+                                ? cs.error
+                                : cs.primaryContainer,
+                      ),
+                      child: Icon(
+                        _state == _VoiceState.error
+                            ? AppIcons.close
+                            : AppIcons.mic,
+                        size: AppSizes.iconLg,
+                        color: _state == _VoiceState.recording
+                            ? cs.onPrimary
+                            : _state == _VoiceState.error
+                                ? cs.onError
+                                : cs.onPrimaryContainer,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },),
+              );
+            },
+          ),
           const SizedBox(height: AppSizes.md),
 
           // -- Status text --
@@ -289,38 +362,21 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             style: context.textStyles.bodyMedium?.copyWith(color: cs.outline),
           ),
 
-          // -- Live transcript --
-          if (_state == _VoiceState.listening &&
-              _transcript.isNotEmpty) ...[
+          // -- Recording duration counter --
+          if (_state == _VoiceState.recording) ...[
             const SizedBox(height: AppSizes.sm),
-            Container(
-              constraints: const BoxConstraints(maxHeight: 80),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.md,
-                vertical: AppSizes.sm,
-              ),
-              decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest
-                    .withValues(alpha: AppSizes.opacityLight2),
-                borderRadius:
-                    BorderRadius.circular(AppSizes.borderRadiusSm),
-              ),
-              child: SingleChildScrollView(
-                reverse: true,
-                child: Text(
-                  _transcript,
-                  style: context.textStyles.bodyMedium?.copyWith(
-                    color: cs.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+            Text(
+              _formatDuration(_recordingSeconds),
+              style: context.textStyles.headlineSmall?.copyWith(
+                color: cs.primary,
+                fontFeatures: [const FontFeature.tabularFigures()],
               ),
             ),
           ],
           const SizedBox(height: AppSizes.lg),
 
           // -- Action buttons --
-          if (_state == _VoiceState.listening)
+          if (_state == _VoiceState.recording)
             FilledButton.icon(
               onPressed: _stopAndProcess,
               icon: const Icon(AppIcons.check, size: AppSizes.iconSm2),
@@ -338,7 +394,6 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 FilledButton(
                   onPressed: () {
                     setState(() => _state = _VoiceState.idle);
-                    _initStt();
                   },
                   child: Text(context.l10n.voice_retry),
                 ),
@@ -364,7 +419,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   String _statusText(BuildContext context) {
     return switch (_state) {
       _VoiceState.idle => context.l10n.voice_tap_to_start,
-      _VoiceState.listening => context.l10n.voice_listening,
+      _VoiceState.recording => context.l10n.voice_listening,
       _VoiceState.processing => context.l10n.voice_ai_parsing,
       _VoiceState.error => context.l10n.voice_error_no_service,
     };

@@ -305,6 +305,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final l10n = context.l10n;
     return switch (model) {
       'auto' => l10n.settings_ai_model_auto,
+      AiConfig.modelGeminiFlash => l10n.settings_ai_model_gemini_flash,
       AiConfig.modelGemma27b => l10n.settings_ai_model_gemma_27b,
       AiConfig.modelQwen3_4b => l10n.settings_ai_model_qwen3_4b,
       _ => model,
@@ -315,6 +316,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final l10n = context.l10n;
     final options = [
       (id: 'auto', label: l10n.settings_ai_model_auto),
+      (id: AiConfig.modelGeminiFlash, label: l10n.settings_ai_model_gemini_flash),
       (id: AiConfig.modelGemma27b, label: l10n.settings_ai_model_gemma_27b),
       (id: AiConfig.modelQwen3_4b, label: l10n.settings_ai_model_qwen3_4b),
     ];

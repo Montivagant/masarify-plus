@@ -28,6 +28,10 @@ class _FabBubble {
 /// - **Long press**: expand 3 bubbles in a radial arc
 /// - **Drag**: highlight closest bubble, release to select
 /// - **RTL-aware**: mirrors horizontal offsets in Arabic layout
+///
+/// **AOT fix**: Bubbles are only added to the widget tree when expanded or
+/// animating. Material widgets with elevation at opacity 0 leak shadows in
+/// AOT (release/profile) builds, causing a grey overlay.
 class ExpandableFab extends StatefulWidget {
   const ExpandableFab({
     super.key,
@@ -54,6 +58,11 @@ class _ExpandableFabState extends State<ExpandableFab>
   bool _isExpanded = false;
   int _hoveredIndex = -1;
 
+  /// Whether bubbles + scrim are in the widget tree.
+  /// True when expanded; stays true during the close animation so bubbles
+  /// animate out, then flips false on [AnimationStatus.dismissed].
+  bool _showOverlay = false;
+
   // Hit zone radius for each bubble
   static const double _hitRadius = AppSizes.fabHitRadius;
   // Bubble icon container size
@@ -73,6 +82,7 @@ class _ExpandableFabState extends State<ExpandableFab>
       curve: Curves.easeOutBack,
       reverseCurve: Curves.easeInCubic,
     );
+    _controller.addStatusListener(_onAnimationStatus);
 
     // M2 fix: labels resolved from l10n context, not hardcoded English
     _bubbles = [
@@ -112,13 +122,25 @@ class _ExpandableFabState extends State<ExpandableFab>
 
   @override
   void dispose() {
+    _controller.removeStatusListener(_onAnimationStatus);
     _controller.dispose();
     super.dispose();
   }
 
+  void _onAnimationStatus(AnimationStatus status) {
+    // Remove bubbles from the widget tree once the close animation finishes.
+    // This prevents Material elevation shadows from leaking in AOT builds.
+    if (status == AnimationStatus.dismissed && _showOverlay) {
+      setState(() => _showOverlay = false);
+    }
+  }
+
   void _expand() {
     if (_isExpanded) return;
-    setState(() => _isExpanded = true);
+    setState(() {
+      _isExpanded = true;
+      _showOverlay = true;
+    });
     _controller.forward();
     HapticFeedback.mediumImpact();
   }
@@ -170,8 +192,6 @@ class _ExpandableFabState extends State<ExpandableFab>
   Widget build(BuildContext context) {
     final cs = context.colors;
 
-    // M3 fix: use OverlayEntry-style full-screen scrim via LayoutBuilder
-    // instead of 200x200 SizedBox so tapping anywhere outside collapses the FAB.
     return SizedBox(
       width: AppSizes.fabContainerSize,
       height: AppSizes.fabContainerSize,
@@ -179,39 +199,49 @@ class _ExpandableFabState extends State<ExpandableFab>
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
         children: [
-          // M3 fix: full-screen scrim when expanded — covers entire screen.
-          // Uses OverlayEntry-style Positioned.fill to avoid negative-offset
-          // calculations that break in RTL layouts.
-          if (_isExpanded)
+          // Bubbles + scrim — only in tree when expanded or animating closed.
+          // AOT safety: no Opacity widget, no Material(elevation>0), no BoxShadow.
+          if (_showOverlay) ...[
+            // Invisible scrim: pure hit-test for tap-to-dismiss.
+            // No ColoredBox, no painting — just catches taps outside bubbles.
             Positioned.fill(
               child: OverflowBox(
-                maxWidth: MediaQuery.sizeOf(context).width * 2,
-                maxHeight: MediaQuery.sizeOf(context).height * 2,
+                maxWidth: double.infinity,
+                maxHeight: double.infinity,
                 child: GestureDetector(
-                  onTap: () => _collapse(),
                   behavior: HitTestBehavior.opaque,
-                  child: ColoredBox(
-                    color: cs.scrim.withValues(alpha: AppSizes.opacityLight4),
-                    child: const SizedBox.expand(),
+                  onTap: _collapse,
+                  child: SizedBox(
+                    width: MediaQuery.sizeOf(context).width,
+                    height: MediaQuery.sizeOf(context).height,
                   ),
                 ),
               ),
             ),
+            ..._buildBubbles(cs),
+          ],
 
-          // Bubbles — IgnorePointer prevents the 200dp container from
-          // intercepting taps on content below when the menu is collapsed.
-          ..._buildBubbles(cs).map(
-            (w) => IgnorePointer(ignoring: !_isExpanded, child: w),
-          ),
-
-          // Main FAB
+          // Main FAB — always in tree.
           Positioned(
             bottom: 0,
-            child: Semantics(
-              label: context.l10n.fab_expense,
-              button: true,
-              child: GestureDetector(
-                onTap: () {
+            child: GestureDetector(
+              onLongPressStart: (_) => _expand(),
+              onLongPressMoveUpdate: (details) {
+                if (!_isExpanded) return;
+                final local = details.localPosition -
+                    const Offset(AppSizes.fabSize / 2, AppSizes.fabSize / 2);
+                final closest = _findClosestBubble(local);
+                if (closest != _hoveredIndex) {
+                  setState(() => _hoveredIndex = closest);
+                  if (closest >= 0) HapticFeedback.selectionClick();
+                }
+              },
+              onLongPressEnd: (_) {
+                if (_isExpanded) _collapse(selectedIndex: _hoveredIndex);
+              },
+              child: FloatingActionButton(
+                heroTag: 'nav_fab',
+                onPressed: () {
                   if (_isExpanded) {
                     _collapse();
                   } else {
@@ -219,47 +249,8 @@ class _ExpandableFabState extends State<ExpandableFab>
                     widget.onTap();
                   }
                 },
-                onLongPressStart: (details) {
-                  _expand();
-                },
-                onLongPressMoveUpdate: (details) {
-                  // Compute offset relative to FAB center
-                  const fabCenter = Offset(
-                    AppSizes.fabSize / 2,
-                    AppSizes.fabSize / 2,
-                  );
-                  final dragOffset = details.localPosition - fabCenter;
-                  setState(() {
-                    final newHovered = _findClosestBubble(dragOffset);
-                    if (newHovered != _hoveredIndex) {
-                      _hoveredIndex = newHovered;
-                      if (newHovered >= 0) {
-                        HapticFeedback.selectionClick();
-                      }
-                    }
-                  });
-                },
-                onLongPressEnd: (details) {
-                  _collapse(selectedIndex: _hoveredIndex);
-                },
-                child: AnimatedBuilder(
-                  animation: _expandAnimation,
-                  builder: (context, child) {
-                    final rotation = _expandAnimation.value * AppSizes.fabRotationAngle;
-                    return Transform.rotate(
-                      angle: rotation,
-                      child: child,
-                    );
-                  },
-                  child: const ExcludeSemantics(
-                    child: FloatingActionButton(
-                      heroTag: 'nav_fab',
-                      onPressed: null, // Handled by GestureDetector
-                      elevation: AppSizes.elevationHigh,
-                      child: Icon(AppIcons.add),
-                    ),
-                  ),
-                ),
+                elevation: AppSizes.elevationHigh,
+                child: const Icon(AppIcons.add),
               ),
             ),
           ),
@@ -272,9 +263,11 @@ class _ExpandableFabState extends State<ExpandableFab>
     return List.generate(_bubbles.length, (i) {
       final bubble = _bubbles[i];
       final directionalOffset = _getDirectionalOffset(bubble);
-      final isHovered = _hoveredIndex == i;
       final bubbleColor = bubble.color(context);
+      final isHovered = _hoveredIndex == i;
 
+      // AOT-safe: no Opacity widget, no Material(elevation>0), no BoxShadow.
+      // Transform.scale alone handles show/hide (scale 0 = invisible).
       return Positioned(
         bottom: AppSizes.fabSize / 2,
         left: AppSizes.fabContainerSize / 2 - _bubbleSize / 2,
@@ -282,72 +275,67 @@ class _ExpandableFabState extends State<ExpandableFab>
           animation: _expandAnimation,
           builder: (context, child) {
             final scale = _expandAnimation.value;
-            final hoverScale = isHovered ? AppSizes.fabHoverScale : 1.0;
             final dx = directionalOffset.dx * scale;
             final dy = directionalOffset.dy * scale;
 
             return Transform.translate(
               offset: Offset(dx, dy),
               child: Transform.scale(
-                scale: scale * hoverScale,
-                child: Opacity(
-                  opacity: scale.clamp(0.0, 1.0),
-                  child: child,
-                ),
+                scale: scale,
+                child: child,
               ),
             );
           },
-          child: Semantics(
-            label: bubble.labelKey(context),
-            button: true,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: _bubbleSize,
-                  height: _bubbleSize,
-                  child: Material(
-                    elevation: isHovered ? AppSizes.fabElevationHovered : AppSizes.fabElevationResting,
-                    shape: const CircleBorder(),
-                    color: isHovered
-                        ? bubbleColor
-                        : bubbleColor.withValues(alpha: AppSizes.opacityNearFull),
+          // Hover scale feedback wraps the entire bubble+label column.
+          child: AnimatedScale(
+            scale: isHovered ? 1.2 : 1.0,
+            duration: const Duration(milliseconds: 150),
+            child: Semantics(
+              label: bubble.labelKey(context),
+              button: true,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // AOT-safe: default elevation (0) — InkWell ripple without
+                  // elevation shadows. Do NOT add elevation > 0 here.
+                  Material(
+                    type: MaterialType.circle,
+                    color: bubbleColor,
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: () => _collapse(selectedIndex: i),
-                      child: Icon(
-                        bubble.icon,
-                        size: AppSizes.iconMd,
-                        color: cs.onPrimary,
+                      child: SizedBox(
+                        width: _bubbleSize,
+                        height: _bubbleSize,
+                        child: Icon(
+                          bubble.icon,
+                          size: AppSizes.iconMd,
+                          color: cs.onPrimary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSizes.xs),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.sm,
-                    vertical: AppSizes.xxs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color.alphaBlend(
-                      cs.shadow.withValues(alpha: AppSizes.opacityLight5),
-                      context.appTheme.glassInsetSurface,
+                  const SizedBox(height: AppSizes.xs),
+                  // Label with surface background for readability.
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.xs,
+                      vertical: 2,
                     ),
-                    borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                    border: Border.all(
-                      color: context.appTheme.glassInsetBorder,
+                    decoration: BoxDecoration(
+                      color: cs.surface.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                    ),
+                    child: Text(
+                      bubble.labelKey(context),
+                      style: context.textStyles.labelSmall?.copyWith(
+                            color: cs.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
                     ),
                   ),
-                  child: Text(
-                    bubble.labelKey(context),
-                    style: context.textStyles.labelSmall?.copyWith(
-                          color: cs.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -689,7 +689,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permission_mic_body =>
-      'Masarify uses your microphone to let you add transactions by speaking. Your audio is never stored or sent anywhere.';
+      'Masarify uses your microphone to record voice commands. Audio is sent to Google AI for transcription when you have internet access. Nothing is stored permanently.';
 
   @override
   String get permission_location_title => 'Location Access';
@@ -736,7 +736,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_tap_to_start => 'Tap the mic to start';
 
   @override
-  String get voice_listening => 'Listening...';
+  String get voice_listening => 'Recording...';
 
   @override
   String get voice_processing => 'Processing...';
@@ -755,7 +755,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voice_error_no_service =>
-      'Speech recognition is not available. Please ensure Google app is installed and updated.';
+      'Voice input is not available. Please check your internet connection.';
 
   @override
   String get voice_error_no_locale =>
@@ -1653,6 +1653,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_ai_model_gemma_27b => 'Gemma 3 27B';
+
+  @override
+  String get settings_ai_model_gemini_flash => 'Gemini 2.0 Flash';
 
   @override
   String get settings_ai_model_qwen3_4b => 'Qwen3 4B';

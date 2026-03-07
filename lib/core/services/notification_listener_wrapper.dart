@@ -72,13 +72,17 @@ class NotificationListenerWrapper {
     _subscription?.cancel();
     _subscription = null;
 
+    debugPrint('[NotificationListener] _start(retry=$retryCount)');
+
     try {
       final hasAccess = await hasPermission();
+      debugPrint('[NotificationListener] hasPermission=$hasAccess');
       if (!hasAccess) {
         CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
         return;
       }
     } catch (e, stack) {
+      debugPrint('[NotificationListener] permission check error: $e');
       CrashLogService.log(e, stack);
       return;
     }
@@ -87,17 +91,22 @@ class NotificationListenerWrapper {
       _subscription = NotificationListenerService.notificationsStream.listen(
         _onNotification,
         onError: (Object e, StackTrace stack) {
+          debugPrint('[NotificationListener] stream error: $e');
           CrashLogService.log(e, stack);
         },
       );
+      debugPrint('[NotificationListener] stream subscribed successfully');
     } catch (e, stack) {
+      debugPrint('[NotificationListener] stream subscribe failed (retry=$retryCount): $e');
       CrashLogService.log(e, stack);
-      // Retry up to 3 times — service may not be bound yet after permission grant.
-      if (retryCount < 3) {
-        await Future<void>.delayed(
-          Duration(seconds: 1 + retryCount), // 1s, 2s, 3s backoff
-        );
-        await _start(retryCount + 1);
+      // Retry up to 5 times — service may not be fully bound after permission grant.
+      if (retryCount < 5) {
+        final delay = Duration(seconds: 1 + retryCount); // 1s, 2s, 3s, 4s, 5s backoff
+        debugPrint('[NotificationListener] retrying in ${delay.inSeconds}s...');
+        await Future<void>.delayed(delay);
+        if (!_disposed) await _start(retryCount + 1);
+      } else {
+        debugPrint('[NotificationListener] max retries reached, giving up');
       }
     }
   }
@@ -116,8 +125,12 @@ class NotificationListenerWrapper {
   /// I10 fix: re-check permission and restart if granted.
   /// Call when user returns from system Settings.
   Future<void> recheckPermission() async {
+    if (_disposed) return; // Defensive guard against dispose-during-await race
+    debugPrint('[NotificationListener] recheckPermission called');
     final granted = await hasPermission();
+    debugPrint('[NotificationListener] recheckPermission: granted=$granted, hasSubscription=${_subscription != null}');
     if (granted && _subscription == null) {
+      _disposed = false; // Reset disposed flag for fresh start
       await start();
     }
   }
@@ -147,6 +160,8 @@ class NotificationListenerWrapper {
         return;
       }
 
+      debugPrint('[NotificationListener] financial notification from $sender');
+
       // Parse
       final parsed = NotificationTransactionParser.parse(
         sender: sender,
@@ -154,6 +169,8 @@ class NotificationListenerWrapper {
         receivedAt: DateTime.now(),
       );
       if (parsed == null) return;
+
+      if (_disposed) return; // Re-check after parse
 
       // Insert-first dedup: ON CONFLICT DO NOTHING prevents duplicates
       // without a check-then-act race with the SMS parser.
@@ -167,6 +184,9 @@ class NotificationListenerWrapper {
           receivedAt: parsed.receivedAt,
         ),
       );
+
+      if (_disposed) return; // Re-check after DB insert
+
       final inserted = await _dao.getByHash(parsed.bodyHash);
       if (inserted == null || inserted.aiEnrichmentJson != null) return;
       if (inserted.source != 'notification') return;
@@ -174,9 +194,12 @@ class NotificationListenerWrapper {
       // Skip AI enrichment when offline — item stays pending without enrichment.
       // Will be enriched when back online via sync-on-reconnect.
       final online = await _connectivityService.isOnline;
+
+      if (_disposed) return; // Re-check after connectivity check
+
       if (!online) {
         _pendingCount++;
-        pendingStream.add(_pendingCount);
+        if (!_disposed) pendingStream.add(_pendingCount);
         onNewPending?.call();
         return;
       }
@@ -190,6 +213,9 @@ class NotificationListenerWrapper {
           type: parsed.type,
           categories: categories!,
         );
+
+        if (_disposed) return; // Re-check after AI call
+
         if (enrichment != null) {
           await _dao.updateEnrichment(
             inserted.id,
@@ -198,10 +224,13 @@ class NotificationListenerWrapper {
         }
       }
 
+      if (_disposed) return; // Final re-check before stream add
+
       _pendingCount++;
       pendingStream.add(_pendingCount);
       onNewPending?.call();
     } catch (e, stack) {
+      debugPrint('[NotificationListener] _onNotification error: $e');
       CrashLogService.log(e, stack);
     }
   }

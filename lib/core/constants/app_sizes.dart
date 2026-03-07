@@ -129,9 +129,9 @@ abstract final class AppSizes {
   // ── FAB (Expandable Radial) ───────────────────────────────────────────
   static const double fabHitRadius = 36.0;
   static const double fabBubbleSize = 48.0;
-  static const double fabRadialDistance = 70.0;
-  static const double fabRadialDistanceTop = 90.0;
-  static const double fabContainerSize = 160.0;
+  static const double fabRadialDistance = 50.0;
+  static const double fabRadialDistanceTop = 65.0;
+  static const double fabContainerSize = 130.0;
   static const double fabHoverScale = 1.2;
   static const double fabElevationResting = 2.0;
   static const double fabElevationHovered = 6.0;

@@ -28,8 +28,8 @@ class VoiceInputButton extends StatelessWidget {
   }
 
   static Future<void> _handlePress(BuildContext context) async {
-    // Only microphone permission is needed — audio is transcribed via
-    // device STT and parsed by AI via OpenRouter.
+    // Only microphone permission is needed — audio is recorded and sent
+    // to Gemini API for transcription + transaction parsing.
     final status = await Permission.microphone.status;
 
     if (status.isGranted) {

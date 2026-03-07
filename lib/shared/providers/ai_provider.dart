@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/ai/ai_transaction_parser.dart';
 import '../../core/services/ai/ai_voice_parser.dart';
+import '../../core/services/ai/gemini_audio_service.dart';
 import '../../core/services/ai/openrouter_service.dart';
 import 'preferences_provider.dart';
 
@@ -13,6 +14,11 @@ final openRouterServiceProvider = Provider<OpenRouterService>(
 /// AI-powered voice transcript parser with rule-based fallback.
 final aiVoiceParserProvider = Provider<AiVoiceParser>(
   (ref) => AiVoiceParser(openRouter: ref.read(openRouterServiceProvider)),
+);
+
+/// Gemini audio transcription + transaction parsing.
+final geminiAudioServiceProvider = Provider<GeminiAudioService>(
+  (ref) => const GeminiAudioService(),
 );
 
 /// AI-powered SMS/notification transaction enricher.

@@ -243,7 +243,7 @@
   "common_maybe_later": "ربما لاحقاً",
 
   "permission_mic_title": "الوصول للميكروفون",
-  "permission_mic_body": "يستخدم مصاريفي الميكروفون لإضافة المعاملات بالكلام. لا يتم تخزين أو إرسال الصوت.",
+  "permission_mic_body": "يستخدم مصاريفي الميكروفون لتسجيل الأوامر الصوتية. يتم إرسال الصوت إلى Google AI للتفريغ عند توفر الإنترنت. لا يتم تخزين أي شيء بشكل دائم.",
   "permission_location_title": "الوصول للموقع",
   "permission_location_body": "يمكن لمصاريفي إضافة اسم الموقع للمعاملة. هذا اختياري تماماً.",
   "location_detect": "تحديد الموقع",
@@ -260,13 +260,13 @@
   "error_pin_too_short": "رمز PIN يجب أن يكون ٦ أرقام",
 
   "voice_tap_to_start": "اضغط على المايك للبدء",
-  "voice_listening": "جار الاستماع...",
+  "voice_listening": "جار التسجيل...",
   "voice_processing": "جار المعالجة...",
   "voice_confirm_title": "مراجعة المعاملات",
   "voice_confirm_all": "تأكيد الكل",
   "voice_remove": "إزالة",
   "voice_unavailable": "الإدخال الصوتي غير متوفر على هذا الجهاز",
-  "voice_error_no_service": "التعرف على الكلام غير متاح. تأكد من تثبيت تطبيق Google وتحديثه.",
+  "voice_error_no_service": "الإدخال الصوتي غير متاح. يرجى التحقق من اتصالك بالإنترنت.",
   "voice_error_no_locale": "لا توجد حزم لغات للتعرف على الكلام. يرجى تثبيت واحدة من إعدادات الجهاز.",
   "voice_error_speech": "خطأ في التعرف على الكلام. يرجى المحاولة مرة أخرى.",
   "voice_no_results": "لم يتم اكتشاف شيء. حاول مرة أخرى.",
@@ -589,6 +589,7 @@
   "settings_ai_model_subtitle": "اختر النموذج الذي يعالج الإدخال الصوتي",
   "settings_ai_model_auto": "تلقائي (موصى به)",
   "settings_ai_model_gemma_27b": "Gemma 3 27B",
+  "settings_ai_model_gemini_flash": "Gemini 2.0 Flash",
   "settings_ai_model_qwen3_4b": "Qwen3 4B",
 
   "fab_expense": "مصروف",

@@ -1427,7 +1427,7 @@ abstract class AppLocalizations {
   /// No description provided for @permission_mic_body.
   ///
   /// In en, this message translates to:
-  /// **'Masarify uses your microphone to let you add transactions by speaking. Your audio is never stored or sent anywhere.'**
+  /// **'Masarify uses your microphone to record voice commands. Audio is sent to Google AI for transcription when you have internet access. Nothing is stored permanently.'**
   String get permission_mic_body;
 
   /// No description provided for @permission_location_title.
@@ -1517,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @voice_listening.
   ///
   /// In en, this message translates to:
-  /// **'Listening...'**
+  /// **'Recording...'**
   String get voice_listening;
 
   /// No description provided for @voice_processing.
@@ -1553,7 +1553,7 @@ abstract class AppLocalizations {
   /// No description provided for @voice_error_no_service.
   ///
   /// In en, this message translates to:
-  /// **'Speech recognition is not available. Please ensure Google app is installed and updated.'**
+  /// **'Voice input is not available. Please check your internet connection.'**
   String get voice_error_no_service;
 
   /// No description provided for @voice_error_no_locale.
@@ -3253,6 +3253,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gemma 3 27B'**
   String get settings_ai_model_gemma_27b;
+
+  /// No description provided for @settings_ai_model_gemini_flash.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini 2.0 Flash'**
+  String get settings_ai_model_gemini_flash;
 
   /// No description provided for @settings_ai_model_qwen3_4b.
   ///

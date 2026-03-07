@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -16,9 +18,26 @@ class ConnectivityService {
         (results) => results.any((r) => r != ConnectivityResult.none),
       );
 
-  /// Returns `true` if the device currently has any network connection.
+  /// Returns `true` if the device has a working internet connection.
+  ///
+  /// First checks connectivity_plus (fast), then verifies with a DNS lookup
+  /// to catch WiFi-connected-but-no-internet scenarios.
   Future<bool> get isOnline async {
     final results = await _connectivity.checkConnectivity();
-    return results.any((r) => r != ConnectivityResult.none);
+    final hasConnection = results.any((r) => r != ConnectivityResult.none);
+    if (!hasConnection) return false;
+
+    // Verify actual internet access via DNS lookup.
+    try {
+      final result = await InternetAddress.lookup('openrouter.ai')
+          .timeout(const Duration(seconds: 3));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      dev.log('DNS lookup failed — WiFi but no internet', name: 'Connectivity');
+      return false;
+    } on TimeoutException catch (_) {
+      dev.log('DNS lookup timed out', name: 'Connectivity');
+      return false;
+    }
   }
 }

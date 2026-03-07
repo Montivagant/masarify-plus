@@ -109,22 +109,47 @@ class SmsParserService {
       if (inserted.source != 'sms') continue;
 
       // AI enrichment (optional — null on failure). Skipped when offline.
-      dev.log(
-        'SMS enrichment: aiParser=${aiParser != null}, online=$isOnline, '
-        'categories=${categories?.length}, calls=$enrichmentCalls/$maxEnrichmentCalls',
-        name: 'SmsParserService',
-      );
+      if (!isOnline) {
+        dev.log(
+          'SMS enrichment SKIPPED: device is OFFLINE — will enrich on reconnect',
+          name: 'SmsParserService',
+        );
+      } else if (aiParser == null) {
+        dev.log(
+          'SMS enrichment SKIPPED: aiParser is null — check AiConfig.hasApiKey (${AiConfig.hasApiKey})',
+          name: 'SmsParserService',
+        );
+      } else if (categories == null || categories!.isEmpty) {
+        dev.log(
+          'SMS enrichment SKIPPED: no categories loaded (${categories?.length})',
+          name: 'SmsParserService',
+        );
+      } else if (enrichmentCalls >= maxEnrichmentCalls) {
+        dev.log(
+          'SMS enrichment SKIPPED: reached max calls ($maxEnrichmentCalls)',
+          name: 'SmsParserService',
+        );
+      }
       if (isOnline &&
           aiParser != null &&
           categories != null &&
+          categories!.isNotEmpty &&
           enrichmentCalls < maxEnrichmentCalls) {
         enrichmentCalls++;
+        dev.log(
+          'SMS enrichment: calling AI for "$address" (call $enrichmentCalls/$maxEnrichmentCalls)',
+          name: 'SmsParserService',
+        );
         final enrichment = await aiParser!.enrich(
           sender: address,
           body: body,
           amountPiastres: parsed.amountPiastres,
           type: parsed.type,
           categories: categories!,
+        );
+        dev.log(
+          'SMS enrichment result: ${enrichment != null ? "success" : "null"}',
+          name: 'SmsParserService',
         );
         if (enrichment != null) {
           await _dao.updateEnrichment(
@@ -136,6 +161,10 @@ class SmsParserService {
       newCount++;
     }
 
+    dev.log(
+      'scanInbox complete: $newCount new, $enrichmentCalls AI calls made',
+      name: 'SmsParserService',
+    );
     return newCount;
   }
 }

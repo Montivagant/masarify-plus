@@ -689,7 +689,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permission_mic_body =>
-      'يستخدم مصاريفي الميكروفون لإضافة المعاملات بالكلام. لا يتم تخزين أو إرسال الصوت.';
+      'يستخدم مصاريفي الميكروفون لتسجيل الأوامر الصوتية. يتم إرسال الصوت إلى Google AI للتفريغ عند توفر الإنترنت. لا يتم تخزين أي شيء بشكل دائم.';
 
   @override
   String get permission_location_title => 'الوصول للموقع';
@@ -736,7 +736,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_tap_to_start => 'اضغط على المايك للبدء';
 
   @override
-  String get voice_listening => 'جار الاستماع...';
+  String get voice_listening => 'جار التسجيل...';
 
   @override
   String get voice_processing => 'جار المعالجة...';
@@ -755,7 +755,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_error_no_service =>
-      'التعرف على الكلام غير متاح. تأكد من تثبيت تطبيق Google وتحديثه.';
+      'الإدخال الصوتي غير متاح. يرجى التحقق من اتصالك بالإنترنت.';
 
   @override
   String get voice_error_no_locale =>
@@ -1641,6 +1641,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_ai_model_gemma_27b => 'Gemma 3 27B';
+
+  @override
+  String get settings_ai_model_gemini_flash => 'Gemini 2.0 Flash';
 
   @override
   String get settings_ai_model_qwen3_4b => 'Qwen3 4B';
