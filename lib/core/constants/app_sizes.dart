@@ -126,16 +126,28 @@ abstract final class AppSizes {
   static const double opacityHeavy = 0.8;
   static const double opacityNearFull = 0.85;
 
-  // ── FAB (Expandable Radial) ───────────────────────────────────────────
-  static const double fabHitRadius = 36.0;
-  static const double fabBubbleSize = 48.0;
-  static const double fabRadialDistance = 50.0;
-  static const double fabRadialDistanceTop = 65.0;
-  static const double fabContainerSize = 130.0;
-  static const double fabHoverScale = 1.2;
-  static const double fabElevationResting = 2.0;
-  static const double fabElevationHovered = 6.0;
+  // ── FAB (Speed Dial) ─────────────────────────────────────────────────
   static const double fabRotationAngle = math.pi / 4;
+
+  // ── Nav bar (notched glass) ────────────────────────────────────────
+  static const double navNotchRadius = 32.0;
+  static const double navNotchMargin = 6.0;
+  static const double navPillHeight = 36.0;
+  static const double navPillPadding = 12.0;
+  static const double navPillGlowRadius = 12.0;
+  static const double navPillGlowOpacity = 0.3;
+
+  // ── Speed dial ─────────────────────────────────────────────────────
+  static const double speedDialButtonHeight = 44.0;
+  static const double speedDialButtonRadius = 22.0;
+  static const double speedDialSpacing = 10.0;
+  static const double speedDialIconSize = 20.0;
+  static const double speedDialOffset = 12.0;
+  static const double speedDialContainerWidth = 160.0;
+  static const double speedDialSlideOffset = 20.0;
+
+  // ── Nav pill ───────────────────────────────────────────────────────
+  static const double navPillWidth = 72.0;
 
   // ── Card ──────────────────────────────────────────────────────────────
   static const double cardPadding = md;

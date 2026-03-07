@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/theme/app_colors.dart';
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
@@ -14,13 +14,19 @@ import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/services/glass_config_service.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
 import '../../../shared/providers/notification_listener_provider.dart';
-import 'expandable_fab.dart';
+import 'notched_nav_clipper.dart';
+import 'speed_dial_fab.dart';
 
-/// Floating glassmorphic 4-tab bottom navigation bar.
+// ─────────────────────────────────────────────────────────────────────────────
+// AppNavBar — Floating glassmorphic 4-tab bottom nav with center FAB notch
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Glassmorphic bottom nav bar with a smooth semicircular notch for the FAB.
 ///
-/// Uses [BackdropFilter] + [ClipRRect] for frosted glass effect.
-/// Theme-aware: surface color at 85% opacity with subtle blur.
-class AppNavBar extends StatelessWidget {
+/// Tabs are split 2-left (Home, Transactions) and 2-right (Analytics, More).
+/// The active tab gets a frosted glass pill indicator with brand-color glow
+/// that slides smoothly between tabs.
+class AppNavBar extends StatefulWidget {
   const AppNavBar({
     super.key,
     required this.currentIndex,
@@ -31,47 +37,155 @@ class AppNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   @override
+  State<AppNavBar> createState() => _AppNavBarState();
+}
+
+class _AppNavBarState extends State<AppNavBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pillController;
+  late Animation<double> _pillAnimation;
+  int _previousIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _previousIndex = widget.currentIndex;
+    _pillController = AnimationController(
+      vsync: this,
+      duration: AppDurations.navPillSlide,
+    );
+    _pillAnimation = CurvedAnimation(
+      parent: _pillController,
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void didUpdateWidget(AppNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      _previousIndex = oldWidget.currentIndex;
+      if (context.reduceMotion) {
+        _pillController.value = 1.0;
+      } else {
+        _pillController
+          ..reset()
+          ..forward();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pillController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     const dests = AppNavigation.destinations;
     final cs = context.colors;
+    final theme = context.appTheme;
     final langCode = context.languageCode;
-    const radius = BorderRadius.all(Radius.circular(AppSizes.borderRadiusLg));
-
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final useBlur = GlassConfig.shouldBlur(context);
 
+    // The center notch gap width.
+    const notchGap = (AppSizes.navNotchRadius + AppSizes.navNotchMargin) * 2;
+
     final navContent = Material(
       type: MaterialType.transparency,
-      child: Container(
+      child: SizedBox(
         height: AppSizes.bottomNavHeight,
-        decoration: BoxDecoration(
-          color: cs.surface.withValues(alpha: AppSizes.opacityHeavy),
-          borderRadius: radius,
-          border: Border.all(
-            color: cs.outline.withValues(alpha: AppSizes.opacityXLight),
-            // ignore: avoid_redundant_argument_values
-            width: AppSizes.glassBorderWidth,
-          ),
-        ),
-        child: Row(
+        child: Stack(
           children: [
-            for (var i = 0; i < dests.length; i++)
-              Expanded(
-                child: _NavTab(
-                  icon: dests[i].icon,
-                  activeIcon: dests[i].activeIcon,
-                  label: dests[i].label(langCode),
-                  isSelected: i == currentIndex,
-                  selectedColor: cs.primary,
-                  unselectedColor: cs.onSurfaceVariant,
-                  onTap: () {
-                    if (i != currentIndex) {
-                      HapticFeedback.selectionClick();
-                      onTap(i);
-                    }
-                  },
+            // Glass background with notch clip.
+            Positioned.fill(
+              child: ClipPath(
+                clipper: const NotchedNavClipper(),
+                child: useBlur
+                    ? BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: AppSizes.glassBlurCard,
+                          sigmaY: AppSizes.glassBlurCard,
+                        ),
+                        child: ColoredBox(
+                          color: cs.surface
+                              .withValues(alpha: AppSizes.opacityHeavy),
+                        ),
+                      )
+                    : ColoredBox(
+                        color: cs.surface
+                            .withValues(alpha: AppSizes.opacityNearFull),
+                      ),
+              ),
+            ),
+
+            // Glass border following the notch shape.
+            Positioned.fill(
+              child: CustomPaint(
+                painter: NotchedNavBorderPainter(
+                  borderColor:
+                      cs.outline.withValues(alpha: AppSizes.opacityXLight),
                 ),
               ),
+            ),
+
+            // Animated pill indicator behind active tab.
+            AnimatedBuilder(
+              animation: _pillAnimation,
+              builder: (context, _) {
+                return _PillIndicator(
+                  currentIndex: widget.currentIndex,
+                  previousIndex: _previousIndex,
+                  animationValue: _pillAnimation.value,
+                  primaryColor: cs.primary,
+                  pillColor: theme.glassInsetSurface,
+                );
+              },
+            ),
+
+            // Tab items: 2-left + center gap + 2-right.
+            Row(
+              children: [
+                for (var i = 0; i < 2; i++)
+                  Expanded(
+                    child: _NavTab(
+                      icon: dests[i].icon,
+                      activeIcon: dests[i].activeIcon,
+                      label: dests[i].label(langCode),
+                      isSelected: i == widget.currentIndex,
+                      selectedColor: cs.primary,
+                      unselectedColor: cs.onSurfaceVariant,
+                      onTap: () {
+                        if (i != widget.currentIndex) {
+                          HapticFeedback.selectionClick();
+                          widget.onTap(i);
+                        }
+                      },
+                    ),
+                  ),
+                // Center gap for FAB notch.
+                const SizedBox(width: notchGap),
+                for (var i = 2; i < dests.length; i++)
+                  Expanded(
+                    child: _NavTab(
+                      icon: dests[i].icon,
+                      activeIcon: dests[i].activeIcon,
+                      label: dests[i].label(langCode),
+                      isSelected: i == widget.currentIndex,
+                      selectedColor: cs.primary,
+                      unselectedColor: cs.onSurfaceVariant,
+                      onTap: () {
+                        if (i != widget.currentIndex) {
+                          HapticFeedback.selectionClick();
+                          widget.onTap(i);
+                        }
+                      },
+                    ),
+                  ),
+              ],
+            ),
           ],
         ),
       ),
@@ -85,24 +199,87 @@ class AppNavBar extends StatelessWidget {
           AppSizes.md,
           AppSizes.md + bottomInset,
         ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: useBlur
-              ? BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: AppSizes.glassBlurSigma,
-                    sigmaY: AppSizes.glassBlurSigma,
-                  ),
-                  child: navContent,
-                )
-              : navContent,
-        ),
+        child: navContent,
       ),
     );
   }
 }
 
-/// A single tab in the floating nav bar.
+// ─────────────────────────────────────────────────────────────────────────────
+// _PillIndicator — Animated glass pill behind the active tab
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _PillIndicator extends StatelessWidget {
+  const _PillIndicator({
+    required this.currentIndex,
+    required this.previousIndex,
+    required this.animationValue,
+    required this.primaryColor,
+    required this.pillColor,
+  });
+
+  final int currentIndex;
+  final int previousIndex;
+  final double animationValue;
+  final Color primaryColor;
+  final Color pillColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalWidth = constraints.maxWidth;
+        // The nav bar has: 4 equal tabs + center notch gap.
+        const notchGap =
+            (AppSizes.navNotchRadius + AppSizes.navNotchMargin) * 2;
+        final tabAreaWidth = (totalWidth - notchGap) / 4;
+
+        // Compute the center X for a given tab index.
+        double tabCenterX(int index) {
+          if (index < 2) {
+            // Left side tabs: start at 0.
+            return tabAreaWidth * index + tabAreaWidth / 2;
+          } else {
+            // Right side tabs: start after left tabs + notch gap.
+            return tabAreaWidth * 2 + notchGap + tabAreaWidth * (index - 2) + tabAreaWidth / 2;
+          }
+        }
+
+        final fromX = tabCenterX(previousIndex);
+        final toX = tabCenterX(currentIndex);
+        final currentX = fromX + (toX - fromX) * animationValue;
+
+        const pillWidth = AppSizes.navPillWidth;
+        const pillHeight = AppSizes.navPillHeight;
+
+        return Positioned(
+          left: currentX - pillWidth / 2,
+          top: (AppSizes.bottomNavHeight - pillHeight) / 2,
+          child: Container(
+            width: pillWidth,
+            height: pillHeight,
+            decoration: BoxDecoration(
+              color: pillColor,
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+              boxShadow: [
+                BoxShadow(
+                  color: primaryColor
+                      .withValues(alpha: AppSizes.navPillGlowOpacity),
+                  blurRadius: AppSizes.navPillGlowRadius,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _NavTab — A single tab in the floating nav bar
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _NavTab extends StatelessWidget {
   const _NavTab({
     required this.icon,
@@ -143,28 +320,19 @@ class _NavTab extends StatelessWidget {
                   color: color,
                   size: AppSizes.iconMd,
                 ),
-                const SizedBox(height: AppSizes.xxs),
-                Text(
-                  label,
-                  style: context.textStyles.labelSmall?.copyWith(
-                        color: color,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // Selected indicator dot (always rendered to prevent layout shift)
-                const SizedBox(height: AppSizes.xxs),
-                Container(
-                  width: AppSizes.dotSm,
-                  height: AppSizes.xxs,
-                  decoration: BoxDecoration(
-                    color: isSelected ? selectedColor : AppColors.transparent,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusFull),
+                // Show label only when selected (inside the pill).
+                if (isSelected) ...[
+                  const SizedBox(height: AppSizes.xxs),
+                  Text(
+                    label,
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -174,7 +342,11 @@ class _NavTab extends StatelessWidget {
   }
 }
 
-/// A stateful shell widget that hosts the 4-tab scaffold + center FAB.
+// ─────────────────────────────────────────────────────────────────────────────
+// AppScaffoldShell — Stateful shell hosting tabs + center FAB
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A stateful shell widget that hosts the 4-tab scaffold + center-docked FAB.
 class AppScaffoldShell extends ConsumerStatefulWidget {
   const AppScaffoldShell({
     super.key,
@@ -204,7 +376,6 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Re-check notification listener permission on resume.
       final listener = ref.read(notificationListenerProvider);
       listener.recheckPermission();
     }
@@ -214,7 +385,6 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      // I16 fix: wrap shell body in error boundary to prevent full-app crash
       body: widget.navigationShell,
       bottomNavigationBar: AppNavBar(
         currentIndex: widget.navigationShell.currentIndex,
@@ -225,13 +395,7 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
           );
         },
       ),
-      floatingActionButton: ExpandableFab(
-        onTap: () {
-          context.push(
-            AppRoutes.transactionAdd,
-            extra: const {'type': 'expense'},
-          );
-        },
+      floatingActionButton: SpeedDialFab(
         onExpense: () {
           context.push(
             AppRoutes.transactionAdd,
@@ -246,18 +410,7 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
         },
         onVoice: () => VoiceInputButton.handleVoiceInput(context),
       ),
-      floatingActionButtonLocation: const _LowerCenterFabLocation(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
-  }
-}
-
-class _LowerCenterFabLocation extends FloatingActionButtonLocation {
-  const _LowerCenterFabLocation();
-
-  @override
-  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    final baseOffset =
-        FloatingActionButtonLocation.centerFloat.getOffset(scaffoldGeometry);
-    return Offset(baseOffset.dx, baseOffset.dy + AppSizes.fabVerticalOffset);
   }
 }

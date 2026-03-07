@@ -11,6 +11,11 @@ abstract final class AppDurations {
   // FAB expand/collapse
   static const Duration fabExpand = Duration(milliseconds: 250);
 
+  // Nav bar pill slide
+  static const Duration navPillSlide = Duration(milliseconds: 300);
+
+
+
   // Splash & onboarding
   static const Duration splashFade = Duration(milliseconds: 1200);
   static const Duration splashHold = Duration(milliseconds: 1500);
