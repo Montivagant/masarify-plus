@@ -107,10 +107,35 @@ class AiChatService {
       name: 'AiChatService',
     );
 
-    return _openRouter.chatCompletionMultiTurn(
-      messages: messages,
-      model: AiConfig.chatModel,
-      maxTokens: AiConfig.maxResponseTokens,
-    );
+    // Try each free model in the fallback chain.
+    assert(AiConfig.chatFallbackChain.isNotEmpty, 'chatFallbackChain must not be empty');
+    Object? lastError;
+    for (final model in AiConfig.chatFallbackChain) {
+      try {
+        return await _openRouter.chatCompletionMultiTurn(
+          messages: messages,
+          model: model,
+          maxTokens: AiConfig.maxResponseTokens,
+        );
+      } on OpenRouterException catch (e) {
+        if (e.isUnauthorized) rethrow; // 401 won't be fixed by switching models
+        lastError = e;
+        dev.log(
+          'Model $model failed (${e.statusCode}), trying next...',
+          name: 'AiChatService',
+        );
+      } catch (e) {
+        // Network errors (SocketException, TimeoutException, etc.)
+        lastError = e;
+        dev.log(
+          'Model $model failed ($e), trying next...',
+          name: 'AiChatService',
+        );
+      }
+    }
+    final error = lastError;
+    if (error is Exception) throw error;
+    if (error is Error) throw error;
+    throw Exception('All chat models failed: $error');
   }
 }

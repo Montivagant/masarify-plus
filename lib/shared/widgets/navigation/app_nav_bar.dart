@@ -109,12 +109,14 @@ class _AppNavBarState extends State<AppNavBar>
                           sigmaY: AppSizes.glassBlurCard,
                         ),
                         child: ColoredBox(
-                          color: cs.surfaceContainerHighest
-                              .withValues(alpha: AppSizes.opacityStrong),
+                          color: theme.glassCardSurface,
                         ),
                       )
                     : ColoredBox(
-                        color: cs.surfaceContainerHighest,
+                        color: Color.alphaBlend(
+                          theme.glassCardSurface,
+                          cs.surface,
+                        ),
                       ),
               ),
             ),
@@ -123,7 +125,8 @@ class _AppNavBarState extends State<AppNavBar>
             Positioned.fill(
               child: CustomPaint(
                 painter: NotchedNavBorderPainter(
-                  borderColor: theme.glassCardBorder,
+                  borderColor: cs.outlineVariant
+                      .withValues(alpha: AppSizes.opacityLight4),
                 ),
               ),
             ),
@@ -153,7 +156,7 @@ class _AppNavBarState extends State<AppNavBar>
                       label: dests[i].label(langCode),
                       isSelected: i == widget.currentIndex,
                       selectedColor: cs.primary,
-                      unselectedColor: cs.onSurfaceVariant,
+                      unselectedColor: cs.onSurface.withValues(alpha: AppSizes.opacityMedium2),
                       onTap: () {
                         if (i != widget.currentIndex) {
                           HapticFeedback.selectionClick();
@@ -172,7 +175,7 @@ class _AppNavBarState extends State<AppNavBar>
                       label: dests[i].label(langCode),
                       isSelected: i == widget.currentIndex,
                       selectedColor: cs.primary,
-                      unselectedColor: cs.onSurfaceVariant,
+                      unselectedColor: cs.onSurface.withValues(alpha: AppSizes.opacityMedium2),
                       onTap: () {
                         if (i != widget.currentIndex) {
                           HapticFeedback.selectionClick();

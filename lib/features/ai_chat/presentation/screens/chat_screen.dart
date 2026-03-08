@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -91,10 +93,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         content: errorTimeout,
         tokenCount: 0,
       );
-    } catch (_) {
+    } catch (e, st) {
+      dev.log('Chat send failed: $e', name: 'ChatScreen', error: e, stackTrace: st);
       await dao.insertMessage(
         role: 'assistant',
-        content: errorGeneric,
+        content: kDebugMode ? '$errorGeneric\n(${e.runtimeType})' : errorGeneric,
         tokenCount: 0,
       );
     } finally {

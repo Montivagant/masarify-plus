@@ -1872,16 +1872,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_insight_parsed_transactions => 'Parsed Transactions';
 
   @override
-  String insight_recurring_detected(String title) => 'Monthly: $title — add as recurring?';
+  String insight_recurring_detected(String title) {
+    return 'Monthly: $title — add as recurring?';
+  }
 
   @override
-  String insight_weekly_detected(String title) => 'Weekly: $title — add as recurring?';
+  String insight_weekly_detected(String title) {
+    return 'Weekly: $title — add as recurring?';
+  }
 
   @override
-  String insight_over_budget_prediction(String category, String amount) => '$category may exceed budget by $amount';
+  String insight_over_budget_prediction(String category, String amount) {
+    return '$category may exceed budget by $amount';
+  }
 
   @override
-  String insight_budget_suggestion(String amount, String category) => 'Set a $amount budget for $category?';
+  String insight_budget_suggestion(String amount, String category) {
+    return 'Set a $amount budget for $category?';
+  }
 
   @override
   String get hub_planning_title => 'Planning';
@@ -1902,7 +1910,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_quick_add => 'Quick Add';
 
   @override
-  String quick_add_saved(String title) => '$title added';
+  String quick_add_saved(String title) {
+    return '$title added';
+  }
 
   @override
   String get common_undo => 'Undo';

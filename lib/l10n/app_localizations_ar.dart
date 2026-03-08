@@ -1858,16 +1858,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_insight_parsed_transactions => 'المعاملات المحللة';
 
   @override
-  String insight_recurring_detected(String title) => 'شهري: $title — أضف كمتكرر؟';
+  String insight_recurring_detected(String title) {
+    return 'شهري: $title — أضف كمتكرر؟';
+  }
 
   @override
-  String insight_weekly_detected(String title) => 'أسبوعي: $title — أضف كمتكرر؟';
+  String insight_weekly_detected(String title) {
+    return 'أسبوعي: $title — أضف كمتكرر؟';
+  }
 
   @override
-  String insight_over_budget_prediction(String category, String amount) => '$category قد يتجاوز الميزانية بـ $amount';
+  String insight_over_budget_prediction(String category, String amount) {
+    return '$category قد يتجاوز الميزانية بـ $amount';
+  }
 
   @override
-  String insight_budget_suggestion(String amount, String category) => 'حدد ميزانية $amount لـ $category؟';
+  String insight_budget_suggestion(String amount, String category) {
+    return 'حدد ميزانية $amount لـ $category؟';
+  }
 
   @override
   String get hub_planning_title => 'التخطيط';
@@ -1888,7 +1896,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_quick_add => 'إضافة سريعة';
 
   @override
-  String quick_add_saved(String title) => 'تمت إضافة $title';
+  String quick_add_saved(String title) {
+    return 'تمت إضافة $title';
+  }
 
   @override
   String get common_undo => 'تراجع';

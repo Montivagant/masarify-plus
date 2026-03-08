@@ -214,8 +214,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                             ),
                           )
                         : ColoredBox(
-                            color: cs.surface.withValues(
-                              alpha: AppSizes.opacityMedium,
+                            color: cs.scrim.withValues(
+                              alpha: AppSizes.opacityLight4,
                             ),
                             child: SizedBox(
                               width: MediaQuery.sizeOf(context).width,
@@ -300,12 +300,12 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                 decoration: BoxDecoration(
                   color: Color.alphaBlend(
                     accentColor.withValues(alpha: AppSizes.opacityLight),
-                    theme.glassInsetSurface,
+                    cs.surface,
                   ),
                   borderRadius:
                       BorderRadius.circular(AppSizes.speedDialButtonRadius),
                   border: Border.all(
-                    color: theme.glassInsetBorder,
+                    color: accentColor.withValues(alpha: AppSizes.opacityLight3),
                   ),
                 ),
                 child: Row(

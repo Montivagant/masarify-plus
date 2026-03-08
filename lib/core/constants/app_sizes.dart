@@ -92,7 +92,7 @@ abstract final class AppSizes {
   static const double colorSwatchBorder = 3.0;
 
   // ── Dashboard carousel ─────────────────────────────────────────────
-  static const double carouselHeight = 195;
+  static const double carouselHeight = 240;
   static const double fabVerticalOffset = 10;
 
   // ── Misc ────────────────────────────────────────────────────────────
@@ -136,8 +136,8 @@ abstract final class AppSizes {
   static const double navPillPadding = 12.0;
   static const double navPillGlowRadius = 12.0;
   static const double navPillGlowOpacity = 0.3;
-  static const double navShadowBlur = 24.0;
-  static const double navShadowOffsetY = -4.0;
+  static const double navShadowBlur = 16.0;
+  static const double navShadowOffsetY = -2.0;
   static const double splashIconSize = 80.0;
 
   // ── Speed dial ─────────────────────────────────────────────────────
