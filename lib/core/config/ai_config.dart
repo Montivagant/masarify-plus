@@ -27,9 +27,13 @@ abstract final class AiConfig {
   /// ── Model IDs (OpenRouter format) ──────────────────────────────────────
   static const String modelGeminiFlash = 'google/gemini-2.0-flash-001';
   static const String modelGemma27b = 'google/gemma-3-27b-it:free';
+  static const String modelLlama70b = 'meta-llama/llama-3.3-70b-instruct:free';
+  static const String modelMistralSmall =
+      'mistralai/mistral-small-3.1-24b-instruct:free';
   static const String modelQwen3_4b = 'qwen/qwen3-4b:free';
 
-  /// Priority-ordered fallback chain for Auto mode.
+  /// Priority-ordered fallback chain for SMS enrichment (Auto mode).
+  /// Gemini Flash (paid) first, then free models as backstop.
   static const List<String> fallbackChain = [
     modelGeminiFlash,
     modelGemma27b,
@@ -40,10 +44,12 @@ abstract final class AiConfig {
   static const int apiTimeoutSeconds = 15;
 
   /// Fallback chain for conversational chat (user-initiated, low volume).
-  /// Starts with paid model for reliability, free models as backstop.
+  /// Gemini Flash (paid, reliable) → best free models → last resort.
   static const List<String> chatFallbackChain = [
     modelGeminiFlash,
     modelGemma27b,
+    modelLlama70b,
+    modelMistralSmall,
     modelQwen3_4b,
   ];
 
