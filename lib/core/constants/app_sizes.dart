@@ -130,8 +130,8 @@ abstract final class AppSizes {
   static const double fabRotationAngle = math.pi / 4;
 
   // ── Nav bar (notched glass) ────────────────────────────────────────
-  static const double navNotchRadius = 32.0;
-  static const double navNotchMargin = 6.0;
+  static const double navNotchRadius = 30.0;
+  static const double navNotchMargin = 2.0;
   static const double navPillHeight = 36.0;
   static const double navPillPadding = 12.0;
   static const double navPillGlowRadius = 12.0;

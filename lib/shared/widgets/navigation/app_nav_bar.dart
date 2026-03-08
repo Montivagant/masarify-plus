@@ -138,17 +138,12 @@ class _AppNavBarState extends State<AppNavBar>
             ),
 
             // Animated pill indicator behind active tab.
-            AnimatedBuilder(
+            _PillIndicator(
               animation: _pillAnimation,
-              builder: (context, _) {
-                return _PillIndicator(
-                  currentIndex: widget.currentIndex,
-                  previousIndex: _previousIndex,
-                  animationValue: _pillAnimation.value,
-                  primaryColor: cs.primary,
-                  pillColor: cs.primary.withValues(alpha: AppSizes.opacityLight3),
-                );
-              },
+              currentIndex: widget.currentIndex,
+              previousIndex: _previousIndex,
+              primaryColor: cs.primary,
+              pillColor: cs.primary.withValues(alpha: AppSizes.opacityLight3),
             ),
 
             // Tab items: 2-left + center gap + 2-right.
@@ -228,65 +223,79 @@ class _AppNavBarState extends State<AppNavBar>
 
 class _PillIndicator extends StatelessWidget {
   const _PillIndicator({
+    required this.animation,
     required this.currentIndex,
     required this.previousIndex,
-    required this.animationValue,
     required this.primaryColor,
     required this.pillColor,
   });
 
+  final Animation<double> animation;
   final int currentIndex;
   final int previousIndex;
-  final double animationValue;
   final Color primaryColor;
   final Color pillColor;
 
   @override
   Widget build(BuildContext context) {
+    // LayoutBuilder outside AnimatedBuilder: constraints don't change
+    // during animation, so we measure once and pass the width in.
     return LayoutBuilder(
       builder: (context, constraints) {
         final totalWidth = constraints.maxWidth;
-        // The nav bar has: 4 equal tabs + center notch gap.
         const notchGap =
             (AppSizes.navNotchRadius + AppSizes.navNotchMargin) * 2;
         final tabAreaWidth = (totalWidth - notchGap) / 4;
 
-        // Compute the center X for a given tab index.
         double tabCenterX(int index) {
           if (index < 2) {
-            // Left side tabs: start at 0.
             return tabAreaWidth * index + tabAreaWidth / 2;
           } else {
-            // Right side tabs: start after left tabs + notch gap.
-            return tabAreaWidth * 2 + notchGap + tabAreaWidth * (index - 2) + tabAreaWidth / 2;
+            return tabAreaWidth * 2 +
+                notchGap +
+                tabAreaWidth * (index - 2) +
+                tabAreaWidth / 2;
           }
         }
 
         final fromX = tabCenterX(previousIndex);
         final toX = tabCenterX(currentIndex);
-        final currentX = fromX + (toX - fromX) * animationValue;
 
-        const pillWidth = AppSizes.navPillWidth;
-        const pillHeight = AppSizes.navPillHeight;
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            final currentX =
+                fromX + (toX - fromX) * animation.value;
+            const pillWidth = AppSizes.navPillWidth;
+            const pillHeight = AppSizes.navPillHeight;
+            final atRest = animation.value == 1.0;
 
-        return Positioned(
-          left: currentX - pillWidth / 2,
-          top: (AppSizes.bottomNavHeight - pillHeight) / 2,
-          child: Container(
-            width: pillWidth,
-            height: pillHeight,
-            decoration: BoxDecoration(
-              color: pillColor,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor
-                      .withValues(alpha: AppSizes.navPillGlowOpacity),
-                  blurRadius: AppSizes.navPillGlowRadius,
+            return Positioned(
+              left: currentX - pillWidth / 2,
+              top: (AppSizes.bottomNavHeight - pillHeight) / 2,
+              child: Container(
+                width: pillWidth,
+                height: pillHeight,
+                decoration: BoxDecoration(
+                  color: pillColor,
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusFull),
+                  // Only render glow shadow at rest to avoid GPU cost
+                  // per animation frame.
+                  boxShadow: atRest
+                      ? [
+                          BoxShadow(
+                            color: primaryColor.withValues(
+                              alpha: AppSizes.navPillGlowOpacity,
+                            ),
+                            blurRadius: AppSizes.navPillGlowRadius,
+                          ),
+                        ]
+                      : null,
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
