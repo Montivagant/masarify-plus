@@ -79,6 +79,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
       _nameError = null;
       _loading = true;
     });
+    final isAr = context.languageCode == 'ar';
     try {
       final repo = ref.read(categoryRepositoryProvider);
       if (widget.editId != null) {
@@ -86,8 +87,8 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
         if (existing != null) {
           await repo.update(
             existing.copyWith(
-              name: name,
-              nameAr: name,
+              name: isAr ? existing.name : name,
+              nameAr: isAr ? name : existing.nameAr,
               iconName: _iconName,
               colorHex: _colorHex,
               groupType: _type == 'expense' ? _groupType : null,

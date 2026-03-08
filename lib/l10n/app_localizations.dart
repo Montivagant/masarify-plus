@@ -1124,6 +1124,12 @@ abstract class AppLocalizations {
   /// **'Verify your current PIN'**
   String get settings_verify_pin_first;
 
+  /// No description provided for @settings_pin_lockout.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again in {duration}.'**
+  String settings_pin_lockout(String duration);
+
   /// No description provided for @settings_clear_data.
   ///
   /// In en, this message translates to:

@@ -150,19 +150,19 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   void _collapse({int? selectedIndex}) {
     if (!_isExpanded) return;
     setState(() => _isExpanded = false);
-    _controller.reverse();
-
-    if (selectedIndex != null && selectedIndex >= 0) {
-      HapticFeedback.heavyImpact();
-      switch (selectedIndex) {
-        case 0:
-          widget.onExpense();
-        case 1:
-          widget.onIncome();
-        case 2:
-          widget.onVoice();
+    _controller.reverse().then((_) {
+      if (selectedIndex != null && selectedIndex >= 0 && mounted) {
+        HapticFeedback.heavyImpact();
+        switch (selectedIndex) {
+          case 0:
+            widget.onExpense();
+          case 1:
+            widget.onIncome();
+          case 2:
+            widget.onVoice();
+        }
       }
-    }
+    });
   }
 
   @override

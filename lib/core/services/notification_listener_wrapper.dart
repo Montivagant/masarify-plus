@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:notification_listener_service/notification_event.dart';
@@ -7,9 +6,6 @@ import 'package:notification_listener_service/notification_listener_service.dart
 
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
-import '../../domain/entities/category_entity.dart';
-import 'ai/ai_transaction_parser.dart';
-import 'connectivity_service.dart';
 import 'crash_log_service.dart';
 import 'notification_transaction_parser.dart';
 
@@ -19,17 +15,9 @@ import 'notification_transaction_parser.dart';
 /// deduplicates via SHA-256 hash, and stores pending candidates in
 /// [SmsParserLogs] for user review.
 class NotificationListenerWrapper {
-  NotificationListenerWrapper(
-    this._dao, {
-    this.aiParser,
-    this.categories,
-    ConnectivityService? connectivityService,
-  }) : _connectivityService = connectivityService ?? ConnectivityService();
+  NotificationListenerWrapper(this._dao);
 
   final SmsParserLogDao _dao;
-  final AiTransactionParser? aiParser;
-  List<CategoryEntity>? categories;
-  final ConnectivityService _connectivityService;
   StreamSubscription<ServiceNotificationEvent>? _subscription;
   bool _disposed = false;
   bool _isStarting = false;
@@ -66,7 +54,11 @@ class NotificationListenerWrapper {
   ///
   /// Includes retry logic because the Android NotificationListenerService
   /// may not be fully bound immediately after permission is granted.
-  Future<void> start() => _start(0);
+  /// Safe to call after [stop] — resets the disposed flag.
+  Future<void> start() {
+    _disposed = false; // Allow restart after stop()
+    return _start(0);
+  }
 
   Future<void> _start(int retryCount) async {
     // Prevent concurrent start() calls (race between lifecycle handlers).
@@ -197,41 +189,8 @@ class NotificationListenerWrapper {
       if (inserted == null || inserted.aiEnrichmentJson != null) return;
       if (inserted.source != 'notification') return;
 
-      // Skip AI enrichment when offline — item stays pending without enrichment.
-      // Will be enriched when back online via sync-on-reconnect.
-      final online = await _connectivityService.isOnline;
-
-      if (_disposed) return; // Re-check after connectivity check
-
-      if (!online) {
-        _pendingCount++;
-        if (!_disposed) pendingStream.add(_pendingCount);
-        onNewPending?.call();
-        return;
-      }
-
-      // AI enrichment (optional — null on failure).
-      if (aiParser != null && categories != null) {
-        final enrichment = await aiParser!.enrich(
-          sender: sender,
-          body: body,
-          amountPiastres: parsed.amountPiastres,
-          type: parsed.type,
-          categories: categories!,
-        );
-
-        if (_disposed) return; // Re-check after AI call
-
-        if (enrichment != null) {
-          await _dao.updateEnrichment(
-            inserted.id,
-            jsonEncode(enrichment.toJson()),
-          );
-        }
-      }
-
-      if (_disposed) return; // Final re-check before stream add
-
+      // AI enrichment is user-initiated from the review screen.
+      // Just notify that a new pending item arrived.
       _pendingCount++;
       pendingStream.add(_pendingCount);
       onNewPending?.call();

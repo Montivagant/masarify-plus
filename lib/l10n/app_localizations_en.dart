@@ -533,6 +533,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_verify_pin_first => 'Verify your current PIN';
 
   @override
+  String settings_pin_lockout(String duration) {
+    return 'Too many attempts. Try again in $duration.';
+  }
+
+  @override
   String get settings_clear_data => 'Clear All Data';
 
   @override

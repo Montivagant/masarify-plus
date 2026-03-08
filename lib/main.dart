@@ -82,7 +82,7 @@ Future<void> main() async {
   // Scan SMS inbox in background after UI is mounted (local parsing only,
   // no AI enrichment — user triggers enrichment from the review screen).
   if (PreferencesService(prefs).isSmsParserEnabled) {
-    _scanSmsInBackground(container);
+    unawaited(_scanSmsInBackground(container));
   }
 }
 

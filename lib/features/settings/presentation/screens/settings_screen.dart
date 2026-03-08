@@ -413,10 +413,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     if (lockoutUntil != null && lockoutUntil.isAfter(DateTime.now())) {
       if (!mounted) return false;
       final remaining = lockoutUntil.difference(DateTime.now());
-      SnackHelper.showError(
-        context,
-        'Too many attempts. Try again in ${remaining.inSeconds >= 60 ? '${remaining.inMinutes}m' : '${remaining.inSeconds}s'}',
-      );
+      final duration = remaining.inSeconds >= 60
+          ? '${remaining.inMinutes}m'
+          : '${remaining.inSeconds}s';
+      SnackHelper.showError(context, context.l10n.settings_pin_lockout(duration));
       return false;
     }
 

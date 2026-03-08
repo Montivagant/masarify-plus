@@ -53,7 +53,7 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final pendingAsync = ref.watch(pendingParsedTransactionsProvider);
-    final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? false;
+    final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
 
     return Scaffold(
       appBar: AppAppBar(

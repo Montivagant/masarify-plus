@@ -532,6 +532,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_verify_pin_first => 'تحقق من رمز PIN الحالي';
 
   @override
+  String settings_pin_lockout(String duration) {
+    return 'محاولات كثيرة. حاول مرة أخرى بعد $duration.';
+  }
+
+  @override
   String get settings_clear_data => 'مسح جميع البيانات';
 
   @override

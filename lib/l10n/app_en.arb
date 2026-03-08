@@ -188,6 +188,12 @@
   "settings_biometric_disabled": "Biometric login disabled",
   "settings_biometric_unavailable": "Biometric authentication not available on this device",
   "settings_verify_pin_first": "Verify your current PIN",
+  "settings_pin_lockout": "Too many attempts. Try again in {duration}.",
+  "@settings_pin_lockout": {
+    "placeholders": {
+      "duration": { "type": "String" }
+    }
+  },
   "settings_clear_data": "Clear All Data",
   "settings_clear_data_confirm": "Type DELETE to confirm",
   "settings_smart_input": "Smart Input",

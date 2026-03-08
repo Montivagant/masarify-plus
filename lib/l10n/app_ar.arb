@@ -188,6 +188,7 @@
   "settings_biometric_disabled": "تم إلغاء تسجيل الدخول ببصمة الإصبع",
   "settings_biometric_unavailable": "المصادقة البيومترية غير متوفرة على هذا الجهاز",
   "settings_verify_pin_first": "تحقق من رمز PIN الحالي",
+  "settings_pin_lockout": "محاولات كثيرة. حاول مرة أخرى بعد {duration}.",
   "settings_clear_data": "مسح جميع البيانات",
   "settings_clear_data_confirm": "اكتب حذف للتأكيد",
   "settings_smart_input": "الإدخال الذكي",
