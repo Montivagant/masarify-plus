@@ -85,6 +85,7 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
         Variable.withInt(walletId),
         Variable.withInt(walletId),
       ],
+      readsFrom: {attachedDatabase.transactions, attachedDatabase.transfers},
     ).getSingle();
     return result.read<int>('has_refs') == 1;
   }

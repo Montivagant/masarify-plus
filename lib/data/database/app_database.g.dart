@@ -3768,8 +3768,8 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
       'category_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES categories (id) ON DELETE CASCADE'));
   static const VerificationMeta _monthMeta = const VerificationMeta('month');
   @override
   late final GeneratedColumn<int> month = GeneratedColumn<int>(
@@ -4200,8 +4200,8 @@ class $GoalContributionsTable extends GoalContributions
       'goal_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES savings_goals (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES savings_goals (id) ON DELETE CASCADE'));
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<int> amount = GeneratedColumn<int>(
@@ -5323,8 +5323,8 @@ class $CategoryMappingsTable extends CategoryMappings
       'category_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES categories (id) ON DELETE CASCADE'));
   static const VerificationMeta _hitCountMeta =
       const VerificationMeta('hitCount');
   @override
@@ -5963,6 +5963,32 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         categoryMappings,
         chatMessages
       ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('categories',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('budgets', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('savings_goals',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_contributions', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('categories',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('category_mappings', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$WalletsTableCreateCompanionBuilder = WalletsCompanion Function({

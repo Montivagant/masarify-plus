@@ -103,13 +103,12 @@ class AppDatabase extends _$AppDatabase {
               for (final row in billRows) {
                 await customStatement(
                   'INSERT INTO recurring_rules (wallet_id, category_id, amount, type, title, frequency, start_date, end_date, next_due_date, is_paid, paid_at, linked_transaction_id, is_active, last_processed_date) '
-                  "VALUES (?, ?, ?, 'expense', ?, 'once', ?, ?, ?, ?, ?, ?, 1, NULL)",
+                  "VALUES (?, ?, ?, 'expense', ?, 'once', ?, NULL, ?, ?, ?, ?, 1, NULL)",
                   [
                     row.read<int>('wallet_id'),
                     row.read<int>('category_id'),
                     row.read<int>('amount'),
                     row.read<String>('name'),
-                    row.read<DateTime>('due_date').millisecondsSinceEpoch,
                     row.read<DateTime>('due_date').millisecondsSinceEpoch,
                     row.read<DateTime>('due_date').millisecondsSinceEpoch,
                     row.read<bool>('is_paid') ? 1 : 0,

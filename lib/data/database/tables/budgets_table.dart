@@ -4,7 +4,8 @@ import 'categories_table.dart';
 
 class Budgets extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get categoryId => integer().references(Categories, #id)();
+  IntColumn get categoryId =>
+      integer().references(Categories, #id, onDelete: KeyAction.cascade)();
   IntColumn get month => integer()(); // 1–12
   IntColumn get year => integer()();
   IntColumn get limitAmount => integer()(); // piastres

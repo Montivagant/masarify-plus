@@ -135,7 +135,7 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                   ? breakdown[idx].categoryName
                   : '';
               return BarTooltipItem(
-                '$name\n${MoneyFormatter.format(rod.toY.toInt())}',
+                '$name\n${MoneyFormatter.format(rod.toY.round())}',
                 context.textStyles.bodySmall!.copyWith(
                       color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,

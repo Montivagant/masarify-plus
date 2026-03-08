@@ -133,7 +133,7 @@ class _ComparisonBarChart extends StatelessWidget {
       comp.lastMonth.expense,
     ];
     final maxVal = values.fold<int>(0, (s, e) => e > s ? e : s);
-    final maxY = maxVal > 0 ? maxVal * 1.2 : 100.0;
+    final maxY = maxVal > 0 ? maxVal * 1.2 : 10000.0; // 100 EGP floor in piastres
 
     return BarChart(
       BarChartData(
@@ -146,7 +146,7 @@ class _ComparisonBarChart extends StatelessWidget {
                   ? context.l10n.reports_this_month
                   : context.l10n.reports_last_month;
               return BarTooltipItem(
-                '$period\n${MoneyFormatter.format(rod.toY.toInt())}',
+                '$period\n${MoneyFormatter.format(rod.toY.round())}',
                 context.textStyles.bodySmall!.copyWith(
                       color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,

@@ -98,7 +98,7 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
         Variable.withDateTime(start),
         Variable.withDateTime(end),
       ],
-      readsFrom: {transactions},
+      readsFrom: {transactions, attachedDatabase.wallets},
     ).getSingle();
     return result.read<int>('total');
   }

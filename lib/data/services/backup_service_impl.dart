@@ -86,7 +86,7 @@ class BackupServiceImpl implements BackupService {
       throw FormatException('Invalid backup file: $e');
     }
 
-    final versionRaw = data['version'] as int?;
+    final versionRaw = _intN(data['version']);
     if (versionRaw == null || versionRaw > _schemaVersion) {
       throw FormatException('Unsupported backup version: $versionRaw');
     }
@@ -393,24 +393,31 @@ class BackupServiceImpl implements BackupService {
         'updatedAt': r.updatedAt.toIso8601String(),
       };
 
+  // ── JSON helpers ─────────────────────────────────────────────────────
+
+  /// Safely cast a JSON number to int. JSON from some platforms (web, JS)
+  /// may encode integers as doubles (e.g. 150000.0).
+  static int _int(dynamic v) => (v as num).toInt();
+  static int? _intN(dynamic v) => v == null ? null : (v as num).toInt();
+
   // ── Deserialization helpers ────────────────────────────────────────────
 
   WalletsCompanion _mapToWallet(Map<String, dynamic> m) => WalletsCompanion(
-        id: Value(m['id'] as int),
+        id: Value(_int(m['id'])),
         name: Value(m['name'] as String),
         type: Value(m['type'] as String),
-        balance: Value(m['balance'] as int),
+        balance: Value(_int(m['balance'])),
         currencyCode: Value(m['currencyCode'] as String),
         iconName: Value(m['iconName'] as String),
         colorHex: Value(m['colorHex'] as String),
         isArchived: Value(m['isArchived'] as bool),
-        displayOrder: Value(m['displayOrder'] as int),
+        displayOrder: Value(_int(m['displayOrder'])),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 
   CategoriesCompanion _mapToCategory(Map<String, dynamic> m) =>
       CategoriesCompanion(
-        id: Value(m['id'] as int),
+        id: Value(_int(m['id'])),
         name: Value(m['name'] as String),
         nameAr: Value(m['nameAr'] as String),
         iconName: Value(m['iconName'] as String),
@@ -419,15 +426,15 @@ class BackupServiceImpl implements BackupService {
         groupType: Value(m['groupType'] as String?),
         isDefault: Value(m['isDefault'] as bool),
         isArchived: Value(m['isArchived'] as bool),
-        displayOrder: Value(m['displayOrder'] as int),
+        displayOrder: Value(_int(m['displayOrder'])),
       );
 
   TransactionsCompanion _mapToTransaction(Map<String, dynamic> m) =>
       TransactionsCompanion(
-        id: Value(m['id'] as int),
-        walletId: Value(m['walletId'] as int),
-        categoryId: Value(m['categoryId'] as int),
-        amount: Value(m['amount'] as int),
+        id: Value(_int(m['id'])),
+        walletId: Value(_int(m['walletId'])),
+        categoryId: Value(_int(m['categoryId'])),
+        amount: Value(_int(m['amount'])),
         type: Value(m['type'] as String),
         currencyCode: Value(m['currencyCode'] as String),
         title: Value(m['title'] as String),
@@ -442,32 +449,32 @@ class BackupServiceImpl implements BackupService {
         source: Value(m['source'] as String? ?? 'manual'),
         rawSourceText: Value(m['rawSourceText'] as String?),
         isRecurring: Value(m['isRecurring'] as bool? ?? false),
-        recurringRuleId: Value(m['recurringRuleId'] as int?),
-        goalId: Value(m['goalId'] as int?),
+        recurringRuleId: Value(_intN(m['recurringRuleId'])),
+        goalId: Value(_intN(m['goalId'])),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
         updatedAt: Value(DateTime.parse(m['updatedAt'] as String)),
       );
 
   TransfersCompanion _mapToTransfer(Map<String, dynamic> m) =>
       TransfersCompanion(
-        id: Value(m['id'] as int),
-        fromWalletId: Value(m['fromWalletId'] as int),
-        toWalletId: Value(m['toWalletId'] as int),
-        amount: Value(m['amount'] as int),
-        fee: Value(m['fee'] as int? ?? 0),
+        id: Value(_int(m['id'])),
+        fromWalletId: Value(_int(m['fromWalletId'])),
+        toWalletId: Value(_int(m['toWalletId'])),
+        amount: Value(_int(m['amount'])),
+        fee: Value(_intN(m['fee']) ?? 0),
         note: Value(m['note'] as String?),
         transferDate: Value(DateTime.parse(m['transferDate'] as String)),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 
   BudgetsCompanion _mapToBudget(Map<String, dynamic> m) => BudgetsCompanion(
-        id: Value(m['id'] as int),
-        categoryId: Value(m['categoryId'] as int),
-        month: Value(m['month'] as int),
-        year: Value(m['year'] as int),
-        limitAmount: Value(m['limitAmount'] as int),
+        id: Value(_int(m['id'])),
+        categoryId: Value(_int(m['categoryId'])),
+        month: Value(_int(m['month'])),
+        year: Value(_int(m['year'])),
+        limitAmount: Value(_int(m['limitAmount'])),
         rollover: Value(m['rollover'] as bool? ?? false),
-        rolloverAmount: Value(m['rolloverAmount'] as int? ?? 0),
+        rolloverAmount: Value(_intN(m['rolloverAmount']) ?? 0),
         // v2 backups don't have createdAt — let DB default handle it
         createdAt: Value(
           m['createdAt'] != null
@@ -478,12 +485,12 @@ class BackupServiceImpl implements BackupService {
 
   SavingsGoalsCompanion _mapToGoal(Map<String, dynamic> m) =>
       SavingsGoalsCompanion(
-        id: Value(m['id'] as int),
+        id: Value(_int(m['id'])),
         name: Value(m['name'] as String),
         iconName: Value(m['iconName'] as String),
         colorHex: Value(m['colorHex'] as String),
-        targetAmount: Value(m['targetAmount'] as int),
-        currentAmount: Value(m['currentAmount'] as int? ?? 0),
+        targetAmount: Value(_int(m['targetAmount'])),
+        currentAmount: Value(_intN(m['currentAmount']) ?? 0),
         currencyCode: Value(m['currencyCode'] as String? ?? 'EGP'),
         deadline: Value(
           m['deadline'] != null
@@ -492,25 +499,25 @@ class BackupServiceImpl implements BackupService {
         ),
         isCompleted: Value(m['isCompleted'] as bool? ?? false),
         keywords: Value(m['keywords'] as String? ?? '[]'),
-        walletId: Value(m['walletId'] as int?),
+        walletId: Value(_intN(m['walletId'])),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 
   GoalContributionsCompanion _mapToContribution(Map<String, dynamic> m) =>
       GoalContributionsCompanion(
-        id: Value(m['id'] as int),
-        goalId: Value(m['goalId'] as int),
-        amount: Value(m['amount'] as int),
+        id: Value(_int(m['id'])),
+        goalId: Value(_int(m['goalId'])),
+        amount: Value(_int(m['amount'])),
         date: Value(DateTime.parse(m['date'] as String)),
         note: Value(m['note'] as String?),
       );
 
   RecurringRulesCompanion _mapToRule(Map<String, dynamic> m) =>
       RecurringRulesCompanion(
-        id: Value(m['id'] as int),
-        walletId: Value(m['walletId'] as int),
-        categoryId: Value(m['categoryId'] as int),
-        amount: Value(m['amount'] as int),
+        id: Value(_int(m['id'])),
+        walletId: Value(_int(m['walletId'])),
+        categoryId: Value(_int(m['categoryId'])),
+        amount: Value(_int(m['amount'])),
         type: Value(m['type'] as String),
         title: Value(m['title'] as String),
         frequency: Value(m['frequency'] as String),
@@ -527,7 +534,7 @@ class BackupServiceImpl implements BackupService {
               ? DateTime.parse(m['paidAt'] as String)
               : null,
         ),
-        linkedTransactionId: Value(m['linkedTransactionId'] as int?),
+        linkedTransactionId: Value(_intN(m['linkedTransactionId'])),
         isActive: Value(m['isActive'] as bool? ?? true),
         lastProcessedDate: Value(
           m['lastProcessedDate'] != null
@@ -539,12 +546,12 @@ class BackupServiceImpl implements BackupService {
   // C3 fix: include aiEnrichmentJson in deserialization, handle v1 backups
   SmsParserLogsCompanion _mapToSmsLog(Map<String, dynamic> m, int version) =>
       SmsParserLogsCompanion(
-        id: Value(m['id'] as int),
+        id: Value(_int(m['id'])),
         senderAddress: Value(m['senderAddress'] as String),
         bodyHash: Value(m['bodyHash'] as String),
         body: Value(m['body'] as String),
         parsedStatus: Value(m['parsedStatus'] as String),
-        transactionId: Value(m['transactionId'] as int?),
+        transactionId: Value(_intN(m['transactionId'])),
         source: Value(m['source'] as String),
         receivedAt: Value(DateTime.parse(m['receivedAt'] as String)),
         processedAt: Value(DateTime.parse(m['processedAt'] as String)),

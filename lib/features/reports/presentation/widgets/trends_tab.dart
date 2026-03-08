@@ -108,7 +108,7 @@ class _SpendingLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxAmount = data.fold<int>(0, (s, e) => e.amount > s ? e.amount : s);
-    final maxY = maxAmount > 0 ? maxAmount * 1.2 : 100.0;
+    final maxY = maxAmount > 0 ? maxAmount * 1.2 : 10000.0; // 100 EGP floor in piastres
 
     final spots = List.generate(data.length, (i) {
       return FlSpot(i.toDouble(), data[i].amount.toDouble());

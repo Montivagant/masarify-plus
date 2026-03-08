@@ -215,7 +215,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
         return m > prev ? m : prev;
       },
     );
-    final maxY = maxVal > 0 ? maxVal * 1.2 : 100.0;
+    final maxY = maxVal > 0 ? maxVal * 1.2 : 10000.0; // 100 EGP floor in piastres
 
     return BarChart(
       BarChartData(
@@ -226,7 +226,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
             getTooltipItem: (group, groupIdx, rod, rodIdx) {
               final label = rodIdx == 0 ? context.l10n.dashboard_income : context.l10n.dashboard_expense;
               return BarTooltipItem(
-                '$label\n${MoneyFormatter.format(rod.toY.toInt())}',
+                '$label\n${MoneyFormatter.format(rod.toY.round())}',
                 context.textStyles.bodySmall!.copyWith(
                       color: context.colors.onSurface,
                       fontWeight: FontWeight.w600,
