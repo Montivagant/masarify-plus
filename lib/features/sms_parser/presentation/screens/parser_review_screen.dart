@@ -13,11 +13,14 @@ import '../../../../core/services/notification_transaction_parser.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../data/database/app_database.dart';
+import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
+import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/buttons/app_icon_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -44,13 +47,26 @@ class ParserReviewScreen extends ConsumerStatefulWidget {
 
 class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
   final _processingIds = <int>{};
+  final _enrichingIds = <int>{};
+  bool _enrichingAll = false;
 
   @override
   Widget build(BuildContext context) {
     final pendingAsync = ref.watch(pendingParsedTransactionsProvider);
+    final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? false;
 
     return Scaffold(
-      appBar: AppAppBar(title: context.l10n.parsed_transactions_title),
+      appBar: AppAppBar(
+        title: context.l10n.parsed_transactions_title,
+        actions: [
+          if (isOnline)
+            AppIconButton(
+              icon: AppIcons.ai,
+              onPressed: _enrichingAll ? null : () => _enrichAll(),
+              tooltip: context.l10n.parser_enrich_all,
+            ),
+        ],
+      ),
       body: pendingAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
@@ -72,21 +88,93 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
             itemCount: logs.length,
             itemBuilder: (context, index) {
               final log = logs[index];
+              final hasEnrichment = log.aiEnrichmentJson != null;
               return _PendingLogCard(
                 log: log,
                 isProcessing: _processingIds.contains(log.id),
+                isEnriching: _enrichingIds.contains(log.id),
+                showEnrichButton: !hasEnrichment && isOnline,
                 onApprove: _processingIds.contains(log.id)
                     ? null
                     : () => _approveWithGuard(log),
                 onSkip: _processingIds.contains(log.id)
                     ? null
                     : () => _skip(log),
+                onEnrich: _enrichingIds.contains(log.id)
+                    ? null
+                    : () => _enrichSingle(log),
               );
             },
           );
         },
       ),
     );
+  }
+
+  Future<void> _enrichSingle(SmsParserLog log) async {
+    if (_enrichingIds.contains(log.id)) return;
+    setState(() => _enrichingIds.add(log.id));
+    try {
+      await _enrichLog(log);
+    } finally {
+      if (mounted) setState(() => _enrichingIds.remove(log.id));
+    }
+  }
+
+  Future<void> _enrichAll() async {
+    if (_enrichingAll) return;
+    setState(() => _enrichingAll = true);
+    try {
+      final logs =
+          ref.read(pendingParsedTransactionsProvider).valueOrNull ?? [];
+      final unenriched =
+          logs.where((l) => l.aiEnrichmentJson == null).toList();
+      for (final log in unenriched) {
+        if (!mounted) break;
+        await _enrichLog(log);
+      }
+      if (mounted) {
+        ref.invalidate(pendingParsedTransactionsProvider);
+      }
+    } finally {
+      if (mounted) setState(() => _enrichingAll = false);
+    }
+  }
+
+  Future<void> _enrichLog(SmsParserLog log) async {
+    final aiParser = ref.read(aiTransactionParserProvider);
+    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+    final dao = ref.read(smsParserLogDaoProvider);
+    if (categories.isEmpty) return;
+
+    final parsed = NotificationTransactionParser.parse(
+      sender: log.senderAddress,
+      body: log.body,
+      receivedAt: log.receivedAt,
+    );
+    if (parsed == null) return;
+
+    try {
+      final enrichment = await aiParser.enrich(
+        sender: log.senderAddress,
+        body: log.body,
+        amountPiastres: parsed.amountPiastres,
+        type: parsed.type,
+        categories: categories,
+      );
+      if (enrichment != null) {
+        await dao.updateEnrichment(
+          log.id,
+          jsonEncode(enrichment.toJson()),
+        );
+        if (mounted) ref.invalidate(pendingParsedTransactionsProvider);
+      }
+    } catch (e) {
+      dev.log(
+        'Enrichment failed for log ${log.id}: $e',
+        name: 'ParserReview',
+      );
+    }
   }
 
   Future<void> _approveWithGuard(SmsParserLog log) async {
@@ -194,14 +282,20 @@ class _PendingLogCard extends StatelessWidget {
   const _PendingLogCard({
     required this.log,
     required this.isProcessing,
+    required this.isEnriching,
+    required this.showEnrichButton,
     required this.onApprove,
     required this.onSkip,
+    required this.onEnrich,
   });
 
   final SmsParserLog log;
   final bool isProcessing;
+  final bool isEnriching;
+  final bool showEnrichButton;
   final VoidCallback? onApprove;
   final VoidCallback? onSkip;
+  final VoidCallback? onEnrich;
 
   @override
   Widget build(BuildContext context) {
@@ -340,6 +434,20 @@ class _PendingLogCard extends StatelessWidget {
                       ),
                 ),
                 const Spacer(),
+                if (showEnrichButton)
+                  TextButton(
+                    onPressed: onEnrich,
+                    child: isEnriching
+                        ? SizedBox(
+                            width: AppSizes.iconXs,
+                            height: AppSizes.iconXs,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: cs.primary,
+                            ),
+                          )
+                        : Text(context.l10n.parser_enrich),
+                  ),
                 TextButton(
                   onPressed: onSkip,
                   child: Text(context.l10n.sms_review_skip),

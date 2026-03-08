@@ -303,6 +303,9 @@
   "parser_ai_category": "Suggested Category",
   "parser_ai_merchant": "Merchant",
   "parser_ai_note": "Note",
+  "parser_enrich": "Enrich",
+  "parser_enrich_all": "Enrich All",
+  "parser_enriching": "Enriching…",
 
   "goal_link_prompt": "This looks like it relates to your '{goalName}'. Link it?",
   "@goal_link_prompt": {"placeholders": {"goalName": {"type": "String"}}},

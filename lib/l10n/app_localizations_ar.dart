@@ -858,6 +858,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get parser_ai_note => 'ملاحظة';
 
   @override
+  String get parser_enrich => 'تحسين';
+
+  @override
+  String get parser_enrich_all => 'تحسين الكل';
+
+  @override
+  String get parser_enriching => 'جاري التحسين…';
+
+  @override
   String goal_link_prompt(String goalName) {
     return 'يبدو أن هذا مرتبط بهدفك \'$goalName\'. هل تريد ربطه؟';
   }

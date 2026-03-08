@@ -303,6 +303,9 @@
   "parser_ai_category": "الفئة المقترحة",
   "parser_ai_merchant": "التاجر",
   "parser_ai_note": "ملاحظة",
+  "parser_enrich": "تحسين",
+  "parser_enrich_all": "تحسين الكل",
+  "parser_enriching": "جاري التحسين…",
 
   "goal_link_prompt": "يبدو أن هذا مرتبط بهدفك '{goalName}'. هل تريد ربطه؟",
   "@goal_link_prompt": {"placeholders": {"goalName": {"type": "String"}}},

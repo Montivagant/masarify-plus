@@ -859,6 +859,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parser_ai_note => 'Note';
 
   @override
+  String get parser_enrich => 'Enrich';
+
+  @override
+  String get parser_enrich_all => 'Enrich All';
+
+  @override
+  String get parser_enriching => 'Enriching…';
+
+  @override
   String goal_link_prompt(String goalName) {
     return 'This looks like it relates to your \'$goalName\'. Link it?';
   }

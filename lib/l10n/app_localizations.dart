@@ -1748,6 +1748,24 @@ abstract class AppLocalizations {
   /// **'Note'**
   String get parser_ai_note;
 
+  /// No description provided for @parser_enrich.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrich'**
+  String get parser_enrich;
+
+  /// No description provided for @parser_enrich_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrich All'**
+  String get parser_enrich_all;
+
+  /// No description provided for @parser_enriching.
+  ///
+  /// In en, this message translates to:
+  /// **'Enriching…'**
+  String get parser_enriching;
+
   /// No description provided for @goal_link_prompt.
   ///
   /// In en, this message translates to:

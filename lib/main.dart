@@ -6,15 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
-import 'core/services/connectivity_service.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/glass_config_service.dart';
 import 'core/services/notification_service.dart';
-import 'core/services/offline_sync_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/recurring_scheduler.dart';
 import 'core/services/sms_parser_service.dart';
-import 'shared/providers/ai_provider.dart';
 import 'shared/providers/database_provider.dart';
 import 'shared/providers/notification_listener_provider.dart';
 import 'shared/providers/pending_transactions_provider.dart';
@@ -82,58 +79,18 @@ Future<void> main() async {
     ).run(),
   );
 
-  // Shared connectivity service for all background services.
-  final connectivity = ConnectivityService();
-
-  // Scan SMS inbox in background after UI is mounted.
+  // Scan SMS inbox in background after UI is mounted (local parsing only,
+  // no AI enrichment — user triggers enrichment from the review screen).
   if (PreferencesService(prefs).isSmsParserEnabled) {
-    _scanSmsInBackground(container, connectivity);
+    _scanSmsInBackground(container);
   }
-
-  // Start sync-on-reconnect service to enrich pending items when back online.
-  _startOfflineSyncService(container, connectivity);
 }
 
-/// Offline sync service reference — kept alive for the app's lifetime.
-/// Stored to prevent garbage collection of the subscription.
-// ignore: unused_element
-OfflineSyncService? _offlineSyncService;
-
-/// Start the offline sync service to enrich pending items when reconnecting.
-void _startOfflineSyncService(
-  ProviderContainer container,
-  ConnectivityService connectivity,
-) {
+/// Scan SMS inbox for financial messages (local regex parsing only).
+/// AI enrichment is deferred to user action on the review screen.
+Future<void> _scanSmsInBackground(ProviderContainer container) async {
   final smsDao = container.read(smsParserLogDaoProvider);
-  final aiParser = container.read(aiTransactionParserProvider);
-  final categoryRepo = container.read(categoryRepositoryProvider);
-
-  _offlineSyncService = OfflineSyncService(
-    dao: smsDao,
-    aiParser: aiParser,
-    getCategories: () => categoryRepo.getAll(),
-    connectivityService: connectivity,
-  )..start();
-}
-
-/// H1 fix: run SMS scan asynchronously after app launch.
-/// Loads categories directly from DAO instead of from provider
-/// (which hasn't emitted yet at startup).
-Future<void> _scanSmsInBackground(
-  ProviderContainer container,
-  ConnectivityService connectivity,
-) async {
-  final smsDao = container.read(smsParserLogDaoProvider);
-  final aiParser = container.read(aiTransactionParserProvider);
-  // Load categories from repository directly — StreamProvider hasn't emitted yet
-  final categoryRepo = container.read(categoryRepositoryProvider);
-  final categories = await categoryRepo.getAll();
-  final count = await SmsParserService(
-    smsDao,
-    aiParser: aiParser,
-    categories: categories,
-    connectivityService: connectivity,
-  ).scanInbox();
+  final count = await SmsParserService(smsDao).scanInbox();
   if (count > 0) {
     container.invalidate(pendingParsedTransactionsProvider);
   }
