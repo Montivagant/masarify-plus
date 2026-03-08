@@ -5,9 +5,6 @@ import 'env.dart';
 /// API keys are loaded from [Env] (gitignored env.dart).
 /// Can be overridden at build time via `--dart-define=OPENROUTER_API_KEY=...`.
 abstract final class AiConfig {
-  /// Master gate — enables AI-powered voice parsing.
-  static const bool isEnabled = true;
-
   /// Build-time overrides (optional).
   static const String _envOverride =
       String.fromEnvironment('OPENROUTER_API_KEY');

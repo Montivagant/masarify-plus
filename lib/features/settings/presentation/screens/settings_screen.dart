@@ -16,7 +16,6 @@ import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/services/notification_listener_wrapper.dart';
 import '../../../../core/services/sms_parser_service.dart';
 import '../../../../core/utils/permission_helper.dart';
-import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/notification_listener_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
@@ -277,14 +276,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       setState(() => _smsParserEnabled = true);
 
       final dao = ref.read(smsParserLogDaoProvider);
-      final aiParser = ref.read(aiTransactionParserProvider);
-      final categoryRepo = ref.read(categoryRepositoryProvider);
-      final cats = await categoryRepo.getAll();
-      final count = await SmsParserService(
-        dao,
-        aiParser: aiParser,
-        categories: cats,
-      ).scanInbox();
+      final count = await SmsParserService(dao).scanInbox();
       if (!mounted) return;
       if (count > 0) {
         ref.invalidate(pendingParsedTransactionsProvider);
@@ -301,7 +293,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final prefs = await ref.read(preferencesFutureProvider.future);
     if (!mounted) return;
     await prefs.setAiModel(model);
-    ref.invalidate(aiModelPreferenceProvider);
   }
 
   String _aiModelLabel(String model) {
