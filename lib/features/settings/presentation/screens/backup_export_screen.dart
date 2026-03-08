@@ -32,14 +32,17 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   bool _busy = false;
 
   /// Delete temp export file after sharing to avoid leaking financial data.
+  /// Delays 2s to give the receiving app time to finish reading on Android.
   void _deleteTempFile(String? path) {
     if (path == null) return;
-    try {
-      final file = File(path);
-      if (file.existsSync()) file.deleteSync();
-    } catch (_) {
-      // Best-effort cleanup — don't crash if delete fails
-    }
+    Future<void>.delayed(const Duration(seconds: 2), () {
+      try {
+        final file = File(path);
+        if (file.existsSync()) file.deleteSync();
+      } catch (_) {
+        // Best-effort cleanup — don't crash if delete fails
+      }
+    });
   }
 
   // ── Export JSON ──────────────────────────────────────────────────────────

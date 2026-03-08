@@ -675,9 +675,13 @@
   "@dashboard_insight_spending_down": { "placeholders": { "percent": { "type": "int" } } },
   "dashboard_insight_parsed_transactions": "المعاملات المحللة",
   "insight_recurring_detected": "شهري: {title} — أضف كمتكرر؟",
+  "@insight_recurring_detected": { "placeholders": { "title": { "type": "String" } } },
   "insight_weekly_detected": "أسبوعي: {title} — أضف كمتكرر؟",
+  "@insight_weekly_detected": { "placeholders": { "title": { "type": "String" } } },
   "insight_over_budget_prediction": "{category} قد يتجاوز الميزانية بـ {amount}",
+  "@insight_over_budget_prediction": { "placeholders": { "category": { "type": "String" }, "amount": { "type": "String" } } },
   "insight_budget_suggestion": "حدد ميزانية {amount} لـ {category}؟",
+  "@insight_budget_suggestion": { "placeholders": { "amount": { "type": "String" }, "category": { "type": "String" } } },
 
   "hub_planning_title": "التخطيط",
   "hub_section_accounts": "الحسابات",

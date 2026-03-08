@@ -22,12 +22,6 @@ class NotificationListenerWrapper {
   bool _disposed = false;
   bool _isStarting = false;
 
-  /// Pending parsed transactions awaiting user review.
-  final pendingStream = StreamController<int>.broadcast();
-  int _pendingCount = 0;
-
-  int get pendingCount => _pendingCount;
-
   /// Called after a new pending transaction is stored.
   /// Set this to invalidate providers for live refresh.
   VoidCallback? onNewPending;
@@ -136,7 +130,6 @@ class NotificationListenerWrapper {
   /// Dispose resources.
   void dispose() {
     stop();
-    pendingStream.close();
   }
 
   // ── Internal ──────────────────────────────────────────────────────────────
@@ -191,8 +184,6 @@ class NotificationListenerWrapper {
 
       // AI enrichment is user-initiated from the review screen.
       // Just notify that a new pending item arrived.
-      _pendingCount++;
-      pendingStream.add(_pendingCount);
       onNewPending?.call();
     } catch (e, stack) {
       debugPrint('[NotificationListener] _onNotification error: $e');

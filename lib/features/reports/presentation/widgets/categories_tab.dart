@@ -78,7 +78,7 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
 
             // ── Horizontal bar chart ───────────────────────────────
             SizedBox(
-              height: breakdown.length.clamp(0, 5) * 64.0 + 48,
+              height: breakdown.length.clamp(0, 5) * AppSizes.chartBarRowHeight + AppSizes.chartBarHeaderHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
@@ -151,7 +151,7 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 80,
+              reservedSize: AppSizes.chartAxisReservedMd,
               getTitlesWidget: (value, _) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= breakdown.length) {
@@ -256,7 +256,7 @@ class _CategoryRow extends StatelessWidget {
                     backgroundColor: context.colors.outlineVariant
                         .withValues(alpha: AppSizes.opacityLight3),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
-                    minHeight: 4,
+                    minHeight: AppSizes.progressBarHeightSm,
                   ),
                 ),
               ],

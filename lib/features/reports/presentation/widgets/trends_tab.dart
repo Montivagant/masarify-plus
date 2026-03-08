@@ -146,7 +146,7 @@ class _SpendingLineChart extends StatelessWidget {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 48,
+              reservedSize: AppSizes.chartAxisReservedSm,
               getTitlesWidget: (value, meta) {
                 if (value == meta.max || value == meta.min) {
                   return const SizedBox.shrink();
@@ -200,19 +200,19 @@ class _SpendingLineChart extends StatelessWidget {
             isCurved: true,
             preventCurveOverShooting: true,
             color: context.appTheme.expenseColor,
-            barWidth: 3.0, // WS-9: thicker line
+            barWidth: AppSizes.chartLineWidth, // WS-9: thicker line
             shadow: Shadow(
               color: context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityLight4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              blurRadius: AppSizes.chartShadowBlur,
+              offset: const Offset(0, AppSizes.chartShadowOffsetY),
             ),
             dotData: FlDotData(
               show: days <= 7,
               getDotPainter: (spot, percent, bar, index) =>
                   FlDotCirclePainter(
-                radius: 4,
+                radius: AppSizes.chartDotRadius,
                 color: context.appTheme.expenseColor,
-                strokeWidth: 2,
+                strokeWidth: AppSizes.chartDotStrokeWidth,
                 strokeColor: context.colors.surface,
               ),
             ),
