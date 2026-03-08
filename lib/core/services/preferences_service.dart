@@ -22,6 +22,12 @@ class PreferencesService {
   static const _kSmsParserEnabled = 'sms_parser_enabled';
   static const _kAiModel = 'ai_model';
 
+  // Category frequency keys
+  static const _kCategoryFreqExpense = 'category_freq_expense';
+  static const _kCategoryFreqIncome = 'category_freq_income';
+  static const _kLastCatExpense = 'last_cat_expense';
+  static const _kLastCatIncome = 'last_cat_income';
+
   // Notification preference keys
   static const _kNotifyBudgetWarning = 'notify_budget_warning';
   static const _kNotifyBudgetExceeded = 'notify_budget_exceeded';
@@ -151,6 +157,27 @@ class PreferencesService {
     await _prefs.setInt(_kQuietHoursStart, start);
     await _prefs.setInt(_kQuietHoursEnd, end);
   }
+
+  // ── Category frequency ────────────────────────────────────────────────────
+  String? getCategoryFrequencyJson(String type) => _prefs.getString(
+    type == 'income' ? _kCategoryFreqIncome : _kCategoryFreqExpense,
+  );
+
+  Future<void> setCategoryFrequencyJson(String type, String json) =>
+      _prefs.setString(
+        type == 'income' ? _kCategoryFreqIncome : _kCategoryFreqExpense,
+        json,
+      );
+
+  int? getLastCategoryId(String type) => _prefs.getInt(
+    type == 'income' ? _kLastCatIncome : _kLastCatExpense,
+  );
+
+  Future<void> setLastCategoryId(String type, int categoryId) =>
+      _prefs.setInt(
+        type == 'income' ? _kLastCatIncome : _kLastCatExpense,
+        categoryId,
+      );
 
   // ── Clear all data ────────────────────────────────────────────────────────
   Future<void> clearAll() => _prefs.clear();

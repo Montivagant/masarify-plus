@@ -39,6 +39,9 @@ abstract final class AiConfig {
   /// Timeout for API calls in seconds.
   static const int apiTimeoutSeconds = 15;
 
+  /// Model used for conversational AI chat (free tier).
+  static const String chatModel = modelGemma27b;
+
   /// Maximum tokens in the LLM response.
   static const int maxResponseTokens = 1024;
 

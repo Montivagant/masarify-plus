@@ -44,4 +44,7 @@ abstract final class AppDurations {
 
   // Service delays
   static const Duration listenerBindDelay = Duration(seconds: 3);
+
+  // Smart defaults
+  static const Duration quickAddLookback = Duration(days: 90);
 }

@@ -105,6 +105,7 @@ abstract final class AppIcons {
   static const IconData otherExpense = PhosphorIconsRegular.dotsThreeOutline;
   static const IconData otherIncome = PhosphorIconsRegular.dotsThreeOutline;
   static const IconData ai = PhosphorIconsFill.sparkle;
+  static const IconData send = PhosphorIconsFill.paperPlaneRight;
 
   // ── Trend indicators ───────────────────────────────────────────────────
   static const IconData trendingUp = PhosphorIconsBold.trendUp;

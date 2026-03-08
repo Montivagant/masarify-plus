@@ -806,6 +806,60 @@ abstract class AppLocalizations {
   /// **'No activity this month'**
   String get calendar_empty_title;
 
+  /// No description provided for @chat_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Masarify AI'**
+  String get chat_title;
+
+  /// No description provided for @chat_input_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask about your finances...'**
+  String get chat_input_hint;
+
+  /// No description provided for @chat_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear chat'**
+  String get chat_clear;
+
+  /// No description provided for @chat_clear_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all messages?'**
+  String get chat_clear_confirm;
+
+  /// No description provided for @chat_offline.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline — chat requires internet'**
+  String get chat_offline;
+
+  /// No description provided for @chat_error_rate_limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many requests, try again shortly'**
+  String get chat_error_rate_limit;
+
+  /// No description provided for @chat_error_unauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'API key issue, check settings'**
+  String get chat_error_unauthorized;
+
+  /// No description provided for @chat_error_timeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Response timed out, try again'**
+  String get chat_error_timeout;
+
+  /// No description provided for @chat_error_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong, try again'**
+  String get chat_error_generic;
+
   /// No description provided for @hub_title.
   ///
   /// In en, this message translates to:
@@ -829,6 +883,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Planning'**
   String get hub_section_planning;
+
+  /// No description provided for @hub_section_ai.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get hub_section_ai;
 
   /// No description provided for @hub_section_app.
   ///
@@ -2726,6 +2786,24 @@ abstract class AppLocalizations {
   /// **'Cash'**
   String get onboarding_default_wallet_name;
 
+  /// No description provided for @onboarding_account_name_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Name'**
+  String get onboarding_account_name_label;
+
+  /// No description provided for @onboarding_account_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Cash, CIB, Vodafone Cash'**
+  String get onboarding_account_name_hint;
+
+  /// No description provided for @onboarding_account_type_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Type'**
+  String get onboarding_account_type_label;
+
   /// No description provided for @goal_active_section.
   ///
   /// In en, this message translates to:
@@ -3541,6 +3619,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Over by'**
   String get budget_over_by;
+
+  /// No description provided for @dashboard_month_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get dashboard_month_summary;
+
+  /// No description provided for @dashboard_month_net.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get dashboard_month_net;
+
+  /// No description provided for @dashboard_vs_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'vs last month'**
+  String get dashboard_vs_last_month;
+
+  /// No description provided for @dashboard_insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get dashboard_insights;
+
+  /// No description provided for @dashboard_insight_spending_up.
+  ///
+  /// In en, this message translates to:
+  /// **'+{percent}% spending pace'**
+  String dashboard_insight_spending_up(int percent);
+
+  /// No description provided for @dashboard_insight_spending_down.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% less spending'**
+  String dashboard_insight_spending_down(int percent);
+
+  /// No description provided for @dashboard_insight_parsed_transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Parsed Transactions'**
+  String get dashboard_insight_parsed_transactions;
+
+  /// No description provided for @insight_recurring_detected.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly: {title} — add as recurring?'**
+  String insight_recurring_detected(String title);
+
+  /// No description provided for @insight_weekly_detected.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly: {title} — add as recurring?'**
+  String insight_weekly_detected(String title);
+
+  /// No description provided for @insight_over_budget_prediction.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} may exceed budget by {amount}'**
+  String insight_over_budget_prediction(String category, String amount);
+
+  /// No description provided for @insight_budget_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a {amount} budget for {category}?'**
+  String insight_budget_suggestion(String amount, String category);
+
+  /// No description provided for @hub_planning_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get hub_planning_title;
+
+  /// No description provided for @hub_section_accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get hub_section_accounts;
+
+  /// No description provided for @hub_section_goals_budgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets & Goals'**
+  String get hub_section_goals_budgets;
+
+  /// No description provided for @hub_section_recurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring & Bills'**
+  String get hub_section_recurring;
+
+  /// No description provided for @nav_planning.
+  ///
+  /// In en, this message translates to:
+  /// **'Planning'**
+  String get nav_planning;
+
+  /// No description provided for @dashboard_quick_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add'**
+  String get dashboard_quick_add;
+
+  /// No description provided for @quick_add_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} added'**
+  String quick_add_saved(String title);
+
+  /// No description provided for @common_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get common_undo;
 }
 
 class _AppLocalizationsDelegate

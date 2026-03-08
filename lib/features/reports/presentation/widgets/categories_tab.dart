@@ -180,8 +180,13 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                 toY: cat.amount.toDouble(),
                 color: ColorUtils.fromHex(cat.colorHex),
                 width: AppSizes.barChartWidth,
-                borderRadius: const BorderRadius.horizontal(
-                  right: Radius.circular(AppSizes.borderRadiusXs),
+                borderRadius: BorderRadius.horizontal(
+                  right: Directionality.of(context) == TextDirection.ltr
+                      ? const Radius.circular(AppSizes.borderRadiusXs)
+                      : Radius.zero,
+                  left: Directionality.of(context) == TextDirection.rtl
+                      ? const Radius.circular(AppSizes.borderRadiusXs)
+                      : Radius.zero,
                 ),
               ),
             ],

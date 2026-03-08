@@ -27,7 +27,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
   final _nameController = TextEditingController();
   String _type = 'expense';
   String _iconName = 'food';
-  String _colorHex = '#1A6B5E';
+  String _colorHex = AppColors.pickerOptions.first;
   String? _groupType = 'needs';
   String? _nameError;
   bool _loading = false;

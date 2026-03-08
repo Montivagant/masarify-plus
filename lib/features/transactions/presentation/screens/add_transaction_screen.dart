@@ -17,9 +17,11 @@ import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/permission_helper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/transaction_entity.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
@@ -63,6 +65,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   final _titleController = TextEditingController(); // WS-10
   bool _loading = false;
   bool _showOptional = false;
+  bool _smartDefaultApplied = false;
   TransactionEntity? _editTx;
   String? _locationName;
   double? _latitude;
@@ -93,6 +96,25 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted) return;
     if (wallets.isNotEmpty) setState(() => _walletId = wallets.first.id);
+  }
+
+  /// Applies last-used category default once categories are loaded.
+  /// Called from build — guarded by [_smartDefaultApplied] flag.
+  void _tryApplySmartDefault(List<CategoryEntity> typeCats) {
+    if (_smartDefaultApplied || widget.editId != null) return;
+    if (typeCats.isEmpty) return;
+    _smartDefaultApplied = true;
+
+    final service = ref.read(categoryFrequencyServiceProvider);
+    final lastId = service.getLastUsedCategoryId(_type);
+    if (lastId == null) return;
+    final valid = typeCats.any((c) => c.id == lastId);
+    if (valid) {
+      // Safe: called during build, schedules after current frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedCategoryId = lastId);
+      });
+    }
   }
 
   Future<void> _loadForEdit() async {
@@ -253,6 +275,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           latitude: _latitude,
           longitude: _longitude,
         );
+        await ref
+            .read(categoryFrequencyServiceProvider)
+            .recordUsage(_type, categoryId);
+        // Record title→category mapping for auto-categorization learning.
+        await ref
+            .read(categorizationLearningServiceProvider)
+            .recordMapping(title, categoryId);
       }
 
       HapticFeedback.heavyImpact();
@@ -384,7 +413,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
     final typeCats =
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
-    final topCats = typeCats.take(6).toList();
+    _tryApplySmartDefault(typeCats);
+    final freqService = ref.read(categoryFrequencyServiceProvider);
+    final sortedCats = freqService.sortByFrequency(typeCats, _type);
+    final topCats = sortedCats.take(AppSizes.categoryChipMaxVisible).toList();
+    final todKeywords = freqService.getTimeOfDaySuggestedKeywords();
 
     final typeColor = switch (_type) {
       'income' => context.appTheme.incomeColor,
@@ -444,10 +477,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 ),
               ],
               selected: {_type},
-              onSelectionChanged: (v) => setState(() {
-                _type = v.first;
-                _selectedCategoryId = null;
-              }),
+              onSelectionChanged: (v) {
+                setState(() {
+                  _type = v.first;
+                  _selectedCategoryId = null;
+                  _smartDefaultApplied = false;
+                });
+              },
             ),
           ),
 
@@ -507,6 +543,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 final cat = topCats[i];
                 final color = ColorUtils.fromHex(cat.colorHex);
                 final isSelected = cat.id == _selectedCategoryId;
+                final isTimeHint = !isSelected &&
+                    todKeywords.any(
+                      (kw) =>
+                          cat.name.toLowerCase().contains(kw) ||
+                          cat.nameAr.contains(kw),
+                    );
                 return FilterChip(
                   selected: isSelected,
                   avatar: Icon(
@@ -515,6 +557,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                     color: isSelected ? cs.onSecondaryContainer : color,
                   ),
                   label: Text(cat.displayName(context.languageCode)),
+                  side: isTimeHint
+                      ? BorderSide(
+                          color: cs.primary,
+                          width: AppSizes.borderWidthEmphasis,
+                        )
+                      : null,
                   onSelected: (_) {
                     setState(() => _selectedCategoryId = cat.id);
                     // WS-10: auto-fill title on category selection if empty.

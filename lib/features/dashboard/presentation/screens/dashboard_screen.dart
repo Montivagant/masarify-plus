@@ -12,10 +12,11 @@ import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/account_carousel.dart';
-import '../widgets/budget_alerts_zone.dart';
+import '../widgets/ai_insights_zone.dart';
+import '../widgets/month_summary_zone.dart';
+import '../widgets/quick_add_zone.dart';
 import '../widgets/recent_transactions_zone.dart';
 import '../widgets/spending_overview_zone.dart';
 
@@ -106,59 +107,26 @@ class DashboardScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSizes.sectionGap),
 
-              // ── Zone 2: Quick Actions (glass styled) ────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _GlassQuickAction(
-                        onTap: () => context.push(
-                          AppRoutes.transactionAdd,
-                          extra: {'type': 'expense'},
-                        ),
-                        icon: AppIcons.expense,
-                        label: context.l10n.dashboard_quick_add_expense,
-                        color: context.appTheme.expenseColor,
-                      ),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    Expanded(
-                      child: _GlassQuickAction(
-                        onTap: () => context.push(
-                          AppRoutes.transactionAdd,
-                          extra: {'type': 'income'},
-                        ),
-                        icon: AppIcons.income,
-                        label: context.l10n.dashboard_quick_add_income,
-                        color: context.appTheme.incomeColor,
-                      ),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    Expanded(
-                      child: _GlassQuickAction(
-                        onTap: () => context.push(AppRoutes.transfer),
-                        icon: AppIcons.transfer,
-                        label: context.l10n.transfer_title,
-                        color: context.colors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ── Zone 2: AI Insight Cards ───────────────────────────
+              AiInsightsZone(filterWalletId: selectedWalletId),
 
               const SizedBox(height: AppSizes.sectionGap),
 
-              // ── Zone 3: Recent transactions (filtered by account) ─
+              // ── Zone 3: Month Summary ──────────────────────────────
+              MonthSummaryZone(filterWalletId: selectedWalletId),
+
+              const SizedBox(height: AppSizes.sectionGap),
+
+              // ── Zone 4: Quick Add ───────────────────────────────
+              const QuickAddZone(),
+
+              const SizedBox(height: AppSizes.sectionGap),
+
+              // ── Zone 5: Recent transactions (filtered by account) ─
               RecentTransactionsZone(filterWalletId: selectedWalletId),
 
-              // ── Zone 4: Spending Overview (filtered by account) ───
+              // ── Zone 6: Spending Overview (filtered by account) ───
               SpendingOverviewZone(filterWalletId: selectedWalletId),
-
-              // ── Zone 5: Budget alerts ───────────────────────────
-              const BudgetAlertsZone(),
             ],
           ),
         ),
@@ -166,47 +134,4 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-}
-
-class _GlassQuickAction extends StatelessWidget {
-  const _GlassQuickAction({
-    required this.onTap,
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  final VoidCallback onTap;
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(
-        vertical: AppSizes.sm,
-        horizontal: AppSizes.xs,
-      ),
-      tintColor: color.withValues(alpha: AppSizes.opacityLight),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: AppSizes.iconXs, color: color),
-          const SizedBox(width: AppSizes.xs),
-          Flexible(
-            child: Text(
-              label,
-              style: context.textStyles.labelSmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

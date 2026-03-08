@@ -371,6 +371,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendar_empty_title => 'لا نشاط هذا الشهر';
 
   @override
+  String get chat_title => 'مصاريفي AI';
+
+  @override
+  String get chat_input_hint => 'اسأل عن مصاريفك...';
+
+  @override
+  String get chat_clear => 'مسح المحادثة';
+
+  @override
+  String get chat_clear_confirm => 'حذف كل الرسائل؟';
+
+  @override
+  String get chat_offline => 'أنت غير متصل — المحادثة تحتاج إنترنت';
+
+  @override
+  String get chat_error_rate_limit => 'طلبات كثيرة، حاول بعد قليل';
+
+  @override
+  String get chat_error_unauthorized => 'مشكلة في مفتاح API، تحقق من الإعدادات';
+
+  @override
+  String get chat_error_timeout => 'انتهت المهلة، حاول مرة أخرى';
+
+  @override
+  String get chat_error_generic => 'حدث خطأ، حاول مرة أخرى';
+
+  @override
   String get hub_title => 'المزيد';
 
   @override
@@ -381,6 +408,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hub_section_planning => 'التخطيط';
+
+  @override
+  String get hub_section_ai => 'مساعد ذكي';
 
   @override
   String get hub_section_app => 'التطبيق';
@@ -1364,6 +1394,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_default_wallet_name => 'كاش';
 
   @override
+  String get onboarding_account_name_label => 'اسم الحساب';
+
+  @override
+  String get onboarding_account_name_hint => 'مثلاً: كاش، CIB، فودافون كاش';
+
+  @override
+  String get onboarding_account_type_label => 'نوع الحساب';
+
+  @override
   String get goal_active_section => 'جارية';
 
   @override
@@ -1792,4 +1831,65 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get budget_over_by => 'تجاوز بـ';
+
+  @override
+  String get dashboard_month_summary => 'هذا الشهر';
+
+  @override
+  String get dashboard_month_net => 'الصافي';
+
+  @override
+  String get dashboard_vs_last_month => 'مقارنة بالشهر الماضي';
+
+  @override
+  String get dashboard_insights => 'نظرة سريعة';
+
+  @override
+  String dashboard_insight_spending_up(int percent) {
+    return '+$percent% وتيرة إنفاق';
+  }
+
+  @override
+  String dashboard_insight_spending_down(int percent) {
+    return '$percent% إنفاق أقل';
+  }
+
+  @override
+  String get dashboard_insight_parsed_transactions => 'المعاملات المحللة';
+
+  @override
+  String insight_recurring_detected(String title) => 'شهري: $title — أضف كمتكرر؟';
+
+  @override
+  String insight_weekly_detected(String title) => 'أسبوعي: $title — أضف كمتكرر؟';
+
+  @override
+  String insight_over_budget_prediction(String category, String amount) => '$category قد يتجاوز الميزانية بـ $amount';
+
+  @override
+  String insight_budget_suggestion(String amount, String category) => 'حدد ميزانية $amount لـ $category؟';
+
+  @override
+  String get hub_planning_title => 'التخطيط';
+
+  @override
+  String get hub_section_accounts => 'الحسابات';
+
+  @override
+  String get hub_section_goals_budgets => 'الميزانيات والأهداف';
+
+  @override
+  String get hub_section_recurring => 'المتكرر والفواتير';
+
+  @override
+  String get nav_planning => 'التخطيط';
+
+  @override
+  String get dashboard_quick_add => 'إضافة سريعة';
+
+  @override
+  String quick_add_saved(String title) => 'تمت إضافة $title';
+
+  @override
+  String get common_undo => 'تراجع';
 }

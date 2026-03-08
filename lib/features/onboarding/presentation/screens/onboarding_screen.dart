@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -14,6 +13,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/theme_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
+import '../../../../shared/widgets/inputs/app_text_field.dart';
 
 /// 2-page onboarding flow per TASKS.md §2.1:
 ///   Page 1 — Welcome hero (app value prop)
@@ -31,12 +31,15 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
+  final _nameController = TextEditingController();
   int _balancePiastres = 0;
+  String _walletType = 'cash';
   bool _loading = false;
 
   @override
   void dispose() {
     _pageController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -50,10 +53,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _finish() async {
     setState(() => _loading = true);
     try {
-      // Auto-create default Cash wallet
+      // Create wallet with user-chosen name and type (defaults: "Cash", cash)
+      final walletName = _nameController.text.trim().isNotEmpty
+          ? _nameController.text.trim()
+          : context.l10n.onboarding_default_wallet_name;
       await ref.read(walletRepositoryProvider).create(
-            name: context.l10n.onboarding_default_wallet_name,
-            type: 'cash',
+            name: walletName,
+            type: _walletType,
             initialBalance: _balancePiastres,
           );
 
@@ -84,12 +90,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Expanded(
               child: PageView(
                 controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
+                physics: const ClampingScrollPhysics(),
                 children: [
                   _WelcomePage(onNext: _nextPage),
                   _BalancePage(
+                    nameController: _nameController,
+                    walletType: _walletType,
+                    onWalletTypeChanged: (t) =>
+                        setState(() => _walletType = t),
                     onAmountChanged: (p) =>
                         setState(() => _balancePiastres = p),
+                    onBack: () => _pageController.previousPage(
+                      duration: AppDurations.pageTransition,
+                      curve: Curves.easeInOut,
+                    ),
                     onFinish: _loading ? null : _finish,
                     onSkip: _loading ? null : _finish,
                     loading: _loading,
@@ -128,48 +142,41 @@ class _WelcomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLocale = ref.watch(localeProvider)?.languageCode;
 
+    final cs = context.colors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
       child: Column(
         children: [
-          const SizedBox(height: AppSizes.lg),
-          // ── Language toggle ────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                context.l10n.onboarding_language_prompt,
-                style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.outline,
-                    ),
+          const SizedBox(height: AppSizes.md),
+          // ── Language toggle (top-end corner) ────────────────────────────
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: SegmentedButton<String>(
+              segments: [
+                ButtonSegment(value: 'ar', label: Text(context.l10n.language_ar)),
+                ButtonSegment(value: 'en', label: Text(context.l10n.language_en)),
+              ],
+              selected: {currentLocale ?? (context.languageCode == 'ar' ? 'ar' : 'en')},
+              onSelectionChanged: (set) =>
+                  ref.read(localeProvider.notifier).setLocale(set.first),
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
               ),
-              const SizedBox(width: AppSizes.sm),
-              SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(value: 'ar', label: Text(context.l10n.language_ar)),
-                  ButtonSegment(value: 'en', label: Text(context.l10n.language_en)),
-                ],
-                selected: {currentLocale ?? (context.languageCode == 'ar' ? 'ar' : 'en')},
-                onSelectionChanged: (set) =>
-                    ref.read(localeProvider.notifier).setLocale(set.first),
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-            ],
+            ),
           ),
           const Spacer(),
           Container(
             width: AppSizes.onboardingIcon,
             height: AppSizes.onboardingIcon,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: AppSizes.opacityLight),
+              color: cs.primary.withValues(alpha: AppSizes.opacityLight),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               AppIcons.wallet,
               size: AppSizes.iconXl2,
-              color: AppColors.primary,
+              color: cs.primary,
             ),
           ),
           const SizedBox(height: AppSizes.xl),
@@ -235,24 +242,48 @@ class _FeatureChip extends StatelessWidget {
 
 class _BalancePage extends StatelessWidget {
   const _BalancePage({
+    required this.nameController,
+    required this.walletType,
+    required this.onWalletTypeChanged,
     required this.onAmountChanged,
+    required this.onBack,
     required this.onFinish,
     required this.onSkip,
     required this.loading,
   });
 
+  final TextEditingController nameController;
+  final String walletType;
+  final ValueChanged<String> onWalletTypeChanged;
   final ValueChanged<int> onAmountChanged;
+  final VoidCallback onBack;
   final VoidCallback? onFinish;
   final VoidCallback? onSkip;
   final bool loading;
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.colors;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
       child: Column(
         children: [
-          const SizedBox(height: AppSizes.xxl),
+          const SizedBox(height: AppSizes.md),
+          // Back button row
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: IconButton(
+              onPressed: onBack,
+              icon: Icon(
+                Directionality.of(context) == TextDirection.rtl
+                    ? AppIcons.arrowForward
+                    : AppIcons.arrowBack,
+              ),
+              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
           Text(
             context.l10n.onboarding_page2_title,
             style: context.textStyles.headlineMedium?.copyWith(
@@ -264,12 +295,56 @@ class _BalancePage extends StatelessWidget {
           Text(
             context.l10n.onboarding_page2_body,
             style: context.textStyles.bodyMedium?.copyWith(
-                  color: context.colors.outline,
+                  color: cs.outline,
                   height: AppSizes.lineHeightNormal,
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: AppSizes.xl),
+          const SizedBox(height: AppSizes.lg),
+          // Wallet name field
+          AppTextField(
+            label: context.l10n.onboarding_account_name_label,
+            hint: context.l10n.onboarding_account_name_hint,
+            controller: nameController,
+            prefixIcon: const Icon(AppIcons.wallet),
+          ),
+          const SizedBox(height: AppSizes.md),
+          // Wallet type selector
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              context.l10n.onboarding_account_type_label,
+              style: context.textStyles.labelMedium?.copyWith(
+                color: cs.outline,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.xs),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(
+                value: 'cash',
+                label: Text(context.l10n.wallet_type_cash_short),
+                icon: const Icon(AppIcons.wallet, size: AppSizes.iconXs),
+              ),
+              ButtonSegment(
+                value: 'bank',
+                label: Text(context.l10n.wallet_type_bank_short),
+                icon: const Icon(AppIcons.bank, size: AppSizes.iconXs),
+              ),
+              ButtonSegment(
+                value: 'mobile_wallet',
+                label: Text(context.l10n.wallet_type_mobile_wallet_short),
+                icon: const Icon(AppIcons.phone, size: AppSizes.iconXs),
+              ),
+            ],
+            selected: {walletType},
+            onSelectionChanged: (set) => onWalletTypeChanged(set.first),
+            style: const ButtonStyle(
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+          const SizedBox(height: AppSizes.lg),
           AmountInput(
             onAmountChanged: onAmountChanged,
             autofocus: false,
@@ -286,7 +361,7 @@ class _BalancePage extends StatelessWidget {
             child: Text(
               context.l10n.onboarding_page2_skip,
               style: context.textStyles.bodyMedium?.copyWith(
-                color: context.colors.outline,
+                color: cs.outline,
               ),
             ),
           ),

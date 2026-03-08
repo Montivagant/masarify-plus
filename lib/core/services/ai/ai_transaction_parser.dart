@@ -76,19 +76,31 @@ class AiTransactionParser {
         temperature: 0.1,
       );
 
-      // IM-33 fix: strip Qwen3 <think>...</think> tokens before parsing
+      dev.log(
+        'Raw AI response (${response.tokensUsed} tokens): '
+        '${response.content.length > 200 ? response.content.substring(0, 200) : response.content}',
+        name: 'AiTransactionParser',
+      );
+
+      // IM-33 fix: strip Qwen3 <think>...</think> tokens before parsing.
+      // Handle both closed and unclosed think blocks.
       final cleaned = response.content
           .replaceAll(RegExp(r'<think>[\s\S]*?</think>'), '')
+          .replaceAll(RegExp(r'<think>[\s\S]*$'), '')
           .trim();
       final json = jsonDecode(cleaned) as Map<String, dynamic>;
       final enrichment = AiTransactionEnrichment.fromJson(json);
 
-      if (enrichment.categoryIcon.isEmpty && enrichment.merchant.isEmpty) {
+      // Only reject if ALL user-visible fields are empty.
+      if (enrichment.categoryIcon.isEmpty &&
+          enrichment.merchant.isEmpty &&
+          enrichment.title.isEmpty) {
+        dev.log('Enrichment rejected: all fields empty', name: 'AiTransactionParser');
         return null;
       }
 
       dev.log(
-        'Enriched: ${enrichment.merchant} → ${enrichment.categoryIcon}',
+        'Enriched: "${enrichment.title}" merchant=${enrichment.merchant} → ${enrichment.categoryIcon} (${enrichment.confidence})',
         name: 'AiTransactionParser',
       );
       return enrichment;
@@ -139,5 +151,6 @@ Rules:
 4. Extract the merchant/store name from the body. If a specific merchant is named (e.g., "Purchase at Carrefour"), use it. If no merchant found, clean up the sender name.
 5. The title field should be a natural, readable label a user would want to see in their transaction list — NOT the raw SMS text. Combine merchant + transaction context (e.g., "Uber ride", "Netflix subscription", "CIB ATM withdrawal").
 6. If unsure about category, pick the closest match and set confidence below 0.5.
+7. Do NOT use <think> tags or any XML-like wrapper. Return ONLY the JSON object.
 ''';
 }

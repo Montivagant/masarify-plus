@@ -92,7 +92,7 @@ abstract final class AppSizes {
   static const double colorSwatchBorder = 3.0;
 
   // ── Dashboard carousel ─────────────────────────────────────────────
-  static const double carouselHeight = 240;
+  static const double carouselHeight = 195;
   static const double fabVerticalOffset = 10;
 
   // ── Misc ────────────────────────────────────────────────────────────
@@ -136,6 +136,9 @@ abstract final class AppSizes {
   static const double navPillPadding = 12.0;
   static const double navPillGlowRadius = 12.0;
   static const double navPillGlowOpacity = 0.3;
+  static const double navShadowBlur = 24.0;
+  static const double navShadowOffsetY = -4.0;
+  static const double splashIconSize = 80.0;
 
   // ── Speed dial ─────────────────────────────────────────────────────
   static const double speedDialButtonHeight = 44.0;
@@ -181,6 +184,19 @@ abstract final class AppSizes {
 
   // ── Dashboard sections (WS-8) ────────────────────────────────────────
   static const double sectionGap = 16.0;
+
+  // ── Insight cards ──────────────────────────────────────────────────
+  static const double insightCardListHeight = 72.0;
+  static const double insightCardMaxWidth = 180.0;
+
+  // ── Smart defaults / Quick Add ──────────────────────────────────────
+  static const double borderWidthEmphasis = 1.5;
+  static const int quickAddMinOccurrences = 3;
+  static const int quickAddMaxItems = 3;
+  static const int categoryChipMaxVisible = 6;
+
+  // ── Chat ──────────────────────────────────────────────────────────────
+  static const double chatBubbleMaxWidthFraction = 0.78;
 
   // ── Bottom sheet (WS-22) ─────────────────────────────────────────────
   static const double bottomSheetHeightRatio = 0.5;

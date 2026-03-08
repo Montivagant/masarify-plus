@@ -13,7 +13,6 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/services/glass_config_service.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
-import '../../../shared/providers/notification_listener_provider.dart';
 import 'notched_nav_clipper.dart';
 import 'speed_dial_fab.dart';
 
@@ -99,7 +98,7 @@ class _AppNavBarState extends State<AppNavBar>
         height: AppSizes.bottomNavHeight,
         child: Stack(
           children: [
-            // Glass background with notch clip.
+            // Glass background with notch clip + BackdropFilter.
             Positioned.fill(
               child: ClipPath(
                 clipper: const NotchedNavClipper(),
@@ -110,13 +109,12 @@ class _AppNavBarState extends State<AppNavBar>
                           sigmaY: AppSizes.glassBlurCard,
                         ),
                         child: ColoredBox(
-                          color: cs.surface
-                              .withValues(alpha: AppSizes.opacityHeavy),
+                          color: cs.surfaceContainerHighest
+                              .withValues(alpha: AppSizes.opacityStrong),
                         ),
                       )
                     : ColoredBox(
-                        color: cs.surface
-                            .withValues(alpha: AppSizes.opacityNearFull),
+                        color: cs.surfaceContainerHighest,
                       ),
               ),
             ),
@@ -125,8 +123,7 @@ class _AppNavBarState extends State<AppNavBar>
             Positioned.fill(
               child: CustomPaint(
                 painter: NotchedNavBorderPainter(
-                  borderColor:
-                      cs.outline.withValues(alpha: AppSizes.opacityXLight),
+                  borderColor: theme.glassCardBorder,
                 ),
               ),
             ),
@@ -140,7 +137,7 @@ class _AppNavBarState extends State<AppNavBar>
                   previousIndex: _previousIndex,
                   animationValue: _pillAnimation.value,
                   primaryColor: cs.primary,
-                  pillColor: theme.glassInsetSurface,
+                  pillColor: cs.primary.withValues(alpha: AppSizes.opacityLight3),
                 );
               },
             ),
@@ -198,6 +195,16 @@ class _AppNavBarState extends State<AppNavBar>
           0,
           AppSizes.md,
           AppSizes.md + bottomInset,
+        ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
+          boxShadow: [
+            BoxShadow(
+              color: theme.glassShadow,
+              blurRadius: AppSizes.navShadowBlur,
+              offset: const Offset(0, AppSizes.navShadowOffsetY),
+            ),
+          ],
         ),
         child: navContent,
       ),
@@ -359,28 +366,7 @@ class AppScaffoldShell extends ConsumerStatefulWidget {
   ConsumerState<AppScaffoldShell> createState() => _AppScaffoldShellState();
 }
 
-class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      final listener = ref.read(notificationListenerProvider);
-      listener.recheckPermission();
-    }
-  }
-
+class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

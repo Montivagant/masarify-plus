@@ -133,10 +133,21 @@
   "calendar_title": "Calendar",
   "calendar_empty_title": "No activity this month",
 
+  "chat_title": "Masarify AI",
+  "chat_input_hint": "Ask about your finances...",
+  "chat_clear": "Clear chat",
+  "chat_clear_confirm": "Delete all messages?",
+  "chat_offline": "You're offline — chat requires internet",
+  "chat_error_rate_limit": "Too many requests, try again shortly",
+  "chat_error_unauthorized": "API key issue, check settings",
+  "chat_error_timeout": "Response timed out, try again",
+  "chat_error_generic": "Something went wrong, try again",
+
   "hub_title": "More",
   "hub_section_money": "Money",
   "hub_section_reports": "Reports",
   "hub_section_planning": "Planning",
+  "hub_section_ai": "AI Assistant",
   "hub_section_app": "App",
   "hub_wallets": "Accounts",
   "hub_analytics": "Analytics",
@@ -485,6 +496,9 @@
   "onboarding_page2_body": "Enter your current balance to start accurately.\n(Optional — you can change it later)",
   "onboarding_saving": "Saving...",
   "onboarding_default_wallet_name": "Cash",
+  "onboarding_account_name_label": "Account Name",
+  "onboarding_account_name_hint": "e.g. Cash, CIB, Vodafone Cash",
+  "onboarding_account_type_label": "Account Type",
 
   "goal_active_section": "Active",
   "goal_completed_section": "Completed",
@@ -645,5 +659,53 @@
   "dashboard_offline_banner": "Offline — AI features unavailable. Add transactions manually.",
 
   "budget_over_by": "Over by",
-  "recurring_mark_paid_confirm": "Mark this bill as paid? A transaction will be recorded."
+  "recurring_mark_paid_confirm": "Mark this bill as paid? A transaction will be recorded.",
+
+  "dashboard_month_summary": "This Month",
+  "dashboard_month_net": "Net",
+  "dashboard_vs_last_month": "vs last month",
+  "dashboard_insights": "Insights",
+  "dashboard_insight_spending_up": "+{percent}% spending pace",
+  "@dashboard_insight_spending_up": { "placeholders": { "percent": { "type": "int" } } },
+  "dashboard_insight_spending_down": "{percent}% less spending",
+  "@dashboard_insight_spending_down": { "placeholders": { "percent": { "type": "int" } } },
+  "dashboard_insight_parsed_transactions": "Parsed Transactions",
+  "insight_recurring_detected": "Monthly: {title} — add as recurring?",
+  "@insight_recurring_detected": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "insight_weekly_detected": "Weekly: {title} — add as recurring?",
+  "@insight_weekly_detected": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "insight_over_budget_prediction": "{category} may exceed budget by {amount}",
+  "@insight_over_budget_prediction": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
+  "insight_budget_suggestion": "Set a {amount} budget for {category}?",
+  "@insight_budget_suggestion": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "category": { "type": "String" }
+    }
+  },
+
+  "hub_planning_title": "Planning",
+  "hub_section_accounts": "Accounts",
+  "hub_section_goals_budgets": "Budgets & Goals",
+  "hub_section_recurring": "Recurring & Bills",
+
+  "nav_planning": "Planning",
+
+  "dashboard_quick_add": "Quick Add",
+  "quick_add_saved": "{title} added",
+  "@quick_add_saved": { "placeholders": { "title": { "type": "String" } } },
+  "common_undo": "Undo"
 }

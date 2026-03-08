@@ -51,8 +51,8 @@ abstract final class AppNavigation {
       route: AppRoutes.analytics,
     ),
     AppNavDest(
-      labelAr: 'المزيد',
-      labelEn: 'More',
+      labelAr: 'التخطيط',
+      labelEn: 'Planning',
       icon: AppIcons.moreOutlined,
       activeIcon: AppIcons.more,
       route: AppRoutes.hub,

@@ -67,7 +67,9 @@
       "Bash(rm:*)",
       "Bash(adb:*)",
       "Bash(curl:*)",
-      "Bash(chmod +x:*)"
+      "Bash(chmod +x:*)",
+      "Bash(flutter run:*)",
+      "WebFetch(domain:ai.google.dev)"
     ]
   }
 }

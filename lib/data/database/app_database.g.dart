@@ -5295,6 +5295,622 @@ class ExchangeRatesCompanion extends UpdateCompanion<ExchangeRate> {
   }
 }
 
+class $CategoryMappingsTable extends CategoryMappings
+    with TableInfo<$CategoryMappingsTable, CategoryMapping> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CategoryMappingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _titlePatternMeta =
+      const VerificationMeta('titlePattern');
+  @override
+  late final GeneratedColumn<String> titlePattern = GeneratedColumn<String>(
+      'title_pattern', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _categoryIdMeta =
+      const VerificationMeta('categoryId');
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+      'category_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+  static const VerificationMeta _hitCountMeta =
+      const VerificationMeta('hitCount');
+  @override
+  late final GeneratedColumn<int> hitCount = GeneratedColumn<int>(
+      'hit_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _lastUsedAtMeta =
+      const VerificationMeta('lastUsedAt');
+  @override
+  late final GeneratedColumn<int> lastUsedAt = GeneratedColumn<int>(
+      'last_used_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, titlePattern, categoryId, hitCount, lastUsedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'category_mappings';
+  @override
+  VerificationContext validateIntegrity(Insertable<CategoryMapping> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title_pattern')) {
+      context.handle(
+          _titlePatternMeta,
+          titlePattern.isAcceptableOrUnknown(
+              data['title_pattern']!, _titlePatternMeta));
+    } else if (isInserting) {
+      context.missing(_titlePatternMeta);
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+          _categoryIdMeta,
+          categoryId.isAcceptableOrUnknown(
+              data['category_id']!, _categoryIdMeta));
+    } else if (isInserting) {
+      context.missing(_categoryIdMeta);
+    }
+    if (data.containsKey('hit_count')) {
+      context.handle(_hitCountMeta,
+          hitCount.isAcceptableOrUnknown(data['hit_count']!, _hitCountMeta));
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+          _lastUsedAtMeta,
+          lastUsedAt.isAcceptableOrUnknown(
+              data['last_used_at']!, _lastUsedAtMeta));
+    } else if (isInserting) {
+      context.missing(_lastUsedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {titlePattern, categoryId},
+      ];
+  @override
+  CategoryMapping map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CategoryMapping(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      titlePattern: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title_pattern'])!,
+      categoryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}category_id'])!,
+      hitCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}hit_count'])!,
+      lastUsedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_used_at'])!,
+    );
+  }
+
+  @override
+  $CategoryMappingsTable createAlias(String alias) {
+    return $CategoryMappingsTable(attachedDatabase, alias);
+  }
+}
+
+class CategoryMapping extends DataClass implements Insertable<CategoryMapping> {
+  final int id;
+  final String titlePattern;
+  final int categoryId;
+  final int hitCount;
+  final int lastUsedAt;
+  const CategoryMapping(
+      {required this.id,
+      required this.titlePattern,
+      required this.categoryId,
+      required this.hitCount,
+      required this.lastUsedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title_pattern'] = Variable<String>(titlePattern);
+    map['category_id'] = Variable<int>(categoryId);
+    map['hit_count'] = Variable<int>(hitCount);
+    map['last_used_at'] = Variable<int>(lastUsedAt);
+    return map;
+  }
+
+  CategoryMappingsCompanion toCompanion(bool nullToAbsent) {
+    return CategoryMappingsCompanion(
+      id: Value(id),
+      titlePattern: Value(titlePattern),
+      categoryId: Value(categoryId),
+      hitCount: Value(hitCount),
+      lastUsedAt: Value(lastUsedAt),
+    );
+  }
+
+  factory CategoryMapping.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CategoryMapping(
+      id: serializer.fromJson<int>(json['id']),
+      titlePattern: serializer.fromJson<String>(json['titlePattern']),
+      categoryId: serializer.fromJson<int>(json['categoryId']),
+      hitCount: serializer.fromJson<int>(json['hitCount']),
+      lastUsedAt: serializer.fromJson<int>(json['lastUsedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'titlePattern': serializer.toJson<String>(titlePattern),
+      'categoryId': serializer.toJson<int>(categoryId),
+      'hitCount': serializer.toJson<int>(hitCount),
+      'lastUsedAt': serializer.toJson<int>(lastUsedAt),
+    };
+  }
+
+  CategoryMapping copyWith(
+          {int? id,
+          String? titlePattern,
+          int? categoryId,
+          int? hitCount,
+          int? lastUsedAt}) =>
+      CategoryMapping(
+        id: id ?? this.id,
+        titlePattern: titlePattern ?? this.titlePattern,
+        categoryId: categoryId ?? this.categoryId,
+        hitCount: hitCount ?? this.hitCount,
+        lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      );
+  CategoryMapping copyWithCompanion(CategoryMappingsCompanion data) {
+    return CategoryMapping(
+      id: data.id.present ? data.id.value : this.id,
+      titlePattern: data.titlePattern.present
+          ? data.titlePattern.value
+          : this.titlePattern,
+      categoryId:
+          data.categoryId.present ? data.categoryId.value : this.categoryId,
+      hitCount: data.hitCount.present ? data.hitCount.value : this.hitCount,
+      lastUsedAt:
+          data.lastUsedAt.present ? data.lastUsedAt.value : this.lastUsedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryMapping(')
+          ..write('id: $id, ')
+          ..write('titlePattern: $titlePattern, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('hitCount: $hitCount, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, titlePattern, categoryId, hitCount, lastUsedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CategoryMapping &&
+          other.id == this.id &&
+          other.titlePattern == this.titlePattern &&
+          other.categoryId == this.categoryId &&
+          other.hitCount == this.hitCount &&
+          other.lastUsedAt == this.lastUsedAt);
+}
+
+class CategoryMappingsCompanion extends UpdateCompanion<CategoryMapping> {
+  final Value<int> id;
+  final Value<String> titlePattern;
+  final Value<int> categoryId;
+  final Value<int> hitCount;
+  final Value<int> lastUsedAt;
+  const CategoryMappingsCompanion({
+    this.id = const Value.absent(),
+    this.titlePattern = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.hitCount = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+  });
+  CategoryMappingsCompanion.insert({
+    this.id = const Value.absent(),
+    required String titlePattern,
+    required int categoryId,
+    this.hitCount = const Value.absent(),
+    required int lastUsedAt,
+  })  : titlePattern = Value(titlePattern),
+        categoryId = Value(categoryId),
+        lastUsedAt = Value(lastUsedAt);
+  static Insertable<CategoryMapping> custom({
+    Expression<int>? id,
+    Expression<String>? titlePattern,
+    Expression<int>? categoryId,
+    Expression<int>? hitCount,
+    Expression<int>? lastUsedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (titlePattern != null) 'title_pattern': titlePattern,
+      if (categoryId != null) 'category_id': categoryId,
+      if (hitCount != null) 'hit_count': hitCount,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+    });
+  }
+
+  CategoryMappingsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? titlePattern,
+      Value<int>? categoryId,
+      Value<int>? hitCount,
+      Value<int>? lastUsedAt}) {
+    return CategoryMappingsCompanion(
+      id: id ?? this.id,
+      titlePattern: titlePattern ?? this.titlePattern,
+      categoryId: categoryId ?? this.categoryId,
+      hitCount: hitCount ?? this.hitCount,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (titlePattern.present) {
+      map['title_pattern'] = Variable<String>(titlePattern.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (hitCount.present) {
+      map['hit_count'] = Variable<int>(hitCount.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<int>(lastUsedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CategoryMappingsCompanion(')
+          ..write('id: $id, ')
+          ..write('titlePattern: $titlePattern, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('hitCount: $hitCount, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ChatMessagesTable extends ChatMessages
+    with TableInfo<$ChatMessagesTable, ChatMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ChatMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+      'role', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _contentMeta =
+      const VerificationMeta('content');
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+      'content', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tokenCountMeta =
+      const VerificationMeta('tokenCount');
+  @override
+  late final GeneratedColumn<int> tokenCount = GeneratedColumn<int>(
+      'token_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, role, content, tokenCount, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'chat_messages';
+  @override
+  VerificationContext validateIntegrity(Insertable<ChatMessage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+          _roleMeta, role.isAcceptableOrUnknown(data['role']!, _roleMeta));
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('content')) {
+      context.handle(_contentMeta,
+          content.isAcceptableOrUnknown(data['content']!, _contentMeta));
+    } else if (isInserting) {
+      context.missing(_contentMeta);
+    }
+    if (data.containsKey('token_count')) {
+      context.handle(
+          _tokenCountMeta,
+          tokenCount.isAcceptableOrUnknown(
+              data['token_count']!, _tokenCountMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ChatMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ChatMessage(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      role: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}role'])!,
+      content: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}content'])!,
+      tokenCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}token_count'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $ChatMessagesTable createAlias(String alias) {
+    return $ChatMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class ChatMessage extends DataClass implements Insertable<ChatMessage> {
+  final int id;
+  final String role;
+  final String content;
+  final int tokenCount;
+  final DateTime createdAt;
+  const ChatMessage(
+      {required this.id,
+      required this.role,
+      required this.content,
+      required this.tokenCount,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['role'] = Variable<String>(role);
+    map['content'] = Variable<String>(content);
+    map['token_count'] = Variable<int>(tokenCount);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ChatMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatMessagesCompanion(
+      id: Value(id),
+      role: Value(role),
+      content: Value(content),
+      tokenCount: Value(tokenCount),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ChatMessage(
+      id: serializer.fromJson<int>(json['id']),
+      role: serializer.fromJson<String>(json['role']),
+      content: serializer.fromJson<String>(json['content']),
+      tokenCount: serializer.fromJson<int>(json['tokenCount']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'role': serializer.toJson<String>(role),
+      'content': serializer.toJson<String>(content),
+      'tokenCount': serializer.toJson<int>(tokenCount),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ChatMessage copyWith(
+          {int? id,
+          String? role,
+          String? content,
+          int? tokenCount,
+          DateTime? createdAt}) =>
+      ChatMessage(
+        id: id ?? this.id,
+        role: role ?? this.role,
+        content: content ?? this.content,
+        tokenCount: tokenCount ?? this.tokenCount,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  ChatMessage copyWithCompanion(ChatMessagesCompanion data) {
+    return ChatMessage(
+      id: data.id.present ? data.id.value : this.id,
+      role: data.role.present ? data.role.value : this.role,
+      content: data.content.present ? data.content.value : this.content,
+      tokenCount:
+          data.tokenCount.present ? data.tokenCount.value : this.tokenCount,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessage(')
+          ..write('id: $id, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, role, content, tokenCount, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ChatMessage &&
+          other.id == this.id &&
+          other.role == this.role &&
+          other.content == this.content &&
+          other.tokenCount == this.tokenCount &&
+          other.createdAt == this.createdAt);
+}
+
+class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
+  final Value<int> id;
+  final Value<String> role;
+  final Value<String> content;
+  final Value<int> tokenCount;
+  final Value<DateTime> createdAt;
+  const ChatMessagesCompanion({
+    this.id = const Value.absent(),
+    this.role = const Value.absent(),
+    this.content = const Value.absent(),
+    this.tokenCount = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ChatMessagesCompanion.insert({
+    this.id = const Value.absent(),
+    required String role,
+    required String content,
+    this.tokenCount = const Value.absent(),
+    required DateTime createdAt,
+  })  : role = Value(role),
+        content = Value(content),
+        createdAt = Value(createdAt);
+  static Insertable<ChatMessage> custom({
+    Expression<int>? id,
+    Expression<String>? role,
+    Expression<String>? content,
+    Expression<int>? tokenCount,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (role != null) 'role': role,
+      if (content != null) 'content': content,
+      if (tokenCount != null) 'token_count': tokenCount,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ChatMessagesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? role,
+      Value<String>? content,
+      Value<int>? tokenCount,
+      Value<DateTime>? createdAt}) {
+    return ChatMessagesCompanion(
+      id: id ?? this.id,
+      role: role ?? this.role,
+      content: content ?? this.content,
+      tokenCount: tokenCount ?? this.tokenCount,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (tokenCount.present) {
+      map['token_count'] = Variable<int>(tokenCount.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ChatMessagesCompanion(')
+          ..write('id: $id, ')
+          ..write('role: $role, ')
+          ..write('content: $content, ')
+          ..write('tokenCount: $tokenCount, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5309,6 +5925,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $GoalContributionsTable(this);
   late final $SmsParserLogsTable smsParserLogs = $SmsParserLogsTable(this);
   late final $ExchangeRatesTable exchangeRates = $ExchangeRatesTable(this);
+  late final $CategoryMappingsTable categoryMappings =
+      $CategoryMappingsTable(this);
+  late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final WalletDao walletDao = WalletDao(this as AppDatabase);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao =
@@ -5322,6 +5941,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       SmsParserLogDao(this as AppDatabase);
   late final ExchangeRateDao exchangeRateDao =
       ExchangeRateDao(this as AppDatabase);
+  late final CategoryMappingDao categoryMappingDao =
+      CategoryMappingDao(this as AppDatabase);
+  late final ChatMessageDao chatMessageDao =
+      ChatMessageDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5336,7 +5959,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         budgets,
         goalContributions,
         smsParserLogs,
-        exchangeRates
+        exchangeRates,
+        categoryMappings,
+        chatMessages
       ];
 }
 
@@ -6033,6 +6658,23 @@ final class $$CategoriesTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$CategoryMappingsTable, List<CategoryMapping>>
+      _categoryMappingsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.categoryMappings,
+              aliasName: $_aliasNameGenerator(
+                  db.categories.id, db.categoryMappings.categoryId));
+
+  $$CategoryMappingsTableProcessedTableManager get categoryMappingsRefs {
+    final manager =
+        $$CategoryMappingsTableTableManager($_db, $_db.categoryMappings)
+            .filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_categoryMappingsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$CategoriesTableFilterComposer
@@ -6129,6 +6771,27 @@ class $$CategoriesTableFilterComposer
             $$BudgetsTableFilterComposer(
               $db: $db,
               $table: $db.budgets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> categoryMappingsRefs(
+      Expression<bool> Function($$CategoryMappingsTableFilterComposer f) f) {
+    final $$CategoryMappingsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.categoryMappings,
+        getReferencedColumn: (t) => t.categoryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoryMappingsTableFilterComposer(
+              $db: $db,
+              $table: $db.categoryMappings,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -6280,6 +6943,27 @@ class $$CategoriesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> categoryMappingsRefs<T extends Object>(
+      Expression<T> Function($$CategoryMappingsTableAnnotationComposer a) f) {
+    final $$CategoryMappingsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.categoryMappings,
+        getReferencedColumn: (t) => t.categoryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoryMappingsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.categoryMappings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$CategoriesTableTableManager extends RootTableManager<
@@ -6294,7 +6978,10 @@ class $$CategoriesTableTableManager extends RootTableManager<
     (Category, $$CategoriesTableReferences),
     Category,
     PrefetchHooks Function(
-        {bool recurringRulesRefs, bool transactionsRefs, bool budgetsRefs})> {
+        {bool recurringRulesRefs,
+        bool transactionsRefs,
+        bool budgetsRefs,
+        bool categoryMappingsRefs})> {
   $$CategoriesTableTableManager(_$AppDatabase db, $CategoriesTable table)
       : super(TableManagerState(
           db: db,
@@ -6362,13 +7049,15 @@ class $$CategoriesTableTableManager extends RootTableManager<
           prefetchHooksCallback: (
               {recurringRulesRefs = false,
               transactionsRefs = false,
-              budgetsRefs = false}) {
+              budgetsRefs = false,
+              categoryMappingsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (recurringRulesRefs) db.recurringRules,
                 if (transactionsRefs) db.transactions,
-                if (budgetsRefs) db.budgets
+                if (budgetsRefs) db.budgets,
+                if (categoryMappingsRefs) db.categoryMappings
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -6411,6 +7100,19 @@ class $$CategoriesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.categoryId == item.id),
+                        typedResults: items),
+                  if (categoryMappingsRefs)
+                    await $_getPrefetchedData<Category, $CategoriesTable,
+                            CategoryMapping>(
+                        currentTable: table,
+                        referencedTable: $$CategoriesTableReferences
+                            ._categoryMappingsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CategoriesTableReferences(db, table, p0)
+                                .categoryMappingsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.categoryId == item.id),
                         typedResults: items)
                 ];
               },
@@ -6431,7 +7133,10 @@ typedef $$CategoriesTableProcessedTableManager = ProcessedTableManager<
     (Category, $$CategoriesTableReferences),
     Category,
     PrefetchHooks Function(
-        {bool recurringRulesRefs, bool transactionsRefs, bool budgetsRefs})>;
+        {bool recurringRulesRefs,
+        bool transactionsRefs,
+        bool budgetsRefs,
+        bool categoryMappingsRefs})>;
 typedef $$RecurringRulesTableCreateCompanionBuilder = RecurringRulesCompanion
     Function({
   Value<int> id,
@@ -9670,6 +10375,446 @@ typedef $$ExchangeRatesTableProcessedTableManager = ProcessedTableManager<
     ),
     ExchangeRate,
     PrefetchHooks Function()>;
+typedef $$CategoryMappingsTableCreateCompanionBuilder
+    = CategoryMappingsCompanion Function({
+  Value<int> id,
+  required String titlePattern,
+  required int categoryId,
+  Value<int> hitCount,
+  required int lastUsedAt,
+});
+typedef $$CategoryMappingsTableUpdateCompanionBuilder
+    = CategoryMappingsCompanion Function({
+  Value<int> id,
+  Value<String> titlePattern,
+  Value<int> categoryId,
+  Value<int> hitCount,
+  Value<int> lastUsedAt,
+});
+
+final class $$CategoryMappingsTableReferences extends BaseReferences<
+    _$AppDatabase, $CategoryMappingsTable, CategoryMapping> {
+  $$CategoryMappingsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $CategoriesTable _categoryIdTable(_$AppDatabase db) =>
+      db.categories.createAlias($_aliasNameGenerator(
+          db.categoryMappings.categoryId, db.categories.id));
+
+  $$CategoriesTableProcessedTableManager get categoryId {
+    final $_column = $_itemColumn<int>('category_id')!;
+
+    final manager = $$CategoriesTableTableManager($_db, $_db.categories)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$CategoryMappingsTableFilterComposer
+    extends Composer<_$AppDatabase, $CategoryMappingsTable> {
+  $$CategoryMappingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get titlePattern => $composableBuilder(
+      column: $table.titlePattern, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get hitCount => $composableBuilder(
+      column: $table.hitCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => ColumnFilters(column));
+
+  $$CategoriesTableFilterComposer get categoryId {
+    final $$CategoriesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableFilterComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CategoryMappingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CategoryMappingsTable> {
+  $$CategoryMappingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get titlePattern => $composableBuilder(
+      column: $table.titlePattern,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get hitCount => $composableBuilder(
+      column: $table.hitCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => ColumnOrderings(column));
+
+  $$CategoriesTableOrderingComposer get categoryId {
+    final $$CategoriesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableOrderingComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CategoryMappingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CategoryMappingsTable> {
+  $$CategoryMappingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get titlePattern => $composableBuilder(
+      column: $table.titlePattern, builder: (column) => column);
+
+  GeneratedColumn<int> get hitCount =>
+      $composableBuilder(column: $table.hitCount, builder: (column) => column);
+
+  GeneratedColumn<int> get lastUsedAt => $composableBuilder(
+      column: $table.lastUsedAt, builder: (column) => column);
+
+  $$CategoriesTableAnnotationComposer get categoryId {
+    final $$CategoriesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.categoryId,
+        referencedTable: $db.categories,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CategoriesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.categories,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$CategoryMappingsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CategoryMappingsTable,
+    CategoryMapping,
+    $$CategoryMappingsTableFilterComposer,
+    $$CategoryMappingsTableOrderingComposer,
+    $$CategoryMappingsTableAnnotationComposer,
+    $$CategoryMappingsTableCreateCompanionBuilder,
+    $$CategoryMappingsTableUpdateCompanionBuilder,
+    (CategoryMapping, $$CategoryMappingsTableReferences),
+    CategoryMapping,
+    PrefetchHooks Function({bool categoryId})> {
+  $$CategoryMappingsTableTableManager(
+      _$AppDatabase db, $CategoryMappingsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CategoryMappingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CategoryMappingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CategoryMappingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> titlePattern = const Value.absent(),
+            Value<int> categoryId = const Value.absent(),
+            Value<int> hitCount = const Value.absent(),
+            Value<int> lastUsedAt = const Value.absent(),
+          }) =>
+              CategoryMappingsCompanion(
+            id: id,
+            titlePattern: titlePattern,
+            categoryId: categoryId,
+            hitCount: hitCount,
+            lastUsedAt: lastUsedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String titlePattern,
+            required int categoryId,
+            Value<int> hitCount = const Value.absent(),
+            required int lastUsedAt,
+          }) =>
+              CategoryMappingsCompanion.insert(
+            id: id,
+            titlePattern: titlePattern,
+            categoryId: categoryId,
+            hitCount: hitCount,
+            lastUsedAt: lastUsedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$CategoryMappingsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (categoryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.categoryId,
+                    referencedTable:
+                        $$CategoryMappingsTableReferences._categoryIdTable(db),
+                    referencedColumn: $$CategoryMappingsTableReferences
+                        ._categoryIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$CategoryMappingsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CategoryMappingsTable,
+    CategoryMapping,
+    $$CategoryMappingsTableFilterComposer,
+    $$CategoryMappingsTableOrderingComposer,
+    $$CategoryMappingsTableAnnotationComposer,
+    $$CategoryMappingsTableCreateCompanionBuilder,
+    $$CategoryMappingsTableUpdateCompanionBuilder,
+    (CategoryMapping, $$CategoryMappingsTableReferences),
+    CategoryMapping,
+    PrefetchHooks Function({bool categoryId})>;
+typedef $$ChatMessagesTableCreateCompanionBuilder = ChatMessagesCompanion
+    Function({
+  Value<int> id,
+  required String role,
+  required String content,
+  Value<int> tokenCount,
+  required DateTime createdAt,
+});
+typedef $$ChatMessagesTableUpdateCompanionBuilder = ChatMessagesCompanion
+    Function({
+  Value<int> id,
+  Value<String> role,
+  Value<String> content,
+  Value<int> tokenCount,
+  Value<DateTime> createdAt,
+});
+
+class $$ChatMessagesTableFilterComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get content => $composableBuilder(
+      column: $table.content, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get tokenCount => $composableBuilder(
+      column: $table.tokenCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$ChatMessagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get role => $composableBuilder(
+      column: $table.role, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get content => $composableBuilder(
+      column: $table.content, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get tokenCount => $composableBuilder(
+      column: $table.tokenCount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ChatMessagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ChatMessagesTable> {
+  $$ChatMessagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<int> get tokenCount => $composableBuilder(
+      column: $table.tokenCount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ChatMessagesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ChatMessagesTable,
+    ChatMessage,
+    $$ChatMessagesTableFilterComposer,
+    $$ChatMessagesTableOrderingComposer,
+    $$ChatMessagesTableAnnotationComposer,
+    $$ChatMessagesTableCreateCompanionBuilder,
+    $$ChatMessagesTableUpdateCompanionBuilder,
+    (
+      ChatMessage,
+      BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>
+    ),
+    ChatMessage,
+    PrefetchHooks Function()> {
+  $$ChatMessagesTableTableManager(_$AppDatabase db, $ChatMessagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ChatMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ChatMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ChatMessagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> role = const Value.absent(),
+            Value<String> content = const Value.absent(),
+            Value<int> tokenCount = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              ChatMessagesCompanion(
+            id: id,
+            role: role,
+            content: content,
+            tokenCount: tokenCount,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String role,
+            required String content,
+            Value<int> tokenCount = const Value.absent(),
+            required DateTime createdAt,
+          }) =>
+              ChatMessagesCompanion.insert(
+            id: id,
+            role: role,
+            content: content,
+            tokenCount: tokenCount,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ChatMessagesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ChatMessagesTable,
+    ChatMessage,
+    $$ChatMessagesTableFilterComposer,
+    $$ChatMessagesTableOrderingComposer,
+    $$ChatMessagesTableAnnotationComposer,
+    $$ChatMessagesTableCreateCompanionBuilder,
+    $$ChatMessagesTableUpdateCompanionBuilder,
+    (
+      ChatMessage,
+      BaseReferences<_$AppDatabase, $ChatMessagesTable, ChatMessage>
+    ),
+    ChatMessage,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9694,4 +10839,8 @@ class $AppDatabaseManager {
       $$SmsParserLogsTableTableManager(_db, _db.smsParserLogs);
   $$ExchangeRatesTableTableManager get exchangeRates =>
       $$ExchangeRatesTableTableManager(_db, _db.exchangeRates);
+  $$CategoryMappingsTableTableManager get categoryMappings =>
+      $$CategoryMappingsTableTableManager(_db, _db.categoryMappings);
+  $$ChatMessagesTableTableManager get chatMessages =>
+      $$ChatMessagesTableTableManager(_db, _db.chatMessages);
 }

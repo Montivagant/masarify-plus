@@ -42,6 +42,7 @@ abstract final class AppRoutes {
   // ── Smart input ───────────────────────────────────────────────────────
   static const String voiceConfirm = '/voice/confirm';
   static const String parserReview = '/parser/review';
+  static const String chat = '/chat';
 
   // ── Reports ─────────────────────────────────────────────────────────
   static const String analytics = '/analytics';

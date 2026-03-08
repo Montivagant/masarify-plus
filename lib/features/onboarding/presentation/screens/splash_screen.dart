@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -78,7 +77,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Widget build(BuildContext context) {
     final cs = context.colors;
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: cs.primary,
       body: Center(
         child: FadeTransition(
           opacity: _fadeIn,
@@ -87,7 +86,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             children: [
               Icon(
                 AppIcons.wallet,
-                size: AppSizes.iconXl + 32,
+                size: AppSizes.splashIconSize,
                 color: cs.onPrimary,
               ),
               const SizedBox(height: AppSizes.md),

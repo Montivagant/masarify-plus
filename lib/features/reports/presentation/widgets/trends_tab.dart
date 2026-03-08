@@ -74,9 +74,9 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
               }
 
               return Padding(
-                padding: const EdgeInsets.only(
-                  left: AppSizes.screenHPadding,
-                  right: AppSizes.screenHPadding,
+                padding: const EdgeInsetsDirectional.only(
+                  start: AppSizes.screenHPadding,
+                  end: AppSizes.screenHPadding,
                   bottom: AppSizes.bottomScrollPadding,
                 ),
                 child: RepaintBoundary(

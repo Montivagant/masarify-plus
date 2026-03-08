@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/services/app_lock_service.dart';
 import '../../core/utils/voice_transaction_parser.dart';
+import '../../features/ai_chat/presentation/screens/chat_screen.dart';
 import '../../features/auth/presentation/screens/pin_entry_screen.dart';
 import '../../features/auth/presentation/screens/pin_setup_screen.dart';
 import '../../features/budgets/presentation/screens/budgets_screen.dart';
@@ -243,6 +244,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.parserReview,
       builder: (_, __) => const ParserReviewScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.chat,
+      pageBuilder: (_, state) => _fadePage(
+        state: state,
+        child: const ChatScreen(),
+      ),
     ),
 
     // Reports

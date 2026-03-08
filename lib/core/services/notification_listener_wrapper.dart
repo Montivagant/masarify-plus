@@ -32,6 +32,7 @@ class NotificationListenerWrapper {
   final ConnectivityService _connectivityService;
   StreamSubscription<ServiceNotificationEvent>? _subscription;
   bool _disposed = false;
+  bool _isStarting = false;
 
   /// Pending parsed transactions awaiting user review.
   final pendingStream = StreamController<int>.broadcast();
@@ -68,51 +69,65 @@ class NotificationListenerWrapper {
   Future<void> start() => _start(0);
 
   Future<void> _start(int retryCount) async {
-    // Guard against double-subscribe
-    _subscription?.cancel();
-    _subscription = null;
-
-    debugPrint('[NotificationListener] _start(retry=$retryCount)');
-
-    try {
-      final hasAccess = await hasPermission();
-      debugPrint('[NotificationListener] hasPermission=$hasAccess');
-      if (!hasAccess) {
-        CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
-        return;
-      }
-    } catch (e, stack) {
-      debugPrint('[NotificationListener] permission check error: $e');
-      CrashLogService.log(e, stack);
+    // Prevent concurrent start() calls (race between lifecycle handlers).
+    if (_isStarting && retryCount == 0) {
+      debugPrint('[NotificationListener] _start already in progress, skipping');
       return;
     }
+    if (retryCount == 0) _isStarting = true;
 
     try {
-      _subscription = NotificationListenerService.notificationsStream.listen(
-        _onNotification,
-        onError: (Object e, StackTrace stack) {
-          debugPrint('[NotificationListener] stream error: $e');
-          CrashLogService.log(e, stack);
-        },
-      );
-      debugPrint('[NotificationListener] stream subscribed successfully');
-    } catch (e, stack) {
-      debugPrint('[NotificationListener] stream subscribe failed (retry=$retryCount): $e');
-      CrashLogService.log(e, stack);
-      // Retry up to 5 times — service may not be fully bound after permission grant.
-      if (retryCount < 5) {
-        final delay = Duration(seconds: 1 + retryCount); // 1s, 2s, 3s, 4s, 5s backoff
-        debugPrint('[NotificationListener] retrying in ${delay.inSeconds}s...');
-        await Future<void>.delayed(delay);
-        if (!_disposed) await _start(retryCount + 1);
-      } else {
-        debugPrint('[NotificationListener] max retries reached, giving up');
+      // Guard against double-subscribe
+      _subscription?.cancel();
+      _subscription = null;
+
+      debugPrint('[NotificationListener] _start(retry=$retryCount)');
+
+      try {
+        final hasAccess = await hasPermission();
+        debugPrint('[NotificationListener] hasPermission=$hasAccess');
+        if (!hasAccess) {
+          CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
+          return;
+        }
+      } catch (e, stack) {
+        debugPrint('[NotificationListener] permission check error: $e');
+        CrashLogService.log(e, stack);
+        return;
       }
+
+      try {
+        _subscription = NotificationListenerService.notificationsStream.listen(
+          _onNotification,
+          onError: (Object e, StackTrace stack) {
+            debugPrint('[NotificationListener] stream error: $e');
+            CrashLogService.log(e, stack);
+          },
+        );
+        debugPrint('[NotificationListener] stream subscribed successfully');
+      } catch (e, stack) {
+        debugPrint('[NotificationListener] stream subscribe failed (retry=$retryCount): $e');
+        CrashLogService.log(e, stack);
+        // Retry up to 5 times — service may not be fully bound after permission grant.
+        if (retryCount < 5) {
+          final delay = Duration(seconds: 1 + retryCount); // 1s, 2s, 3s, 4s, 5s backoff
+          debugPrint('[NotificationListener] retrying in ${delay.inSeconds}s...');
+          await Future<void>.delayed(delay);
+          if (!_disposed) {
+            await _start(retryCount + 1);
+          }
+        } else {
+          debugPrint('[NotificationListener] max retries reached, giving up');
+        }
+      }
+    } finally {
+      if (retryCount == 0) _isStarting = false;
     }
   }
 
   /// Stop listening.
   void stop() {
+    _isStarting = false;
     _disposed = true;
     try {
       _subscription?.cancel();
@@ -122,18 +137,9 @@ class NotificationListenerWrapper {
     _subscription = null;
   }
 
-  /// I10 fix: re-check permission and restart if granted.
-  /// Call when user returns from system Settings.
-  Future<void> recheckPermission() async {
-    if (_disposed) return; // Defensive guard against dispose-during-await race
-    debugPrint('[NotificationListener] recheckPermission called');
-    final granted = await hasPermission();
-    debugPrint('[NotificationListener] recheckPermission: granted=$granted, hasSubscription=${_subscription != null}');
-    if (granted && _subscription == null) {
-      _disposed = false; // Reset disposed flag for fresh start
-      await start();
-    }
-  }
+  // recheckPermission() removed — the settings screen's own WidgetsBindingObserver
+  // handles permission re-check on resume. Edge case of granting via system
+  // app info screen requires the user to re-toggle the switch.
 
   /// Dispose resources.
   void dispose() {

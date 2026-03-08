@@ -3,6 +3,8 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'daos/budget_dao.dart';
 import 'daos/category_dao.dart';
+import 'daos/category_mapping_dao.dart';
+import 'daos/chat_message_dao.dart';
 import 'daos/exchange_rate_dao.dart';
 import 'daos/goal_dao.dart';
 import 'daos/recurring_rule_dao.dart';
@@ -12,6 +14,8 @@ import 'daos/transfer_dao.dart';
 import 'daos/wallet_dao.dart';
 import 'tables/budgets_table.dart';
 import 'tables/categories_table.dart';
+import 'tables/category_mappings_table.dart';
+import 'tables/chat_messages_table.dart';
 import 'tables/exchange_rates_table.dart';
 import 'tables/goal_contributions_table.dart';
 import 'tables/recurring_rules_table.dart';
@@ -35,6 +39,8 @@ part 'app_database.g.dart';
     RecurringRules,
     SmsParserLogs,
     ExchangeRates,
+    CategoryMappings,
+    ChatMessages,
   ],
   daos: [
     WalletDao,
@@ -46,13 +52,15 @@ part 'app_database.g.dart';
     RecurringRuleDao,
     SmsParserLogDao,
     ExchangeRateDao,
+    CategoryMappingDao,
+    ChatMessageDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -118,6 +126,12 @@ class AppDatabase extends _$AppDatabase {
               // Bills table may not exist on fresh installs — that's fine
             }
           }
+          if (from < 5) {
+            await m.createTable(categoryMappings);
+          }
+          if (from < 6) {
+            await m.createTable(chatMessages);
+          }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
         },
@@ -165,6 +179,16 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_goal_contributions_goal_id '
       'ON goal_contributions(goal_id)',
+    );
+    // Category mappings
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_category_mappings_pattern '
+      'ON category_mappings(title_pattern)',
+    );
+    // Chat messages
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at '
+      'ON chat_messages(created_at)',
     );
   }
 

@@ -373,6 +373,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendar_empty_title => 'No activity this month';
 
   @override
+  String get chat_title => 'Masarify AI';
+
+  @override
+  String get chat_input_hint => 'Ask about your finances...';
+
+  @override
+  String get chat_clear => 'Clear chat';
+
+  @override
+  String get chat_clear_confirm => 'Delete all messages?';
+
+  @override
+  String get chat_offline => 'You\'re offline — chat requires internet';
+
+  @override
+  String get chat_error_rate_limit => 'Too many requests, try again shortly';
+
+  @override
+  String get chat_error_unauthorized => 'API key issue, check settings';
+
+  @override
+  String get chat_error_timeout => 'Response timed out, try again';
+
+  @override
+  String get chat_error_generic => 'Something went wrong, try again';
+
+  @override
   String get hub_title => 'More';
 
   @override
@@ -383,6 +410,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hub_section_planning => 'Planning';
+
+  @override
+  String get hub_section_ai => 'AI Assistant';
 
   @override
   String get hub_section_app => 'App';
@@ -1375,6 +1405,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_default_wallet_name => 'Cash';
 
   @override
+  String get onboarding_account_name_label => 'Account Name';
+
+  @override
+  String get onboarding_account_name_hint => 'e.g. Cash, CIB, Vodafone Cash';
+
+  @override
+  String get onboarding_account_type_label => 'Account Type';
+
+  @override
   String get goal_active_section => 'Active';
 
   @override
@@ -1806,4 +1845,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budget_over_by => 'Over by';
+
+  @override
+  String get dashboard_month_summary => 'This Month';
+
+  @override
+  String get dashboard_month_net => 'Net';
+
+  @override
+  String get dashboard_vs_last_month => 'vs last month';
+
+  @override
+  String get dashboard_insights => 'Insights';
+
+  @override
+  String dashboard_insight_spending_up(int percent) {
+    return '+$percent% spending pace';
+  }
+
+  @override
+  String dashboard_insight_spending_down(int percent) {
+    return '$percent% less spending';
+  }
+
+  @override
+  String get dashboard_insight_parsed_transactions => 'Parsed Transactions';
+
+  @override
+  String insight_recurring_detected(String title) => 'Monthly: $title — add as recurring?';
+
+  @override
+  String insight_weekly_detected(String title) => 'Weekly: $title — add as recurring?';
+
+  @override
+  String insight_over_budget_prediction(String category, String amount) => '$category may exceed budget by $amount';
+
+  @override
+  String insight_budget_suggestion(String amount, String category) => 'Set a $amount budget for $category?';
+
+  @override
+  String get hub_planning_title => 'Planning';
+
+  @override
+  String get hub_section_accounts => 'Accounts';
+
+  @override
+  String get hub_section_goals_budgets => 'Budgets & Goals';
+
+  @override
+  String get hub_section_recurring => 'Recurring & Bills';
+
+  @override
+  String get nav_planning => 'Planning';
+
+  @override
+  String get dashboard_quick_add => 'Quick Add';
+
+  @override
+  String quick_add_saved(String title) => '$title added';
+
+  @override
+  String get common_undo => 'Undo';
 }

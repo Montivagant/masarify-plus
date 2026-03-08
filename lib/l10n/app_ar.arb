@@ -133,10 +133,21 @@
   "calendar_title": "التقويم",
   "calendar_empty_title": "لا نشاط هذا الشهر",
 
+  "chat_title": "مصاريفي AI",
+  "chat_input_hint": "اسأل عن مصاريفك...",
+  "chat_clear": "مسح المحادثة",
+  "chat_clear_confirm": "حذف كل الرسائل؟",
+  "chat_offline": "أنت غير متصل — المحادثة تحتاج إنترنت",
+  "chat_error_rate_limit": "طلبات كثيرة، حاول بعد قليل",
+  "chat_error_unauthorized": "مشكلة في مفتاح API، تحقق من الإعدادات",
+  "chat_error_timeout": "انتهت المهلة، حاول مرة أخرى",
+  "chat_error_generic": "حدث خطأ، حاول مرة أخرى",
+
   "hub_title": "المزيد",
   "hub_section_money": "المال",
   "hub_section_reports": "التقارير",
   "hub_section_planning": "التخطيط",
+  "hub_section_ai": "مساعد ذكي",
   "hub_section_app": "التطبيق",
   "hub_wallets": "الحسابات",
   "hub_analytics": "التحليلات",
@@ -485,6 +496,9 @@
   "onboarding_page2_body": "أدخل رصيدك الحالي لنبدأ الحسابات صح.\n(اختياري — ممكن تغيّره بعدين)",
   "onboarding_saving": "جاري الحفظ...",
   "onboarding_default_wallet_name": "كاش",
+  "onboarding_account_name_label": "اسم الحساب",
+  "onboarding_account_name_hint": "مثلاً: كاش، CIB، فودافون كاش",
+  "onboarding_account_type_label": "نوع الحساب",
 
   "goal_active_section": "جارية",
   "goal_completed_section": "مكتملة",
@@ -645,5 +659,30 @@
   "dashboard_offline_banner": "غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.",
 
   "budget_over_by": "تجاوز بـ",
-  "recurring_mark_paid_confirm": "هل تريد تسجيل هذا الدفع؟ سيتم إنشاء معاملة."
+  "recurring_mark_paid_confirm": "هل تريد تسجيل هذا الدفع؟ سيتم إنشاء معاملة.",
+
+  "dashboard_month_summary": "هذا الشهر",
+  "dashboard_month_net": "الصافي",
+  "dashboard_vs_last_month": "مقارنة بالشهر الماضي",
+  "dashboard_insights": "نظرة سريعة",
+  "dashboard_insight_spending_up": "+{percent}% وتيرة إنفاق",
+  "@dashboard_insight_spending_up": { "placeholders": { "percent": { "type": "int" } } },
+  "dashboard_insight_spending_down": "{percent}% إنفاق أقل",
+  "@dashboard_insight_spending_down": { "placeholders": { "percent": { "type": "int" } } },
+  "dashboard_insight_parsed_transactions": "المعاملات المحللة",
+  "insight_recurring_detected": "شهري: {title} — أضف كمتكرر؟",
+  "insight_weekly_detected": "أسبوعي: {title} — أضف كمتكرر؟",
+  "insight_over_budget_prediction": "{category} قد يتجاوز الميزانية بـ {amount}",
+  "insight_budget_suggestion": "حدد ميزانية {amount} لـ {category}؟",
+
+  "hub_planning_title": "التخطيط",
+  "hub_section_accounts": "الحسابات",
+  "hub_section_goals_budgets": "الميزانيات والأهداف",
+  "hub_section_recurring": "المتكرر والفواتير",
+
+  "nav_planning": "التخطيط",
+
+  "dashboard_quick_add": "إضافة سريعة",
+  "quick_add_saved": "تمت إضافة {title}",
+  "common_undo": "تراجع"
 }

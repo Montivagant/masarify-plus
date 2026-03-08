@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:http/http.dart' as http;
 
@@ -103,6 +104,84 @@ class OpenRouterService {
     final usage = json['usage'] as Map<String, dynamic>?;
     final tokensUsed = (usage?['total_tokens'] as int?) ?? 0;
 
+    dev.log(
+      'OpenRouter OK: ${model ?? AiConfig.defaultModel}, tokens=$tokensUsed',
+      name: 'OpenRouterService',
+    );
+    return OpenRouterResponse(content: content, tokensUsed: tokensUsed);
+  }
+
+  /// Sends a multi-turn chat completion request to OpenRouter.
+  ///
+  /// Unlike [chatCompletion], this accepts a full conversation history
+  /// and returns plain text (no JSON response format).
+  /// Throws [OpenRouterException] on API errors.
+  Future<OpenRouterResponse> chatCompletionMultiTurn({
+    required List<Map<String, String>> messages,
+    String? model,
+    double temperature = 0.7,
+    int? maxTokens,
+  }) async {
+    final uri = Uri.parse('${AiConfig.openRouterBaseUrl}/chat/completions');
+
+    final body = jsonEncode({
+      'model': model ?? AiConfig.defaultModel,
+      'messages': messages,
+      'temperature': temperature,
+      'max_tokens': maxTokens ?? AiConfig.maxResponseTokens,
+      'provider': {'zdr': true},
+    });
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Authorization': 'Bearer ${AiConfig.openRouterApiKey}',
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://masarify.app',
+            'X-Title': 'Masarify',
+          },
+          body: body,
+        )
+        .timeout(const Duration(seconds: AiConfig.apiTimeoutSeconds));
+
+    if (response.statusCode != 200) {
+      final category = response.statusCode == 429
+          ? 'rate_limit'
+          : response.statusCode == 401
+              ? 'unauthorized'
+              : response.statusCode >= 500
+                  ? 'server_error'
+                  : 'client_error';
+      throw OpenRouterException(
+        response.statusCode,
+        'API error: $category (${response.statusCode})',
+      );
+    }
+
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final choices = json['choices'] as List<dynamic>;
+    if (choices.isEmpty) {
+      throw const OpenRouterException(500, 'Empty choices array');
+    }
+
+    final firstChoice = choices[0];
+    if (firstChoice is! Map<String, dynamic>) {
+      throw const OpenRouterException(500, 'Invalid choice format');
+    }
+    final message = firstChoice['message'];
+    if (message is! Map<String, dynamic>) {
+      throw const OpenRouterException(500, 'Invalid message format');
+    }
+    final content = message['content'] as String? ?? '';
+
+    final usage = json['usage'] as Map<String, dynamic>?;
+    final tokensUsed = (usage?['total_tokens'] as int?) ?? 0;
+
+    dev.log(
+      'OpenRouter multi-turn OK: ${model ?? AiConfig.defaultModel}, tokens=$tokensUsed',
+      name: 'OpenRouterService',
+    );
     return OpenRouterResponse(content: content, tokensUsed: tokensUsed);
   }
 }

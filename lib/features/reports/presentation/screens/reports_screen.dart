@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/categories_tab.dart';
-import '../widgets/comparison_tab.dart';
 import '../widgets/overview_tab.dart';
 import '../widgets/trends_tab.dart';
 
@@ -14,10 +16,17 @@ class ReportsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppAppBar(
           title: context.l10n.reports_title,
+          actions: [
+            IconButton(
+              icon: const Icon(AppIcons.calendar),
+              onPressed: () => context.push(AppRoutes.calendar),
+              tooltip: context.l10n.calendar_title,
+            ),
+          ],
           bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
@@ -25,7 +34,6 @@ class ReportsScreen extends ConsumerWidget {
               Tab(text: context.l10n.reports_overview),
               Tab(text: context.l10n.reports_categories),
               Tab(text: context.l10n.reports_trends),
-              Tab(text: context.l10n.reports_comparison),
             ],
           ),
         ),
@@ -34,7 +42,6 @@ class ReportsScreen extends ConsumerWidget {
             OverviewTab(),
             CategoriesTab(),
             TrendsTab(),
-            ComparisonTab(),
           ],
         ),
       ),

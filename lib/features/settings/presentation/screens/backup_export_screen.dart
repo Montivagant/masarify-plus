@@ -57,7 +57,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackHelper.showError(context, e.toString());
+        SnackHelper.showError(context, context.l10n.common_error_generic);
       }
     } finally {
       _deleteTempFile(path);
@@ -94,7 +94,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackHelper.showError(context, e.toString());
+        SnackHelper.showError(context, context.l10n.common_error_generic);
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -146,7 +146,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackHelper.showError(context, e.toString());
+        SnackHelper.showError(context, context.l10n.common_error_generic);
       }
     } finally {
       _deleteTempFile(path);
@@ -194,7 +194,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackHelper.showError(context, e.toString());
+        SnackHelper.showError(context, context.l10n.common_error_generic);
       }
     } finally {
       _deleteTempFile(path);

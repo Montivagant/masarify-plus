@@ -177,10 +177,13 @@ class TransactionDetailScreen extends ConsumerWidget {
                             spacing: AppSizes.xs,
                             children: tx.tagList
                                 .map(
-                                  (t) => Chip(
-                                    label: Text(t),
-                                    visualDensity: VisualDensity.compact,
-                                    padding: EdgeInsets.zero,
+                                  (t) => Semantics(
+                                    label: t,
+                                    child: Chip(
+                                      label: Text(t),
+                                      visualDensity: VisualDensity.compact,
+                                      padding: EdgeInsets.zero,
+                                    ),
                                   ),
                                 )
                                 .toList(),

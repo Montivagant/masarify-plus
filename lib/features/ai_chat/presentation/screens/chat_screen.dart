@@ -1,0 +1,281 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/ai/ai_chat_service.dart';
+import '../../../../core/services/ai/openrouter_service.dart';
+import '../../../../shared/providers/chat_provider.dart';
+import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../widgets/message_bubble.dart';
+import '../widgets/typing_indicator.dart';
+
+class ChatScreen extends ConsumerStatefulWidget {
+  const ChatScreen({super.key});
+
+  @override
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends ConsumerState<ChatScreen> {
+  final _controller = TextEditingController();
+  bool _isSending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    if (_isSending) return; // concurrency guard — keyboard onSubmitted bypass
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    _controller.clear();
+    setState(() => _isSending = true);
+
+    final dao = ref.read(chatMessageDaoProvider);
+    final aiService = ref.read(aiChatServiceProvider);
+    final financialCtx = ref.read(financialContextProvider);
+
+    // Cache l10n strings before async gap.
+    final l10n = context.l10n;
+    final errorRateLimit = l10n.chat_error_rate_limit;
+    final errorUnauthorized = l10n.chat_error_unauthorized;
+    final errorTimeout = l10n.chat_error_timeout;
+    final errorGeneric = l10n.chat_error_generic;
+
+    // Insert user message.
+    final userTokens = AiChatService.estimateTokens(text);
+    await dao.insertMessage(
+      role: 'user',
+      content: text,
+      tokenCount: userTokens,
+    );
+
+    try {
+      // Read current messages for context window (fresh from DB, not stale provider cache).
+      final messages = await dao.watchAll().first;
+
+      final response = await aiService.sendMessage(
+        allMessages: messages,
+        financialContext: financialCtx,
+      );
+
+      final content = response.content.trim();
+      await dao.insertMessage(
+        role: 'assistant',
+        content: content.isNotEmpty ? content : errorGeneric,
+        tokenCount: content.isNotEmpty ? response.tokensUsed : 0,
+      );
+    } on OpenRouterException catch (e) {
+      final errorText = e.isRateLimit
+          ? errorRateLimit
+          : e.isUnauthorized
+              ? errorUnauthorized
+              : errorGeneric;
+      await dao.insertMessage(
+        role: 'assistant',
+        content: errorText,
+        tokenCount: 0,
+      );
+    } on TimeoutException {
+      await dao.insertMessage(
+        role: 'assistant',
+        content: errorTimeout,
+        tokenCount: 0,
+      );
+    } catch (_) {
+      await dao.insertMessage(
+        role: 'assistant',
+        content: errorGeneric,
+        tokenCount: 0,
+      );
+    } finally {
+      if (mounted) setState(() => _isSending = false);
+    }
+  }
+
+  Future<void> _clearChat() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.chat_clear),
+        content: Text(ctx.l10n.chat_clear_confirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(ctx.l10n.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(ctx.l10n.common_clear),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await ref.read(chatMessageDaoProvider).deleteAll();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final messagesAsync = ref.watch(chatMessagesProvider);
+    final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
+
+    return Scaffold(
+      appBar: AppAppBar(
+        title: context.l10n.chat_title,
+        actions: [
+          AppIconButton(
+            icon: AppIcons.delete,
+            onPressed: _clearChat,
+            tooltip: context.l10n.chat_clear,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Offline banner.
+          if (!isOnline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+                vertical: AppSizes.sm,
+              ),
+              color: context.appTheme.expenseColor
+                  .withValues(alpha: AppSizes.opacityLight),
+              child: Text(
+                context.l10n.chat_offline,
+                style: context.textStyles.labelSmall?.copyWith(
+                  color: context.appTheme.expenseColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+
+          // Messages list.
+          Expanded(
+            child: messagesAsync.when(
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (_, __) => Center(
+                child: Text(context.l10n.chat_error_generic),
+              ),
+              data: (messages) {
+                final itemCount =
+                    messages.length + (_isSending ? 1 : 0);
+                if (itemCount == 0) {
+                  return Center(
+                    child: Text(
+                      context.l10n.chat_input_hint,
+                      style: context.textStyles.bodyMedium?.copyWith(
+                        color: context.colors.onSurface.withValues(
+                          alpha: AppSizes.opacityLight4,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.screenHPadding,
+                    vertical: AppSizes.sm,
+                  ),
+                  itemCount: itemCount,
+                  itemBuilder: (context, index) {
+                    // Index 0 = bottom of reversed list.
+                    if (_isSending && index == 0) {
+                      return const Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            bottom: AppSizes.sm,
+                          ),
+                          child: TypingIndicator(),
+                        ),
+                      );
+                    }
+                    final msgIndex = _isSending
+                        ? messages.length - index
+                        : messages.length - 1 - index;
+                    return MessageBubble(message: messages[msgIndex]);
+                  },
+                );
+              },
+            ),
+          ),
+
+          // Input bar.
+          Container(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: context.colors.outlineVariant
+                      .withValues(alpha: AppSizes.opacityLight4),
+                ),
+              ),
+              color: context.colors.surface,
+            ),
+            padding: EdgeInsetsDirectional.only(
+              start: AppSizes.screenHPadding,
+              end: AppSizes.xs,
+              top: AppSizes.sm,
+              bottom: AppSizes.sm +
+                  MediaQuery.paddingOf(context).bottom,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    enabled: isOnline && !_isSending,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (_) => _send(),
+                    minLines: 1,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: context.l10n.chat_input_hint,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppSizes.borderRadiusLg,
+                        ),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                      fillColor: context.colors.onSurface.withValues(
+                        alpha: AppSizes.opacityXLight2,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.md,
+                        vertical: AppSizes.sm,
+                      ),
+                    ),
+                    style: context.textStyles.bodyMedium,
+                  ),
+                ),
+                const SizedBox(width: AppSizes.xs),
+                AppIconButton(
+                  icon: AppIcons.send,
+                  onPressed:
+                      isOnline && !_isSending ? _send : null,
+                  tooltip: context.l10n.chat_input_hint,
+                  color: context.colors.primary,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

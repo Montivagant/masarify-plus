@@ -196,23 +196,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         return;
       }
 
-      final prefs = await ref.read(preferencesFutureProvider.future);
-      await prefs.setNotificationParserEnabled(true);
-      if (!mounted) return;
-      setState(() => _notificationParserEnabled = true);
-
       // WS-38 fix: delay before starting listener — Android service needs
       // time to bind after permission is granted.
       await Future<void>.delayed(AppDurations.listenerBindDelay);
       if (!mounted) return;
 
       // Start the listener — service may not be fully bound yet.
+      // Save preference ONLY after start() succeeds to avoid inconsistent state
+      // if the app crashes during start().
       try {
         final listener = ref.read(notificationListenerProvider);
         listener.onNewPending = () {
           ref.invalidate(pendingParsedTransactionsProvider);
         };
         await listener.start();
+
+        // Listener started successfully — now persist the preference.
+        final prefs = await ref.read(preferencesFutureProvider.future);
+        await prefs.setNotificationParserEnabled(true);
+        if (!mounted) return;
+        setState(() => _notificationParserEnabled = true);
       } catch (e) {
         CrashLogService.log(e, StackTrace.current);
         if (!mounted) return;
@@ -798,6 +801,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             icon: AppIcons.notification,
             label: l10n.notif_prefs_title,
             onTap: () => context.push(AppRoutes.settingsNotifications),
+          ),
+          Builder(
+            builder: (context) {
+              final pendingCount = ref.watch(pendingParsedTransactionsProvider)
+                  .valueOrNull?.length ?? 0;
+              return _SettingsTile(
+                icon: AppIcons.sms,
+                label: l10n.dashboard_insight_parsed_transactions,
+                subtitle: pendingCount > 0
+                    ? l10n.sms_new_found(pendingCount)
+                    : null,
+                onTap: () => context.push(AppRoutes.parserReview),
+              );
+            },
           ),
 
           // ── Security ────────────────────────────────────────────────────
