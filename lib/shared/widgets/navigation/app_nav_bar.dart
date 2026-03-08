@@ -109,12 +109,18 @@ class _AppNavBarState extends State<AppNavBar>
                           sigmaY: AppSizes.glassBlurCard,
                         ),
                         child: ColoredBox(
-                          color: theme.glassCardSurface,
+                          // 60% surface over blur = visible frosted glass
+                          color: cs.surface.withValues(
+                            alpha: AppSizes.opacityMedium2,
+                          ),
                         ),
                       )
                     : ColoredBox(
+                        // Opaque fallback: surface + subtle brand tint
                         color: Color.alphaBlend(
-                          theme.glassCardSurface,
+                          cs.primary.withValues(
+                            alpha: AppSizes.opacityXLight,
+                          ),
                           cs.surface,
                         ),
                       ),
@@ -199,6 +205,7 @@ class _AppNavBarState extends State<AppNavBar>
           AppSizes.md,
           AppSizes.md + bottomInset,
         ),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
           boxShadow: [

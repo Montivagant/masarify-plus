@@ -39,8 +39,13 @@ abstract final class AiConfig {
   /// Timeout for API calls in seconds.
   static const int apiTimeoutSeconds = 15;
 
-  /// Free-tier model fallback chain for conversational chat.
-  static const List<String> chatFallbackChain = [modelGemma27b, modelQwen3_4b];
+  /// Fallback chain for conversational chat (user-initiated, low volume).
+  /// Starts with paid model for reliability, free models as backstop.
+  static const List<String> chatFallbackChain = [
+    modelGeminiFlash,
+    modelGemma27b,
+    modelQwen3_4b,
+  ];
 
   /// Maximum tokens in the LLM response.
   static const int maxResponseTokens = 1024;

@@ -129,7 +129,6 @@ class OpenRouterService {
       'messages': messages,
       'temperature': temperature,
       'max_tokens': maxTokens ?? AiConfig.maxResponseTokens,
-      'provider': {'zdr': true},
     });
 
     final response = await http
