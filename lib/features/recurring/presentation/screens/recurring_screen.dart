@@ -49,22 +49,26 @@ class RecurringScreen extends ConsumerWidget {
             );
           }
 
-          // Section 1: Overdue bills (once-frequency, not paid, past due)
-          final overdue = rules.where((r) => r.isOverdue).toList();
-          // Section 2: Upcoming bills (once-frequency, not paid, not overdue)
-          final upcomingBills = rules
-              .where((r) => r.isBill && !r.isPaid && !r.isOverdue)
-              .toList();
-          // Section 3: Active recurring (non-once frequency, active)
-          final activeRecurring = rules
-              .where((r) => !r.isBill && r.isActive)
-              .toList();
-          // Section 4: Paid / Completed (isPaid == true)
-          final paid = rules.where((r) => r.isPaid).toList();
-          // Also include inactive non-bill items in a sub-group at end
-          final inactive = rules
-              .where((r) => !r.isBill && !r.isActive)
-              .toList();
+          // Mutually exclusive sections — each rule belongs to exactly one.
+          final overdue = <RecurringRuleEntity>[];
+          final upcomingBills = <RecurringRuleEntity>[];
+          final activeRecurring = <RecurringRuleEntity>[];
+          final paid = <RecurringRuleEntity>[];
+          final inactive = <RecurringRuleEntity>[];
+
+          for (final r in rules) {
+            if (r.isPaid) {
+              paid.add(r);
+            } else if (r.isOverdue) {
+              overdue.add(r);
+            } else if (r.isBill) {
+              upcomingBills.add(r);
+            } else if (!r.isActive) {
+              inactive.add(r);
+            } else {
+              activeRecurring.add(r);
+            }
+          }
 
           return ListView(
             padding: const EdgeInsets.only(
@@ -395,10 +399,10 @@ class _RecurringCard extends ConsumerWidget {
   void _toggleActive(WidgetRef ref, bool active) {
     HapticFeedback.selectionClick();
     // M15 fix: on resume, if nextDueDate is in the past, advance to today
+    final now = DateTime.now();
     var nextDue = rule.nextDueDate;
-    if (active && nextDue.isBefore(DateTime.now())) {
-      final today = DateTime.now();
-      nextDue = DateTime(today.year, today.month, today.day);
+    if (active && nextDue.isBefore(now)) {
+      nextDue = DateTime(now.year, now.month, now.day);
     }
     ref.read(recurringRuleRepositoryProvider).update(
           RecurringRuleEntity(

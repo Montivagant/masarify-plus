@@ -860,6 +860,54 @@ abstract class AppLocalizations {
   /// **'Something went wrong, try again'**
   String get chat_error_generic;
 
+  /// No description provided for @chat_action_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get chat_action_confirm;
+
+  /// No description provided for @chat_action_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get chat_action_cancel;
+
+  /// No description provided for @chat_action_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get chat_action_retry;
+
+  /// No description provided for @chat_action_confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Created successfully!'**
+  String get chat_action_confirmed;
+
+  /// No description provided for @chat_action_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get chat_action_cancelled;
+
+  /// No description provided for @chat_action_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed — try again?'**
+  String get chat_action_failed;
+
+  /// No description provided for @chat_action_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Savings Goal'**
+  String get chat_action_goal_title;
+
+  /// No description provided for @chat_action_tx_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Transaction'**
+  String get chat_action_tx_title;
+
   /// No description provided for @hub_title.
   ///
   /// In en, this message translates to:
@@ -3329,7 +3377,7 @@ abstract class AppLocalizations {
   /// No description provided for @permission_sms_body.
   ///
   /// In en, this message translates to:
-  /// **'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally. If AI enrichment is enabled, transaction text may be sent to an AI service (OpenRouter) for category and merchant detection.'**
+  /// **'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.'**
   String get permission_sms_body;
 
   /// No description provided for @settings_ai_model.

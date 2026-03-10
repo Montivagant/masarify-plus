@@ -133,6 +133,10 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
         final existing =
             budgets.where((b) => b.id == widget.editId).firstOrNull;
         if (existing != null) {
+          // If rollover was just enabled, reset rolloverAmount so
+          // the repository's create/update logic recomputes from previous month.
+          var rolloverAmt = existing.rolloverAmount;
+          if (_rollover && !existing.rollover) rolloverAmt = 0;
           await repo.update(
             BudgetEntity(
               id: existing.id,
@@ -141,7 +145,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               year: existing.year,
               limitAmount: _limitPiastres,
               rollover: _rollover,
-              rolloverAmount: existing.rolloverAmount,
+              rolloverAmount: rolloverAmt,
             ),
           );
         }

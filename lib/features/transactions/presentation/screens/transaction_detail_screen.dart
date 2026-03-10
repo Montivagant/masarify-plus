@@ -27,6 +27,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = context.colors;
+    final theme = context.appTheme;
     // M1 fix: use provider instead of FutureBuilder so data auto-refreshes
     final txAsync = ref.watch(transactionByIdProvider(id));
 
@@ -48,14 +49,19 @@ class TransactionDetailScreen extends ConsumerWidget {
         }
 
         final typeColor = switch (tx.type) {
-          'expense' => context.appTheme.expenseColor,
-          'income' => context.appTheme.incomeColor,
-          _ => context.appTheme.transferColor,
+          'expense' => theme.expenseColor,
+          'income' => theme.incomeColor,
+          _ => theme.transferColor,
         };
         final typeLabel = switch (tx.type) {
           'expense' => context.l10n.transaction_type_expense,
           'income' => context.l10n.transaction_type_income,
           _ => context.l10n.transaction_type_transfer,
+        };
+        final signPrefix = switch (tx.type) {
+          'income' => '+',
+          'expense' => '\u2212',
+          _ => '',
         };
 
         final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
@@ -64,6 +70,9 @@ class TransactionDetailScreen extends ConsumerWidget {
         final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
         final wallet =
             wallets.where((w) => w.id == tx.walletId).firstOrNull;
+
+        final catColor =
+            cat != null ? ColorUtils.fromHex(cat.colorHex) : cs.outline;
 
         return Scaffold(
           appBar: AppAppBar(
@@ -86,87 +95,172 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Hero: Amount + type ──────────────────────────────────
+                // ── Hero: Amount + title + type ──────────────────────────
                 GlassCard(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.all(AppSizes.lg),
+                  showShadow: true,
                   tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Column(
+                      children: [
+                        // Category icon or type icon
+                        Container(
+                          width: AppSizes.iconXl,
+                          height: AppSizes.iconXl,
+                          decoration: BoxDecoration(
+                            color: catColor.withValues(alpha: AppSizes.opacityLight2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            cat != null
+                                ? CategoryIconMapper.fromName(cat.iconName)
+                                : switch (tx.type) {
+                                    'expense' => AppIcons.expense,
+                                    'income' => AppIcons.income,
+                                    _ => AppIcons.transfer,
+                                  },
+                            color: catColor,
+                            size: AppSizes.iconMd,
+                          ),
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        // Transaction title
+                        Text(
+                          tx.title,
+                          style: context.textStyles.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSizes.xs),
+                        // Amount with sign
+                        Text(
+                          '$signPrefix${MoneyFormatter.format(tx.amount)}',
+                          style: context.textStyles.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: typeColor,
+                          ),
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        // Type chip
+                        Chip(
+                          label: Text(typeLabel),
+                          backgroundColor: typeColor.withValues(
+                            alpha: AppSizes.opacityLight2,
+                          ),
+                          side: BorderSide(
+                            color: typeColor.withValues(
+                              alpha: AppSizes.opacityLight4,
+                            ),
+                          ),
+                          labelStyle: context.textStyles.bodySmall?.copyWith(
+                            color: typeColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ── Details card ─────────────────────────────────────────
+                GlassCard(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.screenHPadding,
+                  ),
+                  padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      Icon(
-                        switch (tx.type) {
-                          'expense' => AppIcons.expense,
-                          'income' => AppIcons.income,
-                          _ => AppIcons.transfer,
-                        },
-                        color: typeColor,
-                        size: AppSizes.iconLg,
+                      _DetailTile(
+                        icon: cat != null
+                            ? CategoryIconMapper.fromName(cat.iconName)
+                            : AppIcons.category,
+                        iconColor: catColor,
+                        label: context.l10n.transaction_category,
+                        value: cat?.displayName(context.languageCode) ?? '\u2014',
                       ),
-                      const SizedBox(height: AppSizes.sm),
-                      Text(
-                        MoneyFormatter.format(tx.amount),
-                        style:
-                            context.textStyles.headlineLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: typeColor,
-                                ),
-                      ),
-                      const SizedBox(height: AppSizes.xs),
-                      Chip(
-                        label: Text(typeLabel),
-                        backgroundColor: typeColor.withValues(alpha: AppSizes.opacityLight2),
-                        side: BorderSide.none,
-                        labelStyle: context.textStyles.bodyMedium?.copyWith(
-                          color: typeColor,
-                          fontWeight: FontWeight.w600,
+                      Divider(
+                        height: AppSizes.dividerHeight,
+                        color: cs.outlineVariant.withValues(
+                          alpha: AppSizes.opacityLight4,
                         ),
                       ),
+                      _DetailTile(
+                        icon: AppIcons.wallet,
+                        iconColor: cs.primary,
+                        label: context.l10n.transaction_wallet,
+                        value: wallet?.name ?? '\u2014',
+                      ),
+                      Divider(
+                        height: AppSizes.dividerHeight,
+                        color: cs.outlineVariant.withValues(
+                          alpha: AppSizes.opacityLight4,
+                        ),
+                      ),
+                      _DetailTile(
+                        icon: AppIcons.calendar,
+                        iconColor: cs.outline,
+                        label: context.l10n.transaction_date,
+                        value: DateFormat.yMd(context.languageCode)
+                            .add_jm()
+                            .format(tx.transactionDate),
+                      ),
+                      if (tx.note != null && tx.note!.isNotEmpty) ...[
+                        Divider(
+                          height: AppSizes.dividerHeight,
+                          color: cs.outlineVariant.withValues(
+                            alpha: AppSizes.opacityLight4,
+                          ),
+                        ),
+                        _DetailTile(
+                          icon: AppIcons.edit,
+                          iconColor: cs.outline,
+                          label: context.l10n.transaction_note,
+                          value: tx.note!,
+                        ),
+                      ],
+                      if (tx.locationName != null) ...[
+                        Divider(
+                          height: AppSizes.dividerHeight,
+                          color: cs.outlineVariant.withValues(
+                            alpha: AppSizes.opacityLight4,
+                          ),
+                        ),
+                        _DetailTile(
+                          icon: AppIcons.location,
+                          iconColor: cs.outline,
+                          label: context.l10n.transaction_location,
+                          value: tx.locationName!,
+                        ),
+                      ],
+                      if (tx.source != 'manual') ...[
+                        Divider(
+                          height: AppSizes.dividerHeight,
+                          color: cs.outlineVariant.withValues(
+                            alpha: AppSizes.opacityLight4,
+                          ),
+                        ),
+                        _DetailTile(
+                          icon: _sourceIcon(tx.source),
+                          iconColor: cs.outline,
+                          label: context.l10n.transaction_source_label,
+                          value: _sourceLabel(context, tx.source),
+                        ),
+                      ],
                     ],
                   ),
                 ),
 
-                // ── Details ─────────────────────────────────────────────
-                _DetailRow(
-                  icon: cat != null
-                      ? CategoryIconMapper.fromName(cat.iconName)
-                      : AppIcons.category,
-                  iconColor: cat != null
-                      ? ColorUtils.fromHex(cat.colorHex)
-                      : cs.outline,
-                  label: context.l10n.transaction_category,
-                  value: cat?.displayName(context.languageCode) ?? '—',
-                ),
-                _DetailRow(
-                  icon: AppIcons.wallet,
-                  iconColor: cs.primary,
-                  label: context.l10n.transaction_wallet,
-                  value: wallet?.name ?? '—',
-                ),
-                _DetailRow(
-                  icon: AppIcons.calendar,
-                  iconColor: cs.outline,
-                  label: context.l10n.transaction_date,
-                  value: DateFormat.yMd(context.languageCode).format(tx.transactionDate),
-                ),
-                if (tx.note != null && tx.note!.isNotEmpty)
-                  _DetailRow(
-                    icon: AppIcons.edit,
-                    iconColor: cs.outline,
-                    label: context.l10n.transaction_note,
-                    value: tx.note!,
-                  ),
-                if (tx.locationName != null)
-                  _DetailRow(
-                    icon: AppIcons.location,
-                    iconColor: cs.outline,
-                    label: context.l10n.transaction_location,
-                    value: tx.locationName!,
-                  ),
+                // ── Tags ─────────────────────────────────────────────────
                 if (tx.tagList.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSizes.screenHPadding,
-                      vertical: AppSizes.xs,
+                      vertical: AppSizes.sm,
                     ),
                     child: Row(
                       children: [
@@ -192,33 +286,25 @@ class TransactionDetailScreen extends ConsumerWidget {
                       ],
                     ),
                   ),
-                if (tx.source != 'manual')
-                  _DetailRow(
-                    icon: _sourceIcon(tx.source),
-                    iconColor: cs.outline,
-                    label: context.l10n.transaction_source_label,
-                    value: _sourceLabel(context, tx.source),
-                  ),
+
+                // ── Raw source text ──────────────────────────────────────
                 if (tx.rawSourceText != null && tx.rawSourceText!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
+                  GlassCard(
+                    margin: const EdgeInsets.symmetric(
                       horizontal: AppSizes.screenHPadding,
                       vertical: AppSizes.sm,
                     ),
-                    child: Container(
+                    tintColor: cs.outlineVariant.withValues(
+                      alpha: AppSizes.opacitySubtle,
+                    ),
+                    child: SizedBox(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(AppSizes.md),
-                      decoration: BoxDecoration(
-                        color: cs.surfaceContainerHighest,
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.borderRadiusSm),
-                      ),
                       child: Text(
                         tx.rawSourceText!,
                         style: context.textStyles.bodySmall?.copyWith(
-                              color: cs.outline,
-                              fontStyle: FontStyle.italic,
-                            ),
+                          color: cs.outline,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
                   ),
@@ -231,20 +317,20 @@ class TransactionDetailScreen extends ConsumerWidget {
   }
 
   void _confirmDelete(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.transaction_delete_title),
-        content: Text(context.l10n.transaction_delete_confirm),
+        title: Text(l10n.transaction_delete_title),
+        content: Text(l10n.transaction_delete_confirm),
         actions: [
           TextButton(
             onPressed: () => ctx.pop(),
-            child: Text(context.l10n.common_cancel),
+            child: Text(l10n.common_cancel),
           ),
           FilledButton(
             onPressed: () async {
               ctx.pop();
-              // H1 fix: wrap delete in try/catch
               try {
                 await ref.read(transactionRepositoryProvider).delete(id);
                 HapticFeedback.mediumImpact();
@@ -253,7 +339,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 if (context.mounted) {
                   SnackHelper.showError(
                     context,
-                    context.l10n.common_error_generic,
+                    l10n.common_error_generic,
                   );
                 }
               }
@@ -261,7 +347,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: context.appTheme.expenseColor,
             ),
-            child: Text(context.l10n.common_delete),
+            child: Text(l10n.common_delete),
           ),
         ],
       ),
@@ -286,8 +372,10 @@ class TransactionDetailScreen extends ConsumerWidget {
       };
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
+// ── Detail tile (used inside the grouped GlassCard) ──────────────────────
+
+class _DetailTile extends StatelessWidget {
+  const _DetailTile({
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -303,13 +391,13 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.screenHPadding,
-        vertical: AppSizes.sm,
+        horizontal: AppSizes.md,
+        vertical: AppSizes.md,
       ),
       child: Row(
         children: [
           Icon(icon, size: AppSizes.iconSm, color: iconColor),
-          const SizedBox(width: AppSizes.sm),
+          const SizedBox(width: AppSizes.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,9 +405,10 @@ class _DetailRow extends StatelessWidget {
                 Text(
                   label,
                   style: context.textStyles.bodySmall?.copyWith(
-                        color: context.colors.outline,
-                      ),
+                    color: context.colors.outline,
+                  ),
                 ),
+                const SizedBox(height: AppSizes.xxs),
                 Text(
                   value,
                   style: context.textStyles.bodyLarge,

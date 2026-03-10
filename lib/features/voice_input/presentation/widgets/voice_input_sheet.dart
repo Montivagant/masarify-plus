@@ -54,6 +54,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
 
   _VoiceState _state = _VoiceState.idle;
   String? _tempFilePath;
+  bool _isMicPermissionError = false;
 
   /// Synchronous guard against concurrent `_stopAndProcess` calls.
   bool _isStopping = false;
@@ -81,7 +82,10 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       if (!hasPermission) {
         dev.log('Microphone permission denied', name: 'VoiceInputSheet');
         if (!mounted) return;
-        setState(() => _state = _VoiceState.error);
+        setState(() {
+          _isMicPermissionError = true;
+          _state = _VoiceState.error;
+        });
         return;
       }
 
@@ -169,7 +173,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       }
 
       // Check connectivity before calling Gemini.
-      final online = ref.read(isOnlineProvider).valueOrNull ?? true;
+      final online = ref.read(isOnlineProvider).valueOrNull ?? false;
       dev.log(
         'Connectivity before Gemini call: $online',
         name: 'VoiceInputSheet',
@@ -393,7 +397,10 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 const SizedBox(width: AppSizes.md),
                 FilledButton(
                   onPressed: () {
-                    setState(() => _state = _VoiceState.idle);
+                    setState(() {
+                      _isMicPermissionError = false;
+                      _state = _VoiceState.idle;
+                    });
                   },
                   child: Text(context.l10n.voice_retry),
                 ),
@@ -421,7 +428,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       _VoiceState.idle => context.l10n.voice_tap_to_start,
       _VoiceState.recording => context.l10n.voice_listening,
       _VoiceState.processing => context.l10n.voice_ai_parsing,
-      _VoiceState.error => context.l10n.voice_error_no_service,
+      _VoiceState.error => _isMicPermissionError
+          ? context.l10n.permission_mic_body
+          : context.l10n.voice_error_no_service,
     };
   }
 }

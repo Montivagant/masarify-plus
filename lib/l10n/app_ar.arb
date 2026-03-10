@@ -142,6 +142,14 @@
   "chat_error_unauthorized": "مشكلة في مفتاح API، تحقق من الإعدادات",
   "chat_error_timeout": "انتهت المهلة، حاول مرة أخرى",
   "chat_error_generic": "حدث خطأ، حاول مرة أخرى",
+  "chat_action_confirm": "تأكيد",
+  "chat_action_cancel": "إلغاء",
+  "chat_action_retry": "إعادة المحاولة",
+  "chat_action_confirmed": "تم الإنشاء بنجاح!",
+  "chat_action_cancelled": "تم الإلغاء",
+  "chat_action_failed": "فشل — حاول مرة أخرى؟",
+  "chat_action_goal_title": "إنشاء هدف ادخاري",
+  "chat_action_tx_title": "إنشاء معاملة",
 
   "hub_title": "المزيد",
   "hub_section_money": "المال",
@@ -601,7 +609,7 @@
   "settings_notification_parser_subtitle": "اكتشاف المعاملات تلقائياً من إشعارات البنك",
   "settings_sms_parser_subtitle": "فحص الرسائل النصية لاكتشاف معاملات البنك",
   "permission_sms_title": "صلاحية الرسائل",
-  "permission_sms_body": "يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً. إذا تم تفعيل التحسين بالذكاء الاصطناعي، قد يتم إرسال نص المعاملة لخدمة AI (OpenRouter) لتحديد الفئة والتاجر.",
+  "permission_sms_body": "يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على 'إثراء' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.",
 
   "settings_ai_model": "نموذج الذكاء الاصطناعي",
   "settings_ai_model_subtitle": "اختر النموذج الذي يعالج الإدخال الصوتي",

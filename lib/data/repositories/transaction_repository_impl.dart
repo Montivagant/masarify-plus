@@ -264,7 +264,25 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   Future<List<int>> createBatch(List<CreateTransactionParams> params) async {
     return _db.transaction(() async {
       final ids = <int>[];
-      for (final p in params) {
+      for (int i = 0; i < params.length; i++) {
+        final p = params[i];
+        // Same validation as create() — prevent invalid batch entries
+        if (p.amount <= 0) {
+          throw ArgumentError('Batch item $i: amount must be positive');
+        }
+        if (p.type != 'income' && p.type != 'expense') {
+          throw ArgumentError('Batch item $i: type must be income or expense');
+        }
+        final cat = await _categoryDao.getById(p.categoryId);
+        if (cat != null && cat.type != 'both' && cat.type != p.type) {
+          throw ArgumentError(
+            'Batch item $i: category type "${cat.type}" does not match transaction type "${p.type}"',
+          );
+        }
+        final wallet = await _walletDao.getById(p.walletId);
+        if (wallet == null || wallet.isArchived) {
+          throw ArgumentError('Batch item $i: invalid or archived wallet');
+        }
         final id = await _dao.insertTransaction(
           TransactionsCompanion.insert(
             walletId: p.walletId,
@@ -275,6 +293,7 @@ class TransactionRepositoryImpl implements ITransactionRepository {
             transactionDate: p.transactionDate,
             source: Value(p.source),
             rawSourceText: Value(p.rawSourceText),
+            note: Value(p.note),
           ),
         );
         final delta = p.type == 'income' ? p.amount : -p.amount;

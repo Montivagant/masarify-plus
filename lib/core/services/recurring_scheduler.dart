@@ -47,7 +47,7 @@ class RecurringScheduler {
         if (rule.frequency == 'once' || rule.frequency == 'custom') continue;
 
         // C7 fix: check endDate — deactivate expired rules
-        if (rule.endDate != null && today.isAfter(rule.endDate!)) {
+        if (rule.endDate != null && today.isAfter(rule.endDate!.startOfDay)) {
           await _ruleRepo.update(
             RecurringRuleEntity(
               id: rule.id,
@@ -112,12 +112,13 @@ class RecurringScheduler {
         var nextDue = rule.nextDueDate;
         while (!nextDue.isAfter(today) && iterations < maxCatchUp) {
           iterations++;
-          // C7 fix: also check endDate within loop
+
+          nextDue = _computeNextDueDate(nextDue, rule.frequency);
+
+          // C7 fix: check endDate after advancing — break if past end
           if (rule.endDate != null && nextDue.isAfter(rule.endDate!)) {
             break;
           }
-
-          nextDue = _computeNextDueDate(nextDue, rule.frequency);
 
           // Persist nextDueDate after each iteration so crash mid-loop
           // doesn't re-run already-processed rules on restart.

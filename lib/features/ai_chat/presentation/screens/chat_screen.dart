@@ -9,11 +9,18 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/ai/ai_chat_service.dart';
+import '../../../../core/services/ai/chat_action.dart';
+import '../../../../core/services/ai/chat_response_parser.dart';
 import '../../../../core/services/ai/openrouter_service.dart';
+import '../../../../domain/entities/chat_message_entity.dart';
+import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/chat_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/selected_account_provider.dart';
+import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../widgets/action_card.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/typing_indicator.dart';
 
@@ -27,6 +34,13 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   bool _isSending = false;
+
+  /// In-memory action status for the current session. On confirm or cancel,
+  /// the message content is stripped of its JSON block in the DB (via
+  /// [ChatMessageDao.updateContent]), making the resolved state durable
+  /// across restarts. The status enum itself is not stored in the DB.
+  final Map<int, ChatActionStatus> _actionStates = {};
+  final Set<int> _executingActions = {};
 
   @override
   void dispose() {
@@ -74,7 +88,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       await dao.insertMessage(
         role: 'assistant',
         content: content.isNotEmpty ? content : errorGeneric,
-        tokenCount: content.isNotEmpty ? response.tokensUsed : 0,
+        tokenCount: content.isNotEmpty ? response.completionTokens : 0,
       );
     } on OpenRouterException catch (e) {
       final errorText = e.isRateLimit
@@ -124,7 +138,93 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
     if (confirmed == true) {
+      setState(() {
+        _actionStates.clear();
+        _executingActions.clear();
+      });
       await ref.read(chatMessageDaoProvider).deleteAll();
+    }
+  }
+
+  Future<void> _onConfirmAction(
+    int messageId,
+    ChatAction action,
+    String strippedText,
+  ) async {
+    if (_executingActions.contains(messageId)) return;
+    setState(() => _executingActions.add(messageId));
+
+    final executor = ref.read(chatActionExecutorProvider);
+    final categoriesAsync = ref.read(categoriesProvider);
+    final walletsAsync = ref.read(walletsProvider);
+    final locale = context.languageCode;
+    final errorGeneric = context.l10n.chat_error_generic;
+    final dao = ref.read(chatMessageDaoProvider);
+
+    // Guard against cold-start or error: providers may not be ready yet.
+    if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
+      if (mounted) {
+        setState(() => _executingActions.remove(messageId));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.chat_error_generic),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+    final categories = categoriesAsync.valueOrNull ?? [];
+    final wallets = walletsAsync.valueOrNull ?? [];
+
+    try {
+      final selectedWalletId = ref.read(selectedAccountIdProvider);
+      final successMsg = await executor.execute(
+        action,
+        categories: categories,
+        wallets: wallets,
+        locale: locale,
+        selectedWalletId: selectedWalletId,
+      );
+      // Atomic: strip JSON + insert success message in one transaction so a
+      // crash between them cannot leave inconsistent state. Done before
+      // mounted check so the DB write completes even if the widget unmounts.
+      final newTokens = AiChatService.estimateTokens(strippedText);
+      await dao.finalizeAction(
+        messageId: messageId,
+        strippedContent: strippedText,
+        strippedTokenCount: newTokens,
+        followUpContent: successMsg,
+      );
+      if (!mounted) return;
+      setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
+    } catch (e) {
+      final errorMsg =
+          e is ArgumentError ? e.message.toString() : errorGeneric;
+      await dao.insertMessage(
+        role: 'assistant',
+        content: errorMsg,
+        tokenCount: 0,
+      );
+      if (!mounted) return;
+      setState(() => _actionStates[messageId] = ChatActionStatus.failed);
+    } finally {
+      if (mounted) setState(() => _executingActions.remove(messageId));
+    }
+  }
+
+  Future<void> _onCancelAction(int messageId, String strippedText) async {
+    setState(() => _actionStates[messageId] = ChatActionStatus.cancelled);
+    // Strip JSON so the action card doesn't reappear after navigation.
+    try {
+      final newTokens = AiChatService.estimateTokens(strippedText);
+      await ref.read(chatMessageDaoProvider).updateContent(
+            messageId,
+            strippedText,
+            tokenCount: newTokens,
+          );
+    } catch (e, st) {
+      dev.log('Cancel strip failed: $e', name: 'ChatScreen', error: e, stackTrace: st);
     }
   }
 
@@ -211,7 +311,57 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     final msgIndex = _isSending
                         ? messages.length - index
                         : messages.length - 1 - index;
-                    return MessageBubble(message: messages[msgIndex]);
+                    final msg = messages[msgIndex];
+
+                    // For assistant messages, parse for action JSON.
+                    if (msg.role == 'assistant') {
+                      final parsed =
+                          ChatResponseParser.parse(msg.content);
+                      if (parsed.action != null) {
+                        final status = _actionStates[msg.id] ??
+                            ChatActionStatus.pending;
+                        final textMsg = ChatMessageEntity(
+                          id: msg.id,
+                          role: msg.role,
+                          content: parsed.textContent,
+                          tokenCount: msg.tokenCount,
+                          createdAt: msg.createdAt,
+                        );
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (parsed.textContent.isNotEmpty)
+                              MessageBubble(message: textMsg),
+                            ActionCard(
+                              action: parsed.action!,
+                              status: status,
+                              onConfirm: status ==
+                                          ChatActionStatus.pending ||
+                                      status ==
+                                          ChatActionStatus.failed
+                                  ? () => _onConfirmAction(
+                                        msg.id,
+                                        parsed.action!,
+                                        parsed.textContent,
+                                      )
+                                  : null,
+                              onCancel:
+                                  status == ChatActionStatus.pending
+                                      ? () => _onCancelAction(
+                                            msg.id,
+                                            parsed.textContent,
+                                          )
+                                      : null,
+                            ),
+                          ],
+                        );
+                      }
+                    }
+                    // After JSON stripping, content may be empty — skip.
+                    if (msg.content.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return MessageBubble(message: msg);
                   },
                 );
               },

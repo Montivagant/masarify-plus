@@ -398,6 +398,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_error_generic => 'حدث خطأ، حاول مرة أخرى';
 
   @override
+  String get chat_action_confirm => 'تأكيد';
+
+  @override
+  String get chat_action_cancel => 'إلغاء';
+
+  @override
+  String get chat_action_retry => 'إعادة المحاولة';
+
+  @override
+  String get chat_action_confirmed => 'تم الإنشاء بنجاح!';
+
+  @override
+  String get chat_action_cancelled => 'تم الإلغاء';
+
+  @override
+  String get chat_action_failed => 'فشل — حاول مرة أخرى؟';
+
+  @override
+  String get chat_action_goal_title => 'إنشاء هدف ادخاري';
+
+  @override
+  String get chat_action_tx_title => 'إنشاء معاملة';
+
+  @override
   String get hub_title => 'المزيد';
 
   @override
@@ -1680,7 +1704,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get permission_sms_body =>
-      'يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً. إذا تم تفعيل التحسين بالذكاء الاصطناعي، قد يتم إرسال نص المعاملة لخدمة AI (OpenRouter) لتحديد الفئة والتاجر.';
+      'يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على \'إثراء\' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.';
 
   @override
   String get settings_ai_model => 'نموذج الذكاء الاصطناعي';

@@ -7,10 +7,19 @@ import '../../config/ai_config.dart';
 
 /// Response from OpenRouter chat completion API.
 class OpenRouterResponse {
-  const OpenRouterResponse({required this.content, required this.tokensUsed});
+  const OpenRouterResponse({
+    required this.content,
+    required this.tokensUsed,
+    required this.completionTokens,
+  });
 
   final String content;
+
+  /// Total tokens (prompt + completion).
   final int tokensUsed;
+
+  /// Completion-only tokens — use this for per-message token tracking.
+  final int completionTokens;
 }
 
 /// Exception for OpenRouter API errors.
@@ -103,12 +112,17 @@ class OpenRouterService {
 
     final usage = json['usage'] as Map<String, dynamic>?;
     final tokensUsed = (usage?['total_tokens'] as int?) ?? 0;
+    final completionTokens = (usage?['completion_tokens'] as int?) ?? 0;
 
     dev.log(
       'OpenRouter OK: ${model ?? AiConfig.defaultModel}, tokens=$tokensUsed',
       name: 'OpenRouterService',
     );
-    return OpenRouterResponse(content: content, tokensUsed: tokensUsed);
+    return OpenRouterResponse(
+      content: content,
+      tokensUsed: tokensUsed,
+      completionTokens: completionTokens,
+    );
   }
 
   /// Sends a multi-turn chat completion request to OpenRouter.
@@ -129,6 +143,7 @@ class OpenRouterService {
       'messages': messages,
       'temperature': temperature,
       'max_tokens': maxTokens ?? AiConfig.maxResponseTokens,
+      'provider': {'zdr': true},
     });
 
     final response = await http
@@ -176,11 +191,16 @@ class OpenRouterService {
 
     final usage = json['usage'] as Map<String, dynamic>?;
     final tokensUsed = (usage?['total_tokens'] as int?) ?? 0;
+    final completionTokens = (usage?['completion_tokens'] as int?) ?? 0;
 
     dev.log(
       'OpenRouter multi-turn OK: ${model ?? AiConfig.defaultModel}, tokens=$tokensUsed',
       name: 'OpenRouterService',
     );
-    return OpenRouterResponse(content: content, tokensUsed: tokensUsed);
+    return OpenRouterResponse(
+      content: content,
+      tokensUsed: tokensUsed,
+      completionTokens: completionTokens,
+    );
   }
 }

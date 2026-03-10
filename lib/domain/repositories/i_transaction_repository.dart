@@ -67,6 +67,7 @@ class CreateTransactionParams {
     required this.transactionDate,
     this.source = 'manual',
     this.rawSourceText,
+    this.note,
   });
 
   final int walletId;
@@ -77,4 +78,5 @@ class CreateTransactionParams {
   final DateTime transactionDate;
   final String source;
   final String? rawSourceText;
+  final String? note;
 }

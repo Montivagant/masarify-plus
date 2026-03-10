@@ -48,8 +48,17 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
     required DateTime startDate,
     required DateTime nextDueDate,
     DateTime? endDate,
-  }) =>
-      _dao.insertRule(
+  }) async {
+    return _db.transaction(() async {
+      // Validate wallet exists and is not archived
+      final wallet = await _walletDao.getById(walletId);
+      if (wallet == null) {
+        throw ArgumentError('Wallet does not exist');
+      }
+      if (wallet.isArchived) {
+        throw ArgumentError('Cannot create recurring rule on archived account');
+      }
+      return _dao.insertRule(
         RecurringRulesCompanion.insert(
           walletId: walletId,
           categoryId: categoryId,
@@ -62,6 +71,8 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           endDate: Value(endDate),
         ),
       );
+    });
+  }
 
   @override
   Future<bool> update(RecurringRuleEntity rule) => _dao.saveRule(
@@ -127,6 +138,8 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           title: title,
           transactionDate: now,
           source: const Value('recurring'),
+          isRecurring: const Value(true),
+          recurringRuleId: Value(ruleId),
         ),
       );
 

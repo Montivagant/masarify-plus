@@ -55,6 +55,21 @@ class TransferRepositoryImpl implements ITransferRepository {
       throw ArgumentError('Transfer fee cannot be negative');
     }
     return _db.transaction(() async {
+      // Validate wallets exist and are not archived
+      final fromWallet = await _walletDao.getById(fromWalletId);
+      if (fromWallet == null) {
+        throw ArgumentError('Source wallet does not exist');
+      }
+      if (fromWallet.isArchived) {
+        throw ArgumentError('Cannot transfer from archived account');
+      }
+      final toWallet = await _walletDao.getById(toWalletId);
+      if (toWallet == null) {
+        throw ArgumentError('Destination wallet does not exist');
+      }
+      if (toWallet.isArchived) {
+        throw ArgumentError('Cannot transfer to archived account');
+      }
       final id = await _dao.insertTransfer(
         TransfersCompanion.insert(
           fromWalletId: fromWalletId,

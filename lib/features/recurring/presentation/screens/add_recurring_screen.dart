@@ -81,11 +81,18 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     final rule =
         await ref.read(recurringRuleRepositoryProvider).getById(widget.editId!);
     if (!mounted || rule == null) return;
+    // Validate loaded category still matches the rule's type
+    final categories =
+        ref.read(categoriesProvider).valueOrNull ?? [];
+    final loadedCat = categories.where((c) => c.id == rule.categoryId).firstOrNull;
+    final validCategory = loadedCat != null &&
+        (loadedCat.type == rule.type || loadedCat.type == 'both');
+
     setState(() {
       _titleController.text = rule.title;
       _type = rule.type;
       _amountPiastres = rule.amount;
-      _categoryId = rule.categoryId;
+      _categoryId = validCategory ? rule.categoryId : null;
       _walletId = rule.walletId;
       _frequency = rule.frequency;
       _startDate = rule.startDate;

@@ -124,7 +124,7 @@ class PdfExportService {
             children: [
               _summaryColumn(labels.income, MoneyFormatter.format(totalIncome)),
               _summaryColumn(labels.expense, MoneyFormatter.format(totalExpense)),
-              _summaryColumn(labels.net, MoneyFormatter.format(net)),
+              _summaryColumn(labels.net, MoneyFormatter.format(net.abs())),
             ],
           ),
           pw.SizedBox(height: AppSizes.lg),

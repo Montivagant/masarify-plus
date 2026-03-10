@@ -59,12 +59,11 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       appBar: AppAppBar(
         title: context.l10n.parsed_transactions_title,
         actions: [
-          if (isOnline)
-            AppIconButton(
-              icon: AppIcons.ai,
-              onPressed: _enrichingAll ? null : () => _enrichAll(),
-              tooltip: context.l10n.parser_enrich_all,
-            ),
+          AppIconButton(
+            icon: AppIcons.ai,
+            onPressed: isOnline && !_enrichingAll ? () => _enrichAll() : null,
+            tooltip: context.l10n.parser_enrich_all,
+          ),
         ],
       ),
       body: pendingAsync.when(
@@ -115,7 +114,10 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     if (_enrichingIds.contains(log.id)) return;
     setState(() => _enrichingIds.add(log.id));
     try {
-      await _enrichLog(log);
+      final success = await _enrichLog(log);
+      if (!success && mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
     } finally {
       if (mounted) setState(() => _enrichingIds.remove(log.id));
     }
@@ -124,6 +126,7 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
   Future<void> _enrichAll() async {
     if (_enrichingAll) return;
     setState(() => _enrichingAll = true);
+    var failed = 0;
     try {
       final logs =
           ref.read(pendingParsedTransactionsProvider).valueOrNull ?? [];
@@ -131,28 +134,42 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
           logs.where((l) => l.aiEnrichmentJson == null).toList();
       for (final log in unenriched) {
         if (!mounted) break;
-        await _enrichLog(log);
+        if (_enrichingIds.contains(log.id)) continue; // skip if already enriching individually
+        setState(() => _enrichingIds.add(log.id));
+        try {
+          final success = await _enrichLog(log);
+          if (!success) failed++;
+        } finally {
+          if (mounted) setState(() => _enrichingIds.remove(log.id));
+        }
       }
       if (mounted) {
         ref.invalidate(pendingParsedTransactionsProvider);
+        if (failed > 0) {
+          SnackHelper.showError(
+            context,
+            context.l10n.common_error_generic,
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _enrichingAll = false);
     }
   }
 
-  Future<void> _enrichLog(SmsParserLog log) async {
+  /// Returns true if enrichment succeeded, false otherwise.
+  Future<bool> _enrichLog(SmsParserLog log) async {
     final aiParser = ref.read(aiTransactionParserProvider);
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     final dao = ref.read(smsParserLogDaoProvider);
-    if (categories.isEmpty) return;
+    if (categories.isEmpty) return false;
 
     final parsed = NotificationTransactionParser.parse(
       sender: log.senderAddress,
       body: log.body,
       receivedAt: log.receivedAt,
     );
-    if (parsed == null) return;
+    if (parsed == null) return false;
 
     try {
       final enrichment = await aiParser.enrich(
@@ -168,12 +185,15 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
           jsonEncode(enrichment.toJson()),
         );
         if (mounted) ref.invalidate(pendingParsedTransactionsProvider);
+        return true;
       }
+      return false;
     } catch (e) {
       dev.log(
         'Enrichment failed for log ${log.id}: $e',
         name: 'ParserReview',
       );
+      return false;
     }
   }
 
@@ -220,9 +240,11 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     int? categoryId;
     if (enrichment != null) {
       // M8 fix: also match transaction type when resolving AI category suggestion
+      // Case-insensitive match — small free models often return mismatched casing.
+      final aiIcon = enrichment.categoryIcon.toLowerCase();
       final match = categories.where(
         (c) =>
-            c.iconName == enrichment.categoryIcon &&
+            c.iconName.toLowerCase() == aiIcon &&
             (c.type == txType || c.type == 'both'),
       );
       if (match.isNotEmpty) categoryId = match.first.id;
@@ -238,23 +260,35 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
         .where((c) => c.type == txType || c.type == 'both')
         .map((c) => c.id)
         .firstOrNull;
-    if (categoryId == null) return; // no valid category available
+    if (categoryId == null) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
+      return;
+    }
+    final resolvedCategoryId = categoryId; // promote to non-nullable for closure
 
     HapticFeedback.mediumImpact();
 
     try {
-      final txId = await txRepo.create(
-        walletId: wallets.first.id,
-        categoryId: categoryId,
-        amount: parsed.amountPiastres,
-        type: parsed.type,
-        title: title,
-        transactionDate: log.receivedAt,
-        source: log.source,
-        rawSourceText: log.body,
-      );
+      // Atomic: create transaction + mark log approved in one DB transaction
+      // to prevent duplicate transactions if app crashes between the two steps.
+      // Note: txRepo.create() uses its own inner transaction (Drift promotes to savepoint).
+      final db = ref.read(databaseProvider);
+      await db.transaction(() async {
+        final txId = await txRepo.create(
+          walletId: wallets.first.id,
+          categoryId: resolvedCategoryId,
+          amount: parsed.amountPiastres,
+          type: parsed.type,
+          title: title,
+          transactionDate: log.receivedAt,
+          source: log.source,
+          rawSourceText: log.body,
+        );
 
-      await dao.markStatus(log.id, 'approved', transactionId: txId);
+        await dao.markStatus(log.id, 'approved', transactionId: txId);
+      });
       ref.invalidate(pendingParsedTransactionsProvider);
       messenger.showSnackBar(SnackBar(content: Text(approvedMsg)));
     } catch (e) {

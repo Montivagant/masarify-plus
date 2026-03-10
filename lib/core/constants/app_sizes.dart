@@ -207,6 +207,7 @@ abstract final class AppSizes {
 
   // ── Chat ──────────────────────────────────────────────────────────────
   static const double chatBubbleMaxWidthFraction = 0.78;
+  static const double chatActionLabelWidth = 80.0;
 
   // ── Bottom sheet (WS-22) ─────────────────────────────────────────────
   static const double bottomSheetHeightRatio = 0.5;

@@ -17,5 +17,5 @@ final geminiAudioServiceProvider = Provider<GeminiAudioService>(
 /// AI-powered SMS/notification transaction enricher.
 final aiTransactionParserProvider = Provider<AiTransactionParser>(
   (ref) =>
-      AiTransactionParser(openRouter: ref.read(openRouterServiceProvider)),
+      AiTransactionParser(openRouter: ref.watch(openRouterServiceProvider)),
 );

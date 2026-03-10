@@ -102,6 +102,9 @@ abstract final class AppColors {
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
 
+  /// Default color hex for goals, wallets, etc. (first picker option).
+  static const String defaultColorHex = '#1A6B5E';
+
   // ── Color picker options ────────────────────────────────────────────────
   /// Shared palette for category, wallet, and goal color pickers.
   static const List<String> pickerOptions = [

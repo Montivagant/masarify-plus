@@ -8,12 +8,11 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../core/services/backup_service.dart';
 import '../../core/services/crash_log_service.dart';
-import '../../core/utils/money_formatter.dart';
 import '../database/app_database.dart';
 
 /// Concrete implementation of [BackupService].
 ///
-/// - JSON export/import: all 10 DB tables + crash log + schema version.
+/// - JSON export/import: all 12 DB tables + crash log + schema version.
 /// - CSV export: monthly transactions with readable columns.
 class BackupServiceImpl implements BackupService {
   BackupServiceImpl(this._db);
@@ -21,7 +20,7 @@ class BackupServiceImpl implements BackupService {
   final AppDatabase _db;
 
   // Must match AppDatabase.schemaVersion — bump when schema changes
-  static const _schemaVersion = 4;
+  static const _schemaVersion = 6;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -37,6 +36,8 @@ class BackupServiceImpl implements BackupService {
     final rules = await _db.select(_db.recurringRules).get();
     final smsLogs = await _db.select(_db.smsParserLogs).get();
     final rates = await _db.select(_db.exchangeRates).get();
+    final catMappings = await _db.select(_db.categoryMappings).get();
+    final chatMessages = await _db.select(_db.chatMessages).get();
 
     final crashLog = await CrashLogService.readLog();
 
@@ -54,6 +55,8 @@ class BackupServiceImpl implements BackupService {
         'recurring_rules': rules.map(_ruleToMap).toList(),
         'sms_parser_logs': smsLogs.map(_smsLogToMap).toList(),
         'exchange_rates': rates.map(_rateToMap).toList(),
+        'category_mappings': catMappings.map(_categoryMappingToMap).toList(),
+        'chat_messages': chatMessages.map(_chatMessageToMap).toList(),
       },
       if (crashLog != null) 'crash_log': crashLog,
     };
@@ -110,6 +113,8 @@ class BackupServiceImpl implements BackupService {
       await _db.customStatement('DELETE FROM transfers');
       await _db.customStatement('DELETE FROM transactions');
       await _db.customStatement('DELETE FROM exchange_rates');
+      await _db.customStatement('DELETE FROM category_mappings');
+      await _db.customStatement('DELETE FROM chat_messages');
       await _db.customStatement('DELETE FROM wallets');
       await _db.customStatement('DELETE FROM categories');
 
@@ -155,6 +160,19 @@ class BackupServiceImpl implements BackupService {
         _db.exchangeRates,
         _mapToRate,
       );
+      // v5+ tables — gracefully skip if absent in older backups
+      await _insertAll(
+        tables,
+        'category_mappings',
+        _db.categoryMappings,
+        _mapToCategoryMapping,
+      );
+      await _insertAll(
+        tables,
+        'chat_messages',
+        _db.chatMessages,
+        _mapToChatMessage,
+      );
     });
   }
 
@@ -175,6 +193,9 @@ class BackupServiceImpl implements BackupService {
       (m) => _mapToSmsLog(m, version),
     );
     _tryDeserializeAll(tables, 'exchange_rates', _mapToRate);
+    // v5+ tables — may be absent in older backups, _tryDeserializeAll skips null
+    _tryDeserializeAll(tables, 'category_mappings', _mapToCategoryMapping);
+    _tryDeserializeAll(tables, 'chat_messages', _mapToChatMessage);
   }
 
   void _tryDeserializeAll<T>(
@@ -235,14 +256,19 @@ class BackupServiceImpl implements BackupService {
     final walletMap = {for (final w in wallets) w.id: w.name};
 
     final rows = <List<dynamic>>[
-      ['Date', 'Title', 'Amount', 'Type', 'Category', 'Account', 'Location', 'Notes'],
+      ['Date', 'Title', 'Amount', 'Currency', 'Type', 'Category', 'Account', 'Tags', 'Source', 'Location', 'Notes'],
       ...txs.map((tx) => [
             DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
             tx.title,
-            MoneyFormatter.format(tx.amount),
+            // Raw decimal for machine-readable CSV; intentionally bypasses
+            // MoneyFormatter to avoid locale-dependent formatting (e.g. Arabic digits).
+            (tx.amount / 100).toStringAsFixed(2),
+            tx.currencyCode,
             tx.type,
             catMap[tx.categoryId] ?? '',
             walletMap[tx.walletId] ?? '',
+            tx.tags,
+            tx.source,
             tx.locationName ?? '',
             tx.note ?? '',
           ],),
@@ -384,6 +410,22 @@ class BackupServiceImpl implements BackupService {
         'receivedAt': l.receivedAt.toIso8601String(),
         'processedAt': l.processedAt.toIso8601String(),
         'aiEnrichmentJson': l.aiEnrichmentJson,
+      };
+
+  Map<String, dynamic> _categoryMappingToMap(CategoryMapping m) => {
+        'id': m.id,
+        'titlePattern': m.titlePattern,
+        'categoryId': m.categoryId,
+        'hitCount': m.hitCount,
+        'lastUsedAt': m.lastUsedAt,
+      };
+
+  Map<String, dynamic> _chatMessageToMap(ChatMessage m) => {
+        'id': m.id,
+        'role': m.role,
+        'content': m.content,
+        'tokenCount': m.tokenCount,
+        'createdAt': m.createdAt.toIso8601String(),
       };
 
   Map<String, dynamic> _rateToMap(ExchangeRate r) => {
@@ -552,7 +594,7 @@ class BackupServiceImpl implements BackupService {
         body: Value(m['body'] as String),
         parsedStatus: Value(m['parsedStatus'] as String),
         transactionId: Value(_intN(m['transactionId'])),
-        source: Value(m['source'] as String),
+        source: Value((m['source'] as String?) ?? 'sms'),
         receivedAt: Value(DateTime.parse(m['receivedAt'] as String)),
         processedAt: Value(DateTime.parse(m['processedAt'] as String)),
         // v1 backups don't have this field — treat as null
@@ -565,5 +607,25 @@ class BackupServiceImpl implements BackupService {
         targetCurrency: Value(m['targetCurrency'] as String),
         rate: Value((m['rate'] as num).toDouble()),
         updatedAt: Value(DateTime.parse(m['updatedAt'] as String)),
+      );
+
+  // v5 table
+  CategoryMappingsCompanion _mapToCategoryMapping(Map<String, dynamic> m) =>
+      CategoryMappingsCompanion(
+        id: Value(_int(m['id'])),
+        titlePattern: Value(m['titlePattern'] as String),
+        categoryId: Value(_int(m['categoryId'])),
+        hitCount: Value(_intN(m['hitCount']) ?? 1),
+        lastUsedAt: Value(_int(m['lastUsedAt'])),
+      );
+
+  // v6 table
+  ChatMessagesCompanion _mapToChatMessage(Map<String, dynamic> m) =>
+      ChatMessagesCompanion(
+        id: Value(_int(m['id'])),
+        role: Value(m['role'] as String),
+        content: Value(m['content'] as String),
+        tokenCount: Value(_intN(m['tokenCount']) ?? 0),
+        createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 }

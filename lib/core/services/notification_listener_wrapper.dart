@@ -55,6 +55,7 @@ class NotificationListenerWrapper {
   }
 
   Future<void> _start(int retryCount) async {
+    if (_disposed) return; // Guard against retry after stop()
     // Prevent concurrent start() calls (race between lifecycle handlers).
     if (_isStarting && retryCount == 0) {
       debugPrint('[NotificationListener] _start already in progress, skipping');
@@ -151,7 +152,9 @@ class NotificationListenerWrapper {
         return;
       }
 
-      debugPrint('[NotificationListener] financial notification from $sender');
+      if (kDebugMode) {
+        debugPrint('[NotificationListener] financial notification from $sender');
+      }
 
       // Parse
       final parsed = NotificationTransactionParser.parse(
@@ -186,7 +189,9 @@ class NotificationListenerWrapper {
       // Just notify that a new pending item arrived.
       onNewPending?.call();
     } catch (e, stack) {
-      debugPrint('[NotificationListener] _onNotification error: $e');
+      if (kDebugMode) {
+        debugPrint('[NotificationListener] _onNotification error: $e');
+      }
       CrashLogService.log(e, stack);
     }
   }

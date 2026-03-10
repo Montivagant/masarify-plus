@@ -250,6 +250,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   transactionDate: draft.transactionDate,
                   source: 'voice',
                   rawSourceText: draft.rawText,
+                  note: draft.note,
                 ),)
             .toList(),
       );
@@ -358,6 +359,7 @@ class _EditableDraft {
     required this.rawText,
     required this.amountPiastres,
     this.categoryHint,
+    this.note,
     required this.type,
     required this.transactionDate,
   });
@@ -366,6 +368,7 @@ class _EditableDraft {
         rawText: d.rawText,
         amountPiastres: d.amountPiastres ?? 0,
         categoryHint: d.categoryHint,
+        note: d.note,
         type: d.type,
         transactionDate: d.transactionDate,
       );
@@ -373,6 +376,7 @@ class _EditableDraft {
   final String rawText;
   int amountPiastres;
   String? categoryHint;
+  String? note;
   int? categoryId;
   int? walletId;
   String type;

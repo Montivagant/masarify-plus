@@ -19,7 +19,10 @@ import '../../domain/repositories/i_wallet_repository.dart';
 import 'database_provider.dart';
 
 final walletRepositoryProvider = Provider<IWalletRepository>(
-  (ref) => WalletRepositoryImpl(ref.watch(walletDaoProvider)),
+  (ref) => WalletRepositoryImpl(
+    ref.watch(walletDaoProvider),
+    ref.watch(databaseProvider),
+  ),
 );
 
 final categoryRepositoryProvider = Provider<ICategoryRepository>(

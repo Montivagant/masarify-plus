@@ -109,18 +109,13 @@ class _AppNavBarState extends State<AppNavBar>
                           sigmaY: AppSizes.glassBlurCard,
                         ),
                         child: ColoredBox(
-                          // 60% surface over blur = visible frosted glass
-                          color: cs.surface.withValues(
-                            alpha: AppSizes.opacityMedium2,
-                          ),
+                          color: theme.glassCardSurface,
                         ),
                       )
                     : ColoredBox(
-                        // Opaque fallback: surface + subtle brand tint
+                        // Opaque fallback: blend glass token against surface
                         color: Color.alphaBlend(
-                          cs.primary.withValues(
-                            alpha: AppSizes.opacityXLight,
-                          ),
+                          theme.glassCardSurface,
                           cs.surface,
                         ),
                       ),
@@ -131,8 +126,7 @@ class _AppNavBarState extends State<AppNavBar>
             Positioned.fill(
               child: CustomPaint(
                 painter: NotchedNavBorderPainter(
-                  borderColor: cs.outlineVariant
-                      .withValues(alpha: AppSizes.opacityLight4),
+                  borderColor: theme.glassCardBorder,
                 ),
               ),
             ),
@@ -157,7 +151,7 @@ class _AppNavBarState extends State<AppNavBar>
                       label: dests[i].label(langCode),
                       isSelected: i == widget.currentIndex,
                       selectedColor: cs.primary,
-                      unselectedColor: cs.onSurface.withValues(alpha: AppSizes.opacityMedium2),
+                      unselectedColor: cs.onSurfaceVariant,
                       onTap: () {
                         if (i != widget.currentIndex) {
                           HapticFeedback.selectionClick();
@@ -176,7 +170,7 @@ class _AppNavBarState extends State<AppNavBar>
                       label: dests[i].label(langCode),
                       isSelected: i == widget.currentIndex,
                       selectedColor: cs.primary,
-                      unselectedColor: cs.onSurface.withValues(alpha: AppSizes.opacityMedium2),
+                      unselectedColor: cs.onSurfaceVariant,
                       onTap: () {
                         if (i != widget.currentIndex) {
                           HapticFeedback.selectionClick();
@@ -205,7 +199,7 @@ class _AppNavBarState extends State<AppNavBar>
           borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
           boxShadow: [
             BoxShadow(
-              color: theme.glassShadow,
+              color: cs.shadow.withValues(alpha: AppSizes.opacityLight3),
               blurRadius: AppSizes.navShadowBlur,
               offset: const Offset(0, AppSizes.navShadowOffsetY),
             ),

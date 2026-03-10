@@ -37,11 +37,11 @@ abstract final class EgyptianSmsPatterns {
   /// I9 fix: include Eastern Arabic numerals (٠-٩) alongside Western digits.
   /// IM-36 fix: also matches prefix-currency format (e.g. "EGP 1,500").
   static const String amountRegex =
-      r'([\d٠-٩]{1,3}(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)\s*(?:EGP|LE|جنيه|ج\.م|ج\.م\.?)';
+      r'([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)\s*(?:EGP|LE|جنيه|ج\.م|ج\.م\.?)';
 
   /// IM-36 fix: prefix-currency regex (e.g. "EGP 1,500.50").
   static const String amountRegexPrefix =
-      r'(?:EGP|LE|جنيه|ج\.م)\s*([\d٠-٩]{1,3}(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)';
+      r'(?:EGP|LE|جنيه|ج\.م)\s*([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)';
 
   /// Normalize Eastern Arabic numerals to Western digits.
   /// Delegates to canonical [ArabicNumberParser.normalizeDigits].

@@ -29,7 +29,7 @@ class Transactions extends Table {
   // Source tracking — MANDATORY for non-manual entries
   TextColumn get source =>
       text().withDefault(const Constant('manual'))();
-  // Values: 'manual' | 'voice' | 'sms' | 'notification' | 'import'
+  // Values: 'manual' | 'voice' | 'sms' | 'notification' | 'import' | 'ai_chat'
   TextColumn get rawSourceText =>
       text().nullable()(); // original SMS body or voice transcript
 

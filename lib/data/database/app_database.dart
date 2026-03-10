@@ -170,6 +170,8 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_budgets_year_month '
       'ON budgets(year, month)',
     );
+    // uniqueKeys on Budgets only applies to CREATE TABLE (fresh installs).
+    // Upgraded databases need this explicit index to enforce the constraint.
     await customStatement(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_cat_year_month '
       'ON budgets(category_id, year, month)',

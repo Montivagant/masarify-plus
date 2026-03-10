@@ -8,7 +8,6 @@ import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/analytics_provider.dart';
-import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Categories tab — horizontal bar chart + ranked list of expense categories.
@@ -28,19 +27,15 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
   Widget build(BuildContext context) {
     super.build(context);
     final now = DateTime.now();
-    final txAsync =
-        ref.watch(transactionsByMonthProvider((now.year, now.month)));
+    final breakdownAsync =
+        ref.watch(categoryBreakdownProvider((now.year, now.month)));
 
-    return txAsync.when(
+    return breakdownAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => Center(
         child: Text(context.l10n.common_error_generic),
       ),
-      data: (transactions) {
-        final breakdown = ref.watch(
-          categoryBreakdownProvider((now.year, now.month, transactions)),
-        );
-
+      data: (breakdown) {
         if (breakdown.isEmpty) {
           return EmptyState(
             title: context.l10n.reports_empty_title,

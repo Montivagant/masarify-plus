@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/transaction_entity.dart';
 import 'category_provider.dart';
 import 'repository_providers.dart';
 import 'theme_provider.dart';
@@ -81,40 +80,45 @@ final monthlyTotalsProvider =
 // ── Category breakdown for a given month ─────────────────────────────────
 
 /// Expense categories ranked by amount for a (year, month).
+/// Watches the transactions stream internally so the family key is stable.
 final categoryBreakdownProvider = Provider.family<
-    List<CategorySpending>,
-    (int year, int month, List<TransactionEntity> transactions)>(
+    AsyncValue<List<CategorySpending>>,
+    (int year, int month)>(
   (ref, params) {
-    final transactions = params.$3;
+    final txAsync = ref.watch(transactionsByMonthProvider(params));
+    // Watch these unconditionally so changes always retrigger this provider,
+    // even when txAsync is briefly in loading state.
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final lang = ref.watch(localeProvider)?.languageCode ?? 'ar';
+    return txAsync.whenData((transactions) {
 
-    final expenses = transactions.where((tx) => tx.type == 'expense');
-    final byCategory = <int, int>{};
-    for (final tx in expenses) {
-      byCategory[tx.categoryId] =
-          (byCategory[tx.categoryId] ?? 0) + tx.amount;
-    }
+      final expenses = transactions.where((tx) => tx.type == 'expense');
+      final byCategory = <int, int>{};
+      for (final tx in expenses) {
+        byCategory[tx.categoryId] =
+            (byCategory[tx.categoryId] ?? 0) + tx.amount;
+      }
 
-    final sorted = byCategory.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+      final sorted = byCategory.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
 
-    final total = sorted.fold<int>(0, (s, e) => s + e.value);
-    if (total == 0) return [];
+      final total = sorted.fold<int>(0, (s, e) => s + e.value);
+      if (total == 0) return <CategorySpending>[];
 
-    final categoryMap = {for (final c in categories) c.id: c};
+      final categoryMap = {for (final c in categories) c.id: c};
 
-    return sorted.map((entry) {
-      final cat = categoryMap[entry.key];
-      return CategorySpending(
-        categoryId: entry.key,
-        categoryName: cat?.displayName(lang) ?? '?',
-        colorHex: cat?.colorHex ?? '#9E9E9E',
-        iconName: cat?.iconName ?? 'category',
-        amount: entry.value,
-        fraction: entry.value / total,
-      );
-    }).toList();
+      return sorted.map((entry) {
+        final cat = categoryMap[entry.key];
+        return CategorySpending(
+          categoryId: entry.key,
+          categoryName: cat?.displayName(lang) ?? '?',
+          colorHex: cat?.colorHex ?? '#9E9E9E',
+          iconName: cat?.iconName ?? 'category',
+          amount: entry.value,
+          fraction: entry.value / total,
+        );
+      }).toList();
+    });
   },
 );
 

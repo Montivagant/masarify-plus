@@ -205,9 +205,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       // if the app crashes during start().
       try {
         final listener = ref.read(notificationListenerProvider);
-        listener.onNewPending = () {
-          ref.invalidate(pendingParsedTransactionsProvider);
-        };
+        // onNewPending is set in main.dart — don't overwrite with a
+        // WidgetRef closure that becomes stale after this screen pops.
         await listener.start();
 
         // Listener started successfully — now persist the preference.
@@ -538,8 +537,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     if (!confirmed || !mounted) return;
 
     final db = ref.read(databaseProvider);
-    // M16 fix: wrap in single transaction for atomicity
-    // H8 fix: include exchange_rates (11th table) in clear sequence
+    // M16 fix: wrap in single transaction for atomicity.
+    // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (12 tables).
     await db.transaction(() async {
       await db.customStatement('DELETE FROM transactions');
       await db.customStatement('DELETE FROM transfers');
@@ -549,6 +548,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       await db.customStatement('DELETE FROM recurring_rules');
       await db.customStatement('DELETE FROM sms_parser_logs');
       await db.customStatement('DELETE FROM exchange_rates');
+      await db.customStatement('DELETE FROM category_mappings');
+      await db.customStatement('DELETE FROM chat_messages');
       await db.customStatement('DELETE FROM wallets');
       await db.customStatement('DELETE FROM categories');
     });

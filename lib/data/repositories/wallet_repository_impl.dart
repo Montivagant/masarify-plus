@@ -6,9 +6,10 @@ import '../database/app_database.dart';
 import '../database/daos/wallet_dao.dart';
 
 class WalletRepositoryImpl implements IWalletRepository {
-  const WalletRepositoryImpl(this._dao);
+  const WalletRepositoryImpl(this._dao, this._db);
 
   final WalletDao _dao;
+  final AppDatabase _db;
 
   // ── Streams ──────────────────────────────────────────────────────────────
 
@@ -53,12 +54,13 @@ class WalletRepositoryImpl implements IWalletRepository {
     String colorHex = '#1A6B5E',
     int displayOrder = 0,
   }) async {
-    // I6 fix: prevent duplicate wallet names
-    final exists = await _dao.existsByName(name);
-    if (exists) {
-      throw ArgumentError('A wallet with name "$name" already exists');
-    }
-    return _dao.insertWallet(
+    // Atomic: check + insert in one transaction to prevent TOCTOU race
+    return _db.transaction(() async {
+      final exists = await _dao.existsByName(name);
+      if (exists) {
+        throw ArgumentError('A wallet with name "$name" already exists');
+      }
+      return _dao.insertWallet(
         WalletsCompanion.insert(
           name: name,
           type: type,
@@ -69,16 +71,18 @@ class WalletRepositoryImpl implements IWalletRepository {
           displayOrder: Value(displayOrder),
         ),
       );
+    });
   }
 
   @override
   Future<bool> update(WalletEntity wallet) async {
-    // CR-11 fix: prevent duplicate wallet names on edit
-    final exists = await _dao.existsByName(wallet.name, excludeId: wallet.id);
-    if (exists) {
-      throw ArgumentError('A wallet with name "${wallet.name}" already exists');
-    }
-    return _dao.saveWallet(
+    // Atomic: check + update in one transaction to prevent TOCTOU race
+    return _db.transaction(() async {
+      final exists = await _dao.existsByName(wallet.name, excludeId: wallet.id);
+      if (exists) {
+        throw ArgumentError('A wallet with name "${wallet.name}" already exists');
+      }
+      return _dao.saveWallet(
         WalletsCompanion(
           id: Value(wallet.id),
           name: Value(wallet.name),
@@ -92,6 +96,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           displayOrder: Value(wallet.displayOrder),
         ),
       );
+    });
   }
 
   @override

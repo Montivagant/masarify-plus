@@ -219,15 +219,10 @@ class GeminiAudioService {
   /// Convert an amount (num or String from JSON) to piastres without
   /// floating-point precision errors.
   static int _toPiastres(dynamic amountRaw) {
-    final amountStr = amountRaw.toString();
-    final parts = amountStr.split('.');
-    final pounds = int.tryParse(parts[0]) ?? 0;
-    var piastres = 0;
-    if (parts.length > 1) {
-      final frac = parts[1].padRight(2, '0').substring(0, 2);
-      piastres = int.tryParse(frac) ?? 0;
-    }
-    return pounds * 100 + piastres;
+    // Use double parsing + rounding to handle scientific notation and
+    // fractional piastres correctly (e.g. 5.999 → 600 piastres).
+    final value = double.tryParse(amountRaw.toString()) ?? 0.0;
+    return (value * 100).round();
   }
 
   String? _tryParseError(String body) {

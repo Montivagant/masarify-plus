@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/ai/ai_chat_service.dart';
+import '../../core/services/ai/chat_action_executor.dart';
 import '../../core/utils/money_formatter.dart';
 import '../../data/database/daos/chat_message_dao.dart';
 import '../../domain/entities/chat_message_entity.dart';
@@ -9,6 +10,7 @@ import 'budget_provider.dart';
 import 'category_provider.dart';
 import 'database_provider.dart';
 import 'goal_provider.dart';
+import 'repository_providers.dart';
 import 'theme_provider.dart';
 import 'transaction_provider.dart';
 import 'wallet_provider.dart';
@@ -97,6 +99,12 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     topCategories.add('$name: $formatted');
   }
 
+  // Category list for AI action matching (name + nameAr + type)
+  final categoryList = categories
+      .where((c) => !c.isArchived)
+      .map((c) => '${c.name} (${c.nameAr})|${c.type}')
+      .toList();
+
   return FinancialContext(
     totalBalance: balance,
     monthlyIncome: monthlyIncome,
@@ -104,5 +112,16 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     budgetStatus: budgetStatus,
     goalStatus: goalStatus,
     topCategories: topCategories,
+    userLocale: lang,
+    categoryList: categoryList,
+  );
+});
+
+// ── 5. Chat action executor ──────────────────────────────────────────────
+
+final chatActionExecutorProvider = Provider<ChatActionExecutor>((ref) {
+  return ChatActionExecutor(
+    goalRepo: ref.watch(goalRepositoryProvider),
+    txRepo: ref.watch(transactionRepositoryProvider),
   );
 });

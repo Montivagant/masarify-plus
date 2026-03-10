@@ -400,6 +400,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_error_generic => 'Something went wrong, try again';
 
   @override
+  String get chat_action_confirm => 'Confirm';
+
+  @override
+  String get chat_action_cancel => 'Cancel';
+
+  @override
+  String get chat_action_retry => 'Retry';
+
+  @override
+  String get chat_action_confirmed => 'Created successfully!';
+
+  @override
+  String get chat_action_cancelled => 'Cancelled';
+
+  @override
+  String get chat_action_failed => 'Failed — try again?';
+
+  @override
+  String get chat_action_goal_title => 'Create Savings Goal';
+
+  @override
+  String get chat_action_tx_title => 'Create Transaction';
+
+  @override
   String get hub_title => 'More';
 
   @override
@@ -1692,7 +1716,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get permission_sms_body =>
-      'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally. If AI enrichment is enabled, transaction text may be sent to an AI service (OpenRouter) for category and merchant detection.';
+      'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.';
 
   @override
   String get settings_ai_model => 'AI Model';

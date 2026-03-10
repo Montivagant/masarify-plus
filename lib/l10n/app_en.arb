@@ -142,6 +142,14 @@
   "chat_error_unauthorized": "API key issue, check settings",
   "chat_error_timeout": "Response timed out, try again",
   "chat_error_generic": "Something went wrong, try again",
+  "chat_action_confirm": "Confirm",
+  "chat_action_cancel": "Cancel",
+  "chat_action_retry": "Retry",
+  "chat_action_confirmed": "Created successfully!",
+  "chat_action_cancelled": "Cancelled",
+  "chat_action_failed": "Failed — try again?",
+  "chat_action_goal_title": "Create Savings Goal",
+  "chat_action_tx_title": "Create Transaction",
 
   "hub_title": "More",
   "hub_section_money": "Money",
@@ -606,7 +614,7 @@
   "settings_notification_parser_subtitle": "Auto-detect transactions from bank notifications",
   "settings_sms_parser_subtitle": "Scan SMS inbox for bank transaction messages",
   "permission_sms_title": "SMS Access",
-  "permission_sms_body": "Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally. If AI enrichment is enabled, transaction text may be sent to an AI service (OpenRouter) for category and merchant detection.",
+  "permission_sms_body": "Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap 'Enrich' on any parsed transaction to use AI for category and merchant detection.",
 
   "settings_ai_model": "AI Model",
   "settings_ai_model_subtitle": "Choose which AI model processes voice input",
