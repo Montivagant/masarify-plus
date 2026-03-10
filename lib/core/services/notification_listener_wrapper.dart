@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:notification_listener_service/notification_event.dart';
@@ -28,6 +29,7 @@ class NotificationListenerWrapper {
 
   /// Check if the user has granted notification listener permission.
   static Future<bool> hasPermission() async {
+    if (!Platform.isAndroid) return false;
     try {
       return await NotificationListenerService.isPermissionGranted();
     } catch (_) {
@@ -37,6 +39,7 @@ class NotificationListenerWrapper {
 
   /// Request the notification listener permission (opens system settings).
   static Future<void> requestPermission() async {
+    if (!Platform.isAndroid) return;
     try {
       await NotificationListenerService.requestPermission();
     } catch (_) {
@@ -55,6 +58,7 @@ class NotificationListenerWrapper {
   }
 
   Future<void> _start(int retryCount) async {
+    if (!Platform.isAndroid) return;
     if (_disposed) return; // Guard against retry after stop()
     // Prevent concurrent start() calls (race between lifecycle handlers).
     if (_isStarting && retryCount == 0) {

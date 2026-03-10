@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:another_telephony/telephony.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -146,6 +148,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   Future<void> _toggleNotificationParser(bool value) async {
+    if (!Platform.isAndroid) return;
     try {
       if (value) {
         // Show rationale before requesting.
@@ -185,6 +188,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   /// WS-1: called on lifecycle resume after returning from notification settings.
   Future<void> _finishNotificationPermission() async {
+    if (!Platform.isAndroid) return;
     _awaitingNotificationPermission = false;
     try {
       final granted = await NotificationListenerWrapper.hasPermission();
@@ -230,6 +234,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   Future<void> _toggleSmsParser(bool value) async {
+    if (!Platform.isAndroid) return;
     try {
       if (value) {
         // Show rationale before requesting.
@@ -267,6 +272,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   /// WS-1: called after SMS permission is granted (inline or on resume).
   Future<void> _finishSmsPermission() async {
+    if (!Platform.isAndroid) return;
     _awaitingSmsPermission = false;
     try {
       final prefs = await ref.read(preferencesFutureProvider.future);
@@ -741,48 +747,65 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
           // ── Smart Input ──────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_smart_input),
-          SwitchListTile(
-            secondary: GlassCard(
-              tier: GlassTier.inset,
-              padding: EdgeInsets.zero,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-              child: SizedBox(
-                width: AppSizes.colorSwatchSize,
-                height: AppSizes.colorSwatchSize,
-                child: Icon(
-                  AppIcons.notification,
-                  size: AppSizes.iconSm,
-                  color: cs.onPrimaryContainer,
+          // Notification & SMS parsers are Android-only (no iOS equivalent).
+          if (Platform.isAndroid) ...[
+            SwitchListTile(
+              secondary: GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+                child: SizedBox(
+                  width: AppSizes.colorSwatchSize,
+                  height: AppSizes.colorSwatchSize,
+                  child: Icon(
+                    AppIcons.notification,
+                    size: AppSizes.iconSm,
+                    color: cs.onPrimaryContainer,
+                  ),
                 ),
               ),
+              title: Text(l10n.settings_notification_parser),
+              subtitle: Text(l10n.settings_notification_parser_subtitle),
+              value: _notificationParserEnabled,
+              onChanged: _toggleNotificationParser,
             ),
-            title: Text(l10n.settings_notification_parser),
-            subtitle: Text(l10n.settings_notification_parser_subtitle),
-            value: _notificationParserEnabled,
-            onChanged: _toggleNotificationParser,
-          ),
-          SwitchListTile(
-            secondary: GlassCard(
-              tier: GlassTier.inset,
-              padding: EdgeInsets.zero,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-              child: SizedBox(
-                width: AppSizes.colorSwatchSize,
-                height: AppSizes.colorSwatchSize,
-                child: Icon(
-                  AppIcons.sms,
-                  size: AppSizes.iconSm,
-                  color: cs.onPrimaryContainer,
+            SwitchListTile(
+              secondary: GlassCard(
+                tier: GlassTier.inset,
+                padding: EdgeInsets.zero,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+                child: SizedBox(
+                  width: AppSizes.colorSwatchSize,
+                  height: AppSizes.colorSwatchSize,
+                  child: Icon(
+                    AppIcons.sms,
+                    size: AppSizes.iconSm,
+                    color: cs.onPrimaryContainer,
+                  ),
                 ),
               ),
+              title: Text(l10n.settings_sms_parser),
+              subtitle: Text(l10n.settings_sms_parser_subtitle),
+              value: _smsParserEnabled,
+              onChanged: _toggleSmsParser,
             ),
-            title: Text(l10n.settings_sms_parser),
-            subtitle: Text(l10n.settings_sms_parser_subtitle),
-            value: _smsParserEnabled,
-            onChanged: _toggleSmsParser,
-          ),
+            Builder(
+              builder: (context) {
+                final pendingCount = ref.watch(pendingParsedTransactionsProvider)
+                    .valueOrNull?.length ?? 0;
+                return _SettingsTile(
+                  icon: AppIcons.sms,
+                  label: l10n.dashboard_insight_parsed_transactions,
+                  subtitle: pendingCount > 0
+                      ? l10n.sms_new_found(pendingCount)
+                      : null,
+                  onTap: () => context.push(AppRoutes.parserReview),
+                );
+              },
+            ),
+          ],
           _SettingsTile(
             icon: AppIcons.ai,
             label: l10n.settings_ai_model,
@@ -793,20 +816,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             icon: AppIcons.notification,
             label: l10n.notif_prefs_title,
             onTap: () => context.push(AppRoutes.settingsNotifications),
-          ),
-          Builder(
-            builder: (context) {
-              final pendingCount = ref.watch(pendingParsedTransactionsProvider)
-                  .valueOrNull?.length ?? 0;
-              return _SettingsTile(
-                icon: AppIcons.sms,
-                label: l10n.dashboard_insight_parsed_transactions,
-                subtitle: pendingCount > 0
-                    ? l10n.sms_new_found(pendingCount)
-                    : null,
-                onTap: () => context.push(AppRoutes.parserReview),
-              );
-            },
           ),
 
           // ── Security ────────────────────────────────────────────────────

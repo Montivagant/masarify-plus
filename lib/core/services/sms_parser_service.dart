@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:another_telephony/telephony.dart';
 
@@ -34,6 +35,7 @@ class SmsParserService {
   /// Scan SMS inbox for financial messages. No-op if feature is disabled.
   Future<int> scanInbox() async {
     if (!AppConfig.kSmsEnabled) return 0;
+    if (!Platform.isAndroid) return 0;
 
     dev.log(
       'scanInbox: aiParser=${aiParser != null}, '

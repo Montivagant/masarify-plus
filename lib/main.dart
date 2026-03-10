@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -53,8 +54,8 @@ Future<void> main() async {
   // Seed default categories if the table is empty (first launch).
   await container.read(categoryRepositoryProvider).seedDefaultsIfEmpty();
 
-  // Start notification listener if user has enabled it.
-  if (PreferencesService(prefs).isNotificationParserEnabled) {
+  // Start notification listener if user has enabled it (Android only).
+  if (Platform.isAndroid && PreferencesService(prefs).isNotificationParserEnabled) {
     final listener = container.read(notificationListenerProvider);
     listener.onNewPending = () {
       container.invalidate(pendingParsedTransactionsProvider);
@@ -79,9 +80,9 @@ Future<void> main() async {
     ).run(),
   );
 
-  // Scan SMS inbox in background after UI is mounted (local parsing only,
-  // no AI enrichment — user triggers enrichment from the review screen).
-  if (PreferencesService(prefs).isSmsParserEnabled) {
+  // Scan SMS inbox in background after UI is mounted (Android only — local
+  // parsing only, no AI enrichment — user triggers enrichment from review screen).
+  if (Platform.isAndroid && PreferencesService(prefs).isSmsParserEnabled) {
     unawaited(_scanSmsInBackground(container));
   }
 }

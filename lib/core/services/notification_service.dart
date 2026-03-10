@@ -29,13 +29,29 @@ class NotificationService {
     _initialized = true;
   }
 
-  /// Request notification permission on Android 13+.
+  /// Request notification permission (Android 13+ and iOS).
   static Future<bool> requestPermission() async {
     final android =
         _plugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
-    final granted = await android?.requestNotificationsPermission();
-    return granted ?? false;
+    if (android != null) {
+      final granted = await android.requestNotificationsPermission();
+      return granted ?? false;
+    }
+
+    final iOS =
+        _plugin.resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>();
+    if (iOS != null) {
+      final granted = await iOS.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return granted ?? false;
+    }
+
+    return false;
   }
 
   /// Show an instant notification.

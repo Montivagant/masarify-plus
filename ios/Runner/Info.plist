@@ -31,8 +31,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -45,6 +43,10 @@
 	<string>Masarify uses the microphone to add transactions by voice. Audio is processed on-device and never sent anywhere.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Masarify uses speech recognition to convert your voice into transaction entries. All processing happens on your device.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Masarify can tag transactions with your location to help track where you spend.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Masarify uses Face ID to unlock the app when biometric lock is enabled.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
