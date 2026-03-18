@@ -229,7 +229,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           toWalletId: cashWallet.id,
           amount: _amountPiastres,
           note: note,
-          transferDate: DateTime.now(),
+          transferDate: _date,
         );
       } else {
         // Deposit from Cash → bank
@@ -238,7 +238,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           toWalletId: walletId,
           amount: _amountPiastres,
           note: note,
-          transferDate: DateTime.now(),
+          transferDate: _date,
         );
       }
 
@@ -526,13 +526,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     // Resolve current wallet for the wallet picker row.
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    // For cash types, exclude the Cash system wallet from the picker
-    // (user picks the bank account only).
-    final pickableWallets = _isCashType
-        ? wallets.where((w) => !w.isSystemWallet).toList()
-        : wallets;
-    final currentWallet =
-        pickableWallets.where((w) => w.id == _walletId).firstOrNull;
+    final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
 
     // Type chip definitions: value, label, icon
     final typeOptions = <({String value, String label, IconData icon})>[
@@ -607,8 +601,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                               _selectedCategoryId = null;
                               _smartDefaultApplied = false;
                               // For cash types, auto-select first non-system wallet
-                              if (_isCashType && pickableWallets.isNotEmpty) {
-                                final nonSystem = pickableWallets
+                              if (_isCashType && wallets.isNotEmpty) {
+                                final nonSystem = wallets
                                     .where((w) => !w.isSystemWallet)
                                     .toList();
                                 if (nonSystem.isNotEmpty) {
@@ -689,7 +683,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       // Bank account picker
                       _WalletPickerRow(
                         wallet: currentWallet,
-                        onTap: () => _showWalletPickerFiltered(pickableWallets),
+                        onTap: _showWalletPicker,
                       ),
                       const SizedBox(height: AppSizes.sm),
                       // Optional note
@@ -860,74 +854,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       ),
     );
   }
-
-  /// Shows wallet picker filtered to exclude the Cash system wallet.
-  void _showWalletPickerFiltered(List<WalletEntity> filteredWallets) {
-    if (filteredWallets.isEmpty) return;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight:
-                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                width: AppSizes.dragHandleWidth,
-                height: AppSizes.dragHandleHeight,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ctx.colors.outlineVariant,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppSizes.md,
-                  0,
-                  AppSizes.md,
-                  AppSizes.sm,
-                ),
-                child: Text(
-                  context.l10n.transaction_wallet_picker,
-                  style: ctx.textStyles.titleMedium,
-                ),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: filteredWallets
-                      .map(
-                        (w) => ListTile(
-                          leading: Icon(_walletTypeIcon(w.type)),
-                          title: Text(w.name),
-                          trailing: _walletId == w.id
-                              ? const Icon(AppIcons.check)
-                              : null,
-                          onTap: () {
-                            setState(() => _walletId = w.id);
-                            ctx.pop();
-                          },
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: AppSizes.md),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ── Wallet picker row ────────────────────────────────────────────────────
@@ -1047,7 +973,10 @@ class _OptionalSection extends StatelessWidget {
                 if (!expanded) ...[
                   _QuickChip(
                     icon: AppIcons.calendar,
-                    label: context.l10n.date_today,
+                    label: DateUtils.isSameDay(date, DateTime.now())
+                        ? context.l10n.date_today
+                        : MaterialLocalizations.of(context)
+                            .formatShortDate(date),
                   ),
                   const SizedBox(width: AppSizes.xs),
                   if (locationName != null)
