@@ -16,26 +16,90 @@ abstract final class VoiceDictionary {
 
   /// Expense trigger keywords (Egyptian Arabic + English).
   static const List<String> expenseTriggers = [
-    'صرفت', 'دفعت', 'اشتريت', 'شريت', 'كليت', 'ركبت',
-    'عملت', 'اديت', 'دفعتلهم', 'بعتلهم', 'جبت',
-    'حسبت', 'مصروف', 'فاتورة', 'ايجار', 'اشتراك', 'اكلت',
-    'spent', 'paid', 'bought', 'ordered',
+    'صرفت',
+    'دفعت',
+    'اشتريت',
+    'شريت',
+    'كليت',
+    'ركبت',
+    'عملت',
+    'اديت',
+    'دفعتلهم',
+    'بعتلهم',
+    'جبت',
+    'حسبت',
+    'مصروف',
+    'فاتورة',
+    'ايجار',
+    'اشتراك',
+    'اكلت',
+    'spent',
+    'paid',
+    'bought',
+    'ordered',
   ];
 
   /// Income trigger keywords (Egyptian Arabic + English).
   static const List<String> incomeTriggers = [
-    'اتودت', 'استلمت', 'اتقبضت', 'بعت', 'اخدت', 'قبضت',
-    'اتحولتلي', 'ودوني', 'اتقاضيت', 'راتب', 'مرتب', 'دخل',
-    'كسبت', 'ربحت', 'حولولي',
-    'received', 'got paid', 'salary',
+    'اتودت',
+    'استلمت',
+    'اتقبضت',
+    'بعت',
+    'اخدت',
+    'قبضت',
+    'اتحولتلي',
+    'ودوني',
+    'اتقاضيت',
+    'راتب',
+    'مرتب',
+    'دخل',
+    'كسبت',
+    'ربحت',
+    'حولولي',
+    'received',
+    'got paid',
+    'salary',
+  ];
+
+  /// Cash withdrawal trigger keywords (Egyptian Arabic + English).
+  static const List<String> cashWithdrawalTriggers = [
+    'سحبت',
+    'سحب',
+    'صراف',
+    'سحبت من الصراف',
+    'سحبت من البنك',
+    'withdrew',
+    'withdrawal',
+    'cash out',
+  ];
+
+  /// Cash deposit trigger keywords (Egyptian Arabic + English).
+  static const List<String> cashDepositTriggers = [
+    'أودعت',
+    'اودعت',
+    'إيداع',
+    'ايداع',
+    'حطيت فلوس',
+    'حطيت في البنك',
+    'deposited',
+    'deposit',
+    'cash deposit',
+    'put money',
   ];
 
   /// Time keyword → day offset from today.
   static const Map<String, int> timeKeywords = {
-    'امبارح': -1, 'أمس': -1,
-    'أول امبارح': -2, 'اول امبارح': -2, 'اول امس': -2,
-    'النهارده': 0, 'النهاردة': 0, 'اليوم': 0, 'دلوقتي': 0,
-    'من يومين': -2, 'من تلات تيام': -3,
+    'امبارح': -1,
+    'أمس': -1,
+    'أول امبارح': -2,
+    'اول امبارح': -2,
+    'اول امس': -2,
+    'النهارده': 0,
+    'النهاردة': 0,
+    'اليوم': 0,
+    'دلوقتي': 0,
+    'من يومين': -2,
+    'من تلات تيام': -3,
     'من اسبوع': -7,
   };
 
@@ -124,7 +188,13 @@ abstract final class VoiceDictionary {
 
   /// Multi-transaction split conjunctions.
   static const List<String> splitKeywords = [
-    'وكمان', 'وبعدين', 'وبرضو', 'كمان', 'وبعد كده',
-    'بعدين', 'and also', 'then',
+    'وكمان',
+    'وبعدين',
+    'وبرضو',
+    'كمان',
+    'وبعد كده',
+    'بعدين',
+    'and also',
+    'then',
   ];
 }

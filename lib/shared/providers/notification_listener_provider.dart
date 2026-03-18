@@ -10,7 +10,11 @@ import 'database_provider.dart';
 final notificationListenerProvider =
     Provider<NotificationListenerWrapper>((ref) {
   final dao = ref.watch(smsParserLogDaoProvider);
-  final wrapper = NotificationListenerWrapper(dao);
+  final eventGroupDao = ref.watch(parsedEventGroupDaoProvider);
+  final wrapper = NotificationListenerWrapper(
+    dao,
+    eventGroupDao: eventGroupDao,
+  );
 
   ref.onDispose(wrapper.dispose);
   return wrapper;

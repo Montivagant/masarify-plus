@@ -84,7 +84,8 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> sumByCategoryAndMonth(int categoryId, int year, int month) async {
     final start = DateTime(year, month);
-    final end = DateTime(year, month + 1); // Dart normalizes month 13 → Jan next year
+    final end =
+        DateTime(year, month + 1); // Dart normalizes month 13 → Jan next year
     final result = await customSelect(
       'SELECT COALESCE(SUM(t.amount), 0) AS total '
       'FROM transactions t '
@@ -119,6 +120,34 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
           .then((count) => count > 0);
 
   Future<void> truncate() => delete(transactions).go();
+
+  /// WS3: Find similar transactions for cross-table dedup.
+  /// Returns true if a transaction with the same wallet, amount, type exists
+  /// within ±10 minutes of [aroundDate].
+  Future<bool> existsSimilar({
+    required int walletId,
+    required int amount,
+    required String type,
+    required DateTime aroundDate,
+  }) async {
+    const windowMinutes = 10;
+    final start = aroundDate.subtract(const Duration(minutes: windowMinutes));
+    final end = aroundDate.add(const Duration(minutes: windowMinutes));
+    final result = await customSelect(
+      'SELECT COUNT(*) AS cnt FROM transactions '
+      'WHERE wallet_id = ? AND amount = ? AND type = ? '
+      'AND transaction_date >= ? AND transaction_date <= ?',
+      variables: [
+        Variable.withInt(walletId),
+        Variable.withInt(amount),
+        Variable.withString(type),
+        Variable.withDateTime(start),
+        Variable.withDateTime(end),
+      ],
+      readsFrom: {transactions},
+    ).getSingle();
+    return result.read<int>('cnt') > 0;
+  }
 
   /// H9 fix: count transactions for a given wallet.
   Future<int> countByWallet(int walletId) async {

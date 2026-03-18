@@ -77,8 +77,8 @@ abstract final class SnackHelper {
                 child: Text(
                   message,
                   style: context.textStyles.bodyMedium?.copyWith(
-                        color: cs.onPrimary,
-                      ),
+                    color: cs.onPrimary,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -90,7 +90,11 @@ abstract final class SnackHelper {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
           ),
-          margin: const EdgeInsets.all(AppSizes.md),
+          margin: const EdgeInsets.only(
+            left: AppSizes.md,
+            right: AppSizes.md,
+            bottom: AppSizes.lg,
+          ),
           duration: duration,
           action: action,
         ),

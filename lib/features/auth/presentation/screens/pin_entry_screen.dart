@@ -37,8 +37,8 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
   static const _maxAttempts = 5;
   static const _lockoutDurations = [
     AppDurations.lockoutDuration,
-    Duration(minutes: 5),
-    Duration(minutes: 30),
+    AppDurations.lockoutDurationMid,
+    AppDurations.lockoutDurationMax,
   ];
 
   @override
@@ -152,9 +152,12 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     await _auth.setLockoutUntil(lockoutUntil);
     if (!mounted) return;
     setState(() => _lockedOut = true);
+    final durationStr = duration.inSeconds >= 60
+        ? '${duration.inMinutes}m'
+        : '${duration.inSeconds}s';
     SnackHelper.showError(
       context,
-      'Too many attempts. Try again in ${duration.inSeconds >= 60 ? '${duration.inMinutes}m' : '${duration.inSeconds}s'}',
+      context.l10n.settings_pin_lockout(durationStr),
     );
     Future.delayed(duration, () {
       if (mounted) setState(() => _lockedOut = false);

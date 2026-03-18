@@ -53,8 +53,11 @@ class OpenRouterService {
   }) async {
     final uri = Uri.parse('${AiConfig.openRouterBaseUrl}/chat/completions');
 
+    final effectiveModel = model ?? AiConfig.defaultModel;
+    // Free models often lack ZDR-compliant endpoints — skip ZDR for them.
+    final isFreeModel = effectiveModel.endsWith(':free');
     final body = jsonEncode({
-      'model': model ?? AiConfig.defaultModel,
+      'model': effectiveModel,
       'messages': [
         {'role': 'system', 'content': systemPrompt},
         {'role': 'user', 'content': userMessage},
@@ -62,7 +65,7 @@ class OpenRouterService {
       'response_format': {'type': 'json_object'},
       'temperature': temperature,
       'max_tokens': AiConfig.maxResponseTokens,
-      'provider': {'zdr': true},
+      if (!isFreeModel) 'provider': {'zdr': true},
     });
 
     final response = await http
@@ -138,12 +141,14 @@ class OpenRouterService {
   }) async {
     final uri = Uri.parse('${AiConfig.openRouterBaseUrl}/chat/completions');
 
+    final effectiveModel = model ?? AiConfig.defaultModel;
+    final isFreeModel = effectiveModel.endsWith(':free');
     final body = jsonEncode({
-      'model': model ?? AiConfig.defaultModel,
+      'model': effectiveModel,
       'messages': messages,
       'temperature': temperature,
       'max_tokens': maxTokens ?? AiConfig.maxResponseTokens,
-      'provider': {'zdr': true},
+      if (!isFreeModel) 'provider': {'zdr': true},
     });
 
     final response = await http

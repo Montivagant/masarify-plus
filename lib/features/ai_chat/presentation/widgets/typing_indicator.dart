@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 
@@ -13,8 +14,8 @@ class TypingIndicator extends StatefulWidget {
 class _TypingIndicatorState extends State<TypingIndicator>
     with TickerProviderStateMixin {
   static const _dotCount = 3;
-  static const _duration = Duration(milliseconds: 600);
-  static const _staggerDelay = Duration(milliseconds: 200);
+  static const _duration = AppDurations.countUp;
+  static const _staggerDelay = AppDurations.animQuick;
 
   late final List<AnimationController> _controllers;
 

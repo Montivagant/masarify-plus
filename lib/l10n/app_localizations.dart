@@ -4670,6 +4670,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Tracking'**
   String get onboarding_ready_cta;
+
+  /// No description provided for @cash_in_hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash in Hand'**
+  String get cash_in_hand;
+
+  /// No description provided for @transaction_type_cash_withdrawal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Withdrawal'**
+  String get transaction_type_cash_withdrawal;
+
+  /// No description provided for @transaction_type_cash_withdrawal_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get transaction_type_cash_withdrawal_short;
+
+  /// No description provided for @transaction_type_cash_deposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Deposit'**
+  String get transaction_type_cash_deposit;
+
+  /// No description provided for @transaction_type_cash_deposit_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit'**
+  String get transaction_type_cash_deposit_short;
+
+  /// No description provided for @category_atm.
+  ///
+  /// In en, this message translates to:
+  /// **'ATM'**
+  String get category_atm;
 }
 
 class _AppLocalizationsDelegate

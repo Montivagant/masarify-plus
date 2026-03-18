@@ -43,8 +43,7 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
           );
         }
 
-        final totalExpense =
-            breakdown.fold<int>(0, (s, e) => s + e.amount);
+        final totalExpense = breakdown.fold<int>(0, (s, e) => s + e.amount);
 
         return ListView(
           padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
@@ -63,9 +62,9 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                   Text(
                     MoneyFormatter.format(totalExpense),
                     style: context.textStyles.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: context.appTheme.expenseColor,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: context.appTheme.expenseColor,
+                    ),
                   ),
                 ],
               ),
@@ -73,7 +72,9 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
 
             // ── Horizontal bar chart ───────────────────────────────
             SizedBox(
-              height: breakdown.length.clamp(0, 5) * AppSizes.chartBarRowHeight + AppSizes.chartBarHeaderHeight,
+              height:
+                  breakdown.length.clamp(0, 5) * AppSizes.chartBarRowHeight +
+                      AppSizes.chartBarHeaderHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
@@ -87,7 +88,10 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
             ),
 
             const SizedBox(height: AppSizes.sm),
-            Divider(height: AppSizes.dividerHeight, color: context.colors.outlineVariant),
+            Divider(
+              height: AppSizes.dividerHeight,
+              color: context.colors.outlineVariant,
+            ),
             const SizedBox(height: AppSizes.sm),
 
             // ── Ranked list ────────────────────────────────────────
@@ -132,9 +136,9 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
               return BarTooltipItem(
                 '$name\n${MoneyFormatter.format(rod.toY.round())}',
                 context.textStyles.bodySmall!.copyWith(
-                      color: context.colors.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: context.colors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
               );
             },
           ),
@@ -176,10 +180,10 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                 color: ColorUtils.fromHex(cat.colorHex),
                 width: AppSizes.barChartWidth,
                 borderRadius: BorderRadius.horizontal(
-                  right: Directionality.of(context) == TextDirection.ltr
-                      ? const Radius.circular(AppSizes.borderRadiusXs)
-                      : Radius.zero,
-                  left: Directionality.of(context) == TextDirection.rtl
+                  right: context.isRtl
+                      ? Radius.zero
+                      : const Radius.circular(AppSizes.borderRadiusXs),
+                  left: context.isRtl
                       ? const Radius.circular(AppSizes.borderRadiusXs)
                       : Radius.zero,
                 ),
@@ -219,9 +223,9 @@ class _CategoryRow extends StatelessWidget {
             child: Text(
               context.l10n.reports_category_rank(rank),
               style: context.textStyles.bodySmall?.copyWith(
-                    color: context.colors.outline,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: context.colors.outline,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           const SizedBox(width: AppSizes.sm),
@@ -264,14 +268,14 @@ class _CategoryRow extends StatelessWidget {
               Text(
                 MoneyFormatter.formatAmount(spending.amount),
                 style: context.textStyles.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               Text(
                 '${(spending.fraction * 100).round()}%',
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.outline,
-                    ),
+                  color: context.colors.outline,
+                ),
               ),
             ],
           ),

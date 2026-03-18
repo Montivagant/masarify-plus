@@ -1,20 +1,14 @@
 import 'package:intl/intl.dart';
 
-import 'arabic_number_parser.dart';
-
 /// MANDATORY formatter for all monetary amounts.
 /// ALL amounts stored as INTEGER piastres. NEVER use double for money storage.
 /// Rule: 100.50 EGP → stored as 10050 piastres.
 ///
 /// Usage:
 ///   MoneyFormatter.format(10050)  // → "100.50 EGP" or "١٠٠٫٥٠ ج.م"
-///   MoneyFormatter.parseToInt("150.75")  // → 15075
 abstract final class MoneyFormatter {
   /// Current app locale for formatting. Set by the app on locale changes.
   static String _activeLocale = 'en-US';
-
-  /// The active locale string (e.g. 'en-US' or 'ar-EG').
-  static String get activeLocale => _activeLocale;
 
   /// Update the active locale. Called from app.dart on every locale change.
   static void setLocale(String languageCode) {
@@ -66,31 +60,6 @@ abstract final class MoneyFormatter {
     ).format(amount);
   }
 
-  /// Parse user-typed input string → integer piastres.
-  /// Returns null if input is not a valid number.
-  /// Examples:
-  ///   "150.75"   → 15075
-  ///   "1,500"    → 150000
-  ///   "١٥٠"      → 15000
-  ///   "abc"      → null
-  static int? tryParseToInt(String input) {
-    final cleaned = input
-        .replaceAll(',', '')
-        .replaceAll('٬', '')
-        .replaceAll('\u066C', '') // Arabic thousands separator
-        .trim();
-    if (cleaned.isEmpty) return null;
-    final normalized = ArabicNumberParser.normalizeDigits(cleaned);
-    final value = double.tryParse(normalized);
-    if (value == null) return null;
-    return (value * 100).round();
-  }
-
-  /// Parse user-typed input string → integer piastres.
-  /// Returns 0 for invalid input (legacy callers).
-  /// Prefer [tryParseToInt] for new code.
-  static int parseToInt(String input) => tryParseToInt(input) ?? 0;
-
   /// Convert piastres to display double (for UI only — never store doubles).
   static double toDisplayDouble(int piastres) => piastres / 100.0;
 
@@ -116,5 +85,4 @@ abstract final class MoneyFormatter {
       _ => currency,
     };
   }
-
 }

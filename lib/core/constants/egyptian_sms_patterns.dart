@@ -33,15 +33,22 @@ abstract final class EgyptianSmsPatterns {
     'com.valu',
   ];
 
-  /// Amount extraction: matches "1,500.50 EGP", "EGP 1,500.50", or "١٥٠ ج.م"
+  /// All supported currency codes for extraction.
+  // Note: ج\.م\.? comes before any shorter ج\.م alternative so the
+  // optional trailing period is matched. Previous version had both, making
+  // the longer form unreachable.
+  static const String _currencyCodes =
+      r'(?:EGP|LE|جنيه|ج\.م\.?|USD|EUR|GBP|SAR|AED|KWD|QAR|BHD|OMR|JOD)';
+
+  /// Amount extraction: matches "1,500.50 EGP", "150 USD", "١٥٠ ج.م", etc.
   /// I9 fix: include Eastern Arabic numerals (٠-٩) alongside Western digits.
   /// IM-36 fix: also matches prefix-currency format (e.g. "EGP 1,500").
-  static const String amountRegex =
-      r'([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)\s*(?:EGP|LE|جنيه|ج\.م|ج\.م\.?)';
+  static String get amountRegex =>
+      r'([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:\.[\d٠-٩]{1,2})?)\s*' + _currencyCodes;
 
-  /// IM-36 fix: prefix-currency regex (e.g. "EGP 1,500.50").
-  static const String amountRegexPrefix =
-      r'(?:EGP|LE|جنيه|ج\.م)\s*([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:[.\.][\d٠-٩]{1,2})?)';
+  /// IM-36 fix: prefix-currency regex (e.g. "EGP 1,500.50", "USD 150").
+  static String get amountRegexPrefix =>
+      _currencyCodes + r'\s*([\d٠-٩]+(?:[,،][\d٠-٩]{3})*(?:\.[\d٠-٩]{1,2})?)';
 
   /// Normalize Eastern Arabic numerals to Western digits.
   /// Delegates to canonical [ArabicNumberParser.normalizeDigits].
@@ -69,9 +76,36 @@ abstract final class EgyptianSmsPatterns {
     'جارى خصم',
     'debited',
     'deducted',
+    'charged',
     'purchase',
     'payment of',
     'تحويل صادر',
     'سحب',
+  ];
+
+  /// WS3b: ATM/cash withdrawal patterns — used to detect bank→cash transfers.
+  static const List<String> atmPatterns = [
+    'سحب نقدي',
+    'سحب من ماكينة',
+    'سحب من الصراف',
+    'ATM',
+    'cash withdrawal',
+    'ATM withdrawal',
+  ];
+
+  /// Balance-indicating keywords — amounts near these are likely the remaining
+  /// balance, not the transaction amount. Used by context-aware extraction.
+  ///
+  /// IMPORTANT: These must NOT be substrings of [creditPatterns] entries.
+  /// E.g. 'رصيد' would match inside 'رصيد جديد' (a credit pattern), so we
+  /// use the more specific 'رصيدك' / 'رصيد حسابك' instead.
+  static const List<String> balanceKeywords = [
+    'رصيدك',
+    'رصيد حسابك',
+    'رصيد متاح',
+    'المتبقي',
+    'balance',
+    'remaining',
+    'available',
   ];
 }

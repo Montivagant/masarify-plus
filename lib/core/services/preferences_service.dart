@@ -20,7 +20,12 @@ class PreferencesService {
   static const _kHideBalances = 'hide_balances';
   static const _kNotificationParserEnabled = 'notification_parser_enabled';
   static const _kSmsParserEnabled = 'sms_parser_enabled';
+  static const _kNotificationPermissionPending =
+      'notification_permission_pending';
   static const _kAiModel = 'ai_model';
+  static const _kQuickStartDone = 'quick_start_done';
+  static const _kLastBackupDate = 'last_backup_date';
+  static const _kDriveFileId = 'drive_file_id';
 
   // Category frequency keys
   static const _kCategoryFreqExpense = 'category_freq_expense';
@@ -44,8 +49,7 @@ class PreferencesService {
   // ── Onboarding ────────────────────────────────────────────────────────────
   bool get isOnboardingDone => _prefs.getBool(_kOnboardingDone) ?? false;
 
-  Future<void> markOnboardingDone() =>
-      _prefs.setBool(_kOnboardingDone, true);
+  Future<void> markOnboardingDone() => _prefs.setBool(_kOnboardingDone, true);
 
   // ── PIN (Phase 4) ─────────────────────────────────────────────────────────
   bool get isPinEnabled => _prefs.getBool(_kPinEnabled) ?? false;
@@ -101,6 +105,13 @@ class PreferencesService {
 
   Future<void> setNotificationParserEnabled(bool value) =>
       _prefs.setBool(_kNotificationParserEnabled, value);
+
+  // ── Notification Permission Pending (crash recovery) ────────────────────
+  bool get isNotificationPermissionPending =>
+      _prefs.getBool(_kNotificationPermissionPending) ?? false;
+
+  Future<void> setNotificationPermissionPending(bool value) =>
+      _prefs.setBool(_kNotificationPermissionPending, value);
 
   // ── SMS Parser ──────────────────────────────────────────────────────────────
   bool get isSmsParserEnabled => _prefs.getBool(_kSmsParserEnabled) ?? false;
@@ -160,8 +171,8 @@ class PreferencesService {
 
   // ── Category frequency ────────────────────────────────────────────────────
   String? getCategoryFrequencyJson(String type) => _prefs.getString(
-    type == 'income' ? _kCategoryFreqIncome : _kCategoryFreqExpense,
-  );
+        type == 'income' ? _kCategoryFreqIncome : _kCategoryFreqExpense,
+      );
 
   Future<void> setCategoryFrequencyJson(String type, String json) =>
       _prefs.setString(
@@ -170,14 +181,36 @@ class PreferencesService {
       );
 
   int? getLastCategoryId(String type) => _prefs.getInt(
-    type == 'income' ? _kLastCatIncome : _kLastCatExpense,
-  );
+        type == 'income' ? _kLastCatIncome : _kLastCatExpense,
+      );
 
-  Future<void> setLastCategoryId(String type, int categoryId) =>
-      _prefs.setInt(
+  Future<void> setLastCategoryId(String type, int categoryId) => _prefs.setInt(
         type == 'income' ? _kLastCatIncome : _kLastCatExpense,
         categoryId,
       );
+
+  // ── Quick Start ──────────────────────────────────────────────────────────
+  bool get isQuickStartDone => _prefs.getBool(_kQuickStartDone) ?? false;
+
+  Future<void> markQuickStartDone() => _prefs.setBool(_kQuickStartDone, true);
+
+  // ── Google Drive Backup ────────────────────────────────────────────────
+  String? get lastBackupDate => _prefs.getString(_kLastBackupDate);
+
+  Future<void> setLastBackupDate(String date) =>
+      _prefs.setString(_kLastBackupDate, date);
+
+  String? get driveFileId => _prefs.getString(_kDriveFileId);
+
+  Future<void> setDriveFileId(String? id) {
+    if (id == null) return _prefs.remove(_kDriveFileId);
+    return _prefs.setString(_kDriveFileId, id);
+  }
+
+  Future<void> clearDrivePrefs() async {
+    await _prefs.remove(_kLastBackupDate);
+    await _prefs.remove(_kDriveFileId);
+  }
 
   // ── Clear all data ────────────────────────────────────────────────────────
   Future<void> clearAll() => _prefs.clear();

@@ -66,7 +66,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       builder: (ctx) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
+            maxHeight:
+                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -79,12 +80,18 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                   height: AppSizes.dragHandleHeight,
                   decoration: BoxDecoration(
                     color: ctx.colors.outlineVariant,
-                    borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                   ),
                 ),
               ),
               Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(AppSizes.screenHPadding, AppSizes.md, AppSizes.screenHPadding, AppSizes.sm),
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSizes.screenHPadding,
+                  AppSizes.md,
+                  AppSizes.screenHPadding,
+                  AppSizes.sm,
+                ),
                 child: Text(pickerTitle, style: ctx.textStyles.titleMedium),
               ),
               Flexible(
@@ -96,10 +103,15 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
                         leading: const Icon(AppIcons.wallet),
                         title: Text(w.name),
                         subtitle: Text(MoneyFormatter.format(w.balance)),
-                        trailing: current == w.id ? const Icon(AppIcons.check) : null,
+                        trailing:
+                            current == w.id ? const Icon(AppIcons.check) : null,
                         onTap: () {
                           setState(() {
-                            if (isFrom) { _fromWalletId = w.id; } else { _toWalletId = w.id; }
+                            if (isFrom) {
+                              _fromWalletId = w.id;
+                            } else {
+                              _toWalletId = w.id;
+                            }
                           });
                           ctx.pop();
                         },
@@ -153,12 +165,14 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     setState(() => _loading = true);
     try {
       await ref.read(transferRepositoryProvider).create(
-        fromWalletId: from,
-        toWalletId: to,
-        amount: _amountPiastres,
-        note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
-        transferDate: DateTime.now(),
-      );
+            fromWalletId: from,
+            toWalletId: to,
+            amount: _amountPiastres,
+            note: _noteController.text.trim().isEmpty
+                ? null
+                : _noteController.text.trim(),
+            transferDate: DateTime.now(),
+          );
       HapticFeedback.heavyImpact();
       if (!mounted) return;
       // L7 fix: show success feedback
@@ -181,40 +195,91 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final fromWallet = wallets.where((w) => w.id == _fromWalletId).firstOrNull;
     final toWallet = wallets.where((w) => w.id == _toWalletId).firstOrNull;
-    final canSave = _fromWalletId != null && _toWalletId != null &&
-        _fromWalletId != _toWalletId && _amountPiastres > 0;
+    final canSave = _fromWalletId != null &&
+        _toWalletId != null &&
+        _fromWalletId != _toWalletId &&
+        _amountPiastres > 0;
 
     return Scaffold(
       appBar: AppAppBar(title: context.l10n.transfer_title),
       body: SingleChildScrollView(
-        padding: const EdgeInsetsDirectional.fromSTEB(AppSizes.screenHPadding, AppSizes.md, AppSizes.screenHPadding, AppSizes.bottomScrollPadding),
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          AppSizes.screenHPadding,
+          AppSizes.md,
+          AppSizes.screenHPadding,
+          AppSizes.bottomScrollPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.l10n.transfer_from, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
+            Text(
+              context.l10n.transfer_from,
+              style: context.textStyles.labelLarge
+                  ?.copyWith(color: context.colors.outline),
+            ),
             const SizedBox(height: AppSizes.xs),
-            _WalletSelector(wallet: fromWallet, placeholder: context.l10n.transfer_select_wallet, onTap: () => _showWalletPicker(isFrom: true)),
+            _WalletSelector(
+              wallet: fromWallet,
+              placeholder: context.l10n.transfer_select_wallet,
+              onTap: () => _showWalletPicker(isFrom: true),
+            ),
             const SizedBox(height: AppSizes.md),
             Center(
               child: IconButton.outlined(
                 icon: const Icon(AppIcons.transfer),
-                onPressed: () => setState(() { final tmp = _fromWalletId; _fromWalletId = _toWalletId; _toWalletId = tmp; }),
+                onPressed: () => setState(() {
+                  final tmp = _fromWalletId;
+                  _fromWalletId = _toWalletId;
+                  _toWalletId = tmp;
+                }),
                 tooltip: context.l10n.transfer_swap,
               ),
             ),
             const SizedBox(height: AppSizes.xs),
-            Text(context.l10n.transfer_to, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
+            Text(
+              context.l10n.transfer_to,
+              style: context.textStyles.labelLarge
+                  ?.copyWith(color: context.colors.outline),
+            ),
             const SizedBox(height: AppSizes.xs),
-            _WalletSelector(wallet: toWallet, placeholder: context.l10n.transfer_select_wallet, onTap: () => _showWalletPicker(isFrom: false)),
+            _WalletSelector(
+              wallet: toWallet,
+              placeholder: context.l10n.transfer_select_wallet,
+              onTap: () => _showWalletPicker(isFrom: false),
+            ),
             const SizedBox(height: AppSizes.xl),
-            Text(context.l10n.transfer_amount_label, style: context.textStyles.labelLarge?.copyWith(color: context.colors.outline)),
+            Text(
+              context.l10n.transfer_amount_label,
+              style: context.textStyles.labelLarge
+                  ?.copyWith(color: context.colors.outline),
+            ),
             const SizedBox(height: AppSizes.sm),
-            AmountInput(onAmountChanged: (p) => setState(() => _amountPiastres = p)),
+            AmountInput(
+              onAmountChanged: (p) => setState(() => _amountPiastres = p),
+            ),
             const SizedBox(height: AppSizes.lg),
-            AppTextField(label: context.l10n.transfer_note_label, controller: _noteController, maxLines: 2),
-            const SizedBox(height: AppSizes.xl),
-            AppButton(label: context.l10n.transfer_confirm_button, onPressed: canSave && !_loading ? _save : null, isLoading: _loading, icon: AppIcons.transfer),
+            AppTextField(
+              label: context.l10n.transfer_note_label,
+              controller: _noteController,
+              maxLines: 2,
+            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: context.l10n.transfer_confirm_button,
+            onPressed: canSave && !_loading ? _save : null,
+            isLoading: _loading,
+            icon: AppIcons.transfer,
+          ),
         ),
       ),
     );
@@ -222,7 +287,11 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
 }
 
 class _WalletSelector extends StatelessWidget {
-  const _WalletSelector({required this.wallet, required this.placeholder, required this.onTap});
+  const _WalletSelector({
+    required this.wallet,
+    required this.placeholder,
+    required this.onTap,
+  });
   final WalletEntity? wallet;
   final String placeholder;
   final VoidCallback onTap;
@@ -233,8 +302,14 @@ class _WalletSelector extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSizes.md, vertical: AppSizes.md),
-        decoration: BoxDecoration(border: Border.all(color: cs.outline), borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd)),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.md,
+          vertical: AppSizes.md,
+        ),
+        decoration: BoxDecoration(
+          border: Border.all(color: cs.outline),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        ),
         child: Row(
           children: [
             const Icon(AppIcons.wallet, size: AppSizes.iconSm),
@@ -245,10 +320,18 @@ class _WalletSelector extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(wallet!.name, style: context.textStyles.bodyLarge),
-                        Text(MoneyFormatter.format(wallet!.balance), style: context.textStyles.bodySmall?.copyWith(color: cs.outline)),
+                        Text(
+                          MoneyFormatter.format(wallet!.balance),
+                          style: context.textStyles.bodySmall
+                              ?.copyWith(color: cs.outline),
+                        ),
                       ],
                     )
-                  : Text(placeholder, style: context.textStyles.bodyMedium?.copyWith(color: cs.outline)),
+                  : Text(
+                      placeholder,
+                      style: context.textStyles.bodyMedium
+                          ?.copyWith(color: cs.outline),
+                    ),
             ),
             const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
           ],

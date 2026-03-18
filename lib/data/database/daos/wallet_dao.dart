@@ -86,11 +86,12 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     );
   }
 
-  /// Total balance across all non-archived wallets (in piastres)
+  /// Total balance across all non-archived, non-system wallets (in piastres).
+  /// Excludes the Cash system wallet so "All Accounts" shows bank-only total.
   Future<int> getTotalBalance() async {
     final result = await customSelect(
       'SELECT COALESCE(SUM(balance), 0) AS total '
-      'FROM wallets WHERE is_archived = 0',
+      'FROM wallets WHERE is_archived = 0 AND is_system_wallet = 0',
       readsFrom: {wallets},
     ).getSingle();
     return result.read<int>('total');
@@ -121,10 +122,11 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     return result.read<int>('has_refs') == 1;
   }
 
-  /// H4 fix: reactive stream of total balance across all non-archived wallets.
+  /// H4 fix: reactive stream of total balance across all non-archived,
+  /// non-system wallets. Excludes Cash so "All Accounts" shows bank-only total.
   Stream<int> watchTotalBalance() => customSelect(
         'SELECT COALESCE(SUM(balance), 0) AS total '
-        'FROM wallets WHERE is_archived = 0',
+        'FROM wallets WHERE is_archived = 0 AND is_system_wallet = 0',
         readsFrom: {wallets},
       ).watchSingle().map((row) => row.read<int>('total'));
 }

@@ -8,17 +8,16 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
-import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/account_carousel.dart';
-import '../widgets/ai_insights_zone.dart';
 import '../widgets/month_summary_zone.dart';
+import '../widgets/pending_review_card.dart';
 import '../widgets/quick_add_zone.dart';
+import '../widgets/quick_start_tip_card.dart';
 import '../widgets/recent_transactions_zone.dart';
-import '../widgets/spending_overview_zone.dart';
 
 /// Dashboard — thin shell assembling 6 independently-reactive zones.
 ///
@@ -40,16 +39,9 @@ class DashboardScreen extends ConsumerWidget {
         showBack: false,
         actions: [
           IconButton(
-            icon: Icon(
-              ref.watch(hideBalancesProvider)
-                  ? AppIcons.eyeOff
-                  : AppIcons.eye,
-            ),
-            onPressed: () =>
-                ref.read(hideBalancesProvider.notifier).toggle(),
-            tooltip: ref.watch(hideBalancesProvider)
-                ? context.l10n.balance_show
-                : context.l10n.balance_hide,
+            icon: const Icon(AppIcons.ai),
+            onPressed: () => context.push(AppRoutes.chat),
+            tooltip: context.l10n.dashboard_chat_tooltip,
           ),
           IconButton(
             icon: const Icon(AppIcons.settings),
@@ -68,8 +60,7 @@ class DashboardScreen extends ConsumerWidget {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding:
-              const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+          padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -102,17 +93,20 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
 
+              // ── Quick Start tip card ────────────────────────────
+              const QuickStartTipCard(),
+
               // ── Zone 1: Account Carousel ─────────────────────────
               const AccountCarousel(),
 
               const SizedBox(height: AppSizes.sectionGap),
 
-              // ── Zone 2: AI Insight Cards ───────────────────────────
-              AiInsightsZone(filterWalletId: selectedWalletId),
+              // ── WS5: Pending review card ───────────────────────────
+              const PendingReviewCard(),
 
               const SizedBox(height: AppSizes.sectionGap),
 
-              // ── Zone 3: Month Summary ──────────────────────────────
+              // ── Zone 2: Month Summary ──────────────────────────────
               MonthSummaryZone(filterWalletId: selectedWalletId),
 
               const SizedBox(height: AppSizes.sectionGap),
@@ -124,14 +118,10 @@ class DashboardScreen extends ConsumerWidget {
 
               // ── Zone 5: Recent transactions (filtered by account) ─
               RecentTransactionsZone(filterWalletId: selectedWalletId),
-
-              // ── Zone 6: Spending Overview (filtered by account) ───
-              SpendingOverviewZone(filterWalletId: selectedWalletId),
             ],
           ),
         ),
       ),
     );
   }
-
 }

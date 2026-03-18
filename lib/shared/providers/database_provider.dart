@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/database/app_database.dart';
 import '../../data/database/daos/budget_dao.dart';
 import '../../data/database/daos/category_dao.dart';
+import '../../data/database/daos/chat_message_dao.dart';
 import '../../data/database/daos/goal_dao.dart';
+import '../../data/database/daos/parsed_event_group_dao.dart';
 import '../../data/database/daos/recurring_rule_dao.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../data/database/daos/transaction_dao.dart';
@@ -49,4 +51,12 @@ final recurringRuleDaoProvider = Provider<RecurringRuleDao>(
 
 final smsParserLogDaoProvider = Provider<SmsParserLogDao>(
   (ref) => ref.watch(databaseProvider).smsParserLogDao,
+);
+
+final chatMessageDaoProvider = Provider<ChatMessageDao>(
+  (ref) => ref.watch(databaseProvider).chatMessageDao,
+);
+
+final parsedEventGroupDaoProvider = Provider<ParsedEventGroupDao>(
+  (ref) => ref.watch(databaseProvider).parsedEventGroupDao,
 );

@@ -925,5 +925,13 @@
   "onboarding_feature_goal_body": "وفّر من أجل ما يهمك أكثر.",
   "onboarding_ready_title": "أنت جاهز!",
   "onboarding_ready_body": "ابدأ بتتبع أموالك اليوم.",
-  "onboarding_ready_cta": "ابدأ التتبع"
+  "onboarding_ready_cta": "ابدأ التتبع",
+
+  "cash_in_hand": "النقدي في اليد",
+
+  "transaction_type_cash_withdrawal": "سحب نقدي",
+  "transaction_type_cash_withdrawal_short": "سحب",
+  "transaction_type_cash_deposit": "إيداع نقدي",
+  "transaction_type_cash_deposit_short": "إيداع",
+  "category_atm": "صراف آلي"
 }

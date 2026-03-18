@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Typography scale for Masarify using Plus Jakarta Sans.
 /// Applied via ThemeData.textTheme — do not use directly in widgets;
@@ -69,8 +68,4 @@ abstract final class AppTextStyles {
       letterSpacing: 0.5,
     ),
   );
-
-  /// Legacy accessor — deprecated, use [sizeOverrides] instead.
-  static TextTheme get textTheme =>
-      GoogleFonts.plusJakartaSansTextTheme(sizeOverrides);
 }

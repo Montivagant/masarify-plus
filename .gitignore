@@ -23,8 +23,14 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
-# API keys (never commit)
+# API keys & secrets (never commit)
 lib/core/config/env.dart
+.env
+Secret-and-Creds/
+
+# Firebase config (contains project IDs)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
 
 # Release signing (never commit)
 android/masarify-release.jks
@@ -50,3 +56,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Claude Code (user-local files)
+.claude/settings.local.json
+.claude/*.local.md
+
+# Debug artifacts
+*.png
+!assets/**/*.png

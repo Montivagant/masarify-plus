@@ -79,7 +79,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
                 color: ctx.colors.outlineVariant,
-                borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                borderRadius:
+                    BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
             Padding(
@@ -209,7 +210,10 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
     final canSave = _categoryId != null && _limitPiastres > 0;
 
     return Scaffold(
-      appBar: AppAppBar(title: isEdit ? context.l10n.budget_edit_title : context.l10n.budget_set),
+      appBar: AppAppBar(
+        title:
+            isEdit ? context.l10n.budget_edit_title : context.l10n.budget_set,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
@@ -222,7 +226,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           children: [
             // Month chip
             GlassCard(
-              tintColor: cs.surfaceContainerHighest.withValues(alpha: AppSizes.opacityLight4),
+              tintColor: cs.surfaceContainerHighest
+                  .withValues(alpha: AppSizes.opacityLight4),
               child: Row(
                 children: [
                   const Icon(AppIcons.calendar, size: AppSizes.iconSm),
@@ -240,8 +245,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             if (!isEdit) ...[
               Text(
                 context.l10n.transaction_category,
-                style: context.textStyles.labelLarge
-                    ?.copyWith(color: cs.outline),
+                style:
+                    context.textStyles.labelLarge?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
               GestureDetector(
@@ -267,10 +272,12 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                       const SizedBox(width: AppSizes.sm),
                       Expanded(
                         child: Text(
-                          selectedCat?.displayName(context.languageCode) ?? context.l10n.transaction_category_picker,
+                          selectedCat?.displayName(context.languageCode) ??
+                              context.l10n.transaction_category_picker,
                           style: selectedCat != null
                               ? context.textStyles.bodyLarge
-                              : context.textStyles.bodyLarge?.copyWith(color: cs.outline),
+                              : context.textStyles.bodyLarge
+                                  ?.copyWith(color: cs.outline),
                         ),
                       ),
                       const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
@@ -284,8 +291,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             // Budget limit
             Text(
               context.l10n.budget_limit,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             AmountInput(
@@ -304,15 +310,25 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                 secondary: const Icon(AppIcons.recurring),
               ),
             ),
-            const SizedBox(height: AppSizes.xl),
-
-            AppButton(
-              label: isEdit ? context.l10n.common_save_changes : context.l10n.budget_set,
-              onPressed: canSave && !_loading ? _save : null,
-              isLoading: _loading,
-              icon: AppIcons.check,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: isEdit
+                ? context.l10n.common_save_changes
+                : context.l10n.budget_set,
+            onPressed: canSave && !_loading ? _save : null,
+            isLoading: _loading,
+            icon: AppIcons.check,
+          ),
         ),
       ),
     );

@@ -8,7 +8,12 @@ import '../database/daos/transaction_dao.dart';
 import '../database/daos/wallet_dao.dart';
 
 class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
-  const RecurringRuleRepositoryImpl(this._dao, this._db, this._walletDao, this._transactionDao);
+  const RecurringRuleRepositoryImpl(
+    this._dao,
+    this._db,
+    this._walletDao,
+    this._transactionDao,
+  );
 
   final RecurringRuleDao _dao;
   final AppDatabase _db;
@@ -96,7 +101,14 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
       );
 
   @override
-  Future<bool> delete(int id) => _dao.deleteById(id);
+  Future<bool> delete(int id) => _db.transaction(() async {
+        // Null out FK references to prevent constraint violation
+        await _db.customStatement(
+          'UPDATE transactions SET recurring_rule_id = NULL WHERE recurring_rule_id = ?',
+          [id],
+        );
+        return _dao.deleteById(id);
+      });
 
   @override
   Stream<List<RecurringRuleEntity>> watchUnpaid() =>

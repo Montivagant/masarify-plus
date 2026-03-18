@@ -45,6 +45,14 @@ class SmsParserLogDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit))
           .watch();
 
+  /// Lightweight count-only stream for dashboard badge — avoids loading
+  /// full rows with body text and enrichment JSON.
+  Stream<int> watchPendingCount() => customSelect(
+        'SELECT COUNT(*) AS cnt FROM sms_parser_logs WHERE parsed_status = ?',
+        variables: [Variable.withString('pending')],
+        readsFrom: {smsParserLogs},
+      ).watchSingle().map((row) => row.read<int>('cnt'));
+
   /// Get pending logs that have no AI enrichment yet (for sync-on-reconnect).
   Future<List<SmsParserLog>> getPendingUnenriched({int limit = 20}) =>
       (select(smsParserLogs)

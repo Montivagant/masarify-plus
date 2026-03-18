@@ -1,15 +1,23 @@
+import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart' show DateFormat;
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/google_drive_backup_service.dart';
 import '../../../../data/services/pdf_export_service.dart';
+import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/google_drive_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
@@ -30,12 +38,245 @@ class BackupExportScreen extends ConsumerStatefulWidget {
 
 class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   bool _busy = false;
+  bool _driveSignedIn = false;
+  String? _driveEmail;
+  String? _lastBackupDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkDriveStatus();
+  }
+
+  Future<void> _checkDriveStatus() async {
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      final account = await driveService.signInSilently();
+      if (!mounted) return;
+      final prefs = await ref.read(preferencesFutureProvider.future);
+      setState(() {
+        _driveSignedIn = account != null;
+        _driveEmail = account?.email;
+        _lastBackupDate = prefs.lastBackupDate;
+      });
+    } catch (e) {
+      dev.log('Drive silent sign-in failed: $e', name: 'BackupScreen');
+      if (!mounted) return;
+      try {
+        final prefs = await ref.read(preferencesFutureProvider.future);
+        if (mounted) setState(() => _lastBackupDate = prefs.lastBackupDate);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _signInGoogle() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      final account = await driveService.signIn();
+      if (!mounted) return;
+      setState(() {
+        _driveSignedIn = account != null;
+        _driveEmail = account?.email;
+      });
+    } catch (e) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _signOutGoogle() async {
+    final driveService = ref.read(googleDriveBackupProvider);
+    await driveService.signOut();
+    if (!mounted) return;
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    await prefs.clearDrivePrefs();
+    if (!mounted) return;
+    setState(() {
+      _driveSignedIn = false;
+      _driveEmail = null;
+      _lastBackupDate = null;
+    });
+  }
+
+  Future<void> _backupToDrive() async {
+    if (_busy) return;
+    final isOnline = ref.read(isOnlineProvider).valueOrNull ?? false;
+    if (!isOnline) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.backup_offline_error);
+      }
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      // Export JSON from backup service
+      final backupPath = await ref.read(backupServiceProvider).exportToJson();
+      final file = File(backupPath);
+      final jsonData = await file.readAsString();
+
+      // Upload to Drive
+      final driveService = ref.read(googleDriveBackupProvider);
+      await driveService.uploadBackup(jsonData);
+
+      // Save backup date
+      final now = DateTime.now().toIso8601String();
+      final prefs = await ref.read(preferencesFutureProvider.future);
+      await prefs.setLastBackupDate(now);
+
+      // Clean up temp file
+      try {
+        if (file.existsSync()) file.deleteSync();
+      } catch (_) {}
+
+      if (!mounted) return;
+      setState(() => _lastBackupDate = now);
+      SnackHelper.showSuccess(context, context.l10n.backup_drive_success);
+    } catch (e) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.backup_drive_failed);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _restoreFromDrive() async {
+    if (_busy) return;
+    final isOnline = ref.read(isOnlineProvider).valueOrNull ?? false;
+    if (!isOnline) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.backup_offline_error);
+      }
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      final backups = await driveService.listBackups();
+
+      if (!mounted) return;
+      if (backups.isEmpty) {
+        SnackHelper.showInfo(context, context.l10n.backup_no_backups);
+        setState(() => _busy = false);
+        return;
+      }
+
+      // Show backup picker
+      final selected = await _showBackupPicker(backups);
+      if (selected == null || !mounted) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+
+      // Confirm restore
+      final confirmed = await _showRestoreConfirmation();
+      if (!confirmed || !mounted) {
+        if (mounted) setState(() => _busy = false);
+        return;
+      }
+
+      // Download, decrypt, validate, and import
+      Directory? tempDir;
+      try {
+        final jsonData = await driveService.downloadBackup(selected.fileId);
+
+        // Validate JSON structure before import
+        try {
+          final parsed = jsonDecode(jsonData) as Map<String, dynamic>;
+          if (parsed['tables'] == null) {
+            throw const FormatException('Invalid backup: missing tables');
+          }
+        } on FormatException {
+          if (mounted) {
+            SnackHelper.showError(
+              context,
+              context.l10n.backup_error_invalid,
+            );
+          }
+          return;
+        }
+
+        tempDir = await Directory.systemTemp.createTemp('masarify_restore');
+        final tempFile = File('${tempDir.path}/restore.json');
+        await tempFile.writeAsString(jsonData);
+
+        await ref.read(backupServiceProvider).importFromJson(tempFile.path);
+
+        if (!mounted) return;
+        SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
+      } finally {
+        // Always clean up temp dir
+        try {
+          if (tempDir != null && tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        } catch (_) {}
+      }
+    } catch (e) {
+      if (mounted) {
+        final msg = e is FormatException
+            ? context.l10n.backup_error_invalid
+            : context.l10n.backup_drive_failed;
+        SnackHelper.showError(context, msg);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<DriveBackupInfo?> _showBackupPicker(
+    List<DriveBackupInfo> backups,
+  ) async {
+    return showModalBottomSheet<DriveBackupInfo>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSizes.md),
+              child: Text(
+                ctx.l10n.backup_restore_drive,
+                style: ctx.textStyles.titleMedium,
+              ),
+            ),
+            ...backups.take(10).map(
+                  (b) => ListTile(
+                    title: Text(
+                      DateFormat.yMMMd(context.languageCode)
+                          .add_Hm()
+                          .format(b.modifiedTime),
+                    ),
+                    subtitle: Text(
+                      '${(b.sizeBytes / 1024).toStringAsFixed(1)} KB',
+                    ),
+                    trailing: Icon(
+                      context.isRtl
+                          ? AppIcons.chevronLeft
+                          : AppIcons.chevronRight,
+                    ),
+                    onTap: () => ctx.pop(b),
+                  ),
+                ),
+            const SizedBox(height: AppSizes.sm),
+          ],
+        ),
+      ),
+    );
+  }
 
   /// Delete temp export file after sharing to avoid leaking financial data.
   /// Delays 2s to give the receiving app time to finish reading on Android.
   void _deleteTempFile(String? path) {
     if (path == null) return;
-    Future<void>.delayed(const Duration(seconds: 2), () {
+    Future<void>.delayed(AppDurations.tempFileCleanupDelay, () {
       try {
         final file = File(path);
         if (file.existsSync()) file.deleteSync();
@@ -139,9 +380,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     String? path;
     try {
       path = await ref.read(backupServiceProvider).exportTransactionsToCsv(
-                year: picked.year,
-                month: picked.month,
-              );
+            year: picked.year,
+            month: picked.month,
+          );
       if (!mounted) return;
       await Share.shareXFiles([XFile(path)]);
       if (mounted) {
@@ -188,6 +429,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
                 l10n.pdf_col_category,
                 l10n.pdf_col_wallet,
               ],
+              pageLabel: l10n.pdf_page_label,
+              ofLabel: l10n.pdf_of_label,
+              unknownCategory: l10n.pdf_unknown_category,
             ),
           );
       if (!mounted) return;
@@ -235,8 +479,79 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
               child: LinearProgressIndicator(),
             ),
           const SizedBox(height: AppSizes.sm),
+
+          // ── Cloud Backup ──────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            child: GlassSection(
+              header: l10n.backup_cloud_title,
+              children: [
+                if (!_driveSignedIn)
+                  _ActionTile(
+                    icon: AppIcons.backup,
+                    label: l10n.backup_sign_in_google,
+                    subtitle: l10n.backup_cloud_title,
+                    iconColor: cs.primary,
+                    onTap: _busy ? null : _signInGoogle,
+                  )
+                else ...[
+                  ListTile(
+                    leading: Icon(AppIcons.checkCircle, color: cs.primary),
+                    title: Text(
+                      _driveEmail ?? '',
+                      style: context.textStyles.bodyMedium,
+                    ),
+                    subtitle: _lastBackupDate != null
+                        ? Text(
+                            l10n.backup_last_date(
+                              DateFormat.yMMMd(context.languageCode)
+                                  .add_Hm()
+                                  .format(DateTime.parse(_lastBackupDate!)),
+                            ),
+                          )
+                        : null,
+                    trailing: TextButton(
+                      onPressed: _busy ? null : _signOutGoogle,
+                      child: Text(l10n.backup_sign_out),
+                    ),
+                  ),
+                  _ActionTile(
+                    icon: AppIcons.backup,
+                    label: l10n.backup_now,
+                    subtitle: l10n.backup_uploading,
+                    iconColor: cs.primary,
+                    onTap: _busy ? null : _backupToDrive,
+                  ),
+                  _ActionTile(
+                    icon: AppIcons.import_,
+                    label: l10n.backup_restore_drive,
+                    subtitle: l10n.backup_downloading,
+                    iconColor: cs.tertiary,
+                    onTap: _busy ? null : _restoreFromDrive,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ── Encryption warning ────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.screenHPadding + AppSizes.md,
+            ),
+            child: Text(
+              l10n.backup_encryption_warning,
+              style: context.textStyles.bodySmall?.copyWith(
+                color: cs.outline,
+              ),
+            ),
+          ),
+
+          // ── Local Backup ──────────────────────────────────────────────
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
             child: GlassSection(
               header: l10n.backup_title,
               children: [
@@ -258,7 +573,8 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+            padding:
+                const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
             child: GlassSection(
               header: l10n.backup_export_csv,
               children: [
@@ -310,7 +626,8 @@ class _ActionTile extends StatelessWidget {
         tier: GlassTier.inset,
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-        tintColor: (enabled ? iconColor : cs.outline).withValues(alpha: AppSizes.opacityLight2),
+        tintColor: (enabled ? iconColor : cs.outline)
+            .withValues(alpha: AppSizes.opacityLight2),
         child: SizedBox(
           width: AppSizes.colorSwatchSize,
           height: AppSizes.colorSwatchSize,
@@ -330,9 +647,7 @@ class _ActionTile extends StatelessWidget {
       subtitle: Text(subtitle),
       trailing: enabled
           ? Icon(
-              Directionality.of(context) == TextDirection.rtl
-                  ? AppIcons.chevronLeft
-                  : AppIcons.chevronRight,
+              context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
             )
           : null,
       onTap: onTap,

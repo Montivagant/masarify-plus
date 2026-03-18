@@ -72,7 +72,8 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
     MoneyFormatter.setLocale(resolvedLang);
 
     return MaterialApp.router(
-      title: 'Masarify',
+      onGenerateTitle: (context) =>
+          AppLocalizations.of(context)?.appName ?? 'Masarify',
       debugShowCheckedModeBanner: false,
 
       // Theme

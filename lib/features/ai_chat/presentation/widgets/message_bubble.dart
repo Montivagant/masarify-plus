@@ -33,10 +33,8 @@ class MessageBubble extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             textDirection: _isUser
-                ? (Directionality.of(context) == TextDirection.rtl
-                    ? TextDirection.ltr
-                    : TextDirection.rtl)
-                : Directionality.of(context),
+                ? (context.isRtl ? TextDirection.ltr : TextDirection.rtl)
+                : (context.isRtl ? TextDirection.rtl : TextDirection.ltr),
             children: [
               if (!_isUser) ...[
                 CircleAvatar(

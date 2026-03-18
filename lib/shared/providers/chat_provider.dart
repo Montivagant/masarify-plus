@@ -3,37 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/ai/ai_chat_service.dart';
 import '../../core/services/ai/chat_action_executor.dart';
 import '../../core/utils/money_formatter.dart';
-import '../../data/database/daos/chat_message_dao.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import 'ai_provider.dart';
 import 'budget_provider.dart';
 import 'category_provider.dart';
-import 'database_provider.dart';
 import 'goal_provider.dart';
+import 'recurring_rule_provider.dart';
 import 'repository_providers.dart';
 import 'theme_provider.dart';
 import 'transaction_provider.dart';
 import 'wallet_provider.dart';
 
-// ── 1. ChatMessageDao ───────────────────────────────────────────────────────
-
-final chatMessageDaoProvider = Provider<ChatMessageDao>(
-  (ref) => ref.watch(databaseProvider).chatMessageDao,
-);
-
-// ── 2. Chat messages stream ─────────────────────────────────────────────────
+// ── 1. Chat messages stream ─────────────────────────────────────────────────
 
 final chatMessagesProvider = StreamProvider<List<ChatMessageEntity>>(
-  (ref) => ref.watch(chatMessageDaoProvider).watchAll(),
+  (ref) => ref.watch(chatMessageRepositoryProvider).watchAll(),
 );
 
-// ── 3. AI chat service ──────────────────────────────────────────────────────
+// ── 2. AI chat service ──────────────────────────────────────────────────────
 
 final aiChatServiceProvider = Provider<AiChatService>(
   (ref) => AiChatService(ref.watch(openRouterServiceProvider)),
 );
 
-// ── 4. Financial context (computed snapshot) ────────────────────────────────
+// ── 3. Financial context (computed snapshot) ────────────────────────────────
 
 final financialContextProvider = Provider<FinancialContext>((ref) {
   final now = DateTime.now();
@@ -61,15 +54,12 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
   }
 
   // Categories map for display names
-  final categories =
-      ref.watch(categoriesProvider).valueOrNull ?? [];
-  final lang =
-      ref.watch(localeProvider)?.languageCode ?? 'en';
+  final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+  final lang = ref.watch(localeProvider)?.languageCode ?? 'en';
   final catMap = {for (final cat in categories) cat.id: cat};
 
   // Budget status lines: "CategoryName: 85%"
-  final budgets =
-      ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
+  final budgets = ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
   final budgetStatus = <String>[];
   for (final b in budgets) {
     final cat = catMap[b.categoryId];
@@ -105,6 +95,29 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
       .map((c) => '${c.name} (${c.nameAr})|${c.type}')
       .toList();
 
+  // Unbudgeted categories with significant spending (>500 EGP = 50000 piastres).
+  final budgetedCategoryIds = {for (final b in budgets) b.categoryId};
+  final unbudgetedHighSpend = <String>[];
+  for (final entry in sortedEntries) {
+    if (!budgetedCategoryIds.contains(entry.key) && entry.value >= 50000) {
+      final cat = catMap[entry.key];
+      if (cat != null) {
+        unbudgetedHighSpend.add(
+          '${cat.displayName(lang)}: ${MoneyFormatter.formatCompact(entry.value)}',
+        );
+      }
+    }
+  }
+
+  // Savings rate.
+  final savingsRate = monthlyIncome > 0
+      ? (((monthlyIncome - monthlyExpense) / monthlyIncome) * 100).round()
+      : 0;
+
+  // Recurring count.
+  final recurringRules = ref.watch(recurringRulesProvider).valueOrNull ?? [];
+  final activeRecurringCount = recurringRules.where((r) => r.isActive).length;
+
   return FinancialContext(
     totalBalance: balance,
     monthlyIncome: monthlyIncome,
@@ -114,14 +127,22 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     topCategories: topCategories,
     userLocale: lang,
     categoryList: categoryList,
+    unbudgetedHighSpend: unbudgetedHighSpend,
+    savingsRate: savingsRate,
+    recurringCount: activeRecurringCount,
+    activeBudgetCount: budgets.length,
+    activeGoalCount: goals.length,
   );
 });
 
-// ── 5. Chat action executor ──────────────────────────────────────────────
+// ── 4. Chat action executor ──────────────────────────────────────────────
 
 final chatActionExecutorProvider = Provider<ChatActionExecutor>((ref) {
   return ChatActionExecutor(
     goalRepo: ref.watch(goalRepositoryProvider),
     txRepo: ref.watch(transactionRepositoryProvider),
+    budgetRepo: ref.watch(budgetRepositoryProvider),
+    recurringRepo: ref.watch(recurringRuleRepositoryProvider),
+    walletRepo: ref.watch(walletRepositoryProvider),
   );
 });

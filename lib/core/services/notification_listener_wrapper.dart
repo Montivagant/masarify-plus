@@ -6,9 +6,11 @@ import 'package:notification_listener_service/notification_event.dart';
 import 'package:notification_listener_service/notification_listener_service.dart';
 
 import '../../data/database/app_database.dart';
+import '../../data/database/daos/parsed_event_group_dao.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import 'crash_log_service.dart';
 import 'notification_transaction_parser.dart';
+import 'semantic_fingerprint_service.dart';
 
 /// Wraps the notification_listener_service plugin.
 ///
@@ -16,9 +18,10 @@ import 'notification_transaction_parser.dart';
 /// deduplicates via SHA-256 hash, and stores pending candidates in
 /// [SmsParserLogs] for user review.
 class NotificationListenerWrapper {
-  NotificationListenerWrapper(this._dao);
+  NotificationListenerWrapper(this._dao, {this.eventGroupDao});
 
   final SmsParserLogDao _dao;
+  final ParsedEventGroupDao? eventGroupDao;
   StreamSubscription<ServiceNotificationEvent>? _subscription;
   bool _disposed = false;
   bool _isStarting = false;
@@ -78,7 +81,10 @@ class NotificationListenerWrapper {
         final hasAccess = await hasPermission();
         debugPrint('[NotificationListener] hasPermission=$hasAccess');
         if (!hasAccess) {
-          CrashLogService.log('NotificationListenerWrapper: permission not granted', StackTrace.current);
+          CrashLogService.log(
+            'NotificationListenerWrapper: permission not granted',
+            StackTrace.current,
+          );
           return;
         }
       } catch (e, stack) {
@@ -97,12 +103,17 @@ class NotificationListenerWrapper {
         );
         debugPrint('[NotificationListener] stream subscribed successfully');
       } catch (e, stack) {
-        debugPrint('[NotificationListener] stream subscribe failed (retry=$retryCount): $e');
+        debugPrint(
+          '[NotificationListener] stream subscribe failed (retry=$retryCount): $e',
+        );
         CrashLogService.log(e, stack);
         // Retry up to 5 times — service may not be fully bound after permission grant.
         if (retryCount < 5) {
-          final delay = Duration(seconds: 1 + retryCount); // 1s, 2s, 3s, 4s, 5s backoff
-          debugPrint('[NotificationListener] retrying in ${delay.inSeconds}s...');
+          final delay =
+              Duration(seconds: 1 + retryCount); // 1s, 2s, 3s, 4s, 5s backoff
+          debugPrint(
+            '[NotificationListener] retrying in ${delay.inSeconds}s...',
+          );
           await Future<void>.delayed(delay);
           if (!_disposed) {
             await _start(retryCount + 1);
@@ -157,7 +168,9 @@ class NotificationListenerWrapper {
       }
 
       if (kDebugMode) {
-        debugPrint('[NotificationListener] financial notification from $sender');
+        debugPrint(
+          '[NotificationListener] financial notification from $sender',
+        );
       }
 
       // Parse
@@ -189,8 +202,41 @@ class NotificationListenerWrapper {
       if (inserted == null || inserted.aiEnrichmentJson != null) return;
       if (inserted.source != 'notification') return;
 
-      // AI enrichment is user-initiated from the review screen.
-      // Just notify that a new pending item arrived.
+      // WS3: Semantic fingerprint dedup — check for cross-source duplicates.
+      if (eventGroupDao != null) {
+        final fingerprints = SemanticFingerprintService.compute(
+          senderOrWalletId: parsed.senderAddress,
+          amountPiastres: parsed.amountPiastres,
+          type: parsed.type,
+          receivedAt: parsed.receivedAt,
+        );
+
+        final existingGroup =
+            await eventGroupDao!.findByFingerprints(fingerprints);
+        if (existingGroup != null) {
+          // Duplicate — mark as such and don't notify.
+          await eventGroupDao!.markAsDuplicate(
+            inserted.id,
+            existingGroup.semanticFingerprint,
+          );
+          return;
+        }
+
+        // New event — create a group with this log as canonical.
+        await eventGroupDao!.createGroup(
+          fingerprint: fingerprints.first,
+          canonicalLogId: inserted.id,
+          amountPiastres: parsed.amountPiastres,
+          type: parsed.type,
+          eventTime: parsed.receivedAt,
+        );
+        await eventGroupDao!.setLogFingerprint(
+          inserted.id,
+          fingerprints.first,
+        );
+      }
+
+      // Notify that a new pending item arrived.
       onNewPending?.call();
     } catch (e, stack) {
       if (kDebugMode) {

@@ -33,10 +33,27 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
   bool _loading = false;
 
   static const _iconNames = [
-    'food', 'transport', 'housing', 'utilities', 'phone', 'health',
-    'groceries', 'education', 'shopping', 'entertainment', 'clothing',
-    'personal_care', 'gifts', 'travel', 'subscriptions', 'salary',
-    'freelance', 'business', 'investment', 'wallet', 'goals',
+    'food',
+    'transport',
+    'housing',
+    'utilities',
+    'phone',
+    'health',
+    'groceries',
+    'education',
+    'shopping',
+    'entertainment',
+    'clothing',
+    'personal_care',
+    'gifts',
+    'travel',
+    'subscriptions',
+    'salary',
+    'freelance',
+    'business',
+    'investment',
+    'wallet',
+    'goals',
   ];
 
   static const _colorOptions = AppColors.pickerOptions;
@@ -97,8 +114,8 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
         }
       } else {
         await repo.create(
-          name: name,
-          nameAr: name,
+          name: isAr ? '' : name,
+          nameAr: isAr ? name : '',
           iconName: _iconName,
           colorHex: _colorHex,
           type: _type,
@@ -125,7 +142,11 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
     final selectedColor = ColorUtils.fromHex(_colorHex);
 
     return Scaffold(
-      appBar: AppAppBar(title: isEdit ? context.l10n.category_edit_title : context.l10n.category_add_title),
+      appBar: AppAppBar(
+        title: isEdit
+            ? context.l10n.category_edit_title
+            : context.l10n.category_add_title,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
@@ -149,8 +170,8 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             if (!isEdit) ...[
               Text(
                 context.l10n.category_type,
-                style: context.textStyles.labelLarge
-                    ?.copyWith(color: cs.outline),
+                style:
+                    context.textStyles.labelLarge?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
               SegmentedButton<String>(
@@ -179,8 +200,8 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             if (_type == 'expense') ...[
               Text(
                 context.l10n.transaction_category,
-                style: context.textStyles.labelLarge
-                    ?.copyWith(color: cs.outline),
+                style:
+                    context.textStyles.labelLarge?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
               Wrap(
@@ -207,8 +228,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             // Color picker
             Text(
               context.l10n.category_color,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             Wrap(
@@ -234,11 +254,21 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: isSelected
-                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                                ? Border.all(
+                                    color: cs.primary,
+                                    width: AppSizes.colorSwatchBorder,
+                                  )
+                                : Border.all(
+                                    color: AppColors.transparent,
+                                    width: AppSizes.colorSwatchBorder,
+                                  ),
                           ),
                           child: isSelected
-                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              ? Icon(
+                                  AppIcons.check,
+                                  color: ColorUtils.contrastColor(color),
+                                  size: AppSizes.iconXs,
+                                )
                               : null,
                         ),
                       ),
@@ -252,8 +282,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
             // Icon picker
             Text(
               context.l10n.category_icon,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             GridView.builder(
@@ -277,12 +306,17 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? selectedColor.withValues(alpha: AppSizes.opacityLight)
+                            ? selectedColor.withValues(
+                                alpha: AppSizes.opacityLight,
+                              )
                             : cs.surfaceContainerHighest,
                         borderRadius:
                             BorderRadius.circular(AppSizes.borderRadiusSm),
                         border: isSelected
-                            ? Border.all(color: selectedColor, width: 2)
+                            ? Border.all(
+                                color: selectedColor,
+                                width: AppSizes.borderWidthFocus,
+                              )
                             : null,
                       ),
                       child: Icon(
@@ -295,15 +329,25 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
                 );
               },
             ),
-            const SizedBox(height: AppSizes.xl),
-
-            AppButton(
-              label: isEdit ? context.l10n.common_save_changes : context.l10n.category_add,
-              onPressed: _loading ? null : _save,
-              isLoading: _loading,
-              icon: AppIcons.check,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: isEdit
+                ? context.l10n.common_save_changes
+                : context.l10n.category_add,
+            onPressed: _loading ? null : _save,
+            isLoading: _loading,
+            icon: AppIcons.check,
+          ),
         ),
       ),
     );

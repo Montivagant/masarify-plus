@@ -21,6 +21,9 @@ class PdfLabels {
     required this.net,
     required this.categoryHeaders,
     required this.txHeaders,
+    required this.pageLabel,
+    required this.ofLabel,
+    this.unknownCategory = 'Unknown',
   });
 
   final String reportTitle;
@@ -31,6 +34,9 @@ class PdfLabels {
   final String net;
   final List<String> categoryHeaders;
   final List<String> txHeaders;
+  final String pageLabel;
+  final String ofLabel;
+  final String unknownCategory;
 }
 
 /// Generates a monthly financial summary PDF.
@@ -122,9 +128,18 @@ class PdfExportService {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
             children: [
-              _summaryColumn(labels.income, MoneyFormatter.format(totalIncome)),
-              _summaryColumn(labels.expense, MoneyFormatter.format(totalExpense)),
-              _summaryColumn(labels.net, MoneyFormatter.format(net.abs())),
+              _summaryColumn(
+                labels.income,
+                MoneyFormatter.format(totalIncome),
+              ),
+              _summaryColumn(
+                labels.expense,
+                MoneyFormatter.format(totalExpense),
+              ),
+              _summaryColumn(
+                labels.net,
+                MoneyFormatter.format(net.abs()),
+              ),
             ],
           ),
           pw.SizedBox(height: AppSizes.lg),
@@ -148,7 +163,7 @@ class PdfExportService {
               headers: labels.categoryHeaders,
               data: top5.map((e) {
                 return [
-                  catMap[e.key] ?? 'Unknown',
+                  catMap[e.key] ?? labels.unknownCategory,
                   MoneyFormatter.format(e.value),
                 ];
               }).toList(),
@@ -188,8 +203,11 @@ class PdfExportService {
         footer: (context) => pw.Container(
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
-            'Page ${context.pageNumber} of ${context.pagesCount}',
-            style: const pw.TextStyle(fontSize: AppSizes.pdfSmallFontSize, color: PdfColors.grey),
+            '${labels.pageLabel} ${context.pageNumber} ${labels.ofLabel} ${context.pagesCount}',
+            style: const pw.TextStyle(
+              fontSize: AppSizes.pdfSmallFontSize,
+              color: PdfColors.grey,
+            ),
           ),
         ),
       ),
@@ -208,12 +226,18 @@ class PdfExportService {
       children: [
         pw.Text(
           label,
-          style: const pw.TextStyle(fontSize: AppSizes.pdfBodyFontSize, color: PdfColors.grey700),
+          style: const pw.TextStyle(
+            fontSize: AppSizes.pdfBodyFontSize,
+            color: PdfColors.grey700,
+          ),
         ),
         pw.SizedBox(height: AppSizes.xs),
         pw.Text(
           value,
-          style: pw.TextStyle(fontSize: AppSizes.pdfSummaryFontSize, fontWeight: pw.FontWeight.bold),
+          style: pw.TextStyle(
+            fontSize: AppSizes.pdfSummaryFontSize,
+            fontWeight: pw.FontWeight.bold,
+          ),
         ),
       ],
     );

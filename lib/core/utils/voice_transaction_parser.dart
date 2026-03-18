@@ -70,12 +70,28 @@ class VoiceTransactionParser {
     );
   }
 
-  /// I8 fix: when both income and expense triggers are present,
+  /// I8 fix: when multiple type triggers are present,
   /// use positional priority (whichever appears first in text wins).
+  /// Cash withdrawal/deposit triggers are checked alongside others.
   static String _detectType(String text) {
     int? firstIncome;
     int? firstExpense;
+    int? firstCashWithdrawal;
+    int? firstCashDeposit;
 
+    for (final trigger in VoiceDictionary.cashWithdrawalTriggers) {
+      final idx = text.indexOf(trigger);
+      if (idx != -1 &&
+          (firstCashWithdrawal == null || idx < firstCashWithdrawal)) {
+        firstCashWithdrawal = idx;
+      }
+    }
+    for (final trigger in VoiceDictionary.cashDepositTriggers) {
+      final idx = text.indexOf(trigger);
+      if (idx != -1 && (firstCashDeposit == null || idx < firstCashDeposit)) {
+        firstCashDeposit = idx;
+      }
+    }
     for (final trigger in VoiceDictionary.incomeTriggers) {
       final idx = text.indexOf(trigger);
       if (idx != -1 && (firstIncome == null || idx < firstIncome)) {
@@ -89,11 +105,18 @@ class VoiceTransactionParser {
       }
     }
 
-    if (firstIncome != null && firstExpense != null) {
-      return firstIncome < firstExpense ? 'income' : 'expense';
-    }
-    if (firstIncome != null) return 'income';
-    return 'expense';
+    // Find the earliest trigger across all types
+    final candidates = <String, int>{
+      if (firstCashWithdrawal != null) 'cash_withdrawal': firstCashWithdrawal,
+      if (firstCashDeposit != null) 'cash_deposit': firstCashDeposit,
+      if (firstIncome != null) 'income': firstIncome,
+      if (firstExpense != null) 'expense': firstExpense,
+    };
+
+    if (candidates.isEmpty) return 'expense';
+
+    // Return the type whose trigger appears earliest
+    return candidates.entries.reduce((a, b) => a.value <= b.value ? a : b).key;
   }
 
   static String? _detectCategory(String text) {
@@ -118,6 +141,7 @@ class VoiceTransactionDraft {
     required this.rawText,
     this.amountPiastres,
     this.categoryHint,
+    this.walletHint,
     this.note,
     this.type = 'expense',
     this.dateOffset = 0,
@@ -129,9 +153,14 @@ class VoiceTransactionDraft {
   final int? amountPiastres;
 
   final String? categoryHint;
+
+  /// Wallet name mentioned by the user (e.g. "CIB", "Cash").
+  /// Used for fuzzy matching in VoiceConfirmScreen.
+  final String? walletHint;
+
   final String? note;
 
-  /// 'income' or 'expense' (defaults to expense).
+  /// 'income', 'expense', 'cash_withdrawal', or 'cash_deposit'.
   final String type;
 
   /// Days offset from today (0 = today, -1 = yesterday).

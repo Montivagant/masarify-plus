@@ -37,8 +37,6 @@ class BudgetEntity {
   double get progressFraction =>
       effectiveLimit > 0 ? spentAmount / effectiveLimit : 0.0;
 
-  bool get isOverBudget => spentAmount > effectiveLimit;
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

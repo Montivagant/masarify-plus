@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -184,6 +184,13 @@ class AppDatabase extends _$AppDatabase {
             // A1: Migrate 'savings' wallets → 'bank' (savings type removed).
             await customStatement(
               "UPDATE wallets SET type = 'bank' WHERE type = 'savings'",
+            );
+          }
+          if (from < 10) {
+            // Seed "ATM" category for cash withdrawal/deposit transactions.
+            await customStatement(
+              'INSERT OR IGNORE INTO categories (name, icon_name, type, is_default, display_order) '
+              "VALUES ('ATM', 'bank', 'both', 1, 99)",
             );
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.

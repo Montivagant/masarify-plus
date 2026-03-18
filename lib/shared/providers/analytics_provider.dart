@@ -71,7 +71,8 @@ final monthlyTotalsProvider =
       repo.sumByTypeAndMonth('income', y, m),
       repo.sumByTypeAndMonth('expense', y, m),
     ]);
-    results.add(MonthlyTotal(year: y, month: m, income: income, expense: expense));
+    results
+        .add(MonthlyTotal(year: y, month: m, income: income, expense: expense));
   }
 
   return results;
@@ -81,17 +82,15 @@ final monthlyTotalsProvider =
 
 /// Expense categories ranked by amount for a (year, month).
 /// Watches the transactions stream internally so the family key is stable.
-final categoryBreakdownProvider = Provider.family<
-    AsyncValue<List<CategorySpending>>,
-    (int year, int month)>(
+final categoryBreakdownProvider =
+    Provider.family<AsyncValue<List<CategorySpending>>, (int year, int month)>(
   (ref, params) {
     final txAsync = ref.watch(transactionsByMonthProvider(params));
     // Watch these unconditionally so changes always retrigger this provider,
     // even when txAsync is briefly in loading state.
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
-    final lang = ref.watch(localeProvider)?.languageCode ?? 'ar';
+    final lang = ref.watch(localeProvider)?.languageCode ?? 'en';
     return txAsync.whenData((transactions) {
-
       final expenses = transactions.where((tx) => tx.type == 'expense');
       final byCategory = <int, int>{};
       for (final tx in expenses) {
@@ -129,7 +128,8 @@ final dailySpendingProvider =
     FutureProvider.family<List<DailySpending>, int>((ref, days) async {
   final now = DateTime.now();
   final start = DateTime(now.year, now.month, now.day - days + 1);
-  final end = DateTime(now.year, now.month, now.day + 1); // midnight tomorrow (exclusive)
+  // midnight tomorrow (exclusive)
+  final end = DateTime(now.year, now.month, now.day + 1);
 
   final repo = ref.watch(transactionRepositoryProvider);
   // Watch all recent transactions so backdated edits also trigger refresh
@@ -157,46 +157,4 @@ final dailySpendingProvider =
       .map((e) => DailySpending(date: e.key, amount: e.value))
       .toList()
     ..sort((a, b) => a.date.compareTo(b.date));
-});
-
-// ── Comparison: this month vs last month ─────────────────────────────────
-
-class MonthComparison {
-  const MonthComparison({
-    required this.thisMonth,
-    required this.lastMonth,
-  });
-
-  final MonthlyTotal thisMonth;
-  final MonthlyTotal lastMonth;
-}
-
-final monthComparisonProvider = FutureProvider<MonthComparison>((ref) async {
-  final now = DateTime.now();
-  final lastMonthDate = DateTime(now.year, now.month - 1);
-  final repo = ref.watch(transactionRepositoryProvider);
-  // Watch all recent transactions so any tx change triggers refresh
-  ref.watch(recentTransactionsProvider);
-
-  final [thisIncome, thisExpense, lastIncome, lastExpense] = await Future.wait([
-    repo.sumByTypeAndMonth('income', now.year, now.month),
-    repo.sumByTypeAndMonth('expense', now.year, now.month),
-    repo.sumByTypeAndMonth('income', lastMonthDate.year, lastMonthDate.month),
-    repo.sumByTypeAndMonth('expense', lastMonthDate.year, lastMonthDate.month),
-  ]);
-
-  return MonthComparison(
-    thisMonth: MonthlyTotal(
-      year: now.year,
-      month: now.month,
-      income: thisIncome,
-      expense: thisExpense,
-    ),
-    lastMonth: MonthlyTotal(
-      year: lastMonthDate.year,
-      month: lastMonthDate.month,
-      income: lastIncome,
-      expense: lastExpense,
-    ),
-  );
 });

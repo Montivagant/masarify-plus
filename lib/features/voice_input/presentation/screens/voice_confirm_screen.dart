@@ -336,6 +336,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     return null;
   }
 
+  /// Returns true if [type] is a cash withdrawal or deposit.
+  static bool _isCashType(String type) =>
+      type == 'cash_withdrawal' || type == 'cash_deposit';
+
   Future<void> _confirmAll(BuildContext ctx) async {
     // R5-I7 fix: prevent double-tap race condition
     if (_saving) return;
@@ -344,7 +348,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final included = _editableDrafts.where((d) => d.isIncluded).toList();
     if (included.isEmpty) return;
 
-    // Validate all included drafts have amount, category, and wallet
+    // Separate cash-type drafts from regular transaction drafts
+    final cashDrafts = included.where((d) => _isCashType(d.type)).toList();
+    final txDrafts = included.where((d) => !_isCashType(d.type)).toList();
+
+    // Validate all included drafts
     final total = included.length;
     for (var i = 0; i < total; i++) {
       final draft = included[i];
@@ -355,7 +363,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         );
         return;
       }
-      if (draft.categoryId == null) {
+      // Cash types don't need a category
+      if (draft.categoryId == null && !_isCashType(draft.type)) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
             content: Text('$prefix${ctx.l10n.error_category_required}'),
@@ -383,33 +392,67 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final errorMsg = l10n.common_error_generic;
 
     try {
-      final txRepo = ref.read(transactionRepositoryProvider);
+      // Save cash drafts as transfers
+      if (cashDrafts.isNotEmpty) {
+        final cashWallet = ref.read(systemWalletProvider).valueOrNull;
+        if (cashWallet == null) {
+          setState(() => _saving = false);
+          messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+          return;
+        }
 
-      // Batch all writes in a single DB transaction for atomicity.
-      await txRepo.createBatch(
-        included
-            .map(
-              (draft) => CreateTransactionParams(
-                walletId: draft.walletId!,
-                categoryId: draft.categoryId!,
-                amount: draft.amountPiastres,
-                type: draft.type,
-                title: draft.rawText,
-                transactionDate: draft.transactionDate,
-                source: 'voice',
-                rawSourceText: draft.rawText,
-                note: draft.note,
-                goalId: draft.goalId,
-              ),
-            )
-            .toList(),
-      );
+        final transferRepo = ref.read(transferRepositoryProvider);
+        for (final draft in cashDrafts) {
+          final bankWalletId = draft.walletId!;
+          if (draft.type == 'cash_withdrawal') {
+            await transferRepo.create(
+              fromWalletId: bankWalletId,
+              toWalletId: cashWallet.id,
+              amount: draft.amountPiastres,
+              note: draft.note,
+              transferDate: draft.transactionDate,
+            );
+          } else {
+            // cash_deposit
+            await transferRepo.create(
+              fromWalletId: cashWallet.id,
+              toWalletId: bankWalletId,
+              amount: draft.amountPiastres,
+              note: draft.note,
+              transferDate: draft.transactionDate,
+            );
+          }
+        }
+      }
+
+      // Save regular transaction drafts as batch
+      if (txDrafts.isNotEmpty) {
+        final txRepo = ref.read(transactionRepositoryProvider);
+        await txRepo.createBatch(
+          txDrafts
+              .map(
+                (draft) => CreateTransactionParams(
+                  walletId: draft.walletId!,
+                  categoryId: draft.categoryId!,
+                  amount: draft.amountPiastres,
+                  type: draft.type,
+                  title: draft.rawText,
+                  transactionDate: draft.transactionDate,
+                  source: 'voice',
+                  rawSourceText: draft.rawText,
+                  note: draft.note,
+                  goalId: draft.goalId,
+                ),
+              )
+              .toList(),
+        );
+      }
 
       if (!mounted) return;
 
-      // Check goal keyword match across saved drafts.
+      // Check goal keyword match across saved drafts (only for regular txs).
       String? matchedGoalName;
-      for (final draft in included) {
+      for (final draft in txDrafts) {
         matchedGoalName = _matchGoalForDraft(draft.rawText);
         if (matchedGoalName != null) break;
       }
@@ -643,9 +686,13 @@ class _DraftCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
-    final typeColor = draft.type == 'income'
-        ? context.appTheme.incomeColor
-        : context.appTheme.expenseColor;
+    final isCash =
+        draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
+    final typeColor = switch (draft.type) {
+      'income' => context.appTheme.incomeColor,
+      'cash_withdrawal' || 'cash_deposit' => context.appTheme.transferColor,
+      _ => context.appTheme.expenseColor,
+    };
     final walletWarningColor = cs.error;
 
     return Opacity(
@@ -691,9 +738,9 @@ class _DraftCard extends StatelessWidget {
               ignoring: !isIncluded,
               child: Row(
                 children: [
-                  // Type chip
+                  // Type chip — not tappable for cash types
                   GestureDetector(
-                    onTap: onTypeToggle,
+                    onTap: isCash ? null : onTypeToggle,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSizes.md,
@@ -706,9 +753,14 @@ class _DraftCard extends StatelessWidget {
                             BorderRadius.circular(AppSizes.borderRadiusSm),
                       ),
                       child: Text(
-                        draft.type == 'income'
-                            ? context.l10n.transaction_type_income
-                            : context.l10n.transaction_type_expense,
+                        switch (draft.type) {
+                          'income' => context.l10n.transaction_type_income,
+                          'cash_withdrawal' =>
+                            context.l10n.transaction_type_cash_withdrawal_short,
+                          'cash_deposit' =>
+                            context.l10n.transaction_type_cash_deposit_short,
+                          _ => context.l10n.transaction_type_expense,
+                        },
                         style: context.textStyles.bodySmall?.copyWith(
                           color: typeColor,
                           fontWeight: FontWeight.w600,
@@ -718,41 +770,42 @@ class _DraftCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSizes.sm),
 
-                  // Category chip
-                  GestureDetector(
-                    onTap: onCategoryTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.md,
-                        vertical: AppSizes.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: categoryColor.withValues(
-                          alpha: AppSizes.opacityLight2,
+                  // Category chip — hidden for cash types
+                  if (!isCash)
+                    GestureDetector(
+                      onTap: onCategoryTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.md,
+                          vertical: AppSizes.xs,
                         ),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.borderRadiusSm),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            categoryIcon,
-                            size: AppSizes.iconXxs2,
-                            color: categoryColor,
+                        decoration: BoxDecoration(
+                          color: categoryColor.withValues(
+                            alpha: AppSizes.opacityLight2,
                           ),
-                          const SizedBox(width: AppSizes.xs),
-                          Text(
-                            categoryName ?? context.l10n.transaction_category,
-                            style: context.textStyles.bodySmall?.copyWith(
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.borderRadiusSm),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              categoryIcon,
+                              size: AppSizes.iconXxs2,
                               color: categoryColor,
-                              fontWeight: FontWeight.w600,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: AppSizes.xs),
+                            Text(
+                              categoryName ?? context.l10n.transaction_category,
+                              style: context.textStyles.bodySmall?.copyWith(
+                                color: categoryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

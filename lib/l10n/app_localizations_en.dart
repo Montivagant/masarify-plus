@@ -2447,4 +2447,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_ready_cta => 'Start Tracking';
+
+  @override
+  String get cash_in_hand => 'Cash in Hand';
+
+  @override
+  String get transaction_type_cash_withdrawal => 'Cash Withdrawal';
+
+  @override
+  String get transaction_type_cash_withdrawal_short => 'Withdraw';
+
+  @override
+  String get transaction_type_cash_deposit => 'Cash Deposit';
+
+  @override
+  String get transaction_type_cash_deposit_short => 'Deposit';
+
+  @override
+  String get category_atm => 'ATM';
 }

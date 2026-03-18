@@ -8,21 +8,21 @@ abstract final class AppColors {
   static const Color primaryLight = Color(0xFFE0F7EF); // Very Light Mint
   static const Color accent = Color(0xFF558B71); // Sage Green
   static const Color incomeGreen = Color(0xFF2D7A4F); // Forest Green
-  static const Color expenseRed = Color(0xFFC4384A); // Coral Red (WS-5: reduced brightness)
+  static const Color expenseRed =
+      Color(0xFFC4384A); // Coral Red (WS-5: reduced brightness)
   static const Color transferBlue = Color(0xFF2E7DD1); // Ocean Blue
   static const Color warning = Color(0xFFB8860B); // Warm Amber
   static const Color surface = Color(0xFFF5FBF8); // Mint White
   static const Color onSurface = Color(0xFF1A2E27); // Deep Green-Black
-  static const Color surfaceCard = Color(0xFFFFFFFF); // Pure White
   static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
   static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
 
   // ── Dark Mode (Gothic Noir) ─────────────────────────────────────────
   static const Color backgroundDark = Color(0xFF0E0E0E); // True Noir
   static const Color surfaceDark = Color(0xFF1A1A1A); // Dark Charcoal
-  static const Color primaryDark = Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
+  static const Color primaryDark =
+      Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
   static const Color onSurfaceDark = Color(0xFFC4C4C4); // Silver Gray
-  static const Color surfaceCardDark = Color(0xFF1E1E2A); // Dark indigo-gray (WS-5: cooler)
   static const Color primaryContainerDark = Color(0xFF2D2344); // Dark Violet
   static const Color secondaryDark = Color(0xFFC4898A); // Mauve Pink
   static const Color secondaryContainerDark = Color(0xFF3D2A2A); // Dark mauve
@@ -37,26 +37,17 @@ abstract final class AppColors {
   static const Color lastMonthGrayLightDark = Color(0xFF64748B); // Slate 500
 
   // ── Semantic ──────────────────────────────────────────────────────────
-  static const Color success = Color(0xFF1B7A4A); // Deep Emerald
-  static const Color successDark = Color(0xFF7DAE8B); // Sage Green
   static const Color error = expenseRed;
 
   // ── Dark mode semantic colors ────────────────────────────────────────
   static const Color incomeGreenDark = Color(0xFFE19B8B); // Rose Gold
-  static const Color expenseRedDark = Color(0xFFB85450); // Warm terracotta (WS-5: less aggressive)
+  static const Color expenseRedDark =
+      Color(0xFFB85450); // Warm terracotta (WS-5: less aggressive)
   static const Color transferBlueDark = Color(0xFF6B7FA3); // Muted Blue
   static const Color warningDark = Color(0xFFD4A574); // Warm Tan
 
-  // ── Disabled ─────────────────────────────────────────────────────────
-  static const Color disabled = Color(0xFFB0C4B8); // Muted Sage
-  static const Color disabledDark = Color(0xFF4A4A4A); // Charcoal Gray
-  static const Color onDisabled = Color(0xFF64748B); // Slate 500
-
   // ── Semantic text overlays (on solid semantic backgrounds) ───────────
-  static const Color onSuccess = Colors.white;
-  static const Color onError = Colors.white;
-  static const Color onWarning = Colors.white;
-  static const Color onTransfer = Colors.white;
+  static const Color onTransfer = AppColors.white;
 
   // ── Gradient stops (WS-7) ─────────────────────────────────────────────
   static const Color gradientStartLight = Color(0xFF3DA37A); // Mint
@@ -64,22 +55,19 @@ abstract final class AppColors {
   static const Color gradientStartDark = Color(0xFF6B5B95); // Purple
   static const Color gradientEndDark = Color(0xFF4A3D6E); // Deep Purple
 
-  // ── Glass surface (WS-7) ──────────────────────────────────────────────
-  static const Color glassSurfaceLight = Color(0x33FFFFFF); // White 20%
-  static const Color glassBorderLight = Color(0x1AFFFFFF); // White 10%
-  static const Color glassSurfaceDark = Color(0x33FFFFFF); // White 20%
-  static const Color glassBorderDark = Color(0x1AFFFFFF); // White 10%
-
   // ── 3-Tier Glass Hierarchy ──────────────────────────────────────────
   // Tier 2: Card — semi-transparent with theme tint
-  static const Color glassCardSurfaceLight = Color(0xDEF5FBF8); // #F5FBF8 at 87%
+  static const Color glassCardSurfaceLight =
+      Color(0xDEF5FBF8); // #F5FBF8 at 87%
   static const Color glassCardSurfaceDark = Color(0xDE1E1E2A); // #1E1E2A at 87%
   static const Color glassCardBorderLight = Color(0x14FFFFFF); // White at 8%
   static const Color glassCardBorderDark = Color(0x1AFFFFFF); // White at 10%
 
   // Tier 1: Sheet — heavier transparency for overlays
-  static const Color glassSheetSurfaceLight = Color(0xB3F5FBF8); // #F5FBF8 at 70%
-  static const Color glassSheetSurfaceDark = Color(0xB30E0E0E); // #0E0E0E at 70%
+  static const Color glassSheetSurfaceLight =
+      Color(0xB3F5FBF8); // #F5FBF8 at 70%
+  static const Color glassSheetSurfaceDark =
+      Color(0xB30E0E0E); // #0E0E0E at 70%
   static const Color glassSheetBorderLight = Color(0x0DFFFFFF); // White at 5%
   static const Color glassSheetBorderDark = Color(0x14FFFFFF); // White at 8%
 
@@ -108,7 +96,13 @@ abstract final class AppColors {
   // ── Color picker options ────────────────────────────────────────────────
   /// Shared palette for category, wallet, and goal color pickers.
   static const List<String> pickerOptions = [
-    '#1A6B5E', '#F5A623', '#16A34A', '#DC2626',
-    '#1E88E5', '#7C3AED', '#DB2777', '#0891B2',
+    '#1A6B5E',
+    '#F5A623',
+    '#16A34A',
+    '#DC2626',
+    '#1E88E5',
+    '#7C3AED',
+    '#DB2777',
+    '#0891B2',
   ];
 }

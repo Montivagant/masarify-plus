@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:another_telephony/telephony.dart';
 
 import '../../data/database/app_database.dart';
+import '../../data/database/daos/parsed_event_group_dao.dart';
 import '../../data/database/daos/sms_parser_log_dao.dart';
 import '../../domain/entities/category_entity.dart';
 import '../config/ai_config.dart';
@@ -12,6 +13,7 @@ import '../config/app_config.dart';
 import 'ai/ai_transaction_parser.dart';
 import 'connectivity_service.dart';
 import 'notification_transaction_parser.dart';
+import 'semantic_fingerprint_service.dart';
 
 /// SMS inbox parser — reuses [NotificationTransactionParser] regex patterns.
 ///
@@ -24,12 +26,14 @@ class SmsParserService {
     this._dao, {
     this.aiParser,
     this.categories,
+    this.eventGroupDao,
     ConnectivityService? connectivityService,
   }) : _connectivityService = connectivityService ?? ConnectivityService();
 
   final SmsParserLogDao _dao;
   final AiTransactionParser? aiParser;
   final List<CategoryEntity>? categories;
+  final ParsedEventGroupDao? eventGroupDao;
   final ConnectivityService _connectivityService;
 
   /// Scan SMS inbox for financial messages. No-op if feature is disabled.
@@ -109,6 +113,41 @@ class SmsParserService {
       if (inserted == null || inserted.aiEnrichmentJson != null) continue;
       // Only count and enrich truly new entries
       if (inserted.source != 'sms') continue;
+
+      // WS3: Semantic fingerprint dedup — check for cross-source duplicates.
+      if (eventGroupDao != null) {
+        final fingerprints = SemanticFingerprintService.compute(
+          senderOrWalletId: parsed.senderAddress,
+          amountPiastres: parsed.amountPiastres,
+          type: parsed.type,
+          receivedAt: parsed.receivedAt,
+        );
+        final existingGroup =
+            await eventGroupDao!.findByFingerprints(fingerprints);
+        if (existingGroup != null) {
+          await eventGroupDao!.markAsDuplicate(
+            inserted.id,
+            existingGroup.semanticFingerprint,
+          );
+          dev.log(
+            'SMS dedup: log ${inserted.id} marked as duplicate of group ${existingGroup.id}',
+            name: 'SmsParserService',
+          );
+          continue; // Skip enrichment for duplicates
+        }
+        // New event — create group.
+        await eventGroupDao!.createGroup(
+          fingerprint: fingerprints.first,
+          canonicalLogId: inserted.id,
+          amountPiastres: parsed.amountPiastres,
+          type: parsed.type,
+          eventTime: parsed.receivedAt,
+        );
+        await eventGroupDao!.setLogFingerprint(
+          inserted.id,
+          fingerprints.first,
+        );
+      }
 
       // AI enrichment (optional — null on failure). Skipped when offline.
       if (!isOnline) {

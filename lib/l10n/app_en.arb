@@ -944,5 +944,13 @@
   "onboarding_feature_goal_body": "Save towards what matters most to you.",
   "onboarding_ready_title": "You're All Set!",
   "onboarding_ready_body": "Start tracking your money today.",
-  "onboarding_ready_cta": "Start Tracking"
+  "onboarding_ready_cta": "Start Tracking",
+
+  "cash_in_hand": "Cash in Hand",
+
+  "transaction_type_cash_withdrawal": "Cash Withdrawal",
+  "transaction_type_cash_withdrawal_short": "Withdraw",
+  "transaction_type_cash_deposit": "Cash Deposit",
+  "transaction_type_cash_deposit_short": "Deposit",
+  "category_atm": "ATM"
 }

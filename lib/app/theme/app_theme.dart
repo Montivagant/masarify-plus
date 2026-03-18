@@ -45,8 +45,16 @@ abstract final class AppTheme {
 
     return base.copyWith(
       textTheme: base.textTheme.merge(AppTextStyles.sizeOverrides),
-      primaryTextTheme: base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
+      primaryTextTheme:
+          base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: AppColors.surface,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        backgroundColor: AppColors.surface,
+        indicatorShape: const StadiumBorder(),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        elevation: AppSizes.elevationNone,
+        height: AppSizes.bottomNavHeight,
+      ),
       extensions: const [AppThemeExtension.light],
     );
   }
@@ -88,8 +96,16 @@ abstract final class AppTheme {
 
     return base.copyWith(
       textTheme: base.textTheme.merge(AppTextStyles.sizeOverrides),
-      primaryTextTheme: base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
+      primaryTextTheme:
+          base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: AppColors.backgroundDark,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        backgroundColor: AppColors.surfaceDark,
+        indicatorShape: const StadiumBorder(),
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+        elevation: AppSizes.elevationNone,
+        height: AppSizes.bottomNavHeight,
+      ),
       extensions: const [AppThemeExtension.dark],
     );
   }

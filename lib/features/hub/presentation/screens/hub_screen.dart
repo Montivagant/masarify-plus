@@ -8,6 +8,8 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/pending_transactions_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -51,6 +53,27 @@ class HubScreen extends ConsumerWidget {
               AppIcons.wallet,
               AppRoutes.wallets,
             ),
+            _tile(
+              context,
+              context.l10n.settings_categories_label,
+              AppIcons.category,
+              AppRoutes.categories,
+            ),
+            Builder(
+              builder: (context) {
+                final pendingCount =
+                    ref.watch(pendingCountProvider).valueOrNull ?? 0;
+                return _tile(
+                  context,
+                  context.l10n.auto_detected_transactions,
+                  AppIcons.inbox,
+                  AppRoutes.parserReview,
+                  subtitle: pendingCount > 0
+                      ? context.l10n.sms_new_found(pendingCount)
+                      : null,
+                );
+              },
+            ),
           ]),
 
           // ── Budgets & Goals ────────────────────────────────────────
@@ -93,6 +116,34 @@ class HubScreen extends ConsumerWidget {
               AppIcons.ai,
               AppRoutes.chat,
             ),
+            // Quick Start tile — only shown if wizard not completed.
+            Builder(
+              builder: (context) {
+                final isDone = ref
+                        .watch(preferencesFutureProvider)
+                        .valueOrNull
+                        ?.isQuickStartDone ??
+                    false;
+                if (isDone) return const SizedBox.shrink();
+                return _tile(
+                  context,
+                  context.l10n.quick_start_title,
+                  AppIcons.quickStart,
+                  AppRoutes.quickStart,
+                  subtitle: context.l10n.quick_start_subtitle,
+                );
+              },
+            ),
+          ]),
+
+          // ── Settings ────────────────────────────────────────────────
+          _section(context, context.l10n.hub_section_app, [
+            _tile(
+              context,
+              context.l10n.settings_title,
+              AppIcons.settings,
+              AppRoutes.settings,
+            ),
           ]),
 
           const SizedBox(height: AppSizes.bottomScrollPadding),
@@ -121,11 +172,13 @@ class HubScreen extends ConsumerWidget {
         tier: GlassTier.inset,
         padding: EdgeInsets.zero,
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-        tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+        tintColor:
+            cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
         child: SizedBox(
           width: AppSizes.colorSwatchSize,
           height: AppSizes.colorSwatchSize,
-          child: Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
+          child:
+              Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
         ),
       ),
       title: Text(label),
@@ -133,8 +186,8 @@ class HubScreen extends ConsumerWidget {
           ? Text(
               subtitle,
               style: context.textStyles.bodySmall?.copyWith(
-                    color: context.colors.primary,
-                  ),
+                color: context.colors.primary,
+              ),
             )
           : null,
       trailing: Icon(

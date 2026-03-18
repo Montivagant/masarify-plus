@@ -17,6 +17,11 @@ class FinancialContext {
     required this.topCategories,
     required this.userLocale,
     required this.categoryList,
+    this.unbudgetedHighSpend = const [],
+    this.savingsRate = 0,
+    this.recurringCount = 0,
+    this.activeBudgetCount = 0,
+    this.activeGoalCount = 0,
   });
 
   final int totalBalance;
@@ -31,6 +36,21 @@ class FinancialContext {
 
   /// Available categories for action matching, e.g. 'Food (طعام)|expense'.
   final List<String> categoryList;
+
+  /// Unbudgeted categories with significant spending (>500 EGP/mo).
+  final List<String> unbudgetedHighSpend;
+
+  /// Savings rate = (income - expense) / income * 100, or 0 if no income.
+  final int savingsRate;
+
+  /// Number of active recurring rules.
+  final int recurringCount;
+
+  /// Number of active budgets this month.
+  final int activeBudgetCount;
+
+  /// Number of active (non-completed) goals.
+  final int activeGoalCount;
 }
 
 /// Conversational AI finance assistant wrapping OpenRouter.
@@ -48,51 +68,56 @@ class AiChatService {
     final budgets = ctx.budgetStatus.isEmpty
         ? 'No active budgets'
         : ctx.budgetStatus.join(', ');
-    final goals = ctx.goalStatus.isEmpty
-        ? 'No active goals'
-        : ctx.goalStatus.join(', ');
+    final goals =
+        ctx.goalStatus.isEmpty ? 'No active goals' : ctx.goalStatus.join(', ');
     final cats = ctx.topCategories.isEmpty
         ? 'No spending data yet'
         : ctx.topCategories.join(', ');
     final langName = ctx.userLocale == 'ar' ? 'Arabic' : 'English';
-    final categoryNames = ctx.categoryList.isEmpty
-        ? 'None'
-        : ctx.categoryList.join(', ');
+    final categoryNames =
+        ctx.categoryList.isEmpty ? 'None' : ctx.categoryList.join(', ');
+    final unbudgeted = ctx.unbudgetedHighSpend.isEmpty
+        ? ''
+        : '\n- Unbudgeted high-spend: ${ctx.unbudgetedHighSpend.join(', ')}';
+    final savingsInfo =
+        ctx.monthlyIncome > 0 ? '\n- Savings rate: ${ctx.savingsRate}%' : '';
 
-    return 'You are Masarify (مصاريفي), a personal finance assistant for an Egyptian user.\n'
-        'IMPORTANT: The user\'s language is $langName. You MUST respond in $langName.\n'
-        'Keep responses concise (max 150 words). Use numbers from the provided context.\n'
-        'Never invent data — only reference what\'s provided.\n'
+    return '⚡ LANGUAGE RULE (HIGHEST PRIORITY): You MUST respond in $langName. Every word of your reply must be in $langName.\n'
+        'EXCEPTION: If user writes in Franco-Arab/Arabezi (Arabic in Latin letters, e.g. "3ayz", "7aga", "el", "kda", "ana"), ALWAYS respond in Arabic.\n'
         '\n'
-        'Current financial snapshot:\n'
-        '- Balance: $balance EGP\n'
-        '- This month: $income income, $expense expenses\n'
-        '- Budgets: $budgets\n'
-        '- Goals: $goals\n'
-        '- Top categories: $cats\n'
+        'You are Masarify (مصاريفي), a helpful and thoughtful financial advisor for an Egyptian user.\n'
+        'Use provided data only. Be helpful but thorough.\n'
         '\n'
-        'ACTION CAPABILITIES:\n'
-        'You can help users create savings goals and transactions. When the user asks to create one, '
-        'respond with a friendly confirmation message AND include a JSON action block.\n'
+        'FINANCIAL SNAPSHOT:\n'
+        '- Balance: $balance | Income: $income | Expense: $expense$savingsInfo\n'
+        '- Budgets (${ctx.activeBudgetCount}): $budgets\n'
+        '- Goals (${ctx.activeGoalCount}): $goals\n'
+        '- Top spending: $cats\n'
+        '- Recurring rules: ${ctx.recurringCount}$unbudgeted\n'
         '\n'
-        'For a savings goal:\n'
-        '```json\n'
-        '{"action":"create_goal","name":"Goal Name","target_amount":5000,"deadline":"2026-12-31"}\n'
-        '```\n'
-        '- target_amount in EGP (not piastres). deadline is optional (ISO 8601 date).\n'
+        'ADVISOR BEHAVIOR:\n'
+        '1. IDENTIFY GAPS: No budgets + has income? Suggest creating budgets. Savings rate < 20%? Warn.\n'
+        '2. FLAG ISSUES: Budget > monthly income? Warn. Goal deadline passed? Note it. Budget at > 80%? Alert.\n'
+        '3. SUGGEST: After creating a transaction, suggest a budget if category is unbudgeted and spend > 500 EGP/mo.\n'
+        '4. **ALWAYS CLARIFY BEFORE ACTING**: NEVER create an action without explicit confirmation from the user. '
+        'If ANY detail is missing or ambiguous (amount, category, account, deadline, type), ASK the user first. '
+        'For example, if user says "add 500" — ask: income or expense? Which category? Which account? Do NOT assume.\n'
+        '5. **DISCUSS BEFORE CREATING**: If the user asks for advice, planning help, or general questions, '
+        'have a conversation and suggest options — do NOT immediately generate an action JSON. '
+        'Only create actions when the user clearly and explicitly requests a specific action with enough details.\n'
+        '6. CONTEXT-AWARE: Reference actual data. "Your Food is at 85% with 10 days left."\n'
         '\n'
-        'For a transaction:\n'
-        '```json\n'
-        '{"action":"create_transaction","title":"Description","amount":150.50,"type":"expense","category":"Food","date":"2026-03-09","note":"Optional note"}\n'
-        '```\n'
-        '- amount in EGP. type: "income" or "expense". date defaults to today. note is optional.\n'
-        '- category must be one of: $categoryNames\n'
+        'ACTIONS (one JSON block per response, amounts in EGP):\n'
+        'Categories: $categoryNames\n'
         '\n'
-        'ACTION RULES:\n'
-        '- Only ONE action per response.\n'
-        '- Never assume an amount — ask the user if missing.\n'
-        '- Only include the JSON block when you have enough information.\n'
-        '- The JSON must be valid — use double quotes for keys and string values.\n';
+        'create_transaction: {"action":"create_transaction","title":"X","amount":150,"type":"expense","category":"Food","date":"2026-03-09","note":"opt"}\n'
+        'create_goal: {"action":"create_goal","name":"X","target_amount":5000,"deadline":"2026-12-31"}\n'
+        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":3,"year":2026}\n'
+        'create_recurring: {"action":"create_recurring","title":"X","amount":200,"frequency":"monthly","category":"Bills","type":"expense"}\n'
+        'create_wallet: {"action":"create_wallet","name":"CIB","type":"bank","initial_balance":5000}\n'
+        'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"2026-03-09"}\n'
+        '\n'
+        'One action/response. Valid JSON with double quotes. Never assume amounts, categories, or account names.\n';
   }
 
   List<ChatMessageEntity> _trimHistory(List<ChatMessageEntity> allMessages) {
@@ -139,8 +164,7 @@ class AiChatService {
 
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': systemPrompt},
-      for (final msg in trimmed)
-        {'role': msg.role, 'content': msg.content},
+      for (final msg in trimmed) {'role': msg.role, 'content': msg.content},
     ];
 
     dev.log(
@@ -150,7 +174,10 @@ class AiChatService {
     );
 
     // Try each free model in the fallback chain.
-    assert(AiConfig.chatFallbackChain.isNotEmpty, 'chatFallbackChain must not be empty');
+    assert(
+      AiConfig.chatFallbackChain.isNotEmpty,
+      'chatFallbackChain must not be empty',
+    );
     Object? lastError;
     for (final model in AiConfig.chatFallbackChain) {
       try {

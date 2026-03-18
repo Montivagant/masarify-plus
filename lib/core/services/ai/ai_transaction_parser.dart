@@ -56,6 +56,13 @@ class AiTransactionParser {
   ///
   /// Returns `null` if AI is unavailable or fails. The caller should
   /// gracefully fall back to regex-only data.
+  /// Fallback chain for enrichment: fast free models first, then paid.
+  static const _enrichModels = [
+    AiConfig.modelQwen3_4b,
+    AiConfig.modelGemma27b,
+    AiConfig.modelGeminiFlash,
+  ];
+
   Future<AiTransactionEnrichment?> enrich({
     required String sender,
     required String body,
@@ -65,49 +72,62 @@ class AiTransactionParser {
   }) async {
     if (!AiConfig.hasApiKey) return null;
 
-    try {
-      final systemPrompt = _buildSystemPrompt(categories);
-      final userMessage = _buildUserMessage(sender, body, amountPiastres, type);
+    final systemPrompt = _buildSystemPrompt(categories);
+    final userMessage = _buildUserMessage(sender, body, amountPiastres, type);
 
-      final response = await openRouter.chatCompletion(
-        systemPrompt: systemPrompt,
-        userMessage: userMessage,
-        model: AiConfig.modelQwen3_4b,
-        temperature: 0.1,
-      );
+    // Try each model in the fallback chain until one succeeds.
+    for (final model in _enrichModels) {
+      try {
+        final response = await openRouter.chatCompletion(
+          systemPrompt: systemPrompt,
+          userMessage: userMessage,
+          model: model,
+          temperature: 0.1,
+        );
 
-      dev.log(
-        'Raw AI response (${response.tokensUsed} tokens): '
-        '${response.content.length > 200 ? response.content.substring(0, 200) : response.content}',
-        name: 'AiTransactionParser',
-      );
+        dev.log(
+          'Enrich response ($model, ${response.tokensUsed} tokens): '
+          '${response.content.length > 200 ? response.content.substring(0, 200) : response.content}',
+          name: 'AiTransactionParser',
+        );
 
-      // IM-33 fix: strip Qwen3 <think>...</think> tokens before parsing.
-      // Handle both closed and unclosed think blocks.
-      final cleaned = response.content
-          .replaceAll(RegExp(r'<think>[\s\S]*?</think>'), '')
-          .replaceAll(RegExp(r'<think>[\s\S]*$'), '')
-          .trim();
-      final json = jsonDecode(cleaned) as Map<String, dynamic>;
-      final enrichment = AiTransactionEnrichment.fromJson(json);
+        // IM-33 fix: strip Qwen3 <think>...</think> tokens before parsing.
+        final cleaned = response.content
+            .replaceAll(RegExp(r'<think>[\s\S]*?</think>'), '')
+            .replaceAll(RegExp(r'<think>[\s\S]*$'), '')
+            .trim();
+        final json = jsonDecode(cleaned) as Map<String, dynamic>;
+        final enrichment = AiTransactionEnrichment.fromJson(json);
 
-      // Only reject if ALL user-visible fields are empty.
-      if (enrichment.categoryIcon.isEmpty &&
-          enrichment.merchant.isEmpty &&
-          enrichment.title.isEmpty) {
-        dev.log('Enrichment rejected: all fields empty', name: 'AiTransactionParser');
-        return null;
+        if (enrichment.categoryIcon.isEmpty &&
+            enrichment.merchant.isEmpty &&
+            enrichment.title.isEmpty) {
+          dev.log(
+            'Enrichment rejected: all fields empty ($model)',
+            name: 'AiTransactionParser',
+          );
+          continue; // Try next model
+        }
+
+        dev.log(
+          'Enriched ($model): "${enrichment.title}" merchant=${enrichment.merchant} → ${enrichment.categoryIcon} (${enrichment.confidence})',
+          name: 'AiTransactionParser',
+        );
+        return enrichment;
+      } catch (e) {
+        dev.log(
+          'Enrichment failed ($model): $e',
+          name: 'AiTransactionParser',
+        );
+        continue; // Try next model in chain
       }
-
-      dev.log(
-        'Enriched: "${enrichment.title}" merchant=${enrichment.merchant} → ${enrichment.categoryIcon} (${enrichment.confidence})',
-        name: 'AiTransactionParser',
-      );
-      return enrichment;
-    } catch (e) {
-      dev.log('Enrichment failed: $e', name: 'AiTransactionParser');
-      return null;
     }
+
+    dev.log(
+      'All enrichment models failed',
+      name: 'AiTransactionParser',
+    );
+    return null;
   }
 
   String _buildUserMessage(

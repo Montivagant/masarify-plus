@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../../../domain/entities/transaction_entity.dart';
+import '../../extensions/datetime_extensions.dart';
 
 /// A detected recurring spending pattern.
 class DetectedPattern {
@@ -53,8 +54,7 @@ class RecurringPatternDetector {
         );
       }
 
-      final avgInterval =
-          intervals.reduce((a, b) => a + b) / intervals.length;
+      final avgInterval = intervals.reduce((a, b) => a + b) / intervals.length;
       final variance = intervals
               .map((i) => (i - avgInterval).abs())
               .reduce((a, b) => a + b) /
@@ -86,13 +86,12 @@ class RecurringPatternDetector {
       for (final tx in txs) {
         titleCounts[tx.title] = (titleCounts[tx.title] ?? 0) + 1;
       }
-      final bestTitle = titleCounts.entries
-          .reduce((a, b) => a.value > b.value ? a : b)
-          .key;
+      final bestTitle =
+          titleCounts.entries.reduce((a, b) => a.value > b.value ? a : b).key;
 
       final lastDate = txs.last.transactionDate;
       final nextDate = frequency == 'monthly'
-          ? DateTime(lastDate.year, lastDate.month + 1, lastDate.day)
+          ? lastDate.addMonths(1)
           : lastDate.add(const Duration(days: 7));
 
       patterns.add(

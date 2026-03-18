@@ -82,9 +82,9 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         await ref.read(recurringRuleRepositoryProvider).getById(widget.editId!);
     if (!mounted || rule == null) return;
     // Validate loaded category still matches the rule's type
-    final categories =
-        ref.read(categoriesProvider).valueOrNull ?? [];
-    final loadedCat = categories.where((c) => c.id == rule.categoryId).firstOrNull;
+    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+    final loadedCat =
+        categories.where((c) => c.id == rule.categoryId).firstOrNull;
     final validCategory = loadedCat != null &&
         (loadedCat.type == rule.type || loadedCat.type == 'both');
 
@@ -118,7 +118,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               height: AppSizes.dragHandleHeight,
               decoration: BoxDecoration(
                 color: ctx.colors.outlineVariant,
-                borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                borderRadius:
+                    BorderRadius.circular(AppSizes.dragHandleHeight / 2),
               ),
             ),
             Padding(
@@ -142,8 +143,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 children: categories
                     .map(
                       (c) => ListTile(
-                        leading:
-                            Icon(CategoryIconMapper.fromName(c.iconName)),
+                        leading: Icon(CategoryIconMapper.fromName(c.iconName)),
                         title: Text(c.displayName(context.languageCode)),
                         trailing: _categoryId == c.id
                             ? const Icon(AppIcons.check)
@@ -173,7 +173,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       builder: (ctx) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
+            maxHeight:
+                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -186,12 +187,16 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: ctx.colors.outlineVariant,
-                  borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                 ),
               ),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppSizes.screenHPadding, 0, AppSizes.screenHPadding, AppSizes.sm,
+                  AppSizes.screenHPadding,
+                  0,
+                  AppSizes.screenHPadding,
+                  AppSizes.sm,
                 ),
                 child: Text(
                   context.l10n.transaction_wallet_picker,
@@ -201,18 +206,21 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  children: wallets.map(
-                    (w) => ListTile(
-                      leading: const Icon(AppIcons.wallet),
-                      title: Text(w.name),
-                      trailing:
-                          _walletId == w.id ? const Icon(AppIcons.check) : null,
-                      onTap: () {
-                        setState(() => _walletId = w.id);
-                        ctx.pop();
-                      },
-                    ),
-                  ).toList(),
+                  children: wallets
+                      .map(
+                        (w) => ListTile(
+                          leading: const Icon(AppIcons.wallet),
+                          title: Text(w.name),
+                          trailing: _walletId == w.id
+                              ? const Icon(AppIcons.check)
+                              : null,
+                          onTap: () {
+                            setState(() => _walletId = w.id);
+                            ctx.pop();
+                          },
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
               const SizedBox(height: AppSizes.md),
@@ -273,10 +281,11 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               frequency: _frequency,
               startDate: effectiveStartDate,
               endDate: effectiveEndDate,
-              // C6 fix: reset nextDueDate if start date changed
+              // C6 fix: reset nextDueDate if start date or frequency changed
               nextDueDate: _isOnce
                   ? effectiveNextDue
-                  : (_startDate != existing.startDate
+                  : (_startDate != existing.startDate ||
+                          _frequency != existing.frequency
                       ? effectiveStartDate
                       : existing.nextDueDate),
               isPaid: existing.isPaid,
@@ -323,12 +332,10 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
     final typeCats =
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
-    final selectedCat =
-        typeCats.where((c) => c.id == _categoryId).firstOrNull;
+    final selectedCat = typeCats.where((c) => c.id == _categoryId).firstOrNull;
 
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final selectedWallet =
-        wallets.where((w) => w.id == _walletId).firstOrNull;
+    final selectedWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
 
     final canSave = _titleController.text.trim().isNotEmpty &&
         _amountPiastres > 0 &&
@@ -338,9 +345,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
 
     return Scaffold(
       appBar: AppAppBar(
-        title: isEdit
-            ? context.l10n.recurring_edit
-            : context.l10n.recurring_add,
+        title:
+            isEdit ? context.l10n.recurring_edit : context.l10n.recurring_add,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
@@ -364,8 +370,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Type toggle ───────────────────────────────────────────
             Text(
               context.l10n.recurring_type_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             SegmentedButton<String>(
@@ -392,8 +397,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Category picker ───────────────────────────────────────
             Text(
               context.l10n.transaction_category,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             GestureDetector(
@@ -405,8 +409,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: cs.outline),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusMd),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
                 ),
                 child: Row(
                   children: [
@@ -425,7 +428,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                             context.l10n.transaction_category_picker,
                         style: selectedCat != null
                             ? context.textStyles.bodyLarge
-                            : context.textStyles.bodyMedium?.copyWith(color: cs.outline),
+                            : context.textStyles.bodyMedium
+                                ?.copyWith(color: cs.outline),
                       ),
                     ),
                     const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
@@ -438,8 +442,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Wallet picker ─────────────────────────────────────────
             Text(
               context.l10n.transaction_wallet,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             GestureDetector(
@@ -451,8 +454,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: cs.outline),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusMd),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
                 ),
                 child: Row(
                   children: [
@@ -464,7 +466,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                             context.l10n.transaction_wallet_picker,
                         style: selectedWallet != null
                             ? context.textStyles.bodyLarge
-                            : context.textStyles.bodyMedium?.copyWith(color: cs.outline),
+                            : context.textStyles.bodyMedium
+                                ?.copyWith(color: cs.outline),
                       ),
                     ),
                     const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
@@ -477,8 +480,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Amount ────────────────────────────────────────────────
             Text(
               context.l10n.recurring_amount_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             AmountInput(
@@ -490,8 +492,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             // ── Frequency ─────────────────────────────────────────────
             Text(
               context.l10n.recurring_frequency_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             Wrap(
@@ -519,19 +520,25 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
 
             // ── Date pickers ──────────────────────────────────────────
             ..._buildDatePickers(cs),
-
-            const SizedBox(height: AppSizes.xl),
-
-            // ── Save button ───────────────────────────────────────────
-            AppButton(
-              label: isEdit
-                  ? context.l10n.common_save_changes
-                  : context.l10n.recurring_add,
-              onPressed: canSave && !_loading ? _save : null,
-              isLoading: _loading,
-              icon: AppIcons.check,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: isEdit
+                ? context.l10n.common_save_changes
+                : context.l10n.recurring_add,
+            onPressed: canSave && !_loading ? _save : null,
+            isLoading: _loading,
+            icon: AppIcons.check,
+          ),
         ),
       ),
     );
@@ -545,8 +552,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       return [
         Text(
           context.l10n.recurring_due_date_label,
-          style: context.textStyles.labelLarge
-              ?.copyWith(color: cs.outline),
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
         AppDatePicker(
@@ -567,8 +573,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       return [
         Text(
           context.l10n.recurring_start_date,
-          style: context.textStyles.labelLarge
-              ?.copyWith(color: cs.outline),
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
         AppDatePicker(
@@ -580,8 +585,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         const SizedBox(height: AppSizes.lg),
         Text(
           context.l10n.recurring_end_date_required,
-          style: context.textStyles.labelLarge
-              ?.copyWith(color: cs.outline),
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
         ),
         const SizedBox(height: AppSizes.sm),
         AppDatePicker(
@@ -598,8 +602,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     return [
       Text(
         context.l10n.recurring_start_date,
-        style: context.textStyles.labelLarge
-            ?.copyWith(color: cs.outline),
+        style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
       ),
       const SizedBox(height: AppSizes.sm),
       AppDatePicker(
@@ -615,8 +618,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           Expanded(
             child: Text(
               context.l10n.recurring_end_date,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
           ),
           if (_endDate != null)

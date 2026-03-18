@@ -34,11 +34,13 @@ class GeminiAudioService {
   /// [mimeType] — MIME type of the audio (e.g. `audio/wav`).
   /// [categories] — user's categories for icon matching.
   /// [goals] — user's active savings goals for goal matching.
+  /// [walletNames] — user's wallet names for wallet hint extraction.
   Future<List<VoiceTransactionDraft>> parseAudio({
     required List<int> audioBytes,
     required String mimeType,
     required List<CategoryEntity> categories,
     required List<SavingsGoalEntity> goals,
+    List<String> walletNames = const [],
   }) async {
     if (!AiConfig.hasGoogleAiKey) {
       throw const GeminiAudioException(
@@ -50,10 +52,10 @@ class GeminiAudioService {
     final base64Audio = base64Encode(audioBytes);
     final url = Uri.parse(
       '${AiConfig.geminiBaseUrl}/models/${AiConfig.geminiAudioModel}'
-      ':generateContent?key=${AiConfig.googleAiApiKey}',
+      ':generateContent',
     );
 
-    final systemPrompt = _buildSystemPrompt(categories, goals);
+    final systemPrompt = _buildSystemPrompt(categories, goals, walletNames);
 
     final body = jsonEncode({
       'system_instruction': {
@@ -91,7 +93,10 @@ class GeminiAudioService {
     final response = await http
         .post(
           url,
-          headers: {'Content-Type': 'application/json'},
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': AiConfig.googleAiApiKey,
+          },
           body: body,
         )
         .timeout(
@@ -183,6 +188,12 @@ class GeminiAudioService {
       var categoryIcon = tx['category_icon'] as String?;
       final note = tx['note'] as String?;
       final dateOffset = (tx['date_offset'] as int?) ?? 0;
+      // LLMs sometimes return literal "null" instead of JSON null
+      var walletHint = tx['wallet_hint'] as String?;
+      if (walletHint != null &&
+          (walletHint.toLowerCase() == 'null' || walletHint.trim().isEmpty)) {
+        walletHint = null;
+      }
 
       // Validate category_icon against type-filtered categories.
       if (categoryIcon != null && categories.isNotEmpty) {
@@ -200,6 +211,7 @@ class GeminiAudioService {
           rawText: note ?? '',
           amountPiastres: amountPiastres,
           categoryHint: categoryIcon,
+          walletHint: walletHint,
           note: note,
           type: type,
           dateOffset: dateOffset,
@@ -238,6 +250,7 @@ class GeminiAudioService {
   String _buildSystemPrompt(
     List<CategoryEntity> categories,
     List<SavingsGoalEntity> goals,
+    List<String> walletNames,
   ) {
     final categoriesJson = jsonEncode(
       categories
@@ -263,9 +276,12 @@ class GeminiAudioService {
           .toList(),
     );
 
+    final walletsJson = jsonEncode(walletNames);
+
     return _systemPromptTemplate
         .replaceAll('{{CATEGORIES_JSON}}', categoriesJson)
-        .replaceAll('{{GOALS_JSON}}', goalsJson);
+        .replaceAll('{{GOALS_JSON}}', goalsJson)
+        .replaceAll('{{WALLETS_JSON}}', walletsJson);
   }
 
   static const _systemPromptTemplate = '''
@@ -276,14 +292,21 @@ RULES:
 1. Return ONLY valid JSON. No markdown, no explanation, no code fences.
 2. First transcribe the audio, then extract transactions from the transcription.
 3. Egyptian Arabic amounts: مية=100, ميتين=200, تلتمية=300, ربعمية=400, خمسمية=500, الف=1000, الفين=2000, نص=0.50
-4. Default type is "expense" unless income triggers are detected (e.g. اتقبضت, راتب, مرتب, salary, income, received, earned)
+4. Default type is "expense" unless income triggers or cash triggers are detected (see rules below)
 5. Split multiple transactions on conjunctions (وبعدين, وكمان, و, and, then, also)
-6. category_icon MUST be one of the iconName values from AVAILABLE CATEGORIES. Match expense categories for expenses, income categories for income
+6. category_icon MUST be one of the iconName values from AVAILABLE CATEGORIES. Match expense categories for expenses, income categories for income. For cash_withdrawal/cash_deposit, set category_icon to "bank"
 7. Date offsets: امبارح/أمس/yesterday=-1, النهارده/اليوم/today=0, من اسبوع=-7, من يومين=-2
 8. Confidence 0.0-1.0 per transaction (how sure you are about the parsing)
 9. If text relates to one of the user's savings goals, set goal_match to the goal name
 10. If amount is unclear, set amount_egp to 0
 11. Always set a note — use the relevant portion of transcript
+
+TYPE DETECTION:
+- "expense" (default): دفعت, اشتريت, صرفت, paid, bought, spent
+- "income": اتقبضت, راتب, مرتب, salary, income, received, earned
+- "cash_withdrawal": سحبت, سحب, ATM, صراف, سحبت من الصراف, withdrew, withdrawal, cash out
+- "cash_deposit": أودعت, إيداع, حطيت فلوس, deposited, deposit, cash deposit, put money
+For cash_withdrawal/cash_deposit, wallet_hint should be the bank account name mentioned.
 
 AVAILABLE CATEGORIES:
 {{CATEGORIES_JSON}}
@@ -291,17 +314,23 @@ AVAILABLE CATEGORIES:
 USER'S ACTIVE SAVINGS GOALS:
 {{GOALS_JSON}}
 
+USER'S WALLET/ACCOUNT NAMES:
+{{WALLETS_JSON}}
+
+12. If the user mentions a wallet/account name (e.g. "from CIB", "cash", "my bank"), set wallet_hint to that name exactly as spoken
+
 RESPONSE SCHEMA:
 {
   "transactions": [
     {
       "amount_egp": <number>,
-      "type": "expense" | "income",
+      "type": "expense" | "income" | "cash_withdrawal" | "cash_deposit",
       "category_icon": "<iconName from categories list>",
       "note": "<short description>",
       "date_offset": <integer, 0=today, -1=yesterday>,
       "confidence": <0.0-1.0>,
-      "goal_match": "<goal name or null>"
+      "goal_match": "<goal name or null>",
+      "wallet_hint": "<wallet name mentioned or null>"
     }
   ]
 }

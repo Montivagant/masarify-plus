@@ -35,10 +35,11 @@ import '../../../../shared/widgets/navigation/app_app_bar.dart';
 /// Core transaction entry screen — supports both add and edit modes.
 ///
 /// Layout (Glass Sections):
-///   SegmentedButton (type: expense/income) — standalone
+///   ChoiceChip row (type: expense/income/withdraw/deposit) — scrollable
 ///   GlassCard (Amount) — tinted with type color
-///   GlassCard (Details) — title, category chips, wallet picker
-///   GlassCard (Optional) — date, note, location chips
+///   GlassCard (Details) — title, category chips, wallet picker (expense/income)
+///               OR — wallet picker only (cash_withdrawal/cash_deposit)
+///   GlassCard (Optional) — date, note, location chips (expense/income only)
 ///   AppButton (Save) — sticky bottom
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({
@@ -96,7 +97,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   Future<void> _initWallet() async {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted) return;
-    if (wallets.isNotEmpty) setState(() => _walletId = wallets.first.id);
+    if (wallets.isEmpty) return;
+    // For cash types, pick the first non-system (bank) wallet.
+    if (_isCashType) {
+      final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+      if (nonSystem.isNotEmpty) {
+        setState(() => _walletId = nonSystem.first.id);
+      }
+    } else {
+      setState(() => _walletId = wallets.first.id);
+    }
   }
 
   /// Applies last-used category default once categories are loaded.
@@ -183,7 +193,67 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
+  // ── Helpers ─────────────────────────────────────────────────────────────
+
+  bool get _isCashType => _type == 'cash_withdrawal' || _type == 'cash_deposit';
+
   // ── Save ──────────────────────────────────────────────────────────────────
+
+  /// Saves a cash withdrawal or cash deposit as a Transfer
+  /// (bank account <-> Cash system wallet).
+  Future<void> _saveCashTransfer() async {
+    if (_loading) return;
+    final walletId = _walletId;
+    if (_amountPiastres <= 0 || walletId == null) return;
+
+    setState(() => _loading = true);
+    try {
+      final cashWallet = ref.read(systemWalletProvider).valueOrNull;
+      if (cashWallet == null) {
+        setState(() => _loading = false);
+        if (mounted) {
+          SnackHelper.showError(context, context.l10n.common_error_generic);
+        }
+        return;
+      }
+
+      final transferRepo = ref.read(transferRepositoryProvider);
+      final note = _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim();
+
+      if (_type == 'cash_withdrawal') {
+        // Withdraw from bank → Cash
+        await transferRepo.create(
+          fromWalletId: walletId,
+          toWalletId: cashWallet.id,
+          amount: _amountPiastres,
+          note: note,
+          transferDate: DateTime.now(),
+        );
+      } else {
+        // Deposit from Cash → bank
+        await transferRepo.create(
+          fromWalletId: cashWallet.id,
+          toWalletId: walletId,
+          amount: _amountPiastres,
+          note: note,
+          transferDate: DateTime.now(),
+        );
+      }
+
+      HapticFeedback.heavyImpact();
+      if (!mounted) return;
+      SnackHelper.showSuccess(context, context.l10n.transfer_success);
+      context.pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.common_error_generic)),
+      );
+    }
+  }
 
   /// Finds the first active goal whose keywords match [title] or [note].
   /// Returns both goalId and goalName for the SnackBar prompt.
@@ -434,7 +504,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
     final typeCats =
         allCats.where((c) => c.type == _type || c.type == 'both').toList();
-    _tryApplySmartDefault(typeCats);
+    if (!_isCashType) _tryApplySmartDefault(typeCats);
     final freqService = ref.read(categoryFrequencyServiceProvider);
     final sortedCats = freqService.sortByFrequency(typeCats, _type);
     final topCats = sortedCats.take(AppSizes.categoryChipMaxVisible).toList();
@@ -442,15 +512,49 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     final typeColor = switch (_type) {
       'income' => context.appTheme.incomeColor,
-      'transfer' => context.appTheme.transferColor,
+      'cash_withdrawal' || 'cash_deposit' => context.appTheme.transferColor,
       _ => context.appTheme.expenseColor,
     };
-    final canSave =
-        _amountPiastres > 0 && _selectedCategoryId != null && _walletId != null;
+
+    final canSave = _isCashType
+        ? _amountPiastres > 0 && _walletId != null
+        : _amountPiastres > 0 &&
+            _selectedCategoryId != null &&
+            _walletId != null;
 
     // Resolve current wallet for the wallet picker row.
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
+    // For cash types, exclude the Cash system wallet from the picker
+    // (user picks the bank account only).
+    final pickableWallets = _isCashType
+        ? wallets.where((w) => !w.isSystemWallet).toList()
+        : wallets;
+    final currentWallet =
+        pickableWallets.where((w) => w.id == _walletId).firstOrNull;
+
+    // Type chip definitions: value, label, icon
+    final typeOptions = <({String value, String label, IconData icon})>[
+      (
+        value: 'expense',
+        label: context.l10n.transaction_type_expense,
+        icon: AppIcons.expense,
+      ),
+      (
+        value: 'income',
+        label: context.l10n.transaction_type_income,
+        icon: AppIcons.income,
+      ),
+      (
+        value: 'cash_withdrawal',
+        label: context.l10n.transaction_type_cash_withdrawal_short,
+        icon: AppIcons.bank,
+      ),
+      (
+        value: 'cash_deposit',
+        label: context.l10n.transaction_type_cash_deposit_short,
+        icon: AppIcons.bank,
+      ),
+    ];
 
     return Scaffold(
       appBar: AppAppBar(
@@ -464,35 +568,91 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Type toggle (standalone — no glass card) ─────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-                vertical: AppSizes.sm,
-              ),
-              child: SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(
-                    value: 'expense',
-                    label: Text(context.l10n.transaction_type_expense),
-                    icon: const Icon(AppIcons.expense),
+            // ── Type toggle (scrollable chips — 4 options) ───────────
+            if (widget.editId == null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                  vertical: AppSizes.sm,
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: typeOptions.map((opt) {
+                      final selected = _type == opt.value;
+                      final chipColor = switch (opt.value) {
+                        'income' => context.appTheme.incomeColor,
+                        'cash_withdrawal' ||
+                        'cash_deposit' =>
+                          context.appTheme.transferColor,
+                        _ => context.appTheme.expenseColor,
+                      };
+                      return Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          end: AppSizes.sm,
+                        ),
+                        child: ChoiceChip(
+                          selected: selected,
+                          label: Text(opt.label),
+                          avatar: Icon(opt.icon, size: AppSizes.iconXs),
+                          selectedColor: chipColor.withValues(
+                            alpha: AppSizes.opacityLight2,
+                          ),
+                          side: selected ? BorderSide(color: chipColor) : null,
+                          onSelected: (_) {
+                            setState(() {
+                              _type = opt.value;
+                              _selectedCategoryId = null;
+                              _smartDefaultApplied = false;
+                              // For cash types, auto-select first non-system wallet
+                              if (_isCashType && pickableWallets.isNotEmpty) {
+                                final nonSystem = pickableWallets
+                                    .where((w) => !w.isSystemWallet)
+                                    .toList();
+                                if (nonSystem.isNotEmpty) {
+                                  _walletId = nonSystem.first.id;
+                                }
+                              }
+                            });
+                          },
+                          showCheckmark: false,
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  ButtonSegment(
-                    value: 'income',
-                    label: Text(context.l10n.transaction_type_income),
-                    icon: const Icon(AppIcons.income),
-                  ),
-                ],
-                selected: {_type},
-                onSelectionChanged: (v) {
-                  setState(() {
-                    _type = v.first;
-                    _selectedCategoryId = null;
-                    _smartDefaultApplied = false;
-                  });
-                },
+                ),
               ),
-            ),
+
+            // ── Type toggle (edit mode — only expense/income) ────────
+            if (widget.editId != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                  vertical: AppSizes.sm,
+                ),
+                child: SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(
+                      value: 'expense',
+                      label: Text(context.l10n.transaction_type_expense),
+                      icon: const Icon(AppIcons.expense),
+                    ),
+                    ButtonSegment(
+                      value: 'income',
+                      label: Text(context.l10n.transaction_type_income),
+                      icon: const Icon(AppIcons.income),
+                    ),
+                  ],
+                  selected: {_type},
+                  onSelectionChanged: (v) {
+                    setState(() {
+                      _type = v.first;
+                      _selectedCategoryId = null;
+                      _smartDefaultApplied = false;
+                    });
+                  },
+                ),
+              ),
 
             // ── Amount Card (tinted glass) ───────────────────────────
             Padding(
@@ -514,129 +674,162 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             ),
             const SizedBox(height: AppSizes.md),
 
-            // ── Details Card (title + categories + wallet) ───────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title input with icon prefix, no floating label
-                    AppTextField(
-                      label: context.l10n.transaction_title_label,
-                      hint: context.l10n.transaction_title_hint,
-                      controller: _titleController,
-                      prefixIcon: Icon(
-                        AppIcons.edit,
-                        size: AppSizes.iconSm,
-                        color: cs.onSurfaceVariant,
+            // ── Cash type: simplified form (account + note) ──────────
+            if (_isCashType) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                ),
+                child: GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Bank account picker
+                      _WalletPickerRow(
+                        wallet: currentWallet,
+                        onTap: () => _showWalletPickerFiltered(pickableWallets),
                       ),
-                    ),
-                    const SizedBox(height: AppSizes.sm),
-
-                    // Category chips row
-                    SizedBox(
-                      height: AppSizes.categoryChipSize,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: topCats.length + 1,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: AppSizes.xs),
-                        itemBuilder: (_, i) {
-                          if (i == topCats.length) {
-                            return ActionChip(
-                              label: Text(context.l10n.common_all),
-                              avatar: const Icon(
-                                AppIcons.expandMore,
-                                size: AppSizes.iconXxs2,
-                              ),
-                              onPressed: () => _showAllCategories(typeCats),
-                            );
-                          }
-                          final cat = topCats[i];
-                          final color = ColorUtils.fromHex(cat.colorHex);
-                          final isSelected = cat.id == _selectedCategoryId;
-                          final isTimeHint = !isSelected &&
-                              todKeywords.any(
-                                (kw) =>
-                                    cat.name.toLowerCase().contains(kw) ||
-                                    cat.nameAr.contains(kw),
-                              );
-                          return AnimatedScale(
-                            scale: isSelected ? 1.0 : 0.95,
-                            duration: context.reduceMotion
-                                ? Duration.zero
-                                : AppDurations.microBounce,
-                            curve: Curves.easeOutBack,
-                            child: FilterChip(
-                              selected: isSelected,
-                              avatar: Icon(
-                                CategoryIconMapper.fromName(
-                                  cat.iconName,
-                                ),
-                                size: AppSizes.iconXs,
-                                color: isSelected
-                                    ? cs.onSecondaryContainer
-                                    : color,
-                              ),
-                              label: Text(
-                                cat.displayName(
-                                  context.languageCode,
-                                ),
-                              ),
-                              side: isTimeHint
-                                  ? BorderSide(
-                                      color: cs.primary,
-                                      width: AppSizes.borderWidthEmphasis,
-                                    )
-                                  : null,
-                              onSelected: (_) {
-                                setState(() => _selectedCategoryId = cat.id);
-                                // WS-10: auto-fill title on category selection if empty.
-                                if (_titleController.text.trim().isEmpty) {
-                                  _titleController.text = cat.displayName(
-                                    context.languageCode,
-                                  );
-                                }
-                              },
-                              showCheckmark: false,
-                            ),
-                          );
-                        },
+                      const SizedBox(height: AppSizes.sm),
+                      // Optional note
+                      AppTextField(
+                        label: context.l10n.transaction_note,
+                        hint: context.l10n.transaction_note_hint,
+                        controller: _noteController,
+                        maxLines: 2,
                       ),
-                    ),
-                    const SizedBox(height: AppSizes.sm),
-
-                    // Wallet picker row
-                    _WalletPickerRow(
-                      wallet: currentWallet,
-                      onTap: _showWalletPicker,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: AppSizes.md),
+            ],
 
-            // ── Optional Card (date, note, location) ─────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
+            // ── Expense/Income: full form ────────────────────────────
+            if (!_isCashType) ...[
+              // Details Card (title + categories + wallet)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                ),
+                child: GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title input with icon prefix, no floating label
+                      AppTextField(
+                        label: context.l10n.transaction_title_label,
+                        hint: context.l10n.transaction_title_hint,
+                        controller: _titleController,
+                        prefixIcon: Icon(
+                          AppIcons.edit,
+                          size: AppSizes.iconSm,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.sm),
+
+                      // Category chips row
+                      SizedBox(
+                        height: AppSizes.categoryChipSize,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: topCats.length + 1,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: AppSizes.xs),
+                          itemBuilder: (_, i) {
+                            if (i == topCats.length) {
+                              return ActionChip(
+                                label: Text(context.l10n.common_all),
+                                avatar: const Icon(
+                                  AppIcons.expandMore,
+                                  size: AppSizes.iconXxs2,
+                                ),
+                                onPressed: () => _showAllCategories(typeCats),
+                              );
+                            }
+                            final cat = topCats[i];
+                            final color = ColorUtils.fromHex(cat.colorHex);
+                            final isSelected = cat.id == _selectedCategoryId;
+                            final isTimeHint = !isSelected &&
+                                todKeywords.any(
+                                  (kw) =>
+                                      cat.name.toLowerCase().contains(kw) ||
+                                      cat.nameAr.contains(kw),
+                                );
+                            return AnimatedScale(
+                              scale: isSelected ? 1.0 : 0.95,
+                              duration: context.reduceMotion
+                                  ? Duration.zero
+                                  : AppDurations.microBounce,
+                              curve: Curves.easeOutBack,
+                              child: FilterChip(
+                                selected: isSelected,
+                                avatar: Icon(
+                                  CategoryIconMapper.fromName(
+                                    cat.iconName,
+                                  ),
+                                  size: AppSizes.iconXs,
+                                  color: isSelected
+                                      ? cs.onSecondaryContainer
+                                      : color,
+                                ),
+                                label: Text(
+                                  cat.displayName(
+                                    context.languageCode,
+                                  ),
+                                ),
+                                side: isTimeHint
+                                    ? BorderSide(
+                                        color: cs.primary,
+                                        width: AppSizes.borderWidthEmphasis,
+                                      )
+                                    : null,
+                                onSelected: (_) {
+                                  setState(() => _selectedCategoryId = cat.id);
+                                  // WS-10: auto-fill title on category selection if empty.
+                                  if (_titleController.text.trim().isEmpty) {
+                                    _titleController.text = cat.displayName(
+                                      context.languageCode,
+                                    );
+                                  }
+                                },
+                                showCheckmark: false,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.sm),
+
+                      // Wallet picker row
+                      _WalletPickerRow(
+                        wallet: currentWallet,
+                        onTap: _showWalletPicker,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              child: _OptionalSection(
-                expanded: _showOptional,
-                onToggle: () => setState(() => _showOptional = !_showOptional),
-                date: _date,
-                onDateChanged: (d) => setState(() => _date = d),
-                noteController: _noteController,
-                locationName: _locationName,
-                detectingLocation: _detectingLocation,
-                onDetectLocation: _detectLocation,
-                onLocationChanged: (v) => setState(() => _locationName = v),
+              const SizedBox(height: AppSizes.md),
+
+              // Optional Card (date, note, location)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                ),
+                child: _OptionalSection(
+                  expanded: _showOptional,
+                  onToggle: () =>
+                      setState(() => _showOptional = !_showOptional),
+                  date: _date,
+                  onDateChanged: (d) => setState(() => _date = d),
+                  noteController: _noteController,
+                  locationName: _locationName,
+                  detectingLocation: _detectingLocation,
+                  onDetectLocation: _detectLocation,
+                  onLocationChanged: (v) => setState(() => _locationName = v),
+                ),
               ),
-            ),
+            ],
 
             // Extra space for scrolling when keyboard opens
             const SizedBox(height: AppSizes.xl),
@@ -655,9 +848,79 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             label: widget.editId != null
                 ? context.l10n.common_save_changes
                 : context.l10n.common_save,
-            onPressed: canSave && !_loading ? _save : null,
+            onPressed: canSave && !_loading
+                ? (_isCashType ? _saveCashTransfer : _save)
+                : null,
             isLoading: _loading,
             icon: AppIcons.check,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Shows wallet picker filtered to exclude the Cash system wallet.
+  void _showWalletPickerFiltered(List<WalletEntity> filteredWallets) {
+    if (filteredWallets.isEmpty) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+                width: AppSizes.dragHandleWidth,
+                height: AppSizes.dragHandleHeight,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: ctx.colors.outlineVariant,
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSizes.md,
+                  0,
+                  AppSizes.md,
+                  AppSizes.sm,
+                ),
+                child: Text(
+                  context.l10n.transaction_wallet_picker,
+                  style: ctx.textStyles.titleMedium,
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: filteredWallets
+                      .map(
+                        (w) => ListTile(
+                          leading: Icon(_walletTypeIcon(w.type)),
+                          title: Text(w.name),
+                          trailing: _walletId == w.id
+                              ? const Icon(AppIcons.check)
+                              : null,
+                          onTap: () {
+                            setState(() => _walletId = w.id);
+                            ctx.pop();
+                          },
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              const SizedBox(height: AppSizes.md),
+            ],
           ),
         ),
       ),

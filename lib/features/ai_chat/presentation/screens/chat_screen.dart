@@ -4,18 +4,22 @@ import 'dart:developer' as dev;
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/ai/ai_chat_service.dart';
 import '../../../../core/services/ai/chat_action.dart';
+import '../../../../core/services/ai/chat_action_messages.dart';
 import '../../../../core/services/ai/chat_response_parser.dart';
 import '../../../../core/services/ai/openrouter_service.dart';
 import '../../../../domain/entities/chat_message_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/chat_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
@@ -56,7 +60,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _controller.clear();
     setState(() => _isSending = true);
 
-    final dao = ref.read(chatMessageDaoProvider);
+    final repo = ref.read(chatMessageRepositoryProvider);
     final aiService = ref.read(aiChatServiceProvider);
     final financialCtx = ref.read(financialContextProvider);
 
@@ -69,7 +73,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     // Insert user message.
     final userTokens = AiChatService.estimateTokens(text);
-    await dao.insertMessage(
+    await repo.insert(
       role: 'user',
       content: text,
       tokenCount: userTokens,
@@ -77,7 +81,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       // Read current messages for context window (fresh from DB, not stale provider cache).
-      final messages = await dao.watchAll().first;
+      final messages = await repo.watchAll().first;
 
       final response = await aiService.sendMessage(
         allMessages: messages,
@@ -85,7 +89,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
 
       final content = response.content.trim();
-      await dao.insertMessage(
+      await repo.insert(
         role: 'assistant',
         content: content.isNotEmpty ? content : errorGeneric,
         tokenCount: content.isNotEmpty ? response.completionTokens : 0,
@@ -96,22 +100,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           : e.isUnauthorized
               ? errorUnauthorized
               : errorGeneric;
-      await dao.insertMessage(
+      await repo.insert(
         role: 'assistant',
         content: errorText,
         tokenCount: 0,
       );
     } on TimeoutException {
-      await dao.insertMessage(
+      await repo.insert(
         role: 'assistant',
         content: errorTimeout,
         tokenCount: 0,
       );
     } catch (e, st) {
-      dev.log('Chat send failed: $e', name: 'ChatScreen', error: e, stackTrace: st);
-      await dao.insertMessage(
+      dev.log(
+        'Chat send failed: $e',
+        name: 'ChatScreen',
+        error: e,
+        stackTrace: st,
+      );
+      await repo.insert(
         role: 'assistant',
-        content: kDebugMode ? '$errorGeneric\n(${e.runtimeType})' : errorGeneric,
+        content:
+            kDebugMode ? '$errorGeneric\n(${e.runtimeType})' : errorGeneric,
         tokenCount: 0,
       );
     } finally {
@@ -127,11 +137,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         content: Text(ctx.l10n.chat_clear_confirm),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => ctx.pop(false),
             child: Text(ctx.l10n.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
+            onPressed: () => ctx.pop(true),
             child: Text(ctx.l10n.common_clear),
           ),
         ],
@@ -142,7 +152,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _actionStates.clear();
         _executingActions.clear();
       });
-      await ref.read(chatMessageDaoProvider).deleteAll();
+      await ref.read(chatMessageRepositoryProvider).deleteAll();
     }
   }
 
@@ -157,9 +167,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final executor = ref.read(chatActionExecutorProvider);
     final categoriesAsync = ref.read(categoriesProvider);
     final walletsAsync = ref.read(walletsProvider);
-    final locale = context.languageCode;
-    final errorGeneric = context.l10n.chat_error_generic;
-    final dao = ref.read(chatMessageDaoProvider);
+    final l10n = context.l10n;
+    final errorGeneric = l10n.chat_error_generic;
+    final repo = ref.read(chatMessageRepositoryProvider);
 
     // Guard against cold-start or error: providers may not be ready yet.
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
@@ -167,8 +177,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         setState(() => _executingActions.remove(messageId));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n.chat_error_generic),
-            duration: const Duration(seconds: 2),
+            content: Text(errorGeneric),
+            duration: AppDurations.snackbarShort,
           ),
         );
       }
@@ -177,20 +187,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final categories = categoriesAsync.valueOrNull ?? [];
     final wallets = walletsAsync.valueOrNull ?? [];
 
+    // Resolve l10n messages before the async gap.
+    final messages = ChatActionMessages(
+      invalidAmount: l10n.chat_action_invalid_amount,
+      invalidTarget: l10n.chat_action_invalid_target,
+      invalidBudgetLimit: l10n.chat_action_invalid_budget_limit,
+      categoryNotFound: l10n.chat_action_category_not_found,
+      noActiveWallet: l10n.chat_action_no_active_wallet,
+      budgetExists: l10n.chat_action_budget_exists,
+      walletExists: l10n.chat_action_wallet_exists,
+      txNotFound: l10n.chat_action_tx_not_found,
+      goalCreated: l10n.chat_action_goal_created,
+      txRecorded: l10n.chat_action_tx_recorded,
+      budgetCreated: l10n.chat_action_budget_created,
+      recurringCreated: l10n.chat_action_recurring_created,
+      walletCreated: l10n.chat_action_wallet_created,
+      txDeleted: l10n.chat_action_tx_deleted,
+    );
+
     try {
       final selectedWalletId = ref.read(selectedAccountIdProvider);
       final successMsg = await executor.execute(
         action,
         categories: categories,
         wallets: wallets,
-        locale: locale,
+        messages: messages,
         selectedWalletId: selectedWalletId,
       );
       // Atomic: strip JSON + insert success message in one transaction so a
       // crash between them cannot leave inconsistent state. Done before
       // mounted check so the DB write completes even if the widget unmounts.
       final newTokens = AiChatService.estimateTokens(strippedText);
-      await dao.finalizeAction(
+      await repo.finalizeAction(
         messageId: messageId,
         strippedContent: strippedText,
         strippedTokenCount: newTokens,
@@ -199,9 +227,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) return;
       setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
     } catch (e) {
-      final errorMsg =
-          e is ArgumentError ? e.message.toString() : errorGeneric;
-      await dao.insertMessage(
+      final errorMsg = e is ArgumentError ? e.message.toString() : errorGeneric;
+      await repo.insert(
         role: 'assistant',
         content: errorMsg,
         tokenCount: 0,
@@ -218,13 +245,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // Strip JSON so the action card doesn't reappear after navigation.
     try {
       final newTokens = AiChatService.estimateTokens(strippedText);
-      await ref.read(chatMessageDaoProvider).updateContent(
+      await ref.read(chatMessageRepositoryProvider).updateContent(
             messageId,
             strippedText,
             tokenCount: newTokens,
           );
     } catch (e, st) {
-      dev.log('Cancel strip failed: $e', name: 'ChatScreen', error: e, stackTrace: st);
+      dev.log(
+        'Cancel strip failed: $e',
+        name: 'ChatScreen',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -268,14 +300,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Messages list.
           Expanded(
             child: messagesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (_, __) => Center(
                 child: Text(context.l10n.chat_error_generic),
               ),
               data: (messages) {
-                final itemCount =
-                    messages.length + (_isSending ? 1 : 0);
+                final itemCount = messages.length + (_isSending ? 1 : 0);
                 if (itemCount == 0) {
                   return Center(
                     child: Text(
@@ -315,11 +345,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                     // For assistant messages, parse for action JSON.
                     if (msg.role == 'assistant') {
-                      final parsed =
-                          ChatResponseParser.parse(msg.content);
+                      final parsed = ChatResponseParser.parse(msg.content);
                       if (parsed.action != null) {
-                        final status = _actionStates[msg.id] ??
-                            ChatActionStatus.pending;
+                        final status =
+                            _actionStates[msg.id] ?? ChatActionStatus.pending;
                         final textMsg = ChatMessageEntity(
                           id: msg.id,
                           role: msg.role,
@@ -335,23 +364,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ActionCard(
                               action: parsed.action!,
                               status: status,
-                              onConfirm: status ==
-                                          ChatActionStatus.pending ||
-                                      status ==
-                                          ChatActionStatus.failed
+                              onConfirm: status == ChatActionStatus.pending ||
+                                      status == ChatActionStatus.failed
                                   ? () => _onConfirmAction(
                                         msg.id,
                                         parsed.action!,
                                         parsed.textContent,
                                       )
                                   : null,
-                              onCancel:
-                                  status == ChatActionStatus.pending
-                                      ? () => _onCancelAction(
-                                            msg.id,
-                                            parsed.textContent,
-                                          )
-                                      : null,
+                              onCancel: status == ChatActionStatus.pending
+                                  ? () => _onCancelAction(
+                                        msg.id,
+                                        parsed.textContent,
+                                      )
+                                  : null,
                             ),
                           ],
                         );
@@ -383,8 +409,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               start: AppSizes.screenHPadding,
               end: AppSizes.xs,
               top: AppSizes.sm,
-              bottom: AppSizes.sm +
-                  MediaQuery.paddingOf(context).bottom,
+              bottom: AppSizes.sm + MediaQuery.paddingOf(context).bottom,
             ),
             child: Row(
               children: [
@@ -419,8 +444,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const SizedBox(width: AppSizes.xs),
                 AppIconButton(
                   icon: AppIcons.send,
-                  onPressed:
-                      isOnline && !_isSending ? _send : null,
+                  onPressed: isOnline && !_isSending ? _send : null,
                   tooltip: context.l10n.chat_input_hint,
                   color: context.colors.primary,
                 ),

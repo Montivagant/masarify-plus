@@ -89,14 +89,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                   formatButtonVisible: false,
                   titleCentered: true,
                   titleTextStyle:
-                      context.textStyles.titleMedium ??
-                          const TextStyle(),
+                      context.textStyles.titleMedium ?? const TextStyle(),
                   leftChevronIcon: Icon(
-                    context.isRtl ? AppIcons.chevronRight : AppIcons.chevronLeft,
+                    context.isRtl
+                        ? AppIcons.chevronRight
+                        : AppIcons.chevronLeft,
                     size: AppSizes.iconSm,
                   ),
                   rightChevronIcon: Icon(
-                    context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+                    context.isRtl
+                        ? AppIcons.chevronLeft
+                        : AppIcons.chevronRight,
                     size: AppSizes.iconSm,
                   ),
                 ),
@@ -105,13 +108,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: cs.primary,
-                      width: 2,
+                      width: AppSizes.borderWidthFocus,
                     ),
                   ),
                   todayTextStyle: context.textStyles.bodyMedium?.copyWith(
-                    color: cs.primary,
-                    fontWeight: FontWeight.w700,
-                  ) ?? const TextStyle(),
+                        color: cs.primary,
+                        fontWeight: FontWeight.w700,
+                      ) ??
+                      const TextStyle(),
                   selectedDecoration: BoxDecoration(
                     color: cs.primary,
                     shape: BoxShape.circle,
@@ -243,9 +247,9 @@ class _DayTransactionList extends ConsumerWidget {
                 Text(
                   '+${MoneyFormatter.formatAmount(totalIncome)}',
                   style: context.textStyles.bodySmall?.copyWith(
-                        color: context.appTheme.incomeColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: context.appTheme.incomeColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(width: AppSizes.md),
               ],
@@ -259,9 +263,9 @@ class _DayTransactionList extends ConsumerWidget {
                 Text(
                   '\u2212${MoneyFormatter.formatAmount(totalExpense)}',
                   style: context.textStyles.bodySmall?.copyWith(
-                        color: context.appTheme.expenseColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: context.appTheme.expenseColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ],
@@ -312,11 +316,9 @@ class _DayTransactionList extends ConsumerWidget {
                       if (cat != null)
                         Text(
                           cat.displayName(context.languageCode),
-                          style: context.textStyles.bodySmall
-                              ?.copyWith(
-                                color:
-                                    context.colors.outline,
-                              ),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.colors.outline,
+                          ),
                         ),
                     ],
                   ),
@@ -324,9 +326,9 @@ class _DayTransactionList extends ConsumerWidget {
                 Text(
                   '$prefix ${MoneyFormatter.formatAmount(tx.amount)}',
                   style: context.textStyles.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: typeColor,
-                      ),
+                    fontWeight: FontWeight.w700,
+                    color: typeColor,
+                  ),
                 ),
               ],
             ),

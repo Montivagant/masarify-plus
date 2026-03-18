@@ -44,6 +44,26 @@ class ActionCard extends StatelessWidget {
           context.l10n.chat_action_tx_title,
           theme.expenseColor,
         ),
+      CreateBudgetAction() => (
+          AppIcons.budget,
+          context.l10n.chat_action_budget_title,
+          cs.tertiary,
+        ),
+      CreateRecurringAction() => (
+          AppIcons.recurring,
+          context.l10n.chat_action_recurring_title,
+          cs.secondary,
+        ),
+      CreateWalletAction() => (
+          AppIcons.wallet,
+          context.l10n.chat_action_wallet_title,
+          cs.primary,
+        ),
+      DeleteTransactionAction() => (
+          AppIcons.delete,
+          context.l10n.chat_action_delete_title,
+          theme.expenseColor,
+        ),
     };
 
     return Align(
@@ -54,7 +74,8 @@ class ActionCard extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsetsDirectional.only(
-            start: AppSizes.iconXs + AppSizes.xs, // align with bubble after avatar
+            start:
+                AppSizes.iconXs + AppSizes.xs, // align with bubble after avatar
             bottom: AppSizes.sm,
           ),
           child: GlassCard(
@@ -102,65 +123,151 @@ class ActionCard extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
+    final labelS = detailStyle?.copyWith(color: cs.outline);
     return switch (action) {
-      CreateGoalAction(:final name, :final targetAmountPiastres, :final deadline) => [
+      CreateGoalAction(
+        :final name,
+        :final targetAmountPiastres,
+        :final deadline
+      ) =>
+        [
           _DetailLine(
-            label: context.l10n.transaction_title_label,
-            value: name,
-            labelStyle: detailStyle?.copyWith(color: cs.outline),
-            valueStyle: valueStyle,
-          ),
+              label: context.l10n.transaction_title_label,
+              value: name,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
           _DetailLine(
-            label: context.l10n.goal_target_label,
-            value: MoneyFormatter.format(targetAmountPiastres),
-            labelStyle: detailStyle?.copyWith(color: cs.outline),
-            valueStyle: valueStyle,
-          ),
+              label: context.l10n.goal_target_label,
+              value: MoneyFormatter.format(targetAmountPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
           if (deadline != null)
             _DetailLine(
-              label: context.l10n.goal_deadline,
-              value: _formatDeadline(context, deadline),
-              labelStyle: detailStyle?.copyWith(color: cs.outline),
-              valueStyle: valueStyle,
-            ),
+                label: context.l10n.goal_deadline,
+                value: _formatDeadline(context, deadline),
+                labelStyle: labelS,
+                valueStyle: valueStyle,),
         ],
       CreateTransactionAction(
         :final title,
         :final amountPiastres,
         :final type,
         :final categoryName,
-        :final date,
+        :final date
       ) =>
         [
           _DetailLine(
-            label: context.l10n.transaction_title_label,
-            value: title,
-            labelStyle: detailStyle?.copyWith(color: cs.outline),
-            valueStyle: valueStyle,
-          ),
+              label: context.l10n.transaction_title_label,
+              value: title,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
           _DetailLine(
             label: context.l10n.common_amount,
             value: MoneyFormatter.format(amountPiastres),
-            labelStyle: detailStyle?.copyWith(color: cs.outline),
+            labelStyle: labelS,
             valueStyle: valueStyle?.copyWith(
-              color: type == 'income'
-                  ? context.appTheme.incomeColor
-                  : context.appTheme.expenseColor,
-            ),
+                color: type == 'income'
+                    ? context.appTheme.incomeColor
+                    : context.appTheme.expenseColor,),
           ),
           _DetailLine(
-            label: context.l10n.transaction_category,
-            value: categoryName,
-            labelStyle: detailStyle?.copyWith(color: cs.outline),
-            valueStyle: valueStyle,
+              label: context.l10n.transaction_category,
+              value: categoryName,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          if (date != null)
+            _DetailLine(
+                label: context.l10n.transaction_date,
+                value: _formatDate(context, date),
+                labelStyle: labelS,
+                valueStyle: valueStyle,),
+        ],
+      CreateBudgetAction(:final categoryName, :final limitPiastres) => [
+          _DetailLine(
+              label: context.l10n.transaction_category,
+              value: categoryName,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.budget_limit,
+              value: MoneyFormatter.format(limitPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+        ],
+      CreateRecurringAction(
+        :final title,
+        :final amountPiastres,
+        :final frequency,
+        :final categoryName
+      ) =>
+        [
+          _DetailLine(
+              label: context.l10n.transaction_title_label,
+              value: title,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.common_amount,
+              value: MoneyFormatter.format(amountPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.recurring_frequency_label,
+              value: frequency,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.transaction_category,
+              value: categoryName,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+        ],
+      CreateWalletAction(
+        :final name,
+        :final type,
+        :final initialBalancePiastres
+      ) =>
+        [
+          _DetailLine(
+              label: context.l10n.wallet_name_label,
+              value: name,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.wallet_type_label,
+              value: type,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+              label: context.l10n.wallet_initial_balance,
+              value: MoneyFormatter.format(initialBalancePiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+        ],
+      DeleteTransactionAction(
+        :final title,
+        :final amountPiastres,
+        :final date
+      ) =>
+        [
+          _DetailLine(
+              label: context.l10n.transaction_title_label,
+              value: title,
+              labelStyle: labelS,
+              valueStyle: valueStyle,),
+          _DetailLine(
+            label: context.l10n.common_amount,
+            value: MoneyFormatter.format(amountPiastres),
+            labelStyle: labelS,
+            valueStyle:
+                valueStyle?.copyWith(color: context.appTheme.expenseColor),
           ),
           if (date != null)
             _DetailLine(
-              label: context.l10n.transaction_date,
-              value: _formatDate(context, date),
-              labelStyle: detailStyle?.copyWith(color: cs.outline),
-              valueStyle: valueStyle,
-            ),
+                label: context.l10n.transaction_date,
+                value: _formatDate(context, date),
+                labelStyle: labelS,
+                valueStyle: valueStyle,),
         ],
     };
   }
@@ -171,7 +278,8 @@ class ActionCard extends StatelessWidget {
     return switch (status) {
       ChatActionStatus.confirmed => Row(
           children: [
-            Icon(AppIcons.check, size: AppSizes.iconSm, color: context.appTheme.incomeColor),
+            Icon(AppIcons.check,
+                size: AppSizes.iconSm, color: context.appTheme.incomeColor,),
             const SizedBox(width: AppSizes.xs),
             Text(
               context.l10n.chat_action_confirmed,
@@ -190,7 +298,8 @@ class ActionCard extends StatelessWidget {
         ),
       ChatActionStatus.failed => Row(
           children: [
-            Icon(AppIcons.warning, size: AppSizes.iconXs, color: context.appTheme.expenseColor),
+            Icon(AppIcons.warning,
+                size: AppSizes.iconXs, color: context.appTheme.expenseColor,),
             const SizedBox(width: AppSizes.xs),
             Expanded(
               child: Text(

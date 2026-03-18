@@ -192,6 +192,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                   onToggleHide: () =>
                       ref.read(hideBalancesProvider.notifier).toggle(),
                   walletTypeIcon: _typeIcon(wallet.type),
+                  walletColorHex: wallet.colorHex,
                 ),
               );
             },

@@ -2430,4 +2430,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_ready_cta => 'ابدأ التتبع';
+
+  @override
+  String get cash_in_hand => 'النقدي في اليد';
+
+  @override
+  String get transaction_type_cash_withdrawal => 'سحب نقدي';
+
+  @override
+  String get transaction_type_cash_withdrawal_short => 'سحب';
+
+  @override
+  String get transaction_type_cash_deposit => 'إيداع نقدي';
+
+  @override
+  String get transaction_type_cash_deposit_short => 'إيداع';
+
+  @override
+  String get category_atm => 'صراف آلي';
 }

@@ -39,6 +39,7 @@ class BalanceCard extends StatelessWidget {
     this.cashPiastres = 0,
     this.variant = BalanceCardVariant.hero,
     this.walletTypeIcon,
+    this.walletColorHex,
   });
 
   final int totalPiastres;
@@ -63,6 +64,9 @@ class BalanceCard extends StatelessWidget {
 
   /// Optional wallet type icon shown in account variant.
   final IconData? walletTypeIcon;
+
+  /// Hex color string (e.g. '#3DA37A') for per-account tinting in account variant.
+  final String? walletColorHex;
 
   @override
   Widget build(BuildContext context) {
@@ -177,28 +181,25 @@ class BalanceCard extends StatelessWidget {
                     lastMonthExpensePiastres: lastMonthExpensePiastres!,
                   ),
                 ],
-                // Cash / In-Goals info chips
-                if (!hidden && (cashPiastres > 0 || inGoalsPiastres > 0)) ...[
+                // Cash in Hand — prominent row
+                if (!hidden && cashPiastres > 0) ...[
+                  const SizedBox(height: AppSizes.sm),
+                  _CashRow(
+                    cashPiastres: cashPiastres,
+                    currencyCode: currencyCode,
+                  ),
+                ],
+                // In-Goals info chip
+                if (!hidden && inGoalsPiastres > 0) ...[
                   const SizedBox(height: AppSizes.sm),
                   Row(
                     children: [
-                      if (cashPiastres > 0) ...[
-                        _InfoChip(
-                          icon: AppIcons.physicalCash,
-                          label: context.l10n.wallet_type_physical_cash_short,
-                          amountPiastres: cashPiastres,
-                          currencyCode: currencyCode,
-                        ),
-                        if (inGoalsPiastres > 0)
-                          const SizedBox(width: AppSizes.sm),
-                      ],
-                      if (inGoalsPiastres > 0)
-                        _InfoChip(
-                          icon: AppIcons.goals,
-                          label: context.l10n.balance_in_goals,
-                          amountPiastres: inGoalsPiastres,
-                          currencyCode: currencyCode,
-                        ),
+                      _InfoChip(
+                        icon: AppIcons.goals,
+                        label: context.l10n.balance_in_goals,
+                        amountPiastres: inGoalsPiastres,
+                        currencyCode: currencyCode,
+                      ),
                     ],
                   ),
                 ],
@@ -245,11 +246,27 @@ class BalanceCard extends StatelessWidget {
     final theme = context.appTheme;
     final radius = BorderRadius.circular(AppSizes.gradientBorderRadius);
 
+    // Parse wallet color for tinting, fallback to primary.
+    final walletColor = walletColorHex != null && walletColorHex!.length >= 7
+        ? Color(
+            int.parse(walletColorHex!.substring(1), radix: 16) + 0xFF000000,
+          )
+        : cs.primary;
+
     return Container(
       decoration: BoxDecoration(
-        color: theme.glassCardSurface,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            walletColor.withValues(alpha: AppSizes.opacitySubtle),
+            theme.glassCardSurface,
+          ],
+        ),
         borderRadius: radius,
-        border: Border.all(color: theme.glassCardBorder),
+        border: Border.all(
+          color: walletColor.withValues(alpha: AppSizes.opacityLight),
+        ),
         boxShadow: [
           BoxShadow(
             color: theme.glassShadow,
@@ -259,82 +276,104 @@ class BalanceCard extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Account name + type icon + hide toggle
-            Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Colored accent bar at top
+          Container(
+            height: AppSizes.xs,
+            decoration: BoxDecoration(
+              color: walletColor.withValues(alpha: AppSizes.opacityLight3),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppSizes.gradientBorderRadius),
+                topRight: Radius.circular(AppSizes.gradientBorderRadius),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSizes.lg,
+              AppSizes.md,
+              AppSizes.lg,
+              AppSizes.lg,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (walletTypeIcon != null) ...[
-                  Container(
-                    width: AppSizes.iconContainerSm,
-                    height: AppSizes.iconContainerSm,
-                    decoration: BoxDecoration(
-                      color:
-                          cs.primary.withValues(alpha: AppSizes.opacityLight2),
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadiusSm),
+                // Account name + type icon + hide toggle
+                Row(
+                  children: [
+                    if (walletTypeIcon != null) ...[
+                      Container(
+                        width: AppSizes.iconContainerMd,
+                        height: AppSizes.iconContainerMd,
+                        decoration: BoxDecoration(
+                          color: walletColor.withValues(
+                            alpha: AppSizes.opacityLight,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.borderRadiusMdSm),
+                        ),
+                        child: Icon(
+                          walletTypeIcon,
+                          size: AppSizes.iconMd,
+                          color: walletColor,
+                        ),
+                      ),
+                      const SizedBox(width: AppSizes.sm),
+                    ],
+                    Expanded(
+                      child: Text(
+                        accountName ?? '',
+                        style: context.textStyles.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                    child: Icon(
-                      walletTypeIcon,
-                      size: AppSizes.iconSm,
-                      color: cs.primary,
+                    IconButton(
+                      icon: Icon(
+                        hidden ? AppIcons.eye : AppIcons.eyeOff,
+                        size: AppSizes.iconSm,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      tooltip: hidden
+                          ? context.l10n.balance_show
+                          : context.l10n.balance_hide,
+                      onPressed: () {
+                        HapticFeedback.selectionClick();
+                        onToggleHide?.call();
+                      },
+                      visualDensity: VisualDensity.compact,
                     ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                ],
-                Expanded(
-                  child: Text(
-                    accountName ?? '',
-                    style: context.textStyles.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: cs.onSurface,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  ],
+                ),
+                const SizedBox(height: AppSizes.md),
+                // Count-up balance animation
+                _CountUpBalance(
+                  totalPiastres: totalPiastres,
+                  currencyCode: currencyCode,
+                  hidden: hidden,
+                  style: context.textStyles.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
                   ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    hidden ? AppIcons.eye : AppIcons.eyeOff,
-                    size: AppSizes.iconSm,
-                    color: cs.onSurfaceVariant,
+                const SizedBox(height: AppSizes.xs),
+                // Currency code subtitle
+                Text(
+                  currencyCode,
+                  style: context.textStyles.bodySmall?.copyWith(
+                    color: cs.onSurfaceVariant
+                        .withValues(alpha: AppSizes.opacityStrong),
                   ),
-                  tooltip: hidden
-                      ? context.l10n.balance_show
-                      : context.l10n.balance_hide,
-                  onPressed: () {
-                    HapticFeedback.selectionClick();
-                    onToggleHide?.call();
-                  },
-                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
-            const SizedBox(height: AppSizes.md),
-            // Count-up balance animation (smaller than hero)
-            _CountUpBalance(
-              totalPiastres: totalPiastres,
-              currencyCode: currencyCode,
-              hidden: hidden,
-              style: context.textStyles.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: cs.onSurface,
-              ),
-            ),
-            const SizedBox(height: AppSizes.xs),
-            // Currency code subtitle
-            Text(
-              currencyCode,
-              style: context.textStyles.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant
-                    .withValues(alpha: AppSizes.opacityStrong),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -416,6 +455,66 @@ class _TrendIndicator extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+// ── Cash row (prominent, hero card) ──────────────────────────────────────────
+
+class _CashRow extends StatelessWidget {
+  const _CashRow({
+    required this.cashPiastres,
+    required this.currencyCode,
+  });
+
+  final int cashPiastres;
+  final String currencyCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.sm,
+      ),
+      decoration: BoxDecoration(
+        color: cs.onPrimary.withValues(alpha: AppSizes.opacityLight2),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: AppSizes.iconContainerXs,
+            height: AppSizes.iconContainerXs,
+            decoration: BoxDecoration(
+              color: cs.onPrimary.withValues(alpha: AppSizes.opacityLight3),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              AppIcons.physicalCash,
+              size: AppSizes.iconXs,
+              color: cs.onPrimary,
+            ),
+          ),
+          const SizedBox(width: AppSizes.sm),
+          Text(
+            context.l10n.cash_in_hand,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            MoneyFormatter.format(cashPiastres, currency: currencyCode),
+            style: context.textStyles.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: cs.onPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

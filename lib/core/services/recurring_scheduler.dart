@@ -49,22 +49,9 @@ class RecurringScheduler {
         // C7 fix: check endDate — deactivate expired rules
         if (rule.endDate != null && today.isAfter(rule.endDate!.startOfDay)) {
           await _ruleRepo.update(
-            RecurringRuleEntity(
-              id: rule.id,
-              walletId: rule.walletId,
-              categoryId: rule.categoryId,
-              amount: rule.amount,
-              type: rule.type,
-              title: rule.title,
-              frequency: rule.frequency,
-              startDate: rule.startDate,
-              endDate: rule.endDate,
-              nextDueDate: rule.nextDueDate,
-              isPaid: rule.isPaid,
-              paidAt: rule.paidAt,
-              linkedTransactionId: rule.linkedTransactionId,
+            rule.copyWith(
               isActive: false,
-              lastProcessedDate: now,
+              lastProcessedDate: () => now,
             ),
           );
           continue;
@@ -79,25 +66,14 @@ class RecurringScheduler {
         // C6 fix: deactivate rule if wallet/category was deleted or archived
         final wallet = await _walletRepo.getById(rule.walletId);
         final category = await _categoryRepo.getById(rule.categoryId);
-        if (wallet == null || category == null ||
-            wallet.isArchived || (category.isArchived)) {
+        if (wallet == null ||
+            category == null ||
+            wallet.isArchived ||
+            (category.isArchived)) {
           await _ruleRepo.update(
-            RecurringRuleEntity(
-              id: rule.id,
-              walletId: rule.walletId,
-              categoryId: rule.categoryId,
-              amount: rule.amount,
-              type: rule.type,
-              title: rule.title,
-              frequency: rule.frequency,
-              startDate: rule.startDate,
-              endDate: rule.endDate,
-              nextDueDate: rule.nextDueDate,
-              isPaid: rule.isPaid,
-              paidAt: rule.paidAt,
-              linkedTransactionId: rule.linkedTransactionId,
+            rule.copyWith(
               isActive: false,
-              lastProcessedDate: now,
+              lastProcessedDate: () => now,
             ),
           );
           continue;
@@ -123,22 +99,9 @@ class RecurringScheduler {
           // Persist nextDueDate after each iteration so crash mid-loop
           // doesn't re-run already-processed rules on restart.
           await _ruleRepo.update(
-            RecurringRuleEntity(
-              id: rule.id,
-              walletId: rule.walletId,
-              categoryId: rule.categoryId,
-              amount: rule.amount,
-              type: rule.type,
-              title: rule.title,
-              frequency: rule.frequency,
-              startDate: rule.startDate,
-              endDate: rule.endDate,
+            rule.copyWith(
               nextDueDate: nextDue,
-              isPaid: rule.isPaid,
-              paidAt: rule.paidAt,
-              linkedTransactionId: rule.linkedTransactionId,
-              isActive: rule.isActive,
-              lastProcessedDate: now,
+              lastProcessedDate: () => now,
             ),
           );
         }
@@ -165,31 +128,17 @@ class RecurringScheduler {
   }
 
   /// Advance [from] by one period of [frequency].
-  /// H1 fix: clamp day to max days in target month to prevent date drift.
+  /// Uses [DateTimeX.addMonths] for month-based periods to clamp day and
+  /// prevent date drift (e.g. Jan 31 + 1 month → Feb 28, not Mar 3).
   static DateTime _computeNextDueDate(DateTime from, String frequency) {
     return switch (frequency) {
       'daily' => from.add(const Duration(days: 1)),
       'weekly' => from.add(const Duration(days: 7)),
       'biweekly' => from.add(const Duration(days: 14)),
-      'monthly' => _addMonths(from, 1),
-      'quarterly' => _addMonths(from, 3),
-      'yearly' => _addMonths(from, 12),
+      'monthly' => from.addMonths(1),
+      'quarterly' => from.addMonths(3),
+      'yearly' => from.addMonths(12),
       _ => from.add(const Duration(days: 30)),
     };
   }
-
-  /// Add [months] to [from], clamping the day to avoid drift
-  /// (e.g. Jan 31 + 1 month → Feb 28, not Mar 3).
-  static DateTime _addMonths(DateTime from, int months) {
-    final targetMonth = from.month + months;
-    final targetYear = from.year + (targetMonth - 1) ~/ 12;
-    final normalizedMonth = ((targetMonth - 1) % 12) + 1;
-    final maxDay = _daysInMonth(targetYear, normalizedMonth);
-    final clampedDay = from.day > maxDay ? maxDay : from.day;
-    return DateTime(targetYear, normalizedMonth, clampedDay);
-  }
-
-  static int _daysInMonth(int year, int month) =>
-      DateTime(year, month + 1, 0).day;
-
 }
