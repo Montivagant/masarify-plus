@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/app_durations.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/services/app_lock_service.dart';
 import '../../core/utils/voice_transaction_parser.dart';
@@ -21,6 +22,7 @@ import '../../features/monetization/presentation/screens/paywall_screen.dart';
 import '../../features/monetization/presentation/screens/subscription_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
+import '../../features/quick_start/presentation/screens/quick_start_screen.dart';
 import '../../features/recurring/presentation/screens/add_recurring_screen.dart';
 import '../../features/recurring/presentation/screens/recurring_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
@@ -51,6 +53,29 @@ CustomTransitionPage<T> _fadePage<T>({
       child: child,
       transitionsBuilder: (_, animation, __, child) =>
           FadeTransition(opacity: animation, child: child),
+    );
+
+/// E8: Slide-up + fade transition for add/create routes.
+CustomTransitionPage<T> _slideUpPage<T>({
+  required Widget child,
+  required GoRouterState state,
+}) =>
+    CustomTransitionPage<T>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: AppDurations.pageTransition,
+      transitionsBuilder: (_, animation, __, child) {
+        final tween = Tween(begin: const Offset(0, 0.05), end: Offset.zero);
+        return SlideTransition(
+          position: tween.animate(
+            CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            ),
+          ),
+          child: FadeTransition(opacity: animation, child: child),
+        );
+      },
     );
 
 /// C4 fix: safe int parsing for route parameters — returns null on malformed IDs.
@@ -107,7 +132,7 @@ final appRouter = GoRouter(
       path: AppRoutes.transactionAdd,
       pageBuilder: (context, state) {
         final extra = state.extra as Map<String, dynamic>?;
-        return _fadePage(
+        return _slideUpPage(
           state: state,
           child: AddTransactionScreen(
             initialType: extra?['type'] as String? ?? 'expense',
@@ -117,12 +142,15 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.transactionEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
-      builder: (context, state) => AddTransactionScreen(editId: _parseId(state)!),
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
+      builder: (context, state) =>
+          AddTransactionScreen(editId: _parseId(state)!),
     ),
     GoRoute(
       path: AppRoutes.transactionDetail,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       pageBuilder: (context, state) => _fadePage(
         state: state,
         child: TransactionDetailScreen(id: _parseId(state)!),
@@ -136,16 +164,21 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.walletAdd,
-      builder: (_, __) => const AddWalletScreen(),
+      pageBuilder: (_, state) => _slideUpPage(
+        state: state,
+        child: const AddWalletScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.walletEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => AddWalletScreen(editId: _parseId(state)!),
     ),
     GoRoute(
       path: AppRoutes.walletDetail,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => WalletDetailScreen(id: _parseId(state)!),
     ),
     GoRoute(
@@ -160,11 +193,15 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.categoryAdd,
-      builder: (_, __) => const AddCategoryScreen(),
+      pageBuilder: (_, state) => _slideUpPage(
+        state: state,
+        child: const AddCategoryScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.categoryEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => AddCategoryScreen(editId: _parseId(state)!),
     ),
 
@@ -176,17 +213,21 @@ final appRouter = GoRouter(
     // Budgets (push routes over the shell)
     GoRoute(
       path: AppRoutes.budgetSet,
-      builder: (_, state) {
+      pageBuilder: (_, state) {
         final extra = state.extra as Map<String, dynamic>?;
-        return SetBudgetScreen(
-          initialYear: extra?['year'] as int?,
-          initialMonth: extra?['month'] as int?,
+        return _slideUpPage(
+          state: state,
+          child: SetBudgetScreen(
+            initialYear: extra?['year'] as int?,
+            initialMonth: extra?['month'] as int?,
+          ),
         );
       },
     ),
     GoRoute(
       path: AppRoutes.budgetEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (_, state) {
         final extra = state.extra as Map<String, dynamic>?;
         return SetBudgetScreen(
@@ -201,16 +242,21 @@ final appRouter = GoRouter(
     // Note: /goals/add must precede /goals/:id to avoid shadowing.
     GoRoute(
       path: AppRoutes.goalAdd,
-      builder: (_, __) => const AddGoalScreen(),
+      pageBuilder: (_, state) => _slideUpPage(
+        state: state,
+        child: const AddGoalScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.goalEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => AddGoalScreen(editId: _parseId(state)!),
     ),
     GoRoute(
       path: AppRoutes.goalDetail,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => GoalDetailScreen(id: _parseId(state)!),
     ),
     // Standalone goals list — for deep-link access (e.g. from notifications).
@@ -226,19 +272,26 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.recurringAdd,
-      builder: (_, __) => const AddRecurringScreen(),
+      pageBuilder: (_, state) => _slideUpPage(
+        state: state,
+        child: const AddRecurringScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.recurringEdit,
-      redirect: (_, state) => _parseId(state) == null ? AppRoutes.dashboard : null,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
       builder: (context, state) => AddRecurringScreen(editId: _parseId(state)!),
     ),
 
     // Smart input
     GoRoute(
       path: AppRoutes.voiceConfirm,
-      builder: (_, state) => VoiceConfirmScreen(
-        drafts: state.extra as List<VoiceTransactionDraft>? ?? [],
+      pageBuilder: (_, state) => _slideUpPage(
+        child: VoiceConfirmScreen(
+          drafts: state.extra as List<VoiceTransactionDraft>? ?? [],
+        ),
+        state: state,
       ),
     ),
     GoRoute(
@@ -252,7 +305,6 @@ final appRouter = GoRouter(
         child: const ChatScreen(),
       ),
     ),
-
     // Reports
     GoRoute(
       path: AppRoutes.calendar,
@@ -281,6 +333,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.settingsSubscription,
       builder: (_, __) => const SubscriptionScreen(),
+    ),
+
+    // Quick Start wizard
+    GoRoute(
+      path: AppRoutes.quickStart,
+      builder: (_, __) => const QuickStartScreen(),
     ),
 
     // Monetization (Phase 5)

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../domain/entities/wallet_entity.dart';
@@ -53,6 +55,7 @@ class WalletRepositoryImpl implements IWalletRepository {
     String iconName = 'wallet',
     String colorHex = '#1A6B5E',
     int displayOrder = 0,
+    List<String> linkedSenders = const [],
   }) async {
     // Atomic: check + insert in one transaction to prevent TOCTOU race
     return _db.transaction(() async {
@@ -69,6 +72,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           iconName: Value(iconName),
           colorHex: Value(colorHex),
           displayOrder: Value(displayOrder),
+          linkedSenders: Value(jsonEncode(linkedSenders)),
         ),
       );
     });
@@ -80,7 +84,9 @@ class WalletRepositoryImpl implements IWalletRepository {
     return _db.transaction(() async {
       final exists = await _dao.existsByName(wallet.name, excludeId: wallet.id);
       if (exists) {
-        throw ArgumentError('A wallet with name "${wallet.name}" already exists');
+        throw ArgumentError(
+          'A wallet with name "${wallet.name}" already exists',
+        );
       }
       return _dao.saveWallet(
         WalletsCompanion(
@@ -94,6 +100,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           colorHex: Value(wallet.colorHex),
           isArchived: Value(wallet.isArchived),
           displayOrder: Value(wallet.displayOrder),
+          linkedSenders: Value(jsonEncode(wallet.linkedSenders)),
         ),
       );
     });
@@ -101,6 +108,33 @@ class WalletRepositoryImpl implements IWalletRepository {
 
   @override
   Future<bool> archive(int id) => _dao.archive(id);
+
+  @override
+  Future<WalletEntity?> getSystemWallet() async {
+    final row = await _dao.getSystemWallet();
+    return row != null ? _toEntity(row) : null;
+  }
+
+  @override
+  Stream<WalletEntity?> watchSystemWallet() =>
+      _dao.watchSystemWallet().map((w) => w != null ? _toEntity(w) : null);
+
+  @override
+  Future<int> ensureSystemWalletExists() async {
+    return _db.transaction(() async {
+      final existing = await _dao.getSystemWallet();
+      if (existing != null) return existing.id;
+      return _dao.insertWallet(
+        WalletsCompanion.insert(
+          name: 'Physical Cash',
+          type: 'physical_cash',
+          balance: const Value(0),
+          displayOrder: const Value(-1),
+          isSystemWallet: const Value(true),
+        ),
+      );
+    });
+  }
 
   @override
   Future<void> adjustBalance(int id, int deltaPiastres) =>
@@ -125,5 +159,45 @@ class WalletRepositoryImpl implements IWalletRepository {
         isArchived: w.isArchived,
         displayOrder: w.displayOrder,
         createdAt: w.createdAt,
+        linkedSenders: _decodeSenders(w.linkedSenders),
+        isSystemWallet: w.isSystemWallet,
       );
+
+  @override
+  Future<void> addLinkedSender(int walletId, String sender) async {
+    final upperSender = sender.toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '');
+    if (upperSender.isEmpty) return;
+
+    // Atomic read-check-write to prevent duplicate senders from concurrent calls.
+    await _db.transaction(() async {
+      final row = await (_db.select(_db.wallets)
+            ..where((w) => w.id.equals(walletId)))
+          .getSingleOrNull();
+      if (row == null) return;
+
+      final existing = _decodeSenders(row.linkedSenders);
+      if (existing.any(
+        (s) => s.toUpperCase().replaceAll(RegExp(r'[^A-Z]'), '') == upperSender,
+      )) {
+        return; // Already linked
+      }
+
+      final updatedSenders = [...existing, sender];
+      await (_db.update(_db.wallets)..where((w) => w.id.equals(walletId)))
+          .write(
+        WalletsCompanion(
+          linkedSenders: Value(jsonEncode(updatedSenders)),
+        ),
+      );
+    });
+  }
+
+  static List<String> _decodeSenders(String json) {
+    try {
+      final list = jsonDecode(json) as List<dynamic>;
+      return list.cast<String>();
+    } catch (_) {
+      return [];
+    }
+  }
 }

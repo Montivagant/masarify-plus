@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
@@ -8,6 +11,7 @@ import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/balance_card.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 
 /// Swipeable account carousel: page 0 = total balance, pages 1-N = accounts.
 ///
@@ -28,7 +32,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     super.initState();
     final initialPage = ref.read(selectedAccountIndexProvider);
     _pageController = PageController(
-      viewportFraction: 0.92,
+      viewportFraction: AppSizes.carouselViewportFraction,
       initialPage: initialPage,
     );
   }
@@ -45,6 +49,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
     final hidden = ref.watch(hideBalancesProvider);
     final selectedIndex = ref.watch(selectedAccountIndexProvider);
+    final inGoals = ref.watch(totalInGoalsProvider);
 
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
@@ -58,7 +63,8 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
 
     final wallets = walletsAsync.valueOrNull ?? [];
     final totalBalance = totalBalanceAsync.valueOrNull ?? 0;
-    final pageCount = 1 + wallets.length;
+    // +1 for total balance, +1 for "Add Account" card at the end.
+    final pageCount = 1 + wallets.length + 1;
 
     // Clamp selected index if wallets were removed.
     final safeIndex = selectedIndex.clamp(0, pageCount - 1);
@@ -80,10 +86,12 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     for (final t in monthTxs) {
       if (t.type == 'income') {
         totalIncome += t.amount;
-        incomeByWallet[t.walletId] = (incomeByWallet[t.walletId] ?? 0) + t.amount;
+        incomeByWallet[t.walletId] =
+            (incomeByWallet[t.walletId] ?? 0) + t.amount;
       } else if (t.type == 'expense') {
         totalExpense += t.amount;
-        expenseByWallet[t.walletId] = (expenseByWallet[t.walletId] ?? 0) + t.amount;
+        expenseByWallet[t.walletId] =
+            (expenseByWallet[t.walletId] ?? 0) + t.amount;
       }
     }
     final lastExpenseByWallet = <int, int>{};
@@ -91,7 +99,8 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     for (final t in lastMonthTxs) {
       if (t.type == 'expense') {
         lastMonthExpenseTotal += t.amount;
-        lastExpenseByWallet[t.walletId] = (lastExpenseByWallet[t.walletId] ?? 0) + t.amount;
+        lastExpenseByWallet[t.walletId] =
+            (lastExpenseByWallet[t.walletId] ?? 0) + t.amount;
       }
     }
 
@@ -103,7 +112,10 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
             controller: _pageController,
             itemCount: pageCount,
             onPageChanged: (index) {
-              ref.read(selectedAccountIndexProvider.notifier).state = index;
+              // Don't update selection when swiping to the "Add Account" card.
+              if (index < pageCount - 1) {
+                ref.read(selectedAccountIndexProvider.notifier).state = index;
+              }
             },
             itemBuilder: (context, index) {
               if (index == 0) {
@@ -118,11 +130,26 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                     totalPiastres: totalBalance,
                     monthlyIncomePiastres: totalIncome,
                     monthlyExpensePiastres: totalExpense,
-                    lastMonthExpensePiastres:
-                        lastMonthExpenseTotal > 0 ? lastMonthExpenseTotal : null,
+                    lastMonthExpensePiastres: lastMonthExpenseTotal > 0
+                        ? lastMonthExpenseTotal
+                        : null,
                     hidden: hidden,
                     onToggleHide: () =>
                         ref.read(hideBalancesProvider.notifier).toggle(),
+                    inGoalsPiastres: inGoals,
+                  ),
+                );
+              }
+
+              // Last page: "Add Account" card.
+              if (index == pageCount - 1) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.xs,
+                    vertical: AppSizes.xs,
+                  ),
+                  child: _AddAccountCard(
+                    onTap: () => context.push(AppRoutes.walletAdd),
                   ),
                 );
               }
@@ -159,32 +186,95 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
           ),
         ),
 
-        // Page indicator dots.
+        // Page indicator dots + quick add button.
+        // Dots exclude the "Add Account" card (last page) — the "+" button
+        // replaces its dot, avoiding visual confusion when swiping to it.
         if (pageCount > 1)
           Padding(
             padding: const EdgeInsets.only(top: AppSizes.xs),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(pageCount, (i) {
-                final isActive = i == safeIndex;
-                return Container(
-                  width: AppSizes.indicatorDotSize,
-                  height: AppSizes.indicatorDotSize,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.xs / 2 + 1, // ~3dp spacing
+              children: [
+                ...List.generate(pageCount - 1, (i) {
+                  final isActive = i == safeIndex;
+                  return Container(
+                    width: AppSizes.indicatorDotSize,
+                    height: AppSizes.indicatorDotSize,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.indicatorDotGap,
+                    ),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isActive
+                          ? context.colors.primary
+                          : context.colors.outline
+                              .withValues(alpha: AppSizes.opacityLight4),
+                    ),
+                  );
+                }),
+                // WS6: Quick add "+" button next to dots.
+                const SizedBox(width: AppSizes.sm),
+                GestureDetector(
+                  onTap: () => context.push(AppRoutes.walletAdd),
+                  child: Container(
+                    width: AppSizes.iconSm,
+                    height: AppSizes.iconSm,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: context.colors.primary
+                          .withValues(alpha: AppSizes.opacityLight),
+                    ),
+                    child: Icon(
+                      AppIcons.add,
+                      size: AppSizes.iconXxs,
+                      color: context.colors.primary,
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isActive
-                        ? context.colors.primary
-                        : context.colors.outline
-                            .withValues(alpha: AppSizes.opacityLight4),
-                  ),
-                );
-              }),
+                ),
+              ],
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Dashed-border "+" card at the end of the carousel for quick account creation.
+class _AddAccountCard extends StatelessWidget {
+  const _AddAccountCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        tintColor:
+            cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                AppIcons.add,
+                size: AppSizes.iconLg,
+                color: cs.primary,
+              ),
+              const SizedBox(height: AppSizes.sm),
+              Text(
+                context.l10n.wallet_add_title,
+                style: context.textStyles.titleSmall?.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

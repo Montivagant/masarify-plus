@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -45,13 +47,16 @@ class WalletsScreen extends ConsumerWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             children: [
               _TotalHeader(totalAsync: totalAsync),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppSizes.screenHPadding, AppSizes.xs,
-                  AppSizes.screenHPadding, AppSizes.md,
+                  AppSizes.screenHPadding,
+                  AppSizes.xs,
+                  AppSizes.screenHPadding,
+                  AppSizes.md,
                 ),
                 child: OutlinedButton.icon(
                   onPressed: () => context.push(AppRoutes.transfer),
@@ -59,13 +64,19 @@ class WalletsScreen extends ConsumerWidget {
                   label: Text(context.l10n.wallets_transfer_button),
                 ),
               ),
-              ...wallets.map(
-                (w) => _WalletCard(
-                  wallet: w,
-                  onTap: () => context.push(AppRoutes.walletDetailPath(w.id)),
-                  onEdit: () => context.push(AppRoutes.editWalletPath(w.id)),
+              // E4: Staggered entry animation for wallet cards
+              for (var i = 0; i < wallets.length; i++)
+                _buildAnimatedCard(
+                  context,
+                  index: i,
+                  child: _WalletCard(
+                    wallet: wallets[i],
+                    onTap: () =>
+                        context.push(AppRoutes.walletDetailPath(wallets[i].id)),
+                    onEdit: () =>
+                        context.push(AppRoutes.editWalletPath(wallets[i].id)),
+                  ),
                 ),
-              ),
             ],
           );
         },
@@ -77,6 +88,26 @@ class WalletsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// E4: Wraps a list item with staggered fade+slide animation.
+/// Returns the child unchanged when user prefers reduced motion.
+Widget _buildAnimatedCard(
+  BuildContext context, {
+  required int index,
+  required Widget child,
+}) {
+  if (context.reduceMotion) return child;
+  return child
+      .animate()
+      .fadeIn(duration: AppDurations.listItemEntry)
+      .slideY(
+        begin: 0.03,
+        end: 0,
+        duration: AppDurations.listItemEntry,
+        curve: Curves.easeOutCubic,
+      )
+      .then(delay: AppDurations.staggerDelay * index);
 }
 
 class _TotalHeader extends StatelessWidget {
@@ -99,18 +130,18 @@ class _TotalHeader extends StatelessWidget {
             // on some primaryContainer tints. Kept at opacityHeavy (0.8) as
             // the header background is strong enough; revisit if palette shifts.
             style: context.textStyles.bodyMedium?.copyWith(
-                  color: cs.onPrimaryContainer
-                      .withValues(alpha: AppSizes.opacityHeavy),
-                ),
+              color: cs.onPrimaryContainer
+                  .withValues(alpha: AppSizes.opacityHeavy),
+            ),
           ),
           const SizedBox(height: AppSizes.xs),
           totalAsync.when(
             data: (total) => Text(
               MoneyFormatter.format(total),
               style: context.textStyles.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: cs.onPrimaryContainer,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: cs.onPrimaryContainer,
+              ),
             ),
             loading: () => const CircularProgressIndicator.adaptive(),
             error: (_, __) => const SizedBox.shrink(),
@@ -132,18 +163,22 @@ class _WalletCard extends StatelessWidget {
   final VoidCallback onEdit;
 
   String _typeLabel(BuildContext context, String type) => switch (type) {
+        'physical_cash' => context.l10n.wallet_type_physical_cash_short,
         'bank' => context.l10n.wallet_type_bank_short,
         'mobile_wallet' => context.l10n.wallet_type_mobile_wallet_short,
         'credit_card' => context.l10n.wallet_type_credit_card_short,
-        'savings' => context.l10n.wallet_type_savings_short,
-        _ => context.l10n.wallet_type_cash_short,
+        'prepaid_card' => context.l10n.wallet_type_prepaid_card_short,
+        'investment' => context.l10n.wallet_type_investment_short,
+        _ => context.l10n.wallet_type_bank_short,
       };
 
   static IconData _typeIcon(String type) => switch (type) {
+        'physical_cash' => AppIcons.physicalCash,
         'bank' => AppIcons.bank,
         'mobile_wallet' => AppIcons.phone,
         'credit_card' => AppIcons.creditCard,
-        'savings' => AppIcons.goals,
+        'prepaid_card' => AppIcons.prepaidCard,
+        'investment' => AppIcons.investmentAccount,
         _ => AppIcons.wallet,
       };
 
@@ -166,7 +201,11 @@ class _WalletCard extends StatelessWidget {
           child: SizedBox(
             width: AppSizes.iconContainerLg,
             height: AppSizes.iconContainerLg,
-            child: Icon(_typeIcon(wallet.type), color: color, size: AppSizes.iconSm),
+            child: Icon(
+              _typeIcon(wallet.type),
+              color: color,
+              size: AppSizes.iconSm,
+            ),
           ),
         ),
         title: Text(

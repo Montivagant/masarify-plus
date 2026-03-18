@@ -7,6 +7,7 @@ import 'daos/category_mapping_dao.dart';
 import 'daos/chat_message_dao.dart';
 import 'daos/exchange_rate_dao.dart';
 import 'daos/goal_dao.dart';
+import 'daos/parsed_event_group_dao.dart';
 import 'daos/recurring_rule_dao.dart';
 import 'daos/sms_parser_log_dao.dart';
 import 'daos/transaction_dao.dart';
@@ -18,6 +19,7 @@ import 'tables/category_mappings_table.dart';
 import 'tables/chat_messages_table.dart';
 import 'tables/exchange_rates_table.dart';
 import 'tables/goal_contributions_table.dart';
+import 'tables/parsed_event_groups_table.dart';
 import 'tables/recurring_rules_table.dart';
 import 'tables/savings_goals_table.dart';
 import 'tables/sms_parser_logs_table.dart';
@@ -41,6 +43,7 @@ part 'app_database.g.dart';
     ExchangeRates,
     CategoryMappings,
     ChatMessages,
+    ParsedEventGroups,
   ],
   daos: [
     WalletDao,
@@ -54,13 +57,14 @@ part 'app_database.g.dart';
     ExchangeRateDao,
     CategoryMappingDao,
     ChatMessageDao,
+    ParsedEventGroupDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,8 +102,7 @@ class AppDatabase extends _$AppDatabase {
 
             // Migrate bills -> recurring_rules (if bills table still exists from older schema)
             try {
-              final billRows =
-                  await customSelect('SELECT * FROM bills').get();
+              final billRows = await customSelect('SELECT * FROM bills').get();
               for (final row in billRows) {
                 await customStatement(
                   'INSERT INTO recurring_rules (wallet_id, category_id, amount, type, title, frequency, start_date, end_date, next_due_date, is_paid, paid_at, linked_transaction_id, is_active, last_processed_date) '
@@ -130,6 +133,58 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 6) {
             await m.createTable(chatMessages);
+          }
+          if (from < 7) {
+            await m.addColumn(wallets, wallets.linkedSenders);
+          }
+          if (from < 8) {
+            // WS3: Semantic fingerprint deduplication.
+            await m.createTable(parsedEventGroups);
+            await m.addColumn(
+              smsParserLogs,
+              smsParserLogs.semanticFingerprint,
+            );
+            // WS3b: Transfer link for ATM withdrawals.
+            await m.addColumn(smsParserLogs, smsParserLogs.transferId);
+          }
+          if (from < 9) {
+            // A1: Add isSystemWallet flag to wallets.
+            await m.addColumn(wallets, wallets.isSystemWallet);
+
+            // A1: Add walletId FK to goal_contributions for deduction tracking.
+            await m.addColumn(goalContributions, goalContributions.walletId);
+
+            // A1: Migrate 'cash' wallets → 'physical_cash' and flag system wallet.
+            final cashWallets = await customSelect(
+              "SELECT id FROM wallets WHERE type = 'cash' ORDER BY id ASC",
+            ).get();
+
+            if (cashWallets.isNotEmpty) {
+              // Mark first cash wallet as the system wallet.
+              await customStatement(
+                "UPDATE wallets SET is_system_wallet = 1, type = 'physical_cash' "
+                'WHERE id = ?',
+                [cashWallets.first.read<int>('id')],
+              );
+              // Rename remaining cash wallets (if any).
+              await customStatement(
+                "UPDATE wallets SET type = 'physical_cash' WHERE type = 'cash'",
+              );
+            } else {
+              // No cash wallet — create the mandatory system wallet.
+              await customStatement(
+                'INSERT INTO wallets (name, type, balance, currency_code, '
+                'icon_name, color_hex, is_archived, display_order, '
+                "is_system_wallet, linked_senders) VALUES ('Physical Cash', "
+                "'physical_cash', 0, 'EGP', 'wallet', '#1A6B5E', 0, -1, 1, "
+                "'[]')",
+              );
+            }
+
+            // A1: Migrate 'savings' wallets → 'bank' (savings type removed).
+            await customStatement(
+              "UPDATE wallets SET type = 'bank' WHERE type = 'savings'",
+            );
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
@@ -190,6 +245,31 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_chat_messages_created_at '
       'ON chat_messages(created_at)',
+    );
+    // Parsed event groups — fingerprint lookup
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_parsed_event_groups_fingerprint '
+      'ON parsed_event_groups(semantic_fingerprint)',
+    );
+    // Recurring rules — scheduler queries by due date
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_recurring_rules_due '
+      'ON recurring_rules(next_due_date) WHERE is_active = 1',
+    );
+    // SMS parser logs — pending status filter
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_sms_logs_status '
+      'ON sms_parser_logs(parsed_status)',
+    );
+    // Transfers — order by date
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transfers_date '
+      'ON transfers(transfer_date DESC)',
+    );
+    // Only one system wallet allowed
+    await customStatement(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_system '
+      'ON wallets(is_system_wallet) WHERE is_system_wallet = 1',
     );
   }
 

@@ -37,5 +37,15 @@ abstract interface class IGoalRepository {
     String? note,
   });
 
+  /// Atomically: deduct [amount] from [walletId] + insert contribution + update goal progress.
+  /// Returns the new contribution's id.
+  Future<int> addContributionWithDeduction({
+    required int goalId,
+    required int amount,
+    required DateTime date,
+    required int walletId,
+    String? note,
+  });
+
   Future<bool> deleteContribution(int id);
 }

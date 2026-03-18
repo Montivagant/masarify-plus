@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -48,25 +49,40 @@ class GoalsScreen extends ConsumerWidget {
             );
           }
           return ListView(
-            padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             children: [
               if (active.isNotEmpty) ...[
-                _SectionHeader(title: context.l10n.goal_active_section, count: active.length),
-                ...active.map(
-                  (g) => _GoalCard(
-                    goal: g,
-                    onTap: () => context.push(AppRoutes.goalDetailPath(g.id)),
-                  ),
+                _SectionHeader(
+                  title: context.l10n.goal_active_section,
+                  count: active.length,
                 ),
+                for (var i = 0; i < active.length; i++)
+                  _buildAnimatedGoalCard(
+                    context,
+                    index: i,
+                    child: _GoalCard(
+                      goal: active[i],
+                      onTap: () =>
+                          context.push(AppRoutes.goalDetailPath(active[i].id)),
+                    ),
+                  ),
               ],
               if (completed.isNotEmpty) ...[
-                _SectionHeader(title: context.l10n.goal_completed_section, count: completed.length),
-                ...completed.map(
-                  (g) => _GoalCard(
-                    goal: g,
-                    onTap: () => context.push(AppRoutes.goalDetailPath(g.id)),
-                  ),
+                _SectionHeader(
+                  title: context.l10n.goal_completed_section,
+                  count: completed.length,
                 ),
+                for (var i = 0; i < completed.length; i++)
+                  _buildAnimatedGoalCard(
+                    context,
+                    index: active.length + i,
+                    child: _GoalCard(
+                      goal: completed[i],
+                      onTap: () => context
+                          .push(AppRoutes.goalDetailPath(completed[i].id)),
+                    ),
+                  ),
               ],
             ],
           );
@@ -79,6 +95,26 @@ class GoalsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// M10: Wraps a list item with staggered fade+slide animation.
+/// Returns the child unchanged when user prefers reduced motion.
+Widget _buildAnimatedGoalCard(
+  BuildContext context, {
+  required int index,
+  required Widget child,
+}) {
+  if (context.reduceMotion) return child;
+  return child
+      .animate()
+      .fadeIn(duration: AppDurations.listItemEntry)
+      .slideY(
+        begin: 0.03,
+        end: 0,
+        duration: AppDurations.listItemEntry,
+        curve: Curves.easeOutCubic,
+      )
+      .then(delay: AppDurations.staggerDelay * index);
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -105,7 +141,10 @@ class _SectionHeader extends StatelessWidget {
           ),
           const SizedBox(width: AppSizes.sm),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm, vertical: AppSizes.xxs),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.sm,
+              vertical: AppSizes.xxs,
+            ),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
@@ -172,10 +211,9 @@ class _GoalCard extends StatelessWidget {
                             : goal.isCompleted
                                 ? context.l10n.goal_completed_chip
                                 : context.l10n.goal_overdue,
-                        style: context.textStyles.bodySmall
-                            ?.copyWith(
-                              color: context.colors.outline,
-                            ),
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: context.colors.outline,
+                        ),
                       ),
                   ],
                 ),
@@ -183,9 +221,9 @@ class _GoalCard extends StatelessWidget {
               Text(
                 MoneyFormatter.formatPercent(pct),
                 style: context.textStyles.titleMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -195,15 +233,13 @@ class _GoalCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: goal.progressFraction),
-                duration: context.reduceMotion
-                    ? Duration.zero
-                    : AppDurations.countUp,
+                duration:
+                    context.reduceMotion ? Duration.zero : AppDurations.countUp,
                 curve: Curves.easeOutCubic,
                 builder: (_, value, __) => LinearProgressIndicator(
                   value: value,
                   minHeight: 8,
-                  backgroundColor:
-                      context.colors.surfaceContainerHighest,
+                  backgroundColor: context.colors.surfaceContainerHighest,
                   valueColor: AlwaysStoppedAnimation(color),
                 ),
               ),
@@ -216,15 +252,15 @@ class _GoalCard extends StatelessWidget {
               Text(
                 MoneyFormatter.formatCompact(goal.currentAmount),
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 MoneyFormatter.formatCompact(goal.targetAmount),
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.outline,
-                    ),
+                  color: context.colors.outline,
+                ),
               ),
             ],
           ),

@@ -12,15 +12,16 @@ import '../database/app_database.dart';
 
 /// Concrete implementation of [BackupService].
 ///
-/// - JSON export/import: all 12 DB tables + crash log + schema version.
+/// - JSON export/import: all 13 DB tables + crash log + schema version.
 /// - CSV export: monthly transactions with readable columns.
 class BackupServiceImpl implements BackupService {
   BackupServiceImpl(this._db);
 
   final AppDatabase _db;
 
-  // Must match AppDatabase.schemaVersion — bump when schema changes
-  static const _schemaVersion = 6;
+  // Hardcoded to avoid creating a throwaway AppDatabase() instance (leaked connection).
+  // Must be kept in sync with AppDatabase.schemaVersion.
+  static const int _schemaVersion = 9;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ class BackupServiceImpl implements BackupService {
     final rates = await _db.select(_db.exchangeRates).get();
     final catMappings = await _db.select(_db.categoryMappings).get();
     final chatMessages = await _db.select(_db.chatMessages).get();
+    final parsedEventGroups = await _db.select(_db.parsedEventGroups).get();
 
     final crashLog = await CrashLogService.readLog();
 
@@ -57,6 +59,8 @@ class BackupServiceImpl implements BackupService {
         'exchange_rates': rates.map(_rateToMap).toList(),
         'category_mappings': catMappings.map(_categoryMappingToMap).toList(),
         'chat_messages': chatMessages.map(_chatMessageToMap).toList(),
+        'parsed_event_groups':
+            parsedEventGroups.map(_parsedEventGroupToMap).toList(),
       },
       if (crashLog != null) 'crash_log': crashLog,
     };
@@ -105,6 +109,8 @@ class BackupServiceImpl implements BackupService {
 
     await _db.transaction(() async {
       // Clear all tables in dependency-safe order.
+      // parsed_event_groups FKs to sms_parser_logs → delete child first
+      await _db.customStatement('DELETE FROM parsed_event_groups');
       await _db.customStatement('DELETE FROM sms_parser_logs');
       await _db.customStatement('DELETE FROM goal_contributions');
       await _db.customStatement('DELETE FROM recurring_rules');
@@ -154,6 +160,13 @@ class BackupServiceImpl implements BackupService {
         _db.smsParserLogs,
         (m) => _mapToSmsLog(m, version),
       );
+      // v8+ table — depends on sms_parser_logs (FK on canonicalLogId)
+      await _insertAll(
+        tables,
+        'parsed_event_groups',
+        _db.parsedEventGroups,
+        _mapToParsedEventGroup,
+      );
       await _insertAll(
         tables,
         'exchange_rates',
@@ -196,6 +209,8 @@ class BackupServiceImpl implements BackupService {
     // v5+ tables — may be absent in older backups, _tryDeserializeAll skips null
     _tryDeserializeAll(tables, 'category_mappings', _mapToCategoryMapping);
     _tryDeserializeAll(tables, 'chat_messages', _mapToChatMessage);
+    // v8+ table
+    _tryDeserializeAll(tables, 'parsed_event_groups', _mapToParsedEventGroup);
   }
 
   void _tryDeserializeAll<T>(
@@ -224,9 +239,10 @@ class BackupServiceImpl implements BackupService {
     final rows = tables[key] as List<dynamic>?;
     if (rows == null) return;
     for (final row in rows) {
-      await _db
-          .into(table)
-          .insert(mapper(row as Map<String, dynamic>), mode: InsertMode.insertOrReplace);
+      await _db.into(table).insert(
+            mapper(row as Map<String, dynamic>),
+            mode: InsertMode.insertOrReplace,
+          );
     }
   }
 
@@ -256,22 +272,36 @@ class BackupServiceImpl implements BackupService {
     final walletMap = {for (final w in wallets) w.id: w.name};
 
     final rows = <List<dynamic>>[
-      ['Date', 'Title', 'Amount', 'Currency', 'Type', 'Category', 'Account', 'Tags', 'Source', 'Location', 'Notes'],
-      ...txs.map((tx) => [
-            DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
-            tx.title,
-            // Raw decimal for machine-readable CSV; intentionally bypasses
-            // MoneyFormatter to avoid locale-dependent formatting (e.g. Arabic digits).
-            (tx.amount / 100).toStringAsFixed(2),
-            tx.currencyCode,
-            tx.type,
-            catMap[tx.categoryId] ?? '',
-            walletMap[tx.walletId] ?? '',
-            tx.tags,
-            tx.source,
-            tx.locationName ?? '',
-            tx.note ?? '',
-          ],),
+      [
+        'Date',
+        'Title',
+        'Amount',
+        'Currency',
+        'Type',
+        'Category',
+        'Account',
+        'Tags',
+        'Source',
+        'Location',
+        'Notes',
+      ],
+      ...txs.map(
+        (tx) => [
+          DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
+          tx.title,
+          // Raw decimal for machine-readable CSV; intentionally bypasses
+          // MoneyFormatter to avoid locale-dependent formatting (e.g. Arabic digits).
+          (tx.amount / 100).toStringAsFixed(2),
+          tx.currencyCode,
+          tx.type,
+          catMap[tx.categoryId] ?? '',
+          walletMap[tx.walletId] ?? '',
+          tx.tags,
+          tx.source,
+          tx.locationName ?? '',
+          tx.note ?? '',
+        ],
+      ),
     ];
 
     final csv = const ListToCsvConverter().convert(rows);
@@ -295,6 +325,8 @@ class BackupServiceImpl implements BackupService {
         'colorHex': w.colorHex,
         'isArchived': w.isArchived,
         'displayOrder': w.displayOrder,
+        'linkedSenders': w.linkedSenders,
+        'isSystemWallet': w.isSystemWallet,
         'createdAt': w.createdAt.toIso8601String(),
       };
 
@@ -378,6 +410,7 @@ class BackupServiceImpl implements BackupService {
         'amount': c.amount,
         'date': c.date.toIso8601String(),
         'note': c.note,
+        'walletId': c.walletId,
       };
 
   Map<String, dynamic> _ruleToMap(RecurringRule r) => {
@@ -399,6 +432,7 @@ class BackupServiceImpl implements BackupService {
       };
 
   // C3 fix: include aiEnrichmentJson in serialization
+  // v8: include semanticFingerprint + transferId
   Map<String, dynamic> _smsLogToMap(SmsParserLog l) => {
         'id': l.id,
         'senderAddress': l.senderAddress,
@@ -410,6 +444,8 @@ class BackupServiceImpl implements BackupService {
         'receivedAt': l.receivedAt.toIso8601String(),
         'processedAt': l.processedAt.toIso8601String(),
         'aiEnrichmentJson': l.aiEnrichmentJson,
+        'semanticFingerprint': l.semanticFingerprint,
+        'transferId': l.transferId,
       };
 
   Map<String, dynamic> _categoryMappingToMap(CategoryMapping m) => {
@@ -454,6 +490,8 @@ class BackupServiceImpl implements BackupService {
         colorHex: Value(m['colorHex'] as String),
         isArchived: Value(m['isArchived'] as bool),
         displayOrder: Value(_int(m['displayOrder'])),
+        linkedSenders: Value(m['linkedSenders'] as String? ?? '[]'),
+        isSystemWallet: Value(m['isSystemWallet'] as bool? ?? false),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 
@@ -481,8 +519,7 @@ class BackupServiceImpl implements BackupService {
         currencyCode: Value(m['currencyCode'] as String),
         title: Value(m['title'] as String),
         note: Value(m['note'] as String?),
-        transactionDate:
-            Value(DateTime.parse(m['transactionDate'] as String)),
+        transactionDate: Value(DateTime.parse(m['transactionDate'] as String)),
         receiptImagePath: Value(m['receiptImagePath'] as String?),
         tags: Value(m['tags'] as String? ?? ''),
         latitude: Value(m['latitude'] as double?),
@@ -552,6 +589,7 @@ class BackupServiceImpl implements BackupService {
         amount: Value(_int(m['amount'])),
         date: Value(DateTime.parse(m['date'] as String)),
         note: Value(m['note'] as String?),
+        walletId: Value(_intN(m['walletId'])),
       );
 
   RecurringRulesCompanion _mapToRule(Map<String, dynamic> m) =>
@@ -565,16 +603,12 @@ class BackupServiceImpl implements BackupService {
         frequency: Value(m['frequency'] as String),
         startDate: Value(DateTime.parse(m['startDate'] as String)),
         endDate: Value(
-          m['endDate'] != null
-              ? DateTime.parse(m['endDate'] as String)
-              : null,
+          m['endDate'] != null ? DateTime.parse(m['endDate'] as String) : null,
         ),
         nextDueDate: Value(DateTime.parse(m['nextDueDate'] as String)),
         isPaid: Value(m['isPaid'] as bool? ?? false),
         paidAt: Value(
-          m['paidAt'] != null
-              ? DateTime.parse(m['paidAt'] as String)
-              : null,
+          m['paidAt'] != null ? DateTime.parse(m['paidAt'] as String) : null,
         ),
         linkedTransactionId: Value(_intN(m['linkedTransactionId'])),
         isActive: Value(m['isActive'] as bool? ?? true),
@@ -599,6 +633,9 @@ class BackupServiceImpl implements BackupService {
         processedAt: Value(DateTime.parse(m['processedAt'] as String)),
         // v1 backups don't have this field — treat as null
         aiEnrichmentJson: Value(m['aiEnrichmentJson'] as String?),
+        // v8 fields — absent in older backups
+        semanticFingerprint: Value(m['semanticFingerprint'] as String?),
+        transferId: Value(_intN(m['transferId'])),
       );
 
   ExchangeRatesCompanion _mapToRate(Map<String, dynamic> m) =>
@@ -626,6 +663,34 @@ class BackupServiceImpl implements BackupService {
         role: Value(m['role'] as String),
         content: Value(m['content'] as String),
         tokenCount: Value(_intN(m['tokenCount']) ?? 0),
+        createdAt: Value(DateTime.parse(m['createdAt'] as String)),
+      );
+
+  // v8 table
+  Map<String, dynamic> _parsedEventGroupToMap(ParsedEventGroup g) => {
+        'id': g.id,
+        'semanticFingerprint': g.semanticFingerprint,
+        'canonicalLogId': g.canonicalLogId,
+        'amountPiastres': g.amountPiastres,
+        'type': g.type,
+        'resolvedWalletId': g.resolvedWalletId,
+        'eventType': g.eventType,
+        'eventTime': g.eventTime.toIso8601String(),
+        'createdAt': g.createdAt.toIso8601String(),
+      };
+
+  ParsedEventGroupsCompanion _mapToParsedEventGroup(
+    Map<String, dynamic> m,
+  ) =>
+      ParsedEventGroupsCompanion(
+        id: Value(_int(m['id'])),
+        semanticFingerprint: Value(m['semanticFingerprint'] as String),
+        canonicalLogId: Value(_int(m['canonicalLogId'])),
+        amountPiastres: Value(_int(m['amountPiastres'])),
+        type: Value(m['type'] as String),
+        resolvedWalletId: Value(_intN(m['resolvedWalletId'])),
+        eventType: Value(m['eventType'] as String? ?? 'transaction'),
+        eventTime: Value(DateTime.parse(m['eventTime'] as String)),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 }

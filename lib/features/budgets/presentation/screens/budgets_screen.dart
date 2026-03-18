@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -124,8 +126,11 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                 }
                 final totalLimit =
                     budgets.fold(0, (s, b) => s + b.effectiveLimit);
-                final totalSpent =
-                    budgets.fold(0, (s, b) => s + b.spentAmount);
+                final totalSpent = budgets.fold(0, (s, b) => s + b.spentAmount);
+
+                // E4: Staggered entry animation for budget cards.
+                final reduceMotion = context.reduceMotion;
+
                 return ListView(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
@@ -135,51 +140,63 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                       totalLimit: totalLimit,
                       totalSpent: totalSpent,
                     ),
-                    ...budgets.map((budget) {
-                      final cat = categories
-                          .where((c) => c.id == budget.categoryId)
-                          .firstOrNull;
-                      if (cat == null) return const SizedBox.shrink();
-                      // H7 fix: swipe-to-delete for budgets
-                      return Slidable(
-                        key: ValueKey(budget.id),
-                        endActionPane: ActionPane(
-                          motion: const BehindMotion(),
-                          extentRatio: 0.25,
-                          children: [
-                            SlidableAction(
-                              onPressed: (_) =>
-                                  _confirmDeleteBudget(context, budget.id),
-                              backgroundColor:
-                                  context.colors.error,
-                              foregroundColor:
-                                  context.colors.onError,
-                              icon: AppIcons.delete,
-                              label: context.l10n.common_delete,
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.borderRadiusSm,
+                    for (var i = 0; i < budgets.length; i++)
+                      () {
+                        final budget = budgets[i];
+                        final cat = categories
+                            .where((c) => c.id == budget.categoryId)
+                            .firstOrNull;
+                        if (cat == null) return const SizedBox.shrink();
+                        // H7 fix: swipe-to-delete for budgets
+                        final card = Slidable(
+                          key: ValueKey(budget.id),
+                          endActionPane: ActionPane(
+                            motion: const BehindMotion(),
+                            extentRatio: 0.25,
+                            children: [
+                              SlidableAction(
+                                onPressed: (_) =>
+                                    _confirmDeleteBudget(context, budget.id),
+                                backgroundColor: context.colors.error,
+                                foregroundColor: context.colors.onError,
+                                icon: AppIcons.delete,
+                                label: context.l10n.common_delete,
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.borderRadiusSm,
+                                ),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSizes.xs,
+                            ),
+                            child: BudgetProgressCard(
+                              categoryName:
+                                  cat.displayName(context.languageCode),
+                              categoryIcon:
+                                  CategoryIconMapper.fromName(cat.iconName),
+                              limitPiastres: budget.effectiveLimit,
+                              spentPiastres: budget.spentAmount,
+                              onTap: () => context.push(
+                                '/budgets/${budget.id}/edit',
+                                extra: {'year': _year, 'month': _month},
                               ),
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSizes.xs,
                           ),
-                          child: BudgetProgressCard(
-                            categoryName: cat.displayName(context.languageCode),
-                            categoryIcon:
-                                CategoryIconMapper.fromName(cat.iconName),
-                            limitPiastres: budget.effectiveLimit,
-                            spentPiastres: budget.spentAmount,
-                            onTap: () => context.push(
-                              '/budgets/${budget.id}/edit',
-                              extra: {'year': _year, 'month': _month},
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
+                        );
+                        if (reduceMotion) return card;
+                        return card
+                            .animate()
+                            .fadeIn(duration: AppDurations.listItemEntry)
+                            .slideY(
+                              begin: 0.03,
+                              end: 0,
+                              duration: AppDurations.listItemEntry,
+                              curve: Curves.easeOutCubic,
+                            )
+                            .then(delay: AppDurations.staggerDelay * i);
+                      }(),
                   ],
                 );
               },
@@ -187,7 +204,8 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                 padding: EdgeInsets.all(AppSizes.screenHPadding),
                 child: ShimmerList(itemCount: 4),
               ),
-              error: (_, __) => EmptyState(title: context.l10n.common_error_title),
+              error: (_, __) =>
+                  EmptyState(title: context.l10n.common_error_title),
             ),
           ),
         ],
@@ -217,7 +235,9 @@ class _MonthNavigator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(context.isRtl ? AppIcons.chevronRight : AppIcons.chevronLeft),
+            icon: Icon(
+              context.isRtl ? AppIcons.chevronRight : AppIcons.chevronLeft,
+            ),
             onPressed: onPrev,
             tooltip: context.l10n.month_previous,
           ),
@@ -227,7 +247,9 @@ class _MonthNavigator extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
           IconButton(
-            icon: Icon(context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight),
+            icon: Icon(
+              context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+            ),
             onPressed: onNext,
             tooltip: context.l10n.month_next,
           ),
@@ -271,11 +293,11 @@ class _SummaryCard extends StatelessWidget {
           Expanded(
             child: _Stat(
               // M3 fix: show "Over by" when over budget
-              label: isOver ? context.l10n.budget_over_by : context.l10n.budget_remaining,
+              label: isOver
+                  ? context.l10n.budget_over_by
+                  : context.l10n.budget_remaining,
               value: MoneyFormatter.formatCompact(remaining.abs()),
-              color: isOver
-                  ? cs.error
-                  : cs.onPrimaryContainer,
+              color: isOver ? cs.error : cs.onPrimaryContainer,
             ),
           ),
         ],
@@ -301,15 +323,15 @@ class _Stat extends StatelessWidget {
         Text(
           value,
           style: context.textStyles.titleMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         Text(
           label,
           style: context.textStyles.bodySmall?.copyWith(
-                color: color.withValues(alpha: AppSizes.opacityStrong),
-              ),
+            color: color.withValues(alpha: AppSizes.opacityStrong),
+          ),
         ),
       ],
     );

@@ -19,6 +19,7 @@ abstract interface class IWalletRepository {
     String iconName = 'wallet',
     String colorHex = '#1A6B5E',
     int displayOrder = 0,
+    List<String> linkedSenders = const [],
   });
 
   Future<bool> update(WalletEntity wallet);
@@ -39,4 +40,16 @@ abstract interface class IWalletRepository {
 
   /// Reactive stream of total balance across all non-archived wallets.
   Stream<int> watchTotalBalance();
+
+  /// WS3d: Add a sender address to a wallet's linkedSenders (if not present).
+  Future<void> addLinkedSender(int walletId, String sender);
+
+  /// The mandatory Physical Cash system wallet.
+  Future<WalletEntity?> getSystemWallet();
+
+  /// Reactive stream of the system wallet.
+  Stream<WalletEntity?> watchSystemWallet();
+
+  /// Ensure the Physical Cash system wallet exists. Returns its id.
+  Future<int> ensureSystemWalletExists();
 }

@@ -29,11 +29,14 @@ class AddWalletScreen extends ConsumerStatefulWidget {
 
 class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   final _nameController = TextEditingController();
-  String _type = 'cash';
+  final _senderController = TextEditingController();
+  String _type = 'bank';
   String _colorHex = '#1A6B5E';
   int _balancePiastres = 0;
+  List<String> _linkedSenders = [];
   String? _nameError;
   bool _loading = false;
+  bool _isSystemWallet = false;
 
   static const _colorOptions = AppColors.pickerOptions;
 
@@ -41,11 +44,31 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
     BuildContext context,
   ) =>
       [
-        (value: 'cash',          label: context.l10n.wallet_type_cash_short,          icon: AppIcons.wallet),
-        (value: 'bank',          label: context.l10n.wallet_type_bank_short,           icon: AppIcons.bank),
-        (value: 'mobile_wallet', label: context.l10n.wallet_type_mobile_wallet_short, icon: AppIcons.phone),
-        (value: 'credit_card',   label: context.l10n.wallet_type_credit_card_short,    icon: AppIcons.creditCard),
-        (value: 'savings',       label: context.l10n.wallet_type_savings_short,        icon: AppIcons.goals),
+        (
+          value: 'bank',
+          label: context.l10n.wallet_type_bank_short,
+          icon: AppIcons.bank
+        ),
+        (
+          value: 'mobile_wallet',
+          label: context.l10n.wallet_type_mobile_wallet_short,
+          icon: AppIcons.phone
+        ),
+        (
+          value: 'credit_card',
+          label: context.l10n.wallet_type_credit_card_short,
+          icon: AppIcons.creditCard
+        ),
+        (
+          value: 'prepaid_card',
+          label: context.l10n.wallet_type_prepaid_card_short,
+          icon: AppIcons.prepaidCard
+        ),
+        (
+          value: 'investment',
+          label: context.l10n.wallet_type_investment_short,
+          icon: AppIcons.investmentAccount
+        ),
       ];
 
   @override
@@ -57,6 +80,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _senderController.dispose();
     super.dispose();
   }
 
@@ -69,7 +93,16 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
       _type = wallet.type;
       _colorHex = wallet.colorHex;
       _balancePiastres = wallet.balance;
+      _linkedSenders = List<String>.from(wallet.linkedSenders);
+      _isSystemWallet = wallet.isSystemWallet;
     });
+  }
+
+  void _addSender() {
+    final text = _senderController.text.trim();
+    if (text.isEmpty || _linkedSenders.contains(text)) return;
+    setState(() => _linkedSenders.add(text));
+    _senderController.clear();
   }
 
   Future<void> _save() async {
@@ -105,7 +138,12 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
         final existing = await repo.getById(widget.editId!);
         if (existing != null) {
           await repo.update(
-            existing.copyWith(name: name, type: _type, colorHex: _colorHex),
+            existing.copyWith(
+              name: name,
+              type: _type,
+              colorHex: _colorHex,
+              linkedSenders: _linkedSenders,
+            ),
           );
         }
       } else {
@@ -114,6 +152,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
           type: _type,
           initialBalance: _balancePiastres,
           colorHex: _colorHex,
+          linkedSenders: _linkedSenders,
         );
       }
       HapticFeedback.heavyImpact();
@@ -144,7 +183,9 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
 
     return Scaffold(
       appBar: AppAppBar(
-        title: isEdit ? context.l10n.wallet_edit_title : context.l10n.wallet_add_title,
+        title: isEdit
+            ? context.l10n.wallet_edit_title
+            : context.l10n.wallet_add_title,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
@@ -171,32 +212,40 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
             Text(
               context.l10n.wallet_type_label,
               style: context.textStyles.labelLarge?.copyWith(
-                    color: cs.outline,
-                  ),
+                color: cs.outline,
+              ),
             ),
             const SizedBox(height: AppSizes.sm),
-            Wrap(
-              spacing: AppSizes.sm,
-              runSpacing: AppSizes.sm,
-              children: types.map((t) {
-                final isSelected = t.value == _type;
-                return FilterChip(
-                  selected: isSelected,
-                  avatar: Icon(t.icon, size: AppSizes.iconXs),
-                  label: Text(t.label),
-                  onSelected: (_) => setState(() => _type = t.value),
-                  showCheckmark: false,
-                );
-              }).toList(),
-            ),
+            if (_isSystemWallet) ...[
+              Text(
+                context.l10n.wallet_cannot_archive_system,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
+                ),
+              ),
+            ] else
+              Wrap(
+                spacing: AppSizes.sm,
+                runSpacing: AppSizes.sm,
+                children: types.map((t) {
+                  final isSelected = t.value == _type;
+                  return FilterChip(
+                    selected: isSelected,
+                    avatar: Icon(t.icon, size: AppSizes.iconXs),
+                    label: Text(t.label),
+                    onSelected: (_) => setState(() => _type = t.value),
+                    showCheckmark: false,
+                  );
+                }).toList(),
+              ),
             const SizedBox(height: AppSizes.lg),
 
             // Color
             Text(
               context.l10n.wallet_color_label,
               style: context.textStyles.labelLarge?.copyWith(
-                    color: cs.outline,
-                  ),
+                color: cs.outline,
+              ),
             ),
             const SizedBox(height: AppSizes.sm),
             Wrap(
@@ -222,11 +271,21 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: isSelected
-                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                                ? Border.all(
+                                    color: cs.primary,
+                                    width: AppSizes.colorSwatchBorder,
+                                  )
+                                : Border.all(
+                                    color: AppColors.transparent,
+                                    width: AppSizes.colorSwatchBorder,
+                                  ),
                           ),
                           child: isSelected
-                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              ? Icon(
+                                  AppIcons.check,
+                                  color: ColorUtils.contrastColor(color),
+                                  size: AppSizes.iconXs,
+                                )
                               : null,
                         ),
                       ),
@@ -235,6 +294,56 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
                 );
               }).toList(),
             ),
+            const SizedBox(height: AppSizes.lg),
+
+            // Linked SMS Senders
+            Text(
+              context.l10n.wallet_linked_senders_label,
+              style: context.textStyles.labelLarge?.copyWith(
+                color: cs.outline,
+              ),
+            ),
+            const SizedBox(height: AppSizes.xs),
+            Text(
+              context.l10n.wallet_linked_senders_subtitle,
+              style: context.textStyles.bodySmall?.copyWith(
+                color: cs.outline,
+              ),
+            ),
+            const SizedBox(height: AppSizes.sm),
+            Wrap(
+              spacing: AppSizes.sm,
+              runSpacing: AppSizes.sm,
+              children: [
+                ..._linkedSenders.map(
+                  (s) => InputChip(
+                    label: Text(s),
+                    onDeleted: () => setState(
+                      () => _linkedSenders.remove(s),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_linkedSenders.isNotEmpty) const SizedBox(height: AppSizes.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: AppTextField(
+                    label: '',
+                    controller: _senderController,
+                    hint: context.l10n.wallet_linked_senders_hint,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _addSender(),
+                  ),
+                ),
+                const SizedBox(width: AppSizes.sm),
+                IconButton.filled(
+                  onPressed: _addSender,
+                  icon: const Icon(AppIcons.add),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSizes.xl),
 
             // Opening balance (add mode only)
@@ -242,25 +351,33 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               Text(
                 context.l10n.wallet_initial_balance,
                 style: context.textStyles.labelLarge?.copyWith(
-                      color: cs.outline,
-                    ),
+                  color: cs.outline,
+                ),
               ),
               const SizedBox(height: AppSizes.sm),
               AmountInput(
                 onAmountChanged: (p) => setState(() => _balancePiastres = p),
               ),
-              const SizedBox(height: AppSizes.xl),
             ],
-
-            AppButton(
-              label: isEdit
-                  ? context.l10n.common_save_changes
-                  : context.l10n.wallet_add_button,
-              onPressed: _loading ? null : _save,
-              isLoading: _loading,
-              icon: AppIcons.check,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: isEdit
+                ? context.l10n.common_save_changes
+                : context.l10n.wallet_add_button,
+            onPressed: _loading ? null : _save,
+            isLoading: _loading,
+            icon: AppIcons.check,
+          ),
         ),
       ),
     );

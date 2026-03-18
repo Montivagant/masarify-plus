@@ -6,15 +6,9 @@ abstract final class AppDurations {
 
   // Staggered list entry animations
   static const Duration listItemEntry = Duration(milliseconds: 350);
-  static const Duration listItemStagger = Duration(milliseconds: 50);
 
   // FAB expand/collapse
   static const Duration fabExpand = Duration(milliseconds: 250);
-
-  // Nav bar pill slide
-  static const Duration navPillSlide = Duration(milliseconds: 300);
-
-
 
   // Splash & onboarding
   static const Duration splashFade = Duration(milliseconds: 1200);
@@ -24,27 +18,45 @@ abstract final class AppDurations {
   // Quick animation
   static const Duration animQuick = Duration(milliseconds: 200);
 
-  // Delays
-  static const Duration delaySmall = Duration(milliseconds: 500);
-  static const Duration retryDelay = Duration(seconds: 1);
-
   // Snackbar
+  static const Duration snackbarShort = Duration(seconds: 2);
   static const Duration snackbarDefault = Duration(seconds: 3);
   static const Duration snackbarError = Duration(seconds: 4);
   static const Duration snackbarLong = Duration(seconds: 5);
 
   // Timeouts
-  static const Duration voiceTimeout = Duration(seconds: 2);
   static const Duration geocodeTimeout = Duration(seconds: 5);
   static const Duration locationTimeout = Duration(seconds: 10);
-  static const Duration voiceListenTimeout = Duration(seconds: 20);
   static const Duration aiHttpTimeout = Duration(seconds: 30);
   static const Duration lockoutDuration = Duration(seconds: 30);
+  static const Duration lockoutDurationMid = Duration(minutes: 5);
+  static const Duration lockoutDurationMax = Duration(minutes: 30);
   static const Duration voiceMaxRecording = Duration(seconds: 60);
+
+  // Micro-interactions
+  static const Duration microBounce = Duration(milliseconds: 200);
+  static const Duration microPress = Duration(milliseconds: 150);
+  static const Duration microRelease = Duration(milliseconds: 100);
+  static const Duration staggerDelay = Duration(milliseconds: 50);
+
+  // Onboarding
+  static const Duration onboardingParallax = Duration(milliseconds: 500);
+  static const Duration onboardingCardSwipe = Duration(milliseconds: 400);
+  static const Duration onboardingTextDelay1 = Duration(milliseconds: 200);
+  static const Duration onboardingTextDelay2 = Duration(milliseconds: 350);
+  static const Duration onboardingCtaDelay = Duration(milliseconds: 500);
+
+  // Voice
+  static const Duration voiceBarUpdate = Duration(milliseconds: 50);
+  static const Duration voiceShimmer = Duration(milliseconds: 1500);
 
   // Service delays
   static const Duration listenerBindDelay = Duration(seconds: 3);
 
+  // Temp file cleanup
+  static const Duration tempFileCleanupDelay = Duration(seconds: 2);
+
   // Smart defaults
   static const Duration quickAddLookback = Duration(days: 90);
+  static const Duration transactionDedupeWindow = Duration(minutes: 10);
 }

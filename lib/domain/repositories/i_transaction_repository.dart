@@ -10,7 +10,10 @@ abstract interface class ITransactionRepository {
 
   Future<TransactionEntity?> getById(int id);
 
-  Future<List<TransactionEntity>> getByCategory(int categoryId, {int limit = 50});
+  Future<List<TransactionEntity>> getByCategory(
+    int categoryId, {
+    int limit = 50,
+  });
 
   Future<List<TransactionEntity>> getByDateRange(DateTime start, DateTime end);
 
@@ -68,6 +71,7 @@ class CreateTransactionParams {
     this.source = 'manual',
     this.rawSourceText,
     this.note,
+    this.goalId,
   });
 
   final int walletId;
@@ -79,4 +83,5 @@ class CreateTransactionParams {
   final String source;
   final String? rawSourceText;
   final String? note;
+  final int? goalId;
 }

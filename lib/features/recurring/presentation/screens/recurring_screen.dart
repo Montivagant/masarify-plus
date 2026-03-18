@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -33,7 +35,16 @@ class RecurringScreen extends ConsumerWidget {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
 
     return Scaffold(
-      appBar: AppAppBar(title: context.l10n.recurring_and_bills_title),
+      appBar: AppAppBar(
+        title: context.l10n.recurring_and_bills_title,
+        actions: [
+          IconButton(
+            icon: const Icon(AppIcons.add),
+            tooltip: context.l10n.recurring_add,
+            onPressed: () => context.push(AppRoutes.recurringAdd),
+          ),
+        ],
+      ),
       body: rulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
@@ -70,6 +81,26 @@ class RecurringScreen extends ConsumerWidget {
             }
           }
 
+          // E4: Build children with a running index for stagger animation.
+          final reduceMotion = context.reduceMotion;
+          var staggerIndex = 0;
+
+          Widget animateCard(RecurringRuleEntity r) {
+            final card = _RecurringCard(rule: r, categories: categories);
+            if (reduceMotion) return card;
+            final idx = staggerIndex++;
+            return card
+                .animate()
+                .fadeIn(duration: AppDurations.listItemEntry)
+                .slideY(
+                  begin: 0.03,
+                  end: 0,
+                  duration: AppDurations.listItemEntry,
+                  curve: Curves.easeOutCubic,
+                )
+                .then(delay: AppDurations.staggerDelay * idx);
+          }
+
           return ListView(
             padding: const EdgeInsets.only(
               bottom: AppSizes.bottomScrollPadding,
@@ -80,62 +111,33 @@ class RecurringScreen extends ConsumerWidget {
                   label: context.l10n.recurring_overdue,
                   color: context.appTheme.expenseColor,
                 ),
-                ...overdue.map(
-                  (r) => _RecurringCard(
-                    rule: r,
-                    categories: categories,
-                  ),
-                ),
+                ...overdue.map(animateCard),
               ],
               if (upcomingBills.isNotEmpty) ...[
                 _SectionHeader(label: context.l10n.recurring_upcoming_bills),
-                ...upcomingBills.map(
-                  (r) => _RecurringCard(
-                    rule: r,
-                    categories: categories,
-                  ),
-                ),
+                ...upcomingBills.map(animateCard),
               ],
               if (activeRecurring.isNotEmpty) ...[
                 _SectionHeader(label: context.l10n.recurring_active),
-                ...activeRecurring.map(
-                  (r) => _RecurringCard(
-                    rule: r,
-                    categories: categories,
-                  ),
-                ),
+                ...activeRecurring.map(animateCard),
               ],
               if (paid.isNotEmpty) ...[
                 _SectionHeader(
                   label: context.l10n.recurring_paid,
                   color: context.colors.outline,
                 ),
-                ...paid.map(
-                  (r) => _RecurringCard(
-                    rule: r,
-                    categories: categories,
-                  ),
-                ),
+                ...paid.map(animateCard),
               ],
               if (inactive.isNotEmpty) ...[
                 _SectionHeader(
                   label: context.l10n.recurring_paused,
                   color: context.colors.outline,
                 ),
-                ...inactive.map(
-                  (r) => _RecurringCard(
-                    rule: r,
-                    categories: categories,
-                  ),
-                ),
+                ...inactive.map(animateCard),
               ],
             ],
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push(AppRoutes.recurringAdd),
-        child: const Icon(AppIcons.add),
       ),
     );
   }
@@ -161,9 +163,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         label,
         style: context.textStyles.labelLarge?.copyWith(
-              color: color ?? context.colors.outline,
-              fontWeight: color != null ? FontWeight.w700 : null,
-            ),
+          color: color ?? context.colors.outline,
+          fontWeight: color != null ? FontWeight.w700 : null,
+        ),
       ),
     );
   }
@@ -187,15 +189,12 @@ class _RecurringCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = context.colors;
-    final cat = categories
-        .where((c) => c.id == rule.categoryId)
-        .firstOrNull;
+    final cat = categories.where((c) => c.id == rule.categoryId).firstOrNull;
     final catIcon = cat != null
         ? CategoryIconMapper.fromName(cat.iconName)
         : AppIcons.category;
-    final catColor = cat != null
-        ? ColorUtils.fromHex(cat.colorHex)
-        : cs.outline;
+    final catColor =
+        cat != null ? ColorUtils.fromHex(cat.colorHex) : cs.outline;
     final typeColor = switch (rule.type) {
       'income' => context.appTheme.incomeColor,
       'transfer' => context.appTheme.transferColor,
@@ -252,9 +251,7 @@ class _RecurringCard extends ConsumerWidget {
               Icon(
                 isBill ? AppIcons.bill : catIcon,
                 size: AppSizes.iconMd,
-                color: isOverdue
-                    ? context.appTheme.expenseColor
-                    : catColor,
+                color: isOverdue ? context.appTheme.expenseColor : catColor,
               ),
               const SizedBox(width: AppSizes.md),
               // Title + subtitle row
@@ -265,14 +262,18 @@ class _RecurringCard extends ConsumerWidget {
                     Text(
                       rule.title,
                       style: context.textStyles.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            decoration: rule.isPaid ? TextDecoration.lineThrough : null,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        decoration:
+                            rule.isPaid ? TextDecoration.lineThrough : null,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSizes.xxs),
-                    if (isBill) _buildBillSubtitle(context) else _buildRecurringSubtitle(context),
+                    if (isBill)
+                      _buildBillSubtitle(context)
+                    else
+                      _buildRecurringSubtitle(context),
                   ],
                 ),
               ),
@@ -284,11 +285,9 @@ class _RecurringCard extends ConsumerWidget {
                   Text(
                     '$prefix ${MoneyFormatter.formatAmount(rule.amount)}',
                     style: context.textStyles.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: rule.isPaid
-                              ? cs.outline
-                              : typeColor,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: rule.isPaid ? cs.outline : typeColor,
+                    ),
                   ),
                   const SizedBox(height: AppSizes.xxs),
                   if (isBill && !rule.isPaid)
@@ -329,9 +328,9 @@ class _RecurringCard extends ConsumerWidget {
         Text(
           '${context.l10n.recurring_due_date_label}: ${_formatDate(context, rule.nextDueDate)}',
           style: context.textStyles.bodySmall?.copyWith(
-                color: dueDateColor,
-                fontWeight: isOverdue ? FontWeight.w600 : null,
-              ),
+            color: dueDateColor,
+            fontWeight: isOverdue ? FontWeight.w600 : null,
+          ),
         ),
         if (isOverdue) ...[
           const SizedBox(width: AppSizes.sm),
@@ -344,9 +343,9 @@ class _RecurringCard extends ConsumerWidget {
           Text(
             context.l10n.recurring_overdue,
             style: context.textStyles.bodySmall?.copyWith(
-                  color: context.appTheme.expenseColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: context.appTheme.expenseColor,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ],
@@ -367,15 +366,15 @@ class _RecurringCard extends ConsumerWidget {
         Text(
           context.l10n.frequencyLabel(rule.frequency),
           style: context.textStyles.bodySmall?.copyWith(
-                color: cs.outline,
-              ),
+            color: cs.outline,
+          ),
         ),
         const SizedBox(width: AppSizes.sm),
         Text(
           '${context.l10n.recurring_next_due}: ${_formatDate(context, rule.nextDueDate)}',
           style: context.textStyles.bodySmall?.copyWith(
-                color: cs.outline,
-              ),
+            color: cs.outline,
+          ),
         ),
       ],
     );
@@ -496,13 +495,13 @@ class _MarkPaidButtonState extends ConsumerState<_MarkPaidButton> {
       final rule = widget.rule;
       // C5 fix: atomic — create transaction + adjust wallet + mark paid
       await ref.read(recurringRuleRepositoryProvider).payBill(
-        ruleId: rule.id,
-        walletId: rule.walletId,
-        categoryId: rule.categoryId,
-        amount: rule.amount,
-        type: rule.type,
-        title: rule.title,
-      );
+            ruleId: rule.id,
+            walletId: rule.walletId,
+            categoryId: rule.categoryId,
+            amount: rule.amount,
+            type: rule.type,
+            title: rule.title,
+          );
       if (!context.mounted) return;
       ref.invalidate(recurringRulesProvider);
       SnackHelper.showSuccess(

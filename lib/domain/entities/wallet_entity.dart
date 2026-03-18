@@ -11,12 +11,14 @@ class WalletEntity {
     required this.isArchived,
     required this.displayOrder,
     required this.createdAt,
+    this.linkedSenders = const [],
+    this.isSystemWallet = false,
   });
 
   final int id;
   final String name;
 
-  /// 'cash' | 'bank' | 'mobile_wallet' | 'credit_card' | 'savings'
+  /// 'physical_cash' | 'bank' | 'mobile_wallet' | 'credit_card' | 'prepaid_card' | 'investment'
   final String type;
 
   /// Balance in piastres — NEVER a double.
@@ -29,6 +31,15 @@ class WalletEntity {
   final int displayOrder;
   final DateTime createdAt;
 
+  /// SMS sender addresses / notification package names linked to this wallet.
+  /// Used to auto-resolve which wallet a parsed transaction belongs to.
+  final List<String> linkedSenders;
+
+  /// True for the mandatory Physical Cash system wallet.
+  final bool isSystemWallet;
+
+  bool get isPhysicalCash => isSystemWallet;
+
   WalletEntity copyWith({
     int? id,
     String? name,
@@ -40,6 +51,8 @@ class WalletEntity {
     bool? isArchived,
     int? displayOrder,
     DateTime? createdAt,
+    List<String>? linkedSenders,
+    bool? isSystemWallet,
   }) =>
       WalletEntity(
         id: id ?? this.id,
@@ -52,6 +65,8 @@ class WalletEntity {
         isArchived: isArchived ?? this.isArchived,
         displayOrder: displayOrder ?? this.displayOrder,
         createdAt: createdAt ?? this.createdAt,
+        linkedSenders: linkedSenders ?? this.linkedSenders,
+        isSystemWallet: isSystemWallet ?? this.isSystemWallet,
       );
 
   @override

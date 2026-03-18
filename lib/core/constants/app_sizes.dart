@@ -39,7 +39,8 @@ abstract final class AppSizes {
 
   // ── Layout ────────────────────────────────────────────────────────────
   static const double screenHPadding = md; // Horizontal screen edge padding
-  static const double bottomScrollPadding = 120; // nav bar (64) + margin (16) + FAB clearance (40)
+  static const double bottomScrollPadding =
+      130; // nav bar (64) + margin (16) + raised FAB clearance (50)
   static const double bottomNavHeight = 64; // WS-6: M3 standard height
   static const double appBarHeight = 56;
   static const double fabSize = 56;
@@ -80,6 +81,7 @@ abstract final class AppSizes {
   // ── Dots / indicators ───────────────────────────────────────────────
   static const double dotSm = 6;
   static const double indicatorDotSize = 8.0;
+  static const double indicatorDotGap = 3.0;
   static const double dotMd = 10;
   static const double dotLg = 12;
 
@@ -103,17 +105,49 @@ abstract final class AppSizes {
 
   // ── Dashboard carousel ─────────────────────────────────────────────
   static const double carouselHeight = 240;
-  static const double fabVerticalOffset = 10;
+  static const double carouselViewportFraction = 0.92;
+  static const double fabVerticalOffset = 24;
+
+  /// Snackbar bottom margin to clear nav bar + raised FAB.
+  /// bottomNavHeight (64) + fabVerticalOffset (24) + md (16) = 104
+  static const double snackbarBottomMargin =
+      bottomNavHeight + fabVerticalOffset + md;
+
+  // ── Border widths ───────────────────────────────────────────────────
+  static const double borderWidth = 1.0;
+  static const double borderWidthFocus = 2.0;
+  static const double borderWidthSelected = 2.5;
+
+  // ── Shadow presets ────────────────────────────────────────────────
+  static const double heroShadowBlur = 16.0;
+  static const double heroShadowOffsetY = 6.0;
+  static const double cardShadowBlur = 12.0;
+  static const double cardShadowOffsetY = 4.0;
+
+  // ── Voice input ────────────────────────────────────────────────────
+  static const double voiceMicGlowRadius = 0.3;
+
+  // ── Voice wave bars ──────────────────────────────────────────────────
+  static const int voiceBarCount = 24;
+  static const double voiceBarWidth = 3.0;
+  static const double voiceBarGap = 2.0;
+  static const double voiceBarMinHeight = 4.0;
+  static const double voiceBarMaxHeight = 40.0;
+  static const double voiceWaveContainerHeight = 60.0;
+
+  // ── List wheel ────────────────────────────────────────────────────
+  static const double listWheelItemExtent = 40.0;
 
   // ── Misc ────────────────────────────────────────────────────────────
   static const double spinnerSize = 20;
+  static const double spinnerSizeSm = 16;
+  static const double spinnerStrokeWidth = 2.0;
   static const double dividerHeight = 1.0;
   static const double barChartWidth = 12.0;
   static const double comparisonColumnWidth = 64.0;
   static const double pinKeypadButtonSize = 72.0;
   static const double shimmerWidthLg = 100.0;
   static const double shimmerWidthSm = 60.0;
-  static const double screenVPadding = md;
 
   // ── Line heights ──────────────────────────────────────────────────────
   static const double lineHeightRelaxed = 1.6;
@@ -134,33 +168,23 @@ abstract final class AppSizes {
   static const double opacityMedium2 = 0.6;
   static const double opacityStrong = 0.7;
   static const double opacityHeavy = 0.8;
-  static const double opacityNearFull = 0.85;
 
   // ── FAB (Speed Dial) ─────────────────────────────────────────────────
   static const double fabRotationAngle = math.pi / 4;
 
-  // ── Nav bar (notched glass) ────────────────────────────────────────
-  static const double navNotchRadius = 30.0;
-  static const double navNotchMargin = 2.0;
-  static const double navPillHeight = 36.0;
-  static const double navPillPadding = 12.0;
-  static const double navPillGlowRadius = 12.0;
-  static const double navPillGlowOpacity = 0.3;
+  // ── Nav bar ───────────────────────────────────────────────────────
   static const double navShadowBlur = 16.0;
   static const double navShadowOffsetY = -2.0;
   static const double splashIconSize = 80.0;
 
   // ── Speed dial ─────────────────────────────────────────────────────
-  static const double speedDialButtonHeight = 44.0;
-  static const double speedDialButtonRadius = 22.0;
-  static const double speedDialSpacing = 10.0;
+  static const double speedDialButtonSize =
+      48.0; // circular, meets minTapTarget
+  static const double speedDialArcRadius = 110.0; // FAB center to button center
+  static const double speedDialArcWidth = 280.0; // container width
+  static const double speedDialArcHeight = 220.0; // container height
   static const double speedDialIconSize = 20.0;
-  static const double speedDialOffset = 12.0;
-  static const double speedDialContainerWidth = 160.0;
-  static const double speedDialSlideOffset = 20.0;
-
-  // ── Nav pill ───────────────────────────────────────────────────────
-  static const double navPillWidth = 72.0;
+  static const double speedDialLabelGap = 4.0; // circle to label gap
 
   // ── Card ──────────────────────────────────────────────────────────────
   static const double cardPadding = md;
@@ -211,6 +235,17 @@ abstract final class AppSizes {
 
   // ── Bottom sheet (WS-22) ─────────────────────────────────────────────
   static const double bottomSheetHeightRatio = 0.5;
+
+  // ── DraggableScrollableSheet fractions ────────────────────────────────
+  static const double sheetInitialSize = 0.6;
+  static const double sheetMinSize = 0.3;
+  static const double sheetMaxSize = 0.85;
+  static const double sheetSmallInitialSize = 0.4;
+  static const double sheetSmallMaxSize = 0.6;
+
+  // ── Onboarding ─────────────────────────────────────────────────────────
+  static const double onboardingFeatureCardHeight = 200.0;
+  static const double onboardingParallaxOffset = 30.0;
 
   // ── PDF layout ────────────────────────────────────────────────────────
   static const double pdfMargin = 32.0;

@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
-import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -18,7 +18,9 @@ import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
+import 'voice_wave_bars.dart';
 
 /// Voice input states.
 enum _VoiceState { idle, recording, processing, error }
@@ -35,7 +37,6 @@ class VoiceInputSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: context.colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppSizes.borderRadiusMd),
@@ -59,16 +60,24 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   /// Synchronous guard against concurrent `_stopAndProcess` calls.
   bool _isStopping = false;
 
+  /// Set when user cancels during processing — prevents navigation on late response.
+  bool _cancelled = false;
+
   /// Recording duration displayed as MM:SS.
   int _recordingSeconds = 0;
   Timer? _durationTimer;
 
-  /// Safety limit — auto-stop after 60 seconds.
-  static const _maxRecordingSeconds = 60;
+  /// Normalized amplitude (0.0 – 1.0) fed to [VoiceWaveBars].
+  double _currentAmplitude = 0.0;
+  StreamSubscription<Amplitude>? _amplitudeSubscription;
+
+  /// Safety limit — auto-stop after max recording duration.
+  static final _maxRecordingSeconds = AppDurations.voiceMaxRecording.inSeconds;
 
   @override
   void dispose() {
     _durationTimer?.cancel();
+    _amplitudeSubscription?.cancel();
     _recorder.dispose();
     _cleanupTempFile();
     super.dispose();
@@ -120,6 +129,17 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         }
       });
 
+      // Subscribe to amplitude updates for VoiceWaveBars visualisation.
+      _amplitudeSubscription = _recorder
+          .onAmplitudeChanged(AppDurations.voiceBarUpdate)
+          .listen((amp) {
+        if (mounted) {
+          setState(() {
+            _currentAmplitude = _normalizeAmplitude(amp.current);
+          });
+        }
+      });
+
       setState(() => _state = _VoiceState.recording);
       dev.log('Recording started → $_tempFilePath', name: 'VoiceInputSheet');
     } catch (e) {
@@ -135,6 +155,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     if (_state != _VoiceState.recording || _isStopping) return;
     _isStopping = true;
     _durationTimer?.cancel();
+    _amplitudeSubscription?.cancel();
+    _amplitudeSubscription = null;
+    _currentAmplitude = 0.0;
     setState(() => _state = _VoiceState.processing);
 
     try {
@@ -188,15 +211,18 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       final gemini = ref.read(geminiAudioServiceProvider);
       final categories = ref.read(categoriesProvider).valueOrNull ?? [];
       final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
+      final wallets = ref.read(walletsProvider).valueOrNull ?? [];
+      final walletNames = wallets.map((w) => w.name).toList();
 
       final drafts = await gemini.parseAudio(
         audioBytes: audioBytes,
         mimeType: 'audio/wav',
         categories: categories,
         goals: goals,
+        walletNames: walletNames,
       );
 
-      if (!mounted) return;
+      if (!mounted || _cancelled) return;
 
       dev.log(
         'Gemini result: ${drafts.length} drafts',
@@ -240,6 +266,17 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
+
+  /// Normalize dB amplitude (range -160..0) to 0.0..1.0 for VoiceWaveBars.
+  double _normalizeAmplitude(double dB) => ((dB + 160) / 160).clamp(0.0, 1.0);
+
+  /// Map internal [_VoiceState] to [VoiceWaveState] for the wave bars widget.
+  VoiceWaveState get _voiceWaveState => switch (_state) {
+        _VoiceState.idle => VoiceWaveState.idle,
+        _VoiceState.recording => VoiceWaveState.recording,
+        _VoiceState.processing => VoiceWaveState.processing,
+        _VoiceState.error => VoiceWaveState.error,
+      };
 
   void _popAndShowInfo(String message) {
     if (!mounted) return;
@@ -301,6 +338,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 if (_state == _VoiceState.recording) {
                   await _recorder.stop();
                 }
+                if (_state == _VoiceState.processing) {
+                  _cancelled = true;
+                }
                 nav.pop();
               },
               visualDensity: VisualDensity.compact,
@@ -308,55 +348,49 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             ),
           ),
 
-          // -- Mic button with avatar_glow pulse --
-          Builder(
-            builder: (context) {
-              final reduceMotion = MediaQuery.disableAnimationsOf(context);
-              return Semantics(
-                button: true,
-                label: _state == _VoiceState.idle
-                    ? context.l10n.voice_tap_to_start
-                    : _state == _VoiceState.recording
-                        ? context.l10n.common_done
-                        : null,
-                child: GestureDetector(
-                  onTap: _state == _VoiceState.idle
-                      ? _startRecording
-                      : _state == _VoiceState.recording
-                          ? _stopAndProcess
-                          : null,
-                  child: AvatarGlow(
-                    animate:
-                        !reduceMotion && _state == _VoiceState.recording,
-                    glowRadiusFactor: 0.3,
-                    glowColor: cs.primary,
-                    child: Container(
-                      width: AppSizes.voiceMicSize,
-                      height: AppSizes.voiceMicSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _state == _VoiceState.recording
-                            ? cs.primary
-                            : _state == _VoiceState.error
-                                ? cs.error
-                                : cs.primaryContainer,
-                      ),
-                      child: Icon(
-                        _state == _VoiceState.error
-                            ? AppIcons.close
-                            : AppIcons.mic,
-                        size: AppSizes.iconLg,
-                        color: _state == _VoiceState.recording
-                            ? cs.onPrimary
-                            : _state == _VoiceState.error
-                                ? cs.onError
-                                : cs.onPrimaryContainer,
-                      ),
-                    ),
-                  ),
+          // -- Voice wave bars --
+          VoiceWaveBars(
+            state: _voiceWaveState,
+            amplitude: _currentAmplitude,
+          ),
+          const SizedBox(height: AppSizes.sm),
+
+          // -- Mic button --
+          Semantics(
+            button: true,
+            label: _state == _VoiceState.idle
+                ? context.l10n.voice_tap_to_start
+                : _state == _VoiceState.recording
+                    ? context.l10n.common_done
+                    : null,
+            child: GestureDetector(
+              onTap: _state == _VoiceState.idle
+                  ? _startRecording
+                  : _state == _VoiceState.recording
+                      ? _stopAndProcess
+                      : null,
+              child: Container(
+                width: AppSizes.voiceMicSize,
+                height: AppSizes.voiceMicSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _state == _VoiceState.recording
+                      ? cs.primary
+                      : _state == _VoiceState.error
+                          ? cs.error
+                          : cs.primaryContainer,
                 ),
-              );
-            },
+                child: Icon(
+                  _state == _VoiceState.error ? AppIcons.close : AppIcons.mic,
+                  size: AppSizes.iconLg,
+                  color: _state == _VoiceState.recording
+                      ? cs.onPrimary
+                      : _state == _VoiceState.error
+                          ? cs.onError
+                          : cs.onPrimaryContainer,
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: AppSizes.md),
 
@@ -413,7 +447,10 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 const CircularProgressIndicator(),
                 const SizedBox(height: AppSizes.md),
                 OutlinedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () {
+                    _cancelled = true;
+                    context.pop();
+                  },
                   child: Text(context.l10n.common_cancel),
                 ),
               ],

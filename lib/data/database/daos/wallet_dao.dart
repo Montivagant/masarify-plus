@@ -9,15 +9,21 @@ part 'wallet_dao.g.dart';
 class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
   WalletDao(super.db);
 
-  /// All non-archived wallets ordered by displayOrder
+  /// All non-archived wallets — system wallet first, then by displayOrder.
   Stream<List<Wallet>> watchAll() => (select(wallets)
         ..where((w) => w.isArchived.not())
-        ..orderBy([(w) => OrderingTerm.asc(w.displayOrder)]))
+        ..orderBy([
+          (w) => OrderingTerm.desc(w.isSystemWallet),
+          (w) => OrderingTerm.asc(w.displayOrder),
+        ]))
       .watch();
 
   Future<List<Wallet>> getAll() => (select(wallets)
         ..where((w) => w.isArchived.not())
-        ..orderBy([(w) => OrderingTerm.asc(w.displayOrder)]))
+        ..orderBy([
+          (w) => OrderingTerm.desc(w.isSystemWallet),
+          (w) => OrderingTerm.asc(w.displayOrder),
+        ]))
       .get();
 
   Future<Wallet?> getById(int id) =>
@@ -35,10 +41,28 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
           .write(entry)
           .then((count) => count > 0);
 
-  Future<bool> archive(int id) =>
-      (update(wallets)..where((w) => w.id.equals(id)))
+  Future<bool> archive(int id) async {
+    return transaction(() async {
+      final wallet = await getById(id);
+      if (wallet != null && wallet.isSystemWallet) {
+        throw ArgumentError(
+          'The Physical Cash system wallet cannot be archived',
+        );
+      }
+      return (update(wallets)..where((w) => w.id.equals(id)))
           .write(const WalletsCompanion(isArchived: Value(true)))
           .then((count) => count > 0);
+    });
+  }
+
+  /// The mandatory Physical Cash system wallet (always exists after onboarding).
+  Future<Wallet?> getSystemWallet() =>
+      (select(wallets)..where((w) => w.isSystemWallet.equals(true)))
+          .getSingleOrNull();
+
+  Stream<Wallet?> watchSystemWallet() =>
+      (select(wallets)..where((w) => w.isSystemWallet.equals(true)))
+          .watchSingleOrNull();
 
   /// M3 fix: check if a wallet with the given name already exists.
   Future<bool> existsByName(String name, {int? excludeId}) async {
@@ -72,27 +96,33 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     return result.read<int>('total');
   }
 
-  /// Check if a wallet has any transactions or transfers referencing it.
+  /// Check if a wallet has any transactions, transfers, or goal contributions referencing it.
   Future<bool> hasReferences(int walletId) async {
     final result = await customSelect(
       'SELECT EXISTS('
       '  SELECT 1 FROM transactions WHERE wallet_id = ?'
       ') OR EXISTS('
       '  SELECT 1 FROM transfers WHERE from_wallet_id = ? OR to_wallet_id = ?'
+      ') OR EXISTS('
+      '  SELECT 1 FROM goal_contributions WHERE wallet_id = ?'
       ') AS has_refs',
       variables: [
         Variable.withInt(walletId),
         Variable.withInt(walletId),
         Variable.withInt(walletId),
+        Variable.withInt(walletId),
       ],
-      readsFrom: {attachedDatabase.transactions, attachedDatabase.transfers},
+      readsFrom: {
+        attachedDatabase.transactions,
+        attachedDatabase.transfers,
+        attachedDatabase.goalContributions,
+      },
     ).getSingle();
     return result.read<int>('has_refs') == 1;
   }
 
   /// H4 fix: reactive stream of total balance across all non-archived wallets.
-  Stream<int> watchTotalBalance() =>
-      customSelect(
+  Stream<int> watchTotalBalance() => customSelect(
         'SELECT COALESCE(SUM(balance), 0) AS total '
         'FROM wallets WHERE is_archived = 0',
         readsFrom: {wallets},

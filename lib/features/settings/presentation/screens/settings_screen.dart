@@ -6,8 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' show NumberFormat;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
-import '../../../../core/config/ai_config.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -16,9 +16,12 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/services/notification_listener_wrapper.dart';
+import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/persistent_notification_service.dart';
 import '../../../../core/services/sms_parser_service.dart';
 import '../../../../core/utils/permission_helper.dart';
 import '../../../../shared/providers/database_provider.dart';
+import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/notification_listener_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
@@ -42,15 +45,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   String? _language;
   int _firstDayOfWeek = 6;
   int _firstDayOfMonth = 1;
-  bool _notificationParserEnabled = false;
-  bool _smsParserEnabled = false;
-  String _aiModel = 'auto';
   bool _pinEnabled = false;
   bool _biometricEnabled = false;
   int _autoLockTimeoutMs = 0;
   bool _loaded = false;
 
-  /// WS-1 fix: lifecycle-aware permission flow flags.
+  // WS5: Smart Detection state (moved from SmartInputScreen).
+  bool _notificationParserEnabled = false;
+  bool _smsParserEnabled = false;
   bool _awaitingNotificationPermission = false;
   bool _awaitingSmsPermission = false;
 
@@ -85,12 +87,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (_awaitingNotificationPermission) {
-        _finishNotificationPermission();
-      }
-      if (_awaitingSmsPermission) {
-        _finishSmsPermission();
-      }
+      if (_awaitingNotificationPermission) _finishNotificationPermission();
+      if (_awaitingSmsPermission) _finishSmsPermission();
     }
   }
 
@@ -102,12 +100,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       _language = ref.read(localeProvider)?.languageCode;
       _firstDayOfWeek = prefs.firstDayOfWeek;
       _firstDayOfMonth = prefs.firstDayOfMonth;
-      _notificationParserEnabled = prefs.isNotificationParserEnabled;
-      _smsParserEnabled = prefs.isSmsParserEnabled;
-      _aiModel = prefs.aiModel;
       _pinEnabled = prefs.isPinEnabled;
       _biometricEnabled = prefs.isBiometricEnabled;
       _autoLockTimeoutMs = prefs.autoLockTimeoutMs;
+      _notificationParserEnabled = prefs.isNotificationParserEnabled;
+      _smsParserEnabled = prefs.isSmsParserEnabled;
       _loaded = true;
     });
   }
@@ -145,213 +142,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final prefs = await ref.read(preferencesFutureProvider.future);
     if (!mounted) return;
     await prefs.setFirstDayOfMonth(day);
-  }
-
-  Future<void> _toggleNotificationParser(bool value) async {
-    if (!Platform.isAndroid) return;
-    try {
-      if (value) {
-        // Show rationale before requesting.
-        if (!mounted) return;
-        final allowed = await PermissionHelper.showRationale(
-          context,
-          title: context.l10n.permission_notification_title,
-          rationale: context.l10n.permission_notification_body,
-        );
-        if (!allowed || !mounted) return;
-
-        // WS-1 fix: set flag before opening system settings, finish on resume.
-        _awaitingNotificationPermission = true;
-        await NotificationListenerWrapper.requestPermission();
-        // Don't check immediately — Android recreates activity.
-        // _finishNotificationPermission() runs on lifecycle resume.
-      } else {
-        // Stop listener and save pref.
-        try {
-          ref.read(notificationListenerProvider).stop();
-        } catch (e) {
-          CrashLogService.log(e, StackTrace.current);
-        }
-        final prefs = await ref.read(preferencesFutureProvider.future);
-        await prefs.setNotificationParserEnabled(false);
-        if (!mounted) return;
-        setState(() => _notificationParserEnabled = false);
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      _awaitingNotificationPermission = false;
-      if (!mounted) return;
-      setState(() => _notificationParserEnabled = !value);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  /// WS-1: called on lifecycle resume after returning from notification settings.
-  Future<void> _finishNotificationPermission() async {
-    if (!Platform.isAndroid) return;
-    _awaitingNotificationPermission = false;
-    try {
-      final granted = await NotificationListenerWrapper.hasPermission();
-      if (!mounted) return;
-
-      if (!granted) {
-        // User didn't grant — no state change needed.
-        return;
-      }
-
-      // WS-38 fix: delay before starting listener — Android service needs
-      // time to bind after permission is granted.
-      await Future<void>.delayed(AppDurations.listenerBindDelay);
-      if (!mounted) return;
-
-      // Start the listener — service may not be fully bound yet.
-      // Save preference ONLY after start() succeeds to avoid inconsistent state
-      // if the app crashes during start().
-      try {
-        final listener = ref.read(notificationListenerProvider);
-        // onNewPending is set in main.dart — don't overwrite with a
-        // WidgetRef closure that becomes stale after this screen pops.
-        await listener.start();
-
-        // Listener started successfully — now persist the preference.
-        final prefs = await ref.read(preferencesFutureProvider.future);
-        await prefs.setNotificationParserEnabled(true);
-        if (!mounted) return;
-        setState(() => _notificationParserEnabled = true);
-      } catch (e) {
-        CrashLogService.log(e, StackTrace.current);
-        if (!mounted) return;
-        SnackHelper.showInfo(
-          context,
-          context.l10n.common_error_generic,
-        );
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      if (!mounted) return;
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  Future<void> _toggleSmsParser(bool value) async {
-    if (!Platform.isAndroid) return;
-    try {
-      if (value) {
-        // Show rationale before requesting.
-        if (!mounted) return;
-        final allowed = await PermissionHelper.showRationale(
-          context,
-          title: context.l10n.permission_sms_title,
-          rationale: context.l10n.permission_sms_body,
-        );
-        if (!allowed || !mounted) return;
-
-        // WS-1 fix: set flag, request permission, finish on resume or inline.
-        _awaitingSmsPermission = true;
-        final granted = await Telephony.instance.requestSmsPermissions ?? false;
-        // Guard: lifecycle handler may have already run _finishSmsPermission().
-        if (!_awaitingSmsPermission) return;
-        _awaitingSmsPermission = false;
-        if (!granted || !mounted) return;
-
-        await _finishSmsPermission();
-      } else {
-        final prefs = await ref.read(preferencesFutureProvider.future);
-        await prefs.setSmsParserEnabled(false);
-        if (!mounted) return;
-        setState(() => _smsParserEnabled = false);
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      _awaitingSmsPermission = false;
-      if (!mounted) return;
-      setState(() => _smsParserEnabled = !value);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  /// WS-1: called after SMS permission is granted (inline or on resume).
-  Future<void> _finishSmsPermission() async {
-    if (!Platform.isAndroid) return;
-    _awaitingSmsPermission = false;
-    try {
-      final prefs = await ref.read(preferencesFutureProvider.future);
-      await prefs.setSmsParserEnabled(true);
-      if (!mounted) return;
-      setState(() => _smsParserEnabled = true);
-
-      final dao = ref.read(smsParserLogDaoProvider);
-      final count = await SmsParserService(dao).scanInbox();
-      if (!mounted) return;
-      if (count > 0) {
-        ref.invalidate(pendingParsedTransactionsProvider);
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      if (!mounted) return;
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  Future<void> _setAiModel(String model) async {
-    setState(() => _aiModel = model);
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    if (!mounted) return;
-    await prefs.setAiModel(model);
-  }
-
-  String _aiModelLabel(String model) {
-    final l10n = context.l10n;
-    return switch (model) {
-      'auto' => l10n.settings_ai_model_auto,
-      AiConfig.modelGeminiFlash => l10n.settings_ai_model_gemini_flash,
-      AiConfig.modelGemma27b => l10n.settings_ai_model_gemma_27b,
-      AiConfig.modelQwen3_4b => l10n.settings_ai_model_qwen3_4b,
-      _ => model,
-    };
-  }
-
-  void _showAiModelPicker() {
-    final l10n = context.l10n;
-    final options = [
-      (id: 'auto', label: l10n.settings_ai_model_auto),
-      (id: AiConfig.modelGeminiFlash, label: l10n.settings_ai_model_gemini_flash),
-      (id: AiConfig.modelGemma27b, label: l10n.settings_ai_model_gemma_27b),
-      (id: AiConfig.modelQwen3_4b, label: l10n.settings_ai_model_qwen3_4b),
-    ];
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.md),
-              child: Text(
-                l10n.settings_ai_model,
-                style: ctx.textStyles.titleMedium,
-              ),
-            ),
-            ...options.map(
-              (o) => ListTile(
-                title: Text(o.label),
-                trailing: o.id == _aiModel
-                    ? Icon(
-                        AppIcons.check,
-                        color: ctx.colors.primary,
-                      )
-                    : null,
-                onTap: () {
-                  _setAiModel(o.id);
-                  ctx.pop();
-                },
-              ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-          ],
-        ),
-      ),
-    );
   }
 
   Future<void> _togglePin(bool value) async {
@@ -421,7 +211,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       final duration = remaining.inSeconds >= 60
           ? '${remaining.inMinutes}m'
           : '${remaining.inSeconds}s';
-      SnackHelper.showError(context, context.l10n.settings_pin_lockout(duration));
+      SnackHelper.showError(
+        context,
+        context.l10n.settings_pin_lockout(duration),
+      );
       return false;
     }
 
@@ -459,7 +252,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 await auth.setFailedAttempts(attempts);
                 if (attempts >= 5) {
                   await auth.setLockoutUntil(
-                    DateTime.now().add(const Duration(seconds: 30)),
+                    DateTime.now().add(AppDurations.lockoutDuration),
                   );
                 }
               } else {
@@ -538,13 +331,206 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
+  // ── WS5: Smart Detection toggles (from SmartInputScreen) ──────────────
+
+  Future<void> _toggleNotificationParser(bool value) async {
+    if (!Platform.isAndroid) return;
+    try {
+      if (value) {
+        if (!mounted) return;
+        final allowed = await PermissionHelper.showRationale(
+          context,
+          title: context.l10n.permission_notification_title,
+          rationale: context.l10n.permission_notification_body,
+        );
+        if (!allowed || !mounted) return;
+        _awaitingNotificationPermission = true;
+        final pendingPrefs = await ref.read(preferencesFutureProvider.future);
+        await pendingPrefs.setNotificationPermissionPending(true);
+        await NotificationListenerWrapper.requestPermission();
+      } else {
+        try {
+          ref.read(notificationListenerProvider).stop();
+        } catch (e) {
+          CrashLogService.log(e, StackTrace.current);
+        }
+        final prefs = await ref.read(preferencesFutureProvider.future);
+        await prefs.setNotificationParserEnabled(false);
+        if (!mounted) return;
+        setState(() => _notificationParserEnabled = false);
+        PersistentNotificationService(NotificationService.plugin).dismiss();
+      }
+    } catch (e) {
+      CrashLogService.log(e, StackTrace.current);
+      _awaitingNotificationPermission = false;
+      final errPrefs = await ref.read(preferencesFutureProvider.future);
+      await errPrefs.setNotificationPermissionPending(false);
+      if (!mounted) return;
+      setState(() => _notificationParserEnabled = !value);
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+    }
+  }
+
+  Future<void> _finishNotificationPermission() async {
+    if (!Platform.isAndroid) return;
+    _awaitingNotificationPermission = false;
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    await prefs.setNotificationPermissionPending(false);
+    try {
+      final granted = await NotificationListenerWrapper.hasPermission();
+      if (!mounted || !granted) return;
+      await Future<void>.delayed(AppDurations.listenerBindDelay);
+      if (!mounted) return;
+      try {
+        final listener = ref.read(notificationListenerProvider);
+        await listener.start();
+        final prefs2 = await ref.read(preferencesFutureProvider.future);
+        await prefs2.setNotificationParserEnabled(true);
+        if (!mounted) return;
+        setState(() => _notificationParserEnabled = true);
+        PersistentNotificationService(NotificationService.plugin).show();
+      } catch (e) {
+        CrashLogService.log(e, StackTrace.current);
+        if (!mounted) return;
+        SnackHelper.showInfo(context, context.l10n.common_error_generic);
+      }
+    } catch (e) {
+      CrashLogService.log(e, StackTrace.current);
+      if (!mounted) return;
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+    }
+  }
+
+  Future<void> _toggleSmsParser(bool value) async {
+    if (!Platform.isAndroid) return;
+    try {
+      if (value) {
+        if (!mounted) return;
+        final allowed = await PermissionHelper.showRationale(
+          context,
+          title: context.l10n.permission_sms_title,
+          rationale: context.l10n.permission_sms_body,
+        );
+        if (!allowed || !mounted) return;
+        _awaitingSmsPermission = true;
+        final granted = await Telephony.instance.requestSmsPermissions ?? false;
+        if (!_awaitingSmsPermission) return;
+        _awaitingSmsPermission = false;
+        if (!granted || !mounted) return;
+        await _finishSmsPermission();
+      } else {
+        final prefs = await ref.read(preferencesFutureProvider.future);
+        await prefs.setSmsParserEnabled(false);
+        if (!mounted) return;
+        setState(() => _smsParserEnabled = false);
+      }
+    } catch (e) {
+      CrashLogService.log(e, StackTrace.current);
+      _awaitingSmsPermission = false;
+      if (!mounted) return;
+      setState(() => _smsParserEnabled = !value);
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+    }
+  }
+
+  Future<void> _finishSmsPermission() async {
+    if (!Platform.isAndroid) return;
+    _awaitingSmsPermission = false;
+    try {
+      final granted = await Telephony.instance.requestSmsPermissions ?? false;
+      if (!granted || !mounted) return;
+      final prefs = await ref.read(preferencesFutureProvider.future);
+      await prefs.setSmsParserEnabled(true);
+      if (!mounted) return;
+      setState(() => _smsParserEnabled = true);
+      final dao = ref.read(smsParserLogDaoProvider);
+      final count = await SmsParserService(dao).scanInbox();
+      if (!mounted) return;
+      if (count > 0) ref.invalidate(pendingParsedTransactionsProvider);
+    } catch (e) {
+      CrashLogService.log(e, StackTrace.current);
+      if (!mounted) return;
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+    }
+  }
+
   Future<void> _clearAllData() async {
+    // Pre-reset backup offer
+    if (!mounted) return;
+    final backupChoice = await _showPreResetBackupOffer();
+    if (backupChoice == null || !mounted) return; // user cancelled
+
+    if (backupChoice == 'drive') {
+      // Backup to Drive first
+      try {
+        final backupPath = await ref.read(backupServiceProvider).exportToJson();
+        final file = File(backupPath);
+        final jsonData = await file.readAsString();
+        final driveService = ref.read(googleDriveBackupProvider);
+        if (!driveService.isSignedIn) {
+          await driveService.signIn();
+        }
+        if (driveService.isSignedIn) {
+          await driveService.uploadBackup(jsonData);
+          if (mounted) {
+            SnackHelper.showSuccess(
+              context,
+              context.l10n.backup_drive_success,
+            );
+          }
+        }
+        try {
+          if (file.existsSync()) file.deleteSync();
+        } catch (_) {
+          // Best-effort temp file cleanup
+        }
+      } catch (e) {
+        if (!mounted) return;
+        // Backup failed — ask user whether to proceed anyway
+        final proceed = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(ctx.l10n.backup_drive_failed),
+            content: Text(ctx.l10n.backup_failed_continue),
+            actions: [
+              TextButton(
+                onPressed: () => ctx.pop(false),
+                child: Text(ctx.l10n.common_cancel),
+              ),
+              FilledButton(
+                onPressed: () => ctx.pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: ctx.colors.error,
+                ),
+                child: Text(ctx.l10n.backup_pre_reset_skip),
+              ),
+            ],
+          ),
+        );
+        if (proceed != true || !mounted) return;
+      }
+    } else if (backupChoice == 'file') {
+      // Export to file first
+      try {
+        final path = await ref.read(backupServiceProvider).exportToJson();
+        if (!mounted) return;
+        await Share.shareXFiles([XFile(path)]);
+      } catch (e) {
+        if (mounted) {
+          SnackHelper.showError(context, context.l10n.common_error_generic);
+        }
+        return;
+      }
+    }
+    // backupChoice == 'skip' → proceed without backup
+
+    if (!mounted) return;
     final confirmed = await _showDeleteConfirmation();
     if (!confirmed || !mounted) return;
 
     final db = ref.read(databaseProvider);
     // M16 fix: wrap in single transaction for atomicity.
-    // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (12 tables).
+    // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (13 tables).
     await db.transaction(() async {
       await db.customStatement('DELETE FROM transactions');
       await db.customStatement('DELETE FROM transfers');
@@ -552,6 +538,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       await db.customStatement('DELETE FROM goal_contributions');
       await db.customStatement('DELETE FROM savings_goals');
       await db.customStatement('DELETE FROM recurring_rules');
+      // parsed_event_groups FKs to sms_parser_logs → delete child first.
+      await db.customStatement('DELETE FROM parsed_event_groups');
       await db.customStatement('DELETE FROM sms_parser_logs');
       await db.customStatement('DELETE FROM exchange_rates');
       await db.customStatement('DELETE FROM category_mappings');
@@ -564,6 +552,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     await AuthService().removePin();
     await AuthService().clearLockout();
 
+    // Disconnect Google Sign-In (but do NOT delete Drive backups).
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      if (driveService.isSignedIn) {
+        await driveService.signOut();
+      }
+    } catch (_) {
+      // Best-effort sign-out, non-critical
+    }
+
     final prefs = await ref.read(preferencesFutureProvider.future);
     await prefs.clearAll();
 
@@ -572,6 +570,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
     if (!mounted) return;
     context.go(AppRoutes.onboarding);
+  }
+
+  /// Show dialog offering to save a backup before reset.
+  /// Returns 'drive', 'file', 'skip', or null (cancelled).
+  Future<String?> _showPreResetBackupOffer() async {
+    final l10n = context.l10n;
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.backup_pre_reset_offer),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton.icon(
+              icon: const Icon(AppIcons.backup),
+              label: Text(l10n.backup_pre_reset_drive),
+              onPressed: () => ctx.pop('drive'),
+            ),
+            const SizedBox(height: AppSizes.sm),
+            OutlinedButton.icon(
+              icon: const Icon(AppIcons.export_),
+              label: Text(l10n.backup_pre_reset_file),
+              onPressed: () => ctx.pop('file'),
+            ),
+            const SizedBox(height: AppSizes.sm),
+            TextButton(
+              onPressed: () => ctx.pop('skip'),
+              child: Text(l10n.backup_pre_reset_skip),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<bool> _showDeleteConfirmation() async {
@@ -664,12 +696,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     ButtonSegment(
                       value: ThemeMode.system,
                       label: Text(l10n.settings_theme_auto),
-                      icon: const Icon(AppIcons.settings, size: AppSizes.iconXs),
+                      icon:
+                          const Icon(AppIcons.settings, size: AppSizes.iconXs),
                     ),
                     ButtonSegment(
                       value: ThemeMode.light,
                       label: Text(l10n.settings_theme_light),
-                      icon: const Icon(AppIcons.themeLight, size: AppSizes.iconXs),
+                      icon: const Icon(
+                        AppIcons.themeLight,
+                        size: AppSizes.iconXs,
+                      ),
                     ),
                     ButtonSegment(
                       value: ThemeMode.dark,
@@ -689,19 +725,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
 
           // ── Language ───────────────────────────────────────────────────
-          Builder(builder: (context) {
-            final langCode = ref.watch(localeProvider)?.languageCode;
-            return _SettingsTile(
-              icon: AppIcons.language,
-              label: l10n.settings_language,
-              subtitle: switch (langCode) {
-                'ar' => l10n.language_ar,
-                'en' => l10n.language_en,
-                _ => l10n.language_system,
-              },
-              onTap: () => _showLanguagePicker(),
-            );
-          },),
+          Builder(
+            builder: (context) {
+              final langCode = ref.watch(localeProvider)?.languageCode;
+              return _SettingsTile(
+                icon: AppIcons.language,
+                label: l10n.settings_language,
+                subtitle: switch (langCode) {
+                  'ar' => l10n.language_ar,
+                  'en' => l10n.language_en,
+                  _ => l10n.language_system,
+                },
+                onTap: () => _showLanguagePicker(),
+              );
+            },
+          ),
 
           // ── General ───────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_general),
@@ -709,113 +747,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             icon: AppIcons.currency,
             label: l10n.settings_currency,
             subtitle: _currencies(context)
-                .where((c) => c.code == _currency)
-                .firstOrNull
-                ?.label ?? _currency,
+                    .where((c) => c.code == _currency)
+                    .firstOrNull
+                    ?.label ??
+                _currency,
             onTap: () => _showCurrencyPicker(),
           ),
           _SettingsTile(
             icon: AppIcons.calendar,
             label: l10n.settings_first_day_of_week,
             subtitle: _weekDays(context)
-                .where((d) => d.value == _firstDayOfWeek)
-                .firstOrNull
-                ?.label ?? '$_firstDayOfWeek',
+                    .where((d) => d.value == _firstDayOfWeek)
+                    .firstOrNull
+                    ?.label ??
+                '$_firstDayOfWeek',
             onTap: () => _showWeekDayPicker(),
           ),
           _SettingsTile(
             icon: AppIcons.calendar,
             label: l10n.settings_first_day_budget_cycle,
-            subtitle: NumberFormat.decimalPattern(context.languageCode).format(_firstDayOfMonth),
+            subtitle: NumberFormat.decimalPattern(context.languageCode)
+                .format(_firstDayOfMonth),
             onTap: () => _showMonthDayPicker(),
-          ),
-
-          // ── Data management ─────────────────────────────────────────────
-          _SectionHeader(title: l10n.settings_data_management),
-          _SettingsTile(
-            icon: AppIcons.wallet,
-            label: l10n.settings_wallets_label,
-            subtitle: l10n.settings_wallets_subtitle,
-            onTap: () => context.push(AppRoutes.wallets),
-          ),
-          _SettingsTile(
-            icon: AppIcons.category,
-            label: l10n.settings_categories_label,
-            subtitle: l10n.settings_categories_subtitle,
-            onTap: () => context.push(AppRoutes.categories),
-          ),
-
-          // ── Smart Input ──────────────────────────────────────────────────
-          _SectionHeader(title: l10n.settings_smart_input),
-          // Notification & SMS parsers are Android-only (no iOS equivalent).
-          if (Platform.isAndroid) ...[
-            SwitchListTile(
-              secondary: GlassCard(
-                tier: GlassTier.inset,
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-                tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-                child: SizedBox(
-                  width: AppSizes.colorSwatchSize,
-                  height: AppSizes.colorSwatchSize,
-                  child: Icon(
-                    AppIcons.notification,
-                    size: AppSizes.iconSm,
-                    color: cs.onPrimaryContainer,
-                  ),
-                ),
-              ),
-              title: Text(l10n.settings_notification_parser),
-              subtitle: Text(l10n.settings_notification_parser_subtitle),
-              value: _notificationParserEnabled,
-              onChanged: _toggleNotificationParser,
-            ),
-            SwitchListTile(
-              secondary: GlassCard(
-                tier: GlassTier.inset,
-                padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-                tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-                child: SizedBox(
-                  width: AppSizes.colorSwatchSize,
-                  height: AppSizes.colorSwatchSize,
-                  child: Icon(
-                    AppIcons.sms,
-                    size: AppSizes.iconSm,
-                    color: cs.onPrimaryContainer,
-                  ),
-                ),
-              ),
-              title: Text(l10n.settings_sms_parser),
-              subtitle: Text(l10n.settings_sms_parser_subtitle),
-              value: _smsParserEnabled,
-              onChanged: _toggleSmsParser,
-            ),
-            Builder(
-              builder: (context) {
-                final pendingCount = ref.watch(pendingParsedTransactionsProvider)
-                    .valueOrNull?.length ?? 0;
-                return _SettingsTile(
-                  icon: AppIcons.sms,
-                  label: l10n.dashboard_insight_parsed_transactions,
-                  subtitle: pendingCount > 0
-                      ? l10n.sms_new_found(pendingCount)
-                      : null,
-                  onTap: () => context.push(AppRoutes.parserReview),
-                );
-              },
-            ),
-          ],
-          _SettingsTile(
-            icon: AppIcons.ai,
-            label: l10n.settings_ai_model,
-            subtitle: _aiModelLabel(_aiModel),
-            onTap: _showAiModelPicker,
-          ),
-          _SettingsTile(
-            icon: AppIcons.notification,
-            label: l10n.notif_prefs_title,
-            onTap: () => context.push(AppRoutes.settingsNotifications),
           ),
 
           // ── Security ────────────────────────────────────────────────────
@@ -825,7 +778,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               tier: GlassTier.inset,
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+              tintColor:
+                  cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
               child: SizedBox(
                 width: AppSizes.colorSwatchSize,
                 height: AppSizes.colorSwatchSize,
@@ -846,7 +800,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               tier: GlassTier.inset,
               padding: EdgeInsets.zero,
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-              tintColor: (_pinEnabled ? cs.primaryContainer : cs.surfaceContainerHighest)
+              tintColor: (_pinEnabled
+                      ? cs.primaryContainer
+                      : cs.surfaceContainerHighest)
                   .withValues(alpha: AppSizes.opacityLight4),
               child: SizedBox(
                 width: AppSizes.colorSwatchSize,
@@ -881,6 +837,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               label: l10n.settings_pin_change,
               onTap: () => _changePin(),
             ),
+
+          // ── Smart Detection (WS5: moved from SmartInputScreen) ──────
+          if (Platform.isAndroid) ...[
+            _SectionHeader(title: l10n.settings_smart_detection),
+            SwitchListTile(
+              secondary: _SettingsIconBox(
+                icon: AppIcons.notification,
+                cs: cs,
+              ),
+              title: Text(l10n.settings_notification_parser),
+              subtitle: Text(l10n.settings_notification_parser_subtitle),
+              value: _notificationParserEnabled,
+              onChanged: _toggleNotificationParser,
+            ),
+            SwitchListTile(
+              secondary: _SettingsIconBox(icon: AppIcons.sms, cs: cs),
+              title: Text(l10n.settings_sms_parser),
+              subtitle: Text(l10n.settings_sms_parser_subtitle),
+              value: _smsParserEnabled,
+              onChanged: _toggleSmsParser,
+            ),
+          ],
+
+          _SettingsTile(
+            icon: AppIcons.notification,
+            label: l10n.notif_prefs_title,
+            onTap: () => context.push(AppRoutes.settingsNotifications),
+          ),
 
           // ── Backup & export ───────────────────────────────────────────
           _SectionHeader(title: l10n.settings_backup_section),
@@ -1070,14 +1054,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               Text(
                 l10n.settings_budget_cycle_subtitle,
                 style: ctx.textStyles.bodySmall?.copyWith(
-                      color: ctx.colors.outline,
-                    ),
+                  color: ctx.colors.outline,
+                ),
               ),
               const SizedBox(height: AppSizes.md),
               SizedBox(
                 height: AppSizes.chartHeightSm,
                 child: ListWheelScrollView.useDelegate(
-                  itemExtent: 40,
+                  itemExtent: AppSizes.listWheelItemExtent,
                   controller: FixedExtentScrollController(
                     initialItem: _firstDayOfMonth - 1,
                   ),
@@ -1087,7 +1071,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                     childCount: 28,
                     builder: (ctx, i) => Center(
                       child: Text(
-                        NumberFormat.decimalPattern(context.languageCode).format(i + 1),
+                        NumberFormat.decimalPattern(context.languageCode)
+                            .format(i + 1),
                         style: ctx.textStyles.titleMedium,
                       ),
                     ),
@@ -1126,9 +1111,32 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: context.textStyles.labelLarge?.copyWith(
-              color: context.colors.primary,
-              fontWeight: FontWeight.w700,
-            ),
+          color: context.colors.primary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+/// WS5: Icon box for SwitchListTile secondary — matches _SettingsTile leading.
+class _SettingsIconBox extends StatelessWidget {
+  const _SettingsIconBox({required this.icon, required this.cs});
+
+  final IconData icon;
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      tier: GlassTier.inset,
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+      child: SizedBox(
+        width: AppSizes.colorSwatchSize,
+        height: AppSizes.colorSwatchSize,
+        child: Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
       ),
     );
   }
@@ -1181,9 +1189,7 @@ class _SettingsTile extends StatelessWidget {
       trailing: trailing ??
           (enabled
               ? Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? AppIcons.chevronLeft
-                      : AppIcons.chevronRight,
+                  context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
                 )
               : null),
       onTap: onTap,
@@ -1198,7 +1204,7 @@ class _ComingSoonChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.sm,
-        vertical: 2,
+        vertical: AppSizes.xxs,
       ),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest,
@@ -1207,8 +1213,8 @@ class _ComingSoonChip extends StatelessWidget {
       child: Text(
         context.l10n.common_coming_soon,
         style: context.textStyles.labelSmall?.copyWith(
-              color: cs.outline,
-            ),
+          color: cs.outline,
+        ),
       ),
     );
   }

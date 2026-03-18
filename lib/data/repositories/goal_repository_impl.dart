@@ -5,12 +5,14 @@ import '../../domain/entities/savings_goal_entity.dart';
 import '../../domain/repositories/i_goal_repository.dart';
 import '../database/app_database.dart';
 import '../database/daos/goal_dao.dart';
+import '../database/daos/wallet_dao.dart';
 
 class GoalRepositoryImpl implements IGoalRepository {
-  const GoalRepositoryImpl(this._dao, this._db);
+  const GoalRepositoryImpl(this._dao, this._db, this._walletDao);
 
   final GoalDao _dao;
   final AppDatabase _db;
+  final WalletDao _walletDao;
 
   // ── Goals ─────────────────────────────────────────────────────────────────
 
@@ -44,17 +46,17 @@ class GoalRepositoryImpl implements IGoalRepository {
       throw ArgumentError('Goal target amount must be positive');
     }
     return _dao.insertGoal(
-        SavingsGoalsCompanion.insert(
-          name: name,
-          iconName: iconName,
-          colorHex: colorHex,
-          targetAmount: targetAmount,
-          currencyCode: Value(currencyCode),
-          deadline: Value(deadline),
-          keywords: Value(keywords),
-          walletId: Value(walletId),
-        ),
-      );
+      SavingsGoalsCompanion.insert(
+        name: name,
+        iconName: iconName,
+        colorHex: colorHex,
+        targetAmount: targetAmount,
+        currencyCode: Value(currencyCode),
+        deadline: Value(deadline),
+        keywords: Value(keywords),
+        walletId: Value(walletId),
+      ),
+    );
   }
 
   @override
@@ -99,10 +101,9 @@ class GoalRepositoryImpl implements IGoalRepository {
   // ── Contributions ─────────────────────────────────────────────────────────
 
   @override
-  Stream<List<GoalContributionEntity>> watchContributions(int goalId) =>
-      _dao
-          .watchContributions(goalId)
-          .map((list) => list.map(_toContributionEntity).toList());
+  Stream<List<GoalContributionEntity>> watchContributions(int goalId) => _dao
+      .watchContributions(goalId)
+      .map((list) => list.map(_toContributionEntity).toList());
 
   @override
   Future<int> addContribution({
@@ -137,6 +138,64 @@ class GoalRepositoryImpl implements IGoalRepository {
       await _dao.addProgress(goalId, amount);
 
       // C5 fix: auto-complete goal when target reached
+      final goal = await _dao.getById(goalId);
+      if (goal != null &&
+          !goal.isCompleted &&
+          goal.currentAmount >= goal.targetAmount) {
+        await _dao.saveGoal(
+          SavingsGoalsCompanion(
+            id: Value(goalId),
+            isCompleted: const Value(true),
+          ),
+        );
+      }
+
+      return id;
+    });
+  }
+
+  @override
+  Future<int> addContributionWithDeduction({
+    required int goalId,
+    required int amount,
+    required DateTime date,
+    required int walletId,
+    String? note,
+  }) async {
+    return _db.transaction(() async {
+      // Validate goal exists and has room
+      final goalBefore = await _dao.getById(goalId);
+      if (goalBefore == null) {
+        throw ArgumentError('Goal $goalId does not exist');
+      }
+      final remaining = goalBefore.targetAmount - goalBefore.currentAmount;
+      if (remaining <= 0) {
+        throw ArgumentError('Goal is already fully funded');
+      }
+      if (amount > remaining) {
+        throw ArgumentError(
+          'Contribution exceeds remaining target ($remaining piastres)',
+        );
+      }
+
+      // 1. Deduct from wallet
+      await _walletDao.adjustBalance(walletId, -amount);
+
+      // 2. Insert contribution with walletId
+      final id = await _dao.insertContribution(
+        GoalContributionsCompanion.insert(
+          goalId: goalId,
+          amount: amount,
+          date: date,
+          note: Value(note),
+          walletId: Value(walletId),
+        ),
+      );
+
+      // 3. Update goal's currentAmount
+      await _dao.addProgress(goalId, amount);
+
+      // 4. Auto-complete goal when target reached
       final goal = await _dao.getById(goalId);
       if (goal != null &&
           !goal.isCompleted &&

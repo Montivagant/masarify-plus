@@ -1,14 +1,12 @@
-import 'dart:ui';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../app/theme/app_theme_extension.dart';
 import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
-import '../../../core/services/glass_config_service.dart';
 
 /// Data for a single speed-dial action button.
 class _DialAction {
@@ -23,27 +21,36 @@ class _DialAction {
   final Color Function(BuildContext) color;
 }
 
-/// Speed-dial FAB with 3 vertically stacked glass action buttons.
+/// Speed-dial FAB with 3 action buttons arranged in a semi-circular arc.
 ///
 /// - **Tap**: expand/collapse the action buttons
 /// - **Tap action**: navigate + collapse
-/// - Frosted scrim overlay when expanded
+/// - Semi-transparent scrim overlay when expanded
 /// - FAB rotates + → × when expanded
+/// - Buttons burst outward in an arc (radial expansion + scale)
+/// - RTL-aware: Expense/Income swap sides, Voice stays centered
 ///
-/// **AOT safety**: Action buttons are only added to the widget tree when
-/// expanded or animating. No [Opacity] widget, no [Material] with
-/// elevation > 0 on action buttons.
+/// ```
+///         [Voice]           ← straight up (center)
+///        /       \
+///    [Expense]  [Income]    ← 55° left / right
+///          [+]              ← FAB center
+/// ```
 class SpeedDialFab extends StatefulWidget {
   const SpeedDialFab({
     super.key,
     required this.onExpense,
     required this.onIncome,
     required this.onVoice,
+    this.tabIndex = 0,
   });
 
   final VoidCallback onExpense;
   final VoidCallback onIncome;
   final VoidCallback onVoice;
+
+  /// Current navigation tab index. When this changes, the FAB auto-collapses.
+  final int tabIndex;
 
   @override
   State<SpeedDialFab> createState() => _SpeedDialFabState();
@@ -61,7 +68,20 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   /// animate out, then flips false on [AnimationStatus.dismissed].
   bool _showOverlay = false;
 
+  /// Full-screen scrim overlay entry. Uses [Overlay] so the scrim covers
+  /// the entire screen, not just the speed dial [SizedBox].
+  OverlayEntry? _scrimEntry;
+
   late final List<_DialAction> _actions;
+
+  /// Angles from vertical (12 o'clock), clockwise positive.
+  /// Expense = -55° (left), Voice = 0° (center/top), Income = +55° (right).
+  /// Tightened from ±75° to ±55° (11π/36) for a less spread-out fan.
+  static final List<double> _angles = [
+    -11 * math.pi / 36, // Expense: upper-left (55°)
+    0, // Voice: straight up (center)
+    11 * math.pi / 36, // Income: upper-right (55°)
+  ];
 
   @override
   void initState() {
@@ -73,9 +93,10 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     _controller.addStatusListener(_onAnimationStatus);
 
     // Staggered intervals: each button starts slightly later.
+    // WS4: tighter intervals (0.12 gap) for snappier animation.
     _staggerAnimations = List.generate(3, (i) {
-      final start = i * 0.15; // 0.0, 0.15, 0.30
-      final end = (start + 0.7).clamp(0.0, 1.0); // 0.7, 0.85, 1.0
+      final start = i * 0.12; // 0.0, 0.12, 0.24
+      final end = (start + 0.76).clamp(0.0, 1.0); // 0.76, 0.88, 1.0
       return CurvedAnimation(
         parent: _controller,
         curve: Interval(start, end, curve: Curves.easeOutBack),
@@ -90,16 +111,25 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         color: (ctx) => ctx.appTheme.expenseColor,
       ),
       _DialAction(
-        icon: AppIcons.income,
-        labelKey: (ctx) => ctx.l10n.fab_income,
-        color: (ctx) => ctx.appTheme.incomeColor,
-      ),
-      _DialAction(
         icon: AppIcons.mic,
         labelKey: (ctx) => ctx.l10n.fab_voice,
         color: (ctx) => ctx.colors.primary,
       ),
+      _DialAction(
+        icon: AppIcons.income,
+        labelKey: (ctx) => ctx.l10n.fab_income,
+        color: (ctx) => ctx.appTheme.incomeColor,
+      ),
     ];
+  }
+
+  @override
+  void didUpdateWidget(covariant SpeedDialFab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Auto-collapse when navigating to a different tab.
+    if (oldWidget.tabIndex != widget.tabIndex && _isExpanded) {
+      _collapse();
+    }
   }
 
   @override
@@ -115,6 +145,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   @override
   void dispose() {
+    _scrimEntry?.remove();
+    _scrimEntry = null;
     _controller.removeStatusListener(_onAnimationStatus);
     for (final anim in _staggerAnimations) {
       anim.dispose();
@@ -143,6 +175,27 @@ class _SpeedDialFabState extends State<SpeedDialFab>
       _isExpanded = true;
       _showOverlay = true;
     });
+
+    // Insert a full-screen scrim via Overlay so it covers the entire screen,
+    // not just the constrained SizedBox that hosts the speed dial.
+    final scrimColor = Theme.of(context).colorScheme.scrim.withValues(
+          alpha: AppSizes.opacityLight4,
+        );
+    _scrimEntry = OverlayEntry(
+      builder: (_) => FadeTransition(
+        opacity: _controller,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _collapse,
+          child: ColoredBox(
+            color: scrimColor,
+            child: const SizedBox.expand(),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(_scrimEntry!);
+
     _controller.forward();
     HapticFeedback.mediumImpact();
   }
@@ -151,15 +204,18 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     if (!_isExpanded) return;
     setState(() => _isExpanded = false);
     _controller.reverse().then((_) {
+      _scrimEntry?.remove();
+      _scrimEntry = null;
+      if (mounted) setState(() => _showOverlay = false);
       if (selectedIndex != null && selectedIndex >= 0 && mounted) {
         HapticFeedback.heavyImpact();
         switch (selectedIndex) {
           case 0:
             widget.onExpense();
           case 1:
-            widget.onIncome();
-          case 2:
             widget.onVoice();
+          case 2:
+            widget.onIncome();
         }
       }
     });
@@ -168,69 +224,18 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
-    final theme = context.appTheme;
-    final useBlur = GlassConfig.shouldBlur(context);
-
-    // Total height needed: FAB + gap + (3 buttons × height + 2 gaps).
-    const totalButtonsHeight = 3 * AppSizes.speedDialButtonHeight +
-        2 * AppSizes.speedDialSpacing +
-        AppSizes.speedDialOffset;
-    const totalHeight = AppSizes.fabSize + totalButtonsHeight;
 
     return SizedBox(
-      width: AppSizes.speedDialContainerWidth,
-      height: totalHeight,
+      width: AppSizes.speedDialArcWidth,
+      height: AppSizes.speedDialArcHeight,
       child: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
         children: [
-          // Scrim + action buttons — only in tree when expanded/animating.
-          if (_showOverlay) ...[
-            // Full-screen frosted scrim for tap-to-dismiss.
-            Positioned.fill(
-              child: OverflowBox(
-                maxWidth: double.infinity,
-                maxHeight: double.infinity,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _collapse,
-                  child: RepaintBoundary(
-                    child: useBlur
-                        ? ClipRect(
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(
-                                sigmaX: AppSizes.glassBlurBackground,
-                                sigmaY: AppSizes.glassBlurBackground,
-                              ),
-                              child: ColoredBox(
-                                color: cs.surface.withValues(
-                                  alpha: AppSizes.opacityLight4,
-                                ),
-                                child: SizedBox(
-                                  width: MediaQuery.sizeOf(context).width,
-                                  height: MediaQuery.sizeOf(context).height,
-                                ),
-                              ),
-                            ),
-                          )
-                        : ColoredBox(
-                            color: cs.scrim.withValues(
-                              alpha: AppSizes.opacityLight4,
-                            ),
-                            child: SizedBox(
-                              width: MediaQuery.sizeOf(context).width,
-                              height: MediaQuery.sizeOf(context).height,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Action buttons — staggered vertically above FAB.
-            for (int i = 0; i < _actions.length; i++)
-              _buildActionButton(i, cs, theme),
-          ],
+          // Action buttons — only in tree when expanded/animating.
+          // The scrim is handled via Overlay (see _expand/_collapse).
+          if (_showOverlay)
+            for (int i = 0; i < _actions.length; i++) _buildArcButton(i, cs),
 
           // Main FAB — always in tree.
           Positioned(
@@ -256,28 +261,32 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     );
   }
 
-  Widget _buildActionButton(
-    int index,
-    ColorScheme cs,
-    AppThemeExtension theme,
-  ) {
+  /// Builds a single arc button that animates radially from the FAB center.
+  ///
+  /// Anchored at FAB center via [Positioned], then [Transform.translate]
+  /// moves it to its arc position. [Transform.scale] provides the burst
+  /// effect. Hit testing passes through transforms automatically.
+  Widget _buildArcButton(int index, ColorScheme cs) {
     final action = _actions[index];
     final animation = _staggerAnimations[index];
     final accentColor = action.color(context);
+    final angle = _angles[index];
+    final isRtl = context.isRtl;
+    final dirFactor = isRtl ? -1.0 : 1.0;
 
-    // Vertical offset from bottom: FAB height + gap + stacked buttons below.
-    final bottomOffset = AppSizes.fabSize +
-        AppSizes.speedDialOffset +
-        index * (AppSizes.speedDialButtonHeight + AppSizes.speedDialSpacing);
-
+    // Anchor at FAB vertical center so buttons expand from the FAB.
     return Positioned(
-      bottom: bottomOffset,
+      bottom: AppSizes.fabSize / 2,
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) {
           final value = animation.value;
+          final radius = AppSizes.speedDialArcRadius * value;
+          // Polar → Cartesian. dx flips for RTL.
+          final dx = math.sin(angle) * radius * dirFactor;
+          final dy = -math.cos(angle) * radius; // negative = upward
           return Transform.translate(
-            offset: Offset(0, (1 - value) * AppSizes.speedDialSlideOffset),
+            offset: Offset(dx, dy),
             child: Transform.scale(
               scale: value,
               child: child,
@@ -287,47 +296,49 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         child: Semantics(
           label: action.labelKey(context),
           button: true,
-          child: Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: () => _collapse(selectedIndex: index),
-              borderRadius: BorderRadius.circular(AppSizes.speedDialButtonRadius),
-              child: Container(
-                height: AppSizes.speedDialButtonHeight,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.md,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Circular icon button with ink splash
+              Material(
+                color: Color.alphaBlend(
+                  accentColor.withValues(alpha: AppSizes.opacityLight),
+                  cs.surface,
                 ),
-                decoration: BoxDecoration(
-                  color: Color.alphaBlend(
-                    accentColor.withValues(alpha: AppSizes.opacityLight),
-                    cs.surface,
-                  ),
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.speedDialButtonRadius),
-                  border: Border.all(
-                    color: accentColor.withValues(alpha: AppSizes.opacityLight3),
+                shape: CircleBorder(
+                  side: BorderSide(
+                    color: accentColor.withValues(
+                      alpha: AppSizes.opacityLight3,
+                    ),
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
+                child: InkWell(
+                  onTap: () => _collapse(selectedIndex: index),
+                  customBorder: const CircleBorder(),
+                  splashColor: accentColor.withValues(
+                    alpha: AppSizes.opacityLight3,
+                  ),
+                  child: SizedBox(
+                    width: AppSizes.speedDialButtonSize,
+                    height: AppSizes.speedDialButtonSize,
+                    child: Icon(
                       action.icon,
                       size: AppSizes.speedDialIconSize,
                       color: accentColor,
                     ),
-                    const SizedBox(width: AppSizes.sm),
-                    Text(
-                      action.labelKey(context),
-                      style: context.textStyles.labelSmall?.copyWith(
-                        color: accentColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: AppSizes.speedDialLabelGap),
+              // Label
+              Text(
+                action.labelKey(context),
+                style: context.textStyles.labelSmall?.copyWith(
+                  color: accentColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ),

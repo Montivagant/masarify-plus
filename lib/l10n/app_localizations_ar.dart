@@ -159,19 +159,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallets_transfer => 'تحويل';
 
   @override
-  String get wallet_type_cash => 'نقدي';
+  String get wallet_type_physical_cash => 'نقدي (كاش)';
 
   @override
   String get wallet_type_bank => 'حساب بنكي';
 
   @override
-  String get wallet_type_mobile_wallet => 'حساب إلكتروني';
+  String get wallet_type_mobile_wallet => 'محفظة إلكترونية';
 
   @override
   String get wallet_type_credit_card => 'بطاقة ائتمانية';
 
   @override
-  String get wallet_type_savings => 'ادخار';
+  String get wallet_type_prepaid_card => 'بطاقة مسبقة الدفع';
+
+  @override
+  String get wallet_type_investment => 'حساب استثماري';
 
   @override
   String get wallet_name_hint => 'اسم الحساب';
@@ -567,9 +570,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_clear_data_confirm => 'اكتب حذف للتأكيد';
 
   @override
-  String get settings_smart_input => 'الإدخال الذكي';
-
-  @override
   String get settings_voice_input => 'الإدخال الصوتي';
 
   @override
@@ -849,7 +849,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sms_review_title => 'معاملات مكتشفة';
 
   @override
-  String get parsed_transactions_title => 'المعاملات المستخرجة';
+  String get parsed_transactions_title => 'المعاملات المكتشفة تلقائياً';
 
   @override
   String get sms_review_approve => 'موافقة';
@@ -867,6 +867,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get parser_no_pending => 'لا توجد معاملات معلقة للمراجعة';
+
+  @override
+  String get parser_no_pending_filtered =>
+      'لا توجد معاملات لهذا المصدر — جرّب \"الكل\"';
 
   @override
   String get parser_approved_msg => 'تم اعتماد المعاملة';
@@ -894,6 +898,62 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get parser_enriching => 'جاري التحسين…';
+
+  @override
+  String get parser_possible_duplicate => 'مكرر محتمل';
+
+  @override
+  String parser_similar_exists(String date) {
+    return 'معاملة مشابهة موجودة ($date)';
+  }
+
+  @override
+  String get parser_wallet_label => 'الحساب';
+
+  @override
+  String get parser_source_all => 'الكل';
+
+  @override
+  String get parser_source_sms => 'رسائل SMS';
+
+  @override
+  String get parser_source_notification => 'الإشعارات';
+
+  @override
+  String get parser_approve_as_transfer => 'اعتماد كتحويل';
+
+  @override
+  String get parser_atm_detected => 'سحب من الصراف';
+
+  @override
+  String get parser_select_cash_wallet => 'اختر حساب النقد';
+
+  @override
+  String get parser_duplicate_exists =>
+      'معاملة مشابهة موجودة بالفعل. هل تريد الإنشاء؟';
+
+  @override
+  String parser_auto_resolved(int count) {
+    return 'تمت مطابقة $count معاملة تلقائياً';
+  }
+
+  @override
+  String get settings_smart_detection => 'الكشف الذكي';
+
+  @override
+  String get settings_smart_detection_subtitle =>
+      'اكتشاف المعاملات تلقائياً من الرسائل والإشعارات';
+
+  @override
+  String get settings_ai_models => 'الذكاء الاصطناعي والنماذج';
+
+  @override
+  String dashboard_pending_review(int count) {
+    return '$count معاملة للمراجعة';
+  }
+
+  @override
+  String get dashboard_pending_review_action => 'مراجعة';
 
   @override
   String goal_link_prompt(String goalName) {
@@ -1080,19 +1140,66 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_add_button => 'إضافة الحساب';
 
   @override
-  String get wallet_type_cash_short => 'نقدي';
+  String get wallet_type_physical_cash_short => 'كاش';
 
   @override
   String get wallet_type_bank_short => 'بنك';
 
   @override
-  String get wallet_type_mobile_wallet_short => 'رقمي';
+  String get wallet_type_mobile_wallet_short => 'محفظة';
 
   @override
   String get wallet_type_credit_card_short => 'ائتمان';
 
   @override
-  String get wallet_type_savings_short => 'توفير';
+  String get wallet_type_prepaid_card_short => 'مسبقة';
+
+  @override
+  String get wallet_type_investment_short => 'استثمار';
+
+  @override
+  String get wallet_system_badge => 'نظام';
+
+  @override
+  String get wallet_cannot_archive_system => 'لا يمكن أرشفة محفظة الكاش';
+
+  @override
+  String get balance_available => 'متاح';
+
+  @override
+  String get balance_in_goals => 'في الأهداف';
+
+  @override
+  String get goal_link_sheet_title => 'ادخر لهدف؟';
+
+  @override
+  String goal_link_sheet_subtitle(Object goalName) {
+    return 'هل ترغب في تخصيص مبلغ لهدف $goalName؟';
+  }
+
+  @override
+  String get goal_link_sheet_save => 'ادخر للهدف';
+
+  @override
+  String get goal_contribution_from_wallet => 'من حساب';
+
+  @override
+  String goal_contribution_deducted(Object walletName) {
+    return 'تم الخصم من $walletName';
+  }
+
+  @override
+  String get onboarding_physical_cash_note => 'محفظة النقدي تُنشأ تلقائيًا';
+
+  @override
+  String get wallet_linked_senders_label => 'مرسلي الرسائل المرتبطين';
+
+  @override
+  String get wallet_linked_senders_hint => 'مثال: CIB, NBE, BankMisr';
+
+  @override
+  String get wallet_linked_senders_subtitle =>
+      'ربط المعاملات المكتشفة تلقائياً بهذا الحساب';
 
   @override
   String get wallets_empty_title => 'لا توجد حسابات';
@@ -1707,25 +1814,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على \'إثراء\' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.';
 
   @override
-  String get settings_ai_model => 'نموذج الذكاء الاصطناعي';
-
-  @override
-  String get settings_ai_model_subtitle =>
-      'اختر النموذج الذي يعالج الإدخال الصوتي';
-
-  @override
-  String get settings_ai_model_auto => 'تلقائي (موصى به)';
-
-  @override
-  String get settings_ai_model_gemma_27b => 'Gemma 3 27B';
-
-  @override
-  String get settings_ai_model_gemini_flash => 'Gemini 2.0 Flash';
-
-  @override
-  String get settings_ai_model_qwen3_4b => 'Qwen3 4B';
-
-  @override
   String get fab_expense => 'مصروف';
 
   @override
@@ -1857,6 +1945,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pdf_col_wallet => 'الحساب';
 
   @override
+  String get pdf_page_label => 'صفحة';
+
+  @override
+  String get pdf_of_label => 'من';
+
+  @override
+  String get pdf_unknown_category => 'غير معروف';
+
+  @override
   String get dashboard_all_accounts => 'جميع الحسابات';
 
   @override
@@ -1893,7 +1990,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get dashboard_insight_parsed_transactions => 'المعاملات المحللة';
+  String get dashboard_insight_parsed_transactions =>
+      'المعاملات المكتشفة تلقائياً';
 
   @override
   String insight_recurring_detected(String title) {
@@ -1940,4 +2038,396 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get common_undo => 'تراجع';
+
+  @override
+  String get auto_detected_transactions => 'المعاملات المكتشفة تلقائياً';
+
+  @override
+  String get dashboard_chat_tooltip => 'المساعد الذكي';
+
+  @override
+  String get chat_action_budget_title => 'إنشاء ميزانية';
+
+  @override
+  String get chat_action_recurring_title => 'إنشاء متكرر';
+
+  @override
+  String get chat_action_wallet_title => 'إنشاء حساب';
+
+  @override
+  String get chat_action_delete_title => 'حذف معاملة';
+
+  @override
+  String chat_budget_created(String category) {
+    return 'تم إنشاء ميزانية لـ $category';
+  }
+
+  @override
+  String chat_recurring_created(String title) {
+    return 'تم إنشاء قاعدة متكررة \"$title\"';
+  }
+
+  @override
+  String chat_wallet_created(String name) {
+    return 'تم إنشاء حساب \"$name\"';
+  }
+
+  @override
+  String get chat_transaction_deleted => 'تم حذف المعاملة';
+
+  @override
+  String get chat_confirm_delete => 'هل أنت متأكد من حذف هذه المعاملة؟';
+
+  @override
+  String get chat_no_match_category => 'لم يتم العثور على فئة مطابقة';
+
+  @override
+  String get chat_no_active_wallet => 'لا يوجد حساب نشط متاح';
+
+  @override
+  String get chat_budget_exists => 'يوجد ميزانية بالفعل لهذه الفئة';
+
+  @override
+  String get chat_wallet_name_taken => 'يوجد حساب بهذا الاسم بالفعل';
+
+  @override
+  String get quick_start_title => 'بداية سريعة';
+
+  @override
+  String get quick_start_subtitle => 'أعد ماليتك في خطوات بسيطة';
+
+  @override
+  String get quick_start_step_wallets => 'كيف تدير أموالك؟';
+
+  @override
+  String get quick_start_step_categories => 'على ماذا تنفق أكثر؟';
+
+  @override
+  String get quick_start_step_budgets => 'حدد ميزانيات شهرية';
+
+  @override
+  String get quick_start_step_bills => 'هل لديك فواتير منتظمة؟';
+
+  @override
+  String get quick_start_step_goals => 'تدخر لشيء ما؟';
+
+  @override
+  String get quick_start_source_cash => 'نقداً فقط';
+
+  @override
+  String get quick_start_source_bank => 'حساب بنكي';
+
+  @override
+  String get quick_start_source_mobile => 'محفظة إلكترونية';
+
+  @override
+  String get quick_start_source_multiple => 'مصادر متعددة';
+
+  @override
+  String get quick_start_category_food => 'طعام';
+
+  @override
+  String get quick_start_category_rent => 'إيجار';
+
+  @override
+  String get quick_start_category_transport => 'مواصلات';
+
+  @override
+  String get quick_start_category_bills => 'فواتير';
+
+  @override
+  String get quick_start_category_shopping => 'تسوق';
+
+  @override
+  String get quick_start_category_health => 'صحة';
+
+  @override
+  String get quick_start_category_education => 'تعليم';
+
+  @override
+  String get quick_start_category_other => 'أخرى';
+
+  @override
+  String get quick_start_budget_hint => 'الحد الشهري';
+
+  @override
+  String get quick_start_bill_internet => 'إنترنت';
+
+  @override
+  String get quick_start_bill_phone => 'هاتف';
+
+  @override
+  String get quick_start_bill_electricity => 'كهرباء';
+
+  @override
+  String get quick_start_bill_gas => 'غاز';
+
+  @override
+  String get quick_start_bill_gym => 'نادي رياضي';
+
+  @override
+  String get quick_start_bill_subscription => 'اشتراك';
+
+  @override
+  String get quick_start_goal_emergency => 'صندوق طوارئ';
+
+  @override
+  String get quick_start_goal_vacation => 'إجازة';
+
+  @override
+  String get quick_start_goal_car => 'سيارة';
+
+  @override
+  String get quick_start_goal_wedding => 'زفاف';
+
+  @override
+  String get quick_start_goal_education => 'تعليم';
+
+  @override
+  String get quick_start_goal_custom => 'مخصص';
+
+  @override
+  String get quick_start_goal_target => 'المبلغ المستهدف';
+
+  @override
+  String get quick_start_source_other => 'أخرى';
+
+  @override
+  String get quick_start_custom_wallet_name => 'اسم الحساب';
+
+  @override
+  String get quick_start_bill_other => 'فاتورة مخصصة';
+
+  @override
+  String get quick_start_bill_name_hint => 'اسم الفاتورة';
+
+  @override
+  String get quick_start_goal_custom_name => 'اسم الهدف';
+
+  @override
+  String get quick_start_wallet_type_label => 'نوع الحساب';
+
+  @override
+  String get quick_start_done_title => 'أنت جاهز!';
+
+  @override
+  String get quick_start_done_subtitle => 'ماليتك جاهزة للتتبع';
+
+  @override
+  String get quick_start_tip_title => 'ابدأ ماليتك بسرعة';
+
+  @override
+  String get quick_start_tip_subtitle =>
+      'أعد الميزانيات والفواتير والأهداف في ثوانٍ';
+
+  @override
+  String get quick_start_add_another => 'إضافة آخر؟';
+
+  @override
+  String get quick_start_adjust => 'تعديل؟';
+
+  @override
+  String get quick_start_amount_label => 'المبلغ';
+
+  @override
+  String get backup_cloud_title => 'نسخ احتياطي سحابي';
+
+  @override
+  String get backup_sign_in_google => 'تسجيل الدخول بجوجل';
+
+  @override
+  String get backup_sign_out => 'تسجيل الخروج';
+
+  @override
+  String backup_signed_in_as(String email) {
+    return 'مسجل كـ $email';
+  }
+
+  @override
+  String backup_last_date(String date) {
+    return 'آخر نسخ: $date';
+  }
+
+  @override
+  String get backup_now => 'نسخ احتياطي الآن';
+
+  @override
+  String get backup_restore_drive => 'استعادة من Drive';
+
+  @override
+  String get backup_encrypting => 'جاري التشفير...';
+
+  @override
+  String get backup_uploading => 'جاري الرفع إلى Drive...';
+
+  @override
+  String get backup_downloading => 'جاري التحميل من Drive...';
+
+  @override
+  String get backup_restore_warning =>
+      'سيتم استبدال جميع البيانات المحلية بالنسخة الاحتياطية. هل تريد المتابعة؟';
+
+  @override
+  String get backup_no_backups => 'لا توجد نسخ احتياطية على Google Drive';
+
+  @override
+  String get backup_welcome_back => 'مرحباً بعودتك؟';
+
+  @override
+  String get backup_start_fresh => 'ابدأ من جديد';
+
+  @override
+  String get backup_restore_from_drive => 'استعادة من Google Drive';
+
+  @override
+  String get backup_offline_error =>
+      'اتصل بالإنترنت لاستخدام النسخ الاحتياطي السحابي';
+
+  @override
+  String get backup_drive_success =>
+      'تم حفظ النسخة الاحتياطية على Google Drive';
+
+  @override
+  String get backup_drive_failed =>
+      'فشل النسخ الاحتياطي السحابي. حاول مرة أخرى.';
+
+  @override
+  String get backup_pre_reset_offer => 'حفظ نسخة احتياطية قبل الحذف؟';
+
+  @override
+  String get backup_pre_reset_drive => 'نسخ احتياطي إلى Google Drive';
+
+  @override
+  String get backup_pre_reset_file => 'تصدير كملف';
+
+  @override
+  String get backup_pre_reset_skip => 'لا، فقط احذف';
+
+  @override
+  String get backup_failed_continue =>
+      'فشل النسخ الاحتياطي. هل تريد حذف البيانات على أي حال؟';
+
+  @override
+  String voice_wallet_not_found(String name) {
+    return 'الحساب \'\'$name\'\' غير موجود — إنشاؤه؟';
+  }
+
+  @override
+  String get voice_select_wallet => 'اختر الحساب';
+
+  @override
+  String voice_confirm_count(int count) {
+    return 'تأكيد ($count)';
+  }
+
+  @override
+  String get voice_select_all => 'تحديد الكل';
+
+  @override
+  String get voice_deselect_all => 'إلغاء التحديد';
+
+  @override
+  String get voice_wallet_not_matched => 'الحساب غير موجود';
+
+  @override
+  String get common_create => 'إنشاء';
+
+  @override
+  String get backup_encryption_warning =>
+      'النسخ الاحتياطية السحابية مشفرة ومرتبطة بهذا الجهاز. إذا أعدت تثبيت التطبيق أو غيّرت الجهاز، لن تتمكن من استعادتها. استخدم النسخ المحلي لنقل البيانات بين الأجهزة.';
+
+  @override
+  String get chat_action_invalid_amount => 'المبلغ يجب أن يكون أكبر من صفر';
+
+  @override
+  String get chat_action_invalid_target =>
+      'المبلغ المستهدف يجب أن يكون أكبر من صفر';
+
+  @override
+  String get chat_action_invalid_budget_limit => 'الحد يجب أن يكون أكبر من صفر';
+
+  @override
+  String chat_action_category_not_found(String name, String available) {
+    return 'لم يتم العثور على فئة \"$name\". المتاح: $available';
+  }
+
+  @override
+  String get chat_action_no_active_wallet =>
+      'لا يوجد حساب نشط. يرجى إنشاء حساب أولاً.';
+
+  @override
+  String chat_action_budget_exists(String category) {
+    return 'يوجد ميزانية بالفعل لـ \"$category\" لهذا الشهر';
+  }
+
+  @override
+  String get chat_action_wallet_exists => 'يوجد حساب بهذا الاسم بالفعل';
+
+  @override
+  String chat_action_tx_not_found(String title) {
+    return 'لم يتم العثور على معاملة \"$title\" بهذا المبلغ';
+  }
+
+  @override
+  String chat_action_goal_created(String name, String amount) {
+    return 'تم إنشاء هدف \"$name\" بمبلغ مستهدف $amount!';
+  }
+
+  @override
+  String chat_action_tx_recorded(String title, String amount) {
+    return 'تم تسجيل معاملة \"$title\" بمبلغ $amount!';
+  }
+
+  @override
+  String chat_action_budget_created(String amount, String category) {
+    return 'تم إنشاء ميزانية \"$amount\" لـ \"$category\"!';
+  }
+
+  @override
+  String chat_action_recurring_created(
+      String title, String frequency, String amount) {
+    return 'تم إنشاء \"$frequency\" متكرر \"$title\" بمبلغ $amount!';
+  }
+
+  @override
+  String chat_action_wallet_created(String name, String amount) {
+    return 'تم إنشاء حساب \"$name\" برصيد $amount!';
+  }
+
+  @override
+  String chat_action_tx_deleted(String title, String amount) {
+    return 'تم حذف معاملة \"$title\" بمبلغ $amount!';
+  }
+
+  @override
+  String get onboarding_features_title => 'اكتشف مصاريفي';
+
+  @override
+  String get onboarding_feature_voice_title => 'الإدخال الصوتي';
+
+  @override
+  String get onboarding_feature_voice_body =>
+      'تكلم فقط. الذكاء الاصطناعي سيحلل معاملاتك فوراً.';
+
+  @override
+  String get onboarding_feature_budget_title => 'ميزانيات ذكية';
+
+  @override
+  String get onboarding_feature_budget_body =>
+      'حدد حدوداً، واحصل على تنبيهات، وابقَ على المسار.';
+
+  @override
+  String get onboarding_feature_goal_title => 'تتبع الأهداف';
+
+  @override
+  String get onboarding_feature_goal_body => 'وفّر من أجل ما يهمك أكثر.';
+
+  @override
+  String get onboarding_ready_title => 'أنت جاهز!';
+
+  @override
+  String get onboarding_ready_body => 'ابدأ بتتبع أموالك اليوم.';
+
+  @override
+  String get onboarding_ready_cta => 'ابدأ التتبع';
 }

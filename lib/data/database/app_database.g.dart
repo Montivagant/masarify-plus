@@ -82,6 +82,24 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _linkedSendersMeta =
+      const VerificationMeta('linkedSenders');
+  @override
+  late final GeneratedColumn<String> linkedSenders = GeneratedColumn<String>(
+      'linked_senders', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('[]'));
+  static const VerificationMeta _isSystemWalletMeta =
+      const VerificationMeta('isSystemWallet');
+  @override
+  late final GeneratedColumn<bool> isSystemWallet = GeneratedColumn<bool>(
+      'is_system_wallet', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_system_wallet" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -101,6 +119,8 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
         colorHex,
         isArchived,
         displayOrder,
+        linkedSenders,
+        isSystemWallet,
         createdAt
       ];
   @override
@@ -158,6 +178,18 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           displayOrder.isAcceptableOrUnknown(
               data['display_order']!, _displayOrderMeta));
     }
+    if (data.containsKey('linked_senders')) {
+      context.handle(
+          _linkedSendersMeta,
+          linkedSenders.isAcceptableOrUnknown(
+              data['linked_senders']!, _linkedSendersMeta));
+    }
+    if (data.containsKey('is_system_wallet')) {
+      context.handle(
+          _isSystemWalletMeta,
+          isSystemWallet.isAcceptableOrUnknown(
+              data['is_system_wallet']!, _isSystemWalletMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -189,6 +221,10 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_archived'])!,
       displayOrder: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}display_order'])!,
+      linkedSenders: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}linked_senders'])!,
+      isSystemWallet: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_system_wallet'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -210,6 +246,13 @@ class Wallet extends DataClass implements Insertable<Wallet> {
   final String colorHex;
   final bool isArchived;
   final int displayOrder;
+
+  /// JSON array of SMS sender addresses / notification package names
+  /// linked to this wallet for auto-routing parsed transactions.
+  final String linkedSenders;
+
+  /// True for the mandatory Physical Cash system wallet (auto-created, non-deletable).
+  final bool isSystemWallet;
   final DateTime createdAt;
   const Wallet(
       {required this.id,
@@ -221,6 +264,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       required this.colorHex,
       required this.isArchived,
       required this.displayOrder,
+      required this.linkedSenders,
+      required this.isSystemWallet,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -234,6 +279,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
     map['color_hex'] = Variable<String>(colorHex);
     map['is_archived'] = Variable<bool>(isArchived);
     map['display_order'] = Variable<int>(displayOrder);
+    map['linked_senders'] = Variable<String>(linkedSenders);
+    map['is_system_wallet'] = Variable<bool>(isSystemWallet);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -249,6 +296,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       colorHex: Value(colorHex),
       isArchived: Value(isArchived),
       displayOrder: Value(displayOrder),
+      linkedSenders: Value(linkedSenders),
+      isSystemWallet: Value(isSystemWallet),
       createdAt: Value(createdAt),
     );
   }
@@ -266,6 +315,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       colorHex: serializer.fromJson<String>(json['colorHex']),
       isArchived: serializer.fromJson<bool>(json['isArchived']),
       displayOrder: serializer.fromJson<int>(json['displayOrder']),
+      linkedSenders: serializer.fromJson<String>(json['linkedSenders']),
+      isSystemWallet: serializer.fromJson<bool>(json['isSystemWallet']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -282,6 +333,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       'colorHex': serializer.toJson<String>(colorHex),
       'isArchived': serializer.toJson<bool>(isArchived),
       'displayOrder': serializer.toJson<int>(displayOrder),
+      'linkedSenders': serializer.toJson<String>(linkedSenders),
+      'isSystemWallet': serializer.toJson<bool>(isSystemWallet),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -296,6 +349,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           String? colorHex,
           bool? isArchived,
           int? displayOrder,
+          String? linkedSenders,
+          bool? isSystemWallet,
           DateTime? createdAt}) =>
       Wallet(
         id: id ?? this.id,
@@ -307,6 +362,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
         colorHex: colorHex ?? this.colorHex,
         isArchived: isArchived ?? this.isArchived,
         displayOrder: displayOrder ?? this.displayOrder,
+        linkedSenders: linkedSenders ?? this.linkedSenders,
+        isSystemWallet: isSystemWallet ?? this.isSystemWallet,
         createdAt: createdAt ?? this.createdAt,
       );
   Wallet copyWithCompanion(WalletsCompanion data) {
@@ -325,6 +382,12 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       displayOrder: data.displayOrder.present
           ? data.displayOrder.value
           : this.displayOrder,
+      linkedSenders: data.linkedSenders.present
+          ? data.linkedSenders.value
+          : this.linkedSenders,
+      isSystemWallet: data.isSystemWallet.present
+          ? data.isSystemWallet.value
+          : this.isSystemWallet,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -341,14 +404,27 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           ..write('colorHex: $colorHex, ')
           ..write('isArchived: $isArchived, ')
           ..write('displayOrder: $displayOrder, ')
+          ..write('linkedSenders: $linkedSenders, ')
+          ..write('isSystemWallet: $isSystemWallet, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, type, balance, currencyCode,
-      iconName, colorHex, isArchived, displayOrder, createdAt);
+  int get hashCode => Object.hash(
+      id,
+      name,
+      type,
+      balance,
+      currencyCode,
+      iconName,
+      colorHex,
+      isArchived,
+      displayOrder,
+      linkedSenders,
+      isSystemWallet,
+      createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -362,6 +438,8 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           other.colorHex == this.colorHex &&
           other.isArchived == this.isArchived &&
           other.displayOrder == this.displayOrder &&
+          other.linkedSenders == this.linkedSenders &&
+          other.isSystemWallet == this.isSystemWallet &&
           other.createdAt == this.createdAt);
 }
 
@@ -375,6 +453,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
   final Value<String> colorHex;
   final Value<bool> isArchived;
   final Value<int> displayOrder;
+  final Value<String> linkedSenders;
+  final Value<bool> isSystemWallet;
   final Value<DateTime> createdAt;
   const WalletsCompanion({
     this.id = const Value.absent(),
@@ -386,6 +466,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.colorHex = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.displayOrder = const Value.absent(),
+    this.linkedSenders = const Value.absent(),
+    this.isSystemWallet = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   WalletsCompanion.insert({
@@ -398,6 +480,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.colorHex = const Value.absent(),
     this.isArchived = const Value.absent(),
     this.displayOrder = const Value.absent(),
+    this.linkedSenders = const Value.absent(),
+    this.isSystemWallet = const Value.absent(),
     this.createdAt = const Value.absent(),
   })  : name = Value(name),
         type = Value(type);
@@ -411,6 +495,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     Expression<String>? colorHex,
     Expression<bool>? isArchived,
     Expression<int>? displayOrder,
+    Expression<String>? linkedSenders,
+    Expression<bool>? isSystemWallet,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -423,6 +509,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       if (colorHex != null) 'color_hex': colorHex,
       if (isArchived != null) 'is_archived': isArchived,
       if (displayOrder != null) 'display_order': displayOrder,
+      if (linkedSenders != null) 'linked_senders': linkedSenders,
+      if (isSystemWallet != null) 'is_system_wallet': isSystemWallet,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -437,6 +525,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       Value<String>? colorHex,
       Value<bool>? isArchived,
       Value<int>? displayOrder,
+      Value<String>? linkedSenders,
+      Value<bool>? isSystemWallet,
       Value<DateTime>? createdAt}) {
     return WalletsCompanion(
       id: id ?? this.id,
@@ -448,6 +538,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       colorHex: colorHex ?? this.colorHex,
       isArchived: isArchived ?? this.isArchived,
       displayOrder: displayOrder ?? this.displayOrder,
+      linkedSenders: linkedSenders ?? this.linkedSenders,
+      isSystemWallet: isSystemWallet ?? this.isSystemWallet,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -482,6 +574,12 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     if (displayOrder.present) {
       map['display_order'] = Variable<int>(displayOrder.value);
     }
+    if (linkedSenders.present) {
+      map['linked_senders'] = Variable<String>(linkedSenders.value);
+    }
+    if (isSystemWallet.present) {
+      map['is_system_wallet'] = Variable<bool>(isSystemWallet.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -500,6 +598,8 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
           ..write('colorHex: $colorHex, ')
           ..write('isArchived: $isArchived, ')
           ..write('displayOrder: $displayOrder, ')
+          ..write('linkedSenders: $linkedSenders, ')
+          ..write('isSystemWallet: $isSystemWallet, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4217,8 +4317,18 @@ class $GoalContributionsTable extends GoalContributions
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
       'note', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _walletIdMeta =
+      const VerificationMeta('walletId');
   @override
-  List<GeneratedColumn> get $columns => [id, goalId, amount, date, note];
+  late final GeneratedColumn<int> walletId = GeneratedColumn<int>(
+      'wallet_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE SET NULL'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, goalId, amount, date, note, walletId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4254,6 +4364,10 @@ class $GoalContributionsTable extends GoalContributions
       context.handle(
           _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
     }
+    if (data.containsKey('wallet_id')) {
+      context.handle(_walletIdMeta,
+          walletId.isAcceptableOrUnknown(data['wallet_id']!, _walletIdMeta));
+    }
     return context;
   }
 
@@ -4273,6 +4387,8 @@ class $GoalContributionsTable extends GoalContributions
           .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
       note: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}note']),
+      walletId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}wallet_id']),
     );
   }
 
@@ -4289,12 +4405,17 @@ class GoalContribution extends DataClass
   final int amount;
   final DateTime date;
   final String? note;
+
+  /// The wallet that was deducted when this contribution was made.
+  /// Null for legacy contributions created before wallet-deduction was added.
+  final int? walletId;
   const GoalContribution(
       {required this.id,
       required this.goalId,
       required this.amount,
       required this.date,
-      this.note});
+      this.note,
+      this.walletId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4304,6 +4425,9 @@ class GoalContribution extends DataClass
     map['date'] = Variable<DateTime>(date);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
+    }
+    if (!nullToAbsent || walletId != null) {
+      map['wallet_id'] = Variable<int>(walletId);
     }
     return map;
   }
@@ -4315,6 +4439,9 @@ class GoalContribution extends DataClass
       amount: Value(amount),
       date: Value(date),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      walletId: walletId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(walletId),
     );
   }
 
@@ -4327,6 +4454,7 @@ class GoalContribution extends DataClass
       amount: serializer.fromJson<int>(json['amount']),
       date: serializer.fromJson<DateTime>(json['date']),
       note: serializer.fromJson<String?>(json['note']),
+      walletId: serializer.fromJson<int?>(json['walletId']),
     );
   }
   @override
@@ -4338,6 +4466,7 @@ class GoalContribution extends DataClass
       'amount': serializer.toJson<int>(amount),
       'date': serializer.toJson<DateTime>(date),
       'note': serializer.toJson<String?>(note),
+      'walletId': serializer.toJson<int?>(walletId),
     };
   }
 
@@ -4346,13 +4475,15 @@ class GoalContribution extends DataClass
           int? goalId,
           int? amount,
           DateTime? date,
-          Value<String?> note = const Value.absent()}) =>
+          Value<String?> note = const Value.absent(),
+          Value<int?> walletId = const Value.absent()}) =>
       GoalContribution(
         id: id ?? this.id,
         goalId: goalId ?? this.goalId,
         amount: amount ?? this.amount,
         date: date ?? this.date,
         note: note.present ? note.value : this.note,
+        walletId: walletId.present ? walletId.value : this.walletId,
       );
   GoalContribution copyWithCompanion(GoalContributionsCompanion data) {
     return GoalContribution(
@@ -4361,6 +4492,7 @@ class GoalContribution extends DataClass
       amount: data.amount.present ? data.amount.value : this.amount,
       date: data.date.present ? data.date.value : this.date,
       note: data.note.present ? data.note.value : this.note,
+      walletId: data.walletId.present ? data.walletId.value : this.walletId,
     );
   }
 
@@ -4371,13 +4503,14 @@ class GoalContribution extends DataClass
           ..write('goalId: $goalId, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('walletId: $walletId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, goalId, amount, date, note);
+  int get hashCode => Object.hash(id, goalId, amount, date, note, walletId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4386,7 +4519,8 @@ class GoalContribution extends DataClass
           other.goalId == this.goalId &&
           other.amount == this.amount &&
           other.date == this.date &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.walletId == this.walletId);
 }
 
 class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
@@ -4395,12 +4529,14 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
   final Value<int> amount;
   final Value<DateTime> date;
   final Value<String?> note;
+  final Value<int?> walletId;
   const GoalContributionsCompanion({
     this.id = const Value.absent(),
     this.goalId = const Value.absent(),
     this.amount = const Value.absent(),
     this.date = const Value.absent(),
     this.note = const Value.absent(),
+    this.walletId = const Value.absent(),
   });
   GoalContributionsCompanion.insert({
     this.id = const Value.absent(),
@@ -4408,6 +4544,7 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
     required int amount,
     required DateTime date,
     this.note = const Value.absent(),
+    this.walletId = const Value.absent(),
   })  : goalId = Value(goalId),
         amount = Value(amount),
         date = Value(date);
@@ -4417,6 +4554,7 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
     Expression<int>? amount,
     Expression<DateTime>? date,
     Expression<String>? note,
+    Expression<int>? walletId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4424,6 +4562,7 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
       if (amount != null) 'amount': amount,
       if (date != null) 'date': date,
       if (note != null) 'note': note,
+      if (walletId != null) 'wallet_id': walletId,
     });
   }
 
@@ -4432,13 +4571,15 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
       Value<int>? goalId,
       Value<int>? amount,
       Value<DateTime>? date,
-      Value<String?>? note}) {
+      Value<String?>? note,
+      Value<int?>? walletId}) {
     return GoalContributionsCompanion(
       id: id ?? this.id,
       goalId: goalId ?? this.goalId,
       amount: amount ?? this.amount,
       date: date ?? this.date,
       note: note ?? this.note,
+      walletId: walletId ?? this.walletId,
     );
   }
 
@@ -4460,6 +4601,9 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (walletId.present) {
+      map['wallet_id'] = Variable<int>(walletId.value);
+    }
     return map;
   }
 
@@ -4470,7 +4614,8 @@ class GoalContributionsCompanion extends UpdateCompanion<GoalContribution> {
           ..write('goalId: $goalId, ')
           ..write('amount: $amount, ')
           ..write('date: $date, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('walletId: $walletId')
           ..write(')'))
         .toString();
   }
@@ -4547,6 +4692,18 @@ class $SmsParserLogsTable extends SmsParserLogs
   late final GeneratedColumn<String> aiEnrichmentJson = GeneratedColumn<String>(
       'ai_enrichment_json', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _semanticFingerprintMeta =
+      const VerificationMeta('semanticFingerprint');
+  @override
+  late final GeneratedColumn<String> semanticFingerprint =
+      GeneratedColumn<String>('semantic_fingerprint', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _transferIdMeta =
+      const VerificationMeta('transferId');
+  @override
+  late final GeneratedColumn<int> transferId = GeneratedColumn<int>(
+      'transfer_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4558,7 +4715,9 @@ class $SmsParserLogsTable extends SmsParserLogs
         source,
         receivedAt,
         processedAt,
-        aiEnrichmentJson
+        aiEnrichmentJson,
+        semanticFingerprint,
+        transferId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4633,6 +4792,18 @@ class $SmsParserLogsTable extends SmsParserLogs
           aiEnrichmentJson.isAcceptableOrUnknown(
               data['ai_enrichment_json']!, _aiEnrichmentJsonMeta));
     }
+    if (data.containsKey('semantic_fingerprint')) {
+      context.handle(
+          _semanticFingerprintMeta,
+          semanticFingerprint.isAcceptableOrUnknown(
+              data['semantic_fingerprint']!, _semanticFingerprintMeta));
+    }
+    if (data.containsKey('transfer_id')) {
+      context.handle(
+          _transferIdMeta,
+          transferId.isAcceptableOrUnknown(
+              data['transfer_id']!, _transferIdMeta));
+    }
     return context;
   }
 
@@ -4662,6 +4833,10 @@ class $SmsParserLogsTable extends SmsParserLogs
           .read(DriftSqlType.dateTime, data['${effectivePrefix}processed_at'])!,
       aiEnrichmentJson: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}ai_enrichment_json']),
+      semanticFingerprint: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}semantic_fingerprint']),
+      transferId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}transfer_id']),
     );
   }
 
@@ -4676,6 +4851,8 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
   final String senderAddress;
   final String bodyHash;
   final String body;
+
+  /// 'pending' | 'approved' | 'skipped' | 'failed' | 'duplicate'
   final String parsedStatus;
   final int? transactionId;
   final String source;
@@ -4684,6 +4861,15 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
 
   /// AI enrichment JSON: {category_icon, merchant, note, confidence}
   final String? aiEnrichmentJson;
+
+  /// WS3: Semantic fingerprint for cross-source deduplication.
+  /// SHA-256 of "walletOrSender|amount|type|5minWindow".
+  final String? semanticFingerprint;
+
+  /// WS3b: Link to transfer (for ATM withdrawal → bank-to-cash).
+  /// Soft FK (no .references()) — same pattern as recurring_rules.linkedTransactionId.
+  /// Deleting a transfer should not cascade to parser logs.
+  final int? transferId;
   const SmsParserLog(
       {required this.id,
       required this.senderAddress,
@@ -4694,7 +4880,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       required this.source,
       required this.receivedAt,
       required this.processedAt,
-      this.aiEnrichmentJson});
+      this.aiEnrichmentJson,
+      this.semanticFingerprint,
+      this.transferId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4711,6 +4899,12 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
     map['processed_at'] = Variable<DateTime>(processedAt);
     if (!nullToAbsent || aiEnrichmentJson != null) {
       map['ai_enrichment_json'] = Variable<String>(aiEnrichmentJson);
+    }
+    if (!nullToAbsent || semanticFingerprint != null) {
+      map['semantic_fingerprint'] = Variable<String>(semanticFingerprint);
+    }
+    if (!nullToAbsent || transferId != null) {
+      map['transfer_id'] = Variable<int>(transferId);
     }
     return map;
   }
@@ -4731,6 +4925,12 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       aiEnrichmentJson: aiEnrichmentJson == null && nullToAbsent
           ? const Value.absent()
           : Value(aiEnrichmentJson),
+      semanticFingerprint: semanticFingerprint == null && nullToAbsent
+          ? const Value.absent()
+          : Value(semanticFingerprint),
+      transferId: transferId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transferId),
     );
   }
 
@@ -4748,6 +4948,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       receivedAt: serializer.fromJson<DateTime>(json['receivedAt']),
       processedAt: serializer.fromJson<DateTime>(json['processedAt']),
       aiEnrichmentJson: serializer.fromJson<String?>(json['aiEnrichmentJson']),
+      semanticFingerprint:
+          serializer.fromJson<String?>(json['semanticFingerprint']),
+      transferId: serializer.fromJson<int?>(json['transferId']),
     );
   }
   @override
@@ -4764,6 +4967,8 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       'receivedAt': serializer.toJson<DateTime>(receivedAt),
       'processedAt': serializer.toJson<DateTime>(processedAt),
       'aiEnrichmentJson': serializer.toJson<String?>(aiEnrichmentJson),
+      'semanticFingerprint': serializer.toJson<String?>(semanticFingerprint),
+      'transferId': serializer.toJson<int?>(transferId),
     };
   }
 
@@ -4777,7 +4982,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
           String? source,
           DateTime? receivedAt,
           DateTime? processedAt,
-          Value<String?> aiEnrichmentJson = const Value.absent()}) =>
+          Value<String?> aiEnrichmentJson = const Value.absent(),
+          Value<String?> semanticFingerprint = const Value.absent(),
+          Value<int?> transferId = const Value.absent()}) =>
       SmsParserLog(
         id: id ?? this.id,
         senderAddress: senderAddress ?? this.senderAddress,
@@ -4792,6 +4999,10 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
         aiEnrichmentJson: aiEnrichmentJson.present
             ? aiEnrichmentJson.value
             : this.aiEnrichmentJson,
+        semanticFingerprint: semanticFingerprint.present
+            ? semanticFingerprint.value
+            : this.semanticFingerprint,
+        transferId: transferId.present ? transferId.value : this.transferId,
       );
   SmsParserLog copyWithCompanion(SmsParserLogsCompanion data) {
     return SmsParserLog(
@@ -4815,6 +5026,11 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       aiEnrichmentJson: data.aiEnrichmentJson.present
           ? data.aiEnrichmentJson.value
           : this.aiEnrichmentJson,
+      semanticFingerprint: data.semanticFingerprint.present
+          ? data.semanticFingerprint.value
+          : this.semanticFingerprint,
+      transferId:
+          data.transferId.present ? data.transferId.value : this.transferId,
     );
   }
 
@@ -4830,7 +5046,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
           ..write('source: $source, ')
           ..write('receivedAt: $receivedAt, ')
           ..write('processedAt: $processedAt, ')
-          ..write('aiEnrichmentJson: $aiEnrichmentJson')
+          ..write('aiEnrichmentJson: $aiEnrichmentJson, ')
+          ..write('semanticFingerprint: $semanticFingerprint, ')
+          ..write('transferId: $transferId')
           ..write(')'))
         .toString();
   }
@@ -4846,7 +5064,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
       source,
       receivedAt,
       processedAt,
-      aiEnrichmentJson);
+      aiEnrichmentJson,
+      semanticFingerprint,
+      transferId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4860,7 +5080,9 @@ class SmsParserLog extends DataClass implements Insertable<SmsParserLog> {
           other.source == this.source &&
           other.receivedAt == this.receivedAt &&
           other.processedAt == this.processedAt &&
-          other.aiEnrichmentJson == this.aiEnrichmentJson);
+          other.aiEnrichmentJson == this.aiEnrichmentJson &&
+          other.semanticFingerprint == this.semanticFingerprint &&
+          other.transferId == this.transferId);
 }
 
 class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
@@ -4874,6 +5096,8 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
   final Value<DateTime> receivedAt;
   final Value<DateTime> processedAt;
   final Value<String?> aiEnrichmentJson;
+  final Value<String?> semanticFingerprint;
+  final Value<int?> transferId;
   const SmsParserLogsCompanion({
     this.id = const Value.absent(),
     this.senderAddress = const Value.absent(),
@@ -4885,6 +5109,8 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
     this.receivedAt = const Value.absent(),
     this.processedAt = const Value.absent(),
     this.aiEnrichmentJson = const Value.absent(),
+    this.semanticFingerprint = const Value.absent(),
+    this.transferId = const Value.absent(),
   });
   SmsParserLogsCompanion.insert({
     this.id = const Value.absent(),
@@ -4897,6 +5123,8 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
     required DateTime receivedAt,
     this.processedAt = const Value.absent(),
     this.aiEnrichmentJson = const Value.absent(),
+    this.semanticFingerprint = const Value.absent(),
+    this.transferId = const Value.absent(),
   })  : senderAddress = Value(senderAddress),
         bodyHash = Value(bodyHash),
         body = Value(body),
@@ -4914,6 +5142,8 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
     Expression<DateTime>? receivedAt,
     Expression<DateTime>? processedAt,
     Expression<String>? aiEnrichmentJson,
+    Expression<String>? semanticFingerprint,
+    Expression<int>? transferId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4926,6 +5156,9 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
       if (receivedAt != null) 'received_at': receivedAt,
       if (processedAt != null) 'processed_at': processedAt,
       if (aiEnrichmentJson != null) 'ai_enrichment_json': aiEnrichmentJson,
+      if (semanticFingerprint != null)
+        'semantic_fingerprint': semanticFingerprint,
+      if (transferId != null) 'transfer_id': transferId,
     });
   }
 
@@ -4939,7 +5172,9 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
       Value<String>? source,
       Value<DateTime>? receivedAt,
       Value<DateTime>? processedAt,
-      Value<String?>? aiEnrichmentJson}) {
+      Value<String?>? aiEnrichmentJson,
+      Value<String?>? semanticFingerprint,
+      Value<int?>? transferId}) {
     return SmsParserLogsCompanion(
       id: id ?? this.id,
       senderAddress: senderAddress ?? this.senderAddress,
@@ -4951,6 +5186,8 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
       receivedAt: receivedAt ?? this.receivedAt,
       processedAt: processedAt ?? this.processedAt,
       aiEnrichmentJson: aiEnrichmentJson ?? this.aiEnrichmentJson,
+      semanticFingerprint: semanticFingerprint ?? this.semanticFingerprint,
+      transferId: transferId ?? this.transferId,
     );
   }
 
@@ -4987,6 +5224,12 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
     if (aiEnrichmentJson.present) {
       map['ai_enrichment_json'] = Variable<String>(aiEnrichmentJson.value);
     }
+    if (semanticFingerprint.present) {
+      map['semantic_fingerprint'] = Variable<String>(semanticFingerprint.value);
+    }
+    if (transferId.present) {
+      map['transfer_id'] = Variable<int>(transferId.value);
+    }
     return map;
   }
 
@@ -5002,7 +5245,9 @@ class SmsParserLogsCompanion extends UpdateCompanion<SmsParserLog> {
           ..write('source: $source, ')
           ..write('receivedAt: $receivedAt, ')
           ..write('processedAt: $processedAt, ')
-          ..write('aiEnrichmentJson: $aiEnrichmentJson')
+          ..write('aiEnrichmentJson: $aiEnrichmentJson, ')
+          ..write('semanticFingerprint: $semanticFingerprint, ')
+          ..write('transferId: $transferId')
           ..write(')'))
         .toString();
   }
@@ -5911,6 +6156,503 @@ class ChatMessagesCompanion extends UpdateCompanion<ChatMessage> {
   }
 }
 
+class $ParsedEventGroupsTable extends ParsedEventGroups
+    with TableInfo<$ParsedEventGroupsTable, ParsedEventGroup> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ParsedEventGroupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _semanticFingerprintMeta =
+      const VerificationMeta('semanticFingerprint');
+  @override
+  late final GeneratedColumn<String> semanticFingerprint =
+      GeneratedColumn<String>('semantic_fingerprint', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'));
+  static const VerificationMeta _canonicalLogIdMeta =
+      const VerificationMeta('canonicalLogId');
+  @override
+  late final GeneratedColumn<int> canonicalLogId = GeneratedColumn<int>(
+      'canonical_log_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES sms_parser_logs (id)'));
+  static const VerificationMeta _amountPiastresMeta =
+      const VerificationMeta('amountPiastres');
+  @override
+  late final GeneratedColumn<int> amountPiastres = GeneratedColumn<int>(
+      'amount_piastres', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _resolvedWalletIdMeta =
+      const VerificationMeta('resolvedWalletId');
+  @override
+  late final GeneratedColumn<int> resolvedWalletId = GeneratedColumn<int>(
+      'resolved_wallet_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _eventTypeMeta =
+      const VerificationMeta('eventType');
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+      'event_type', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('transaction'));
+  static const VerificationMeta _eventTimeMeta =
+      const VerificationMeta('eventTime');
+  @override
+  late final GeneratedColumn<DateTime> eventTime = GeneratedColumn<DateTime>(
+      'event_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        semanticFingerprint,
+        canonicalLogId,
+        amountPiastres,
+        type,
+        resolvedWalletId,
+        eventType,
+        eventTime,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'parsed_event_groups';
+  @override
+  VerificationContext validateIntegrity(Insertable<ParsedEventGroup> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('semantic_fingerprint')) {
+      context.handle(
+          _semanticFingerprintMeta,
+          semanticFingerprint.isAcceptableOrUnknown(
+              data['semantic_fingerprint']!, _semanticFingerprintMeta));
+    } else if (isInserting) {
+      context.missing(_semanticFingerprintMeta);
+    }
+    if (data.containsKey('canonical_log_id')) {
+      context.handle(
+          _canonicalLogIdMeta,
+          canonicalLogId.isAcceptableOrUnknown(
+              data['canonical_log_id']!, _canonicalLogIdMeta));
+    } else if (isInserting) {
+      context.missing(_canonicalLogIdMeta);
+    }
+    if (data.containsKey('amount_piastres')) {
+      context.handle(
+          _amountPiastresMeta,
+          amountPiastres.isAcceptableOrUnknown(
+              data['amount_piastres']!, _amountPiastresMeta));
+    } else if (isInserting) {
+      context.missing(_amountPiastresMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('resolved_wallet_id')) {
+      context.handle(
+          _resolvedWalletIdMeta,
+          resolvedWalletId.isAcceptableOrUnknown(
+              data['resolved_wallet_id']!, _resolvedWalletIdMeta));
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(_eventTypeMeta,
+          eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta));
+    }
+    if (data.containsKey('event_time')) {
+      context.handle(_eventTimeMeta,
+          eventTime.isAcceptableOrUnknown(data['event_time']!, _eventTimeMeta));
+    } else if (isInserting) {
+      context.missing(_eventTimeMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ParsedEventGroup map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ParsedEventGroup(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      semanticFingerprint: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}semantic_fingerprint'])!,
+      canonicalLogId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}canonical_log_id'])!,
+      amountPiastres: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}amount_piastres'])!,
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      resolvedWalletId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}resolved_wallet_id']),
+      eventType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}event_type'])!,
+      eventTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}event_time'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $ParsedEventGroupsTable createAlias(String alias) {
+    return $ParsedEventGroupsTable(attachedDatabase, alias);
+  }
+}
+
+class ParsedEventGroup extends DataClass
+    implements Insertable<ParsedEventGroup> {
+  final int id;
+
+  /// SHA-256 of "walletId|amountPiastres|type|timeWindow".
+  /// Unique: exactly one group per fingerprint (prevents duplicate groups
+  /// from concurrent SMS + notification processing).
+  final String semanticFingerprint;
+
+  /// The first log that created this group — shown as the pending item.
+  final int canonicalLogId;
+
+  /// Parsed amount in piastres for quick querying.
+  final int amountPiastres;
+
+  /// 'income' or 'expense'.
+  final String type;
+
+  /// Resolved wallet ID, if available.
+  final int? resolvedWalletId;
+
+  /// Event classification: 'transaction', 'atm_withdrawal', or 'transfer'.
+  final String eventType;
+
+  /// When the financial event occurred.
+  final DateTime eventTime;
+  final DateTime createdAt;
+  const ParsedEventGroup(
+      {required this.id,
+      required this.semanticFingerprint,
+      required this.canonicalLogId,
+      required this.amountPiastres,
+      required this.type,
+      this.resolvedWalletId,
+      required this.eventType,
+      required this.eventTime,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['semantic_fingerprint'] = Variable<String>(semanticFingerprint);
+    map['canonical_log_id'] = Variable<int>(canonicalLogId);
+    map['amount_piastres'] = Variable<int>(amountPiastres);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || resolvedWalletId != null) {
+      map['resolved_wallet_id'] = Variable<int>(resolvedWalletId);
+    }
+    map['event_type'] = Variable<String>(eventType);
+    map['event_time'] = Variable<DateTime>(eventTime);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ParsedEventGroupsCompanion toCompanion(bool nullToAbsent) {
+    return ParsedEventGroupsCompanion(
+      id: Value(id),
+      semanticFingerprint: Value(semanticFingerprint),
+      canonicalLogId: Value(canonicalLogId),
+      amountPiastres: Value(amountPiastres),
+      type: Value(type),
+      resolvedWalletId: resolvedWalletId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(resolvedWalletId),
+      eventType: Value(eventType),
+      eventTime: Value(eventTime),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ParsedEventGroup.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ParsedEventGroup(
+      id: serializer.fromJson<int>(json['id']),
+      semanticFingerprint:
+          serializer.fromJson<String>(json['semanticFingerprint']),
+      canonicalLogId: serializer.fromJson<int>(json['canonicalLogId']),
+      amountPiastres: serializer.fromJson<int>(json['amountPiastres']),
+      type: serializer.fromJson<String>(json['type']),
+      resolvedWalletId: serializer.fromJson<int?>(json['resolvedWalletId']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      eventTime: serializer.fromJson<DateTime>(json['eventTime']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'semanticFingerprint': serializer.toJson<String>(semanticFingerprint),
+      'canonicalLogId': serializer.toJson<int>(canonicalLogId),
+      'amountPiastres': serializer.toJson<int>(amountPiastres),
+      'type': serializer.toJson<String>(type),
+      'resolvedWalletId': serializer.toJson<int?>(resolvedWalletId),
+      'eventType': serializer.toJson<String>(eventType),
+      'eventTime': serializer.toJson<DateTime>(eventTime),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ParsedEventGroup copyWith(
+          {int? id,
+          String? semanticFingerprint,
+          int? canonicalLogId,
+          int? amountPiastres,
+          String? type,
+          Value<int?> resolvedWalletId = const Value.absent(),
+          String? eventType,
+          DateTime? eventTime,
+          DateTime? createdAt}) =>
+      ParsedEventGroup(
+        id: id ?? this.id,
+        semanticFingerprint: semanticFingerprint ?? this.semanticFingerprint,
+        canonicalLogId: canonicalLogId ?? this.canonicalLogId,
+        amountPiastres: amountPiastres ?? this.amountPiastres,
+        type: type ?? this.type,
+        resolvedWalletId: resolvedWalletId.present
+            ? resolvedWalletId.value
+            : this.resolvedWalletId,
+        eventType: eventType ?? this.eventType,
+        eventTime: eventTime ?? this.eventTime,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  ParsedEventGroup copyWithCompanion(ParsedEventGroupsCompanion data) {
+    return ParsedEventGroup(
+      id: data.id.present ? data.id.value : this.id,
+      semanticFingerprint: data.semanticFingerprint.present
+          ? data.semanticFingerprint.value
+          : this.semanticFingerprint,
+      canonicalLogId: data.canonicalLogId.present
+          ? data.canonicalLogId.value
+          : this.canonicalLogId,
+      amountPiastres: data.amountPiastres.present
+          ? data.amountPiastres.value
+          : this.amountPiastres,
+      type: data.type.present ? data.type.value : this.type,
+      resolvedWalletId: data.resolvedWalletId.present
+          ? data.resolvedWalletId.value
+          : this.resolvedWalletId,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      eventTime: data.eventTime.present ? data.eventTime.value : this.eventTime,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ParsedEventGroup(')
+          ..write('id: $id, ')
+          ..write('semanticFingerprint: $semanticFingerprint, ')
+          ..write('canonicalLogId: $canonicalLogId, ')
+          ..write('amountPiastres: $amountPiastres, ')
+          ..write('type: $type, ')
+          ..write('resolvedWalletId: $resolvedWalletId, ')
+          ..write('eventType: $eventType, ')
+          ..write('eventTime: $eventTime, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, semanticFingerprint, canonicalLogId,
+      amountPiastres, type, resolvedWalletId, eventType, eventTime, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ParsedEventGroup &&
+          other.id == this.id &&
+          other.semanticFingerprint == this.semanticFingerprint &&
+          other.canonicalLogId == this.canonicalLogId &&
+          other.amountPiastres == this.amountPiastres &&
+          other.type == this.type &&
+          other.resolvedWalletId == this.resolvedWalletId &&
+          other.eventType == this.eventType &&
+          other.eventTime == this.eventTime &&
+          other.createdAt == this.createdAt);
+}
+
+class ParsedEventGroupsCompanion extends UpdateCompanion<ParsedEventGroup> {
+  final Value<int> id;
+  final Value<String> semanticFingerprint;
+  final Value<int> canonicalLogId;
+  final Value<int> amountPiastres;
+  final Value<String> type;
+  final Value<int?> resolvedWalletId;
+  final Value<String> eventType;
+  final Value<DateTime> eventTime;
+  final Value<DateTime> createdAt;
+  const ParsedEventGroupsCompanion({
+    this.id = const Value.absent(),
+    this.semanticFingerprint = const Value.absent(),
+    this.canonicalLogId = const Value.absent(),
+    this.amountPiastres = const Value.absent(),
+    this.type = const Value.absent(),
+    this.resolvedWalletId = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.eventTime = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ParsedEventGroupsCompanion.insert({
+    this.id = const Value.absent(),
+    required String semanticFingerprint,
+    required int canonicalLogId,
+    required int amountPiastres,
+    required String type,
+    this.resolvedWalletId = const Value.absent(),
+    this.eventType = const Value.absent(),
+    required DateTime eventTime,
+    this.createdAt = const Value.absent(),
+  })  : semanticFingerprint = Value(semanticFingerprint),
+        canonicalLogId = Value(canonicalLogId),
+        amountPiastres = Value(amountPiastres),
+        type = Value(type),
+        eventTime = Value(eventTime);
+  static Insertable<ParsedEventGroup> custom({
+    Expression<int>? id,
+    Expression<String>? semanticFingerprint,
+    Expression<int>? canonicalLogId,
+    Expression<int>? amountPiastres,
+    Expression<String>? type,
+    Expression<int>? resolvedWalletId,
+    Expression<String>? eventType,
+    Expression<DateTime>? eventTime,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (semanticFingerprint != null)
+        'semantic_fingerprint': semanticFingerprint,
+      if (canonicalLogId != null) 'canonical_log_id': canonicalLogId,
+      if (amountPiastres != null) 'amount_piastres': amountPiastres,
+      if (type != null) 'type': type,
+      if (resolvedWalletId != null) 'resolved_wallet_id': resolvedWalletId,
+      if (eventType != null) 'event_type': eventType,
+      if (eventTime != null) 'event_time': eventTime,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ParsedEventGroupsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? semanticFingerprint,
+      Value<int>? canonicalLogId,
+      Value<int>? amountPiastres,
+      Value<String>? type,
+      Value<int?>? resolvedWalletId,
+      Value<String>? eventType,
+      Value<DateTime>? eventTime,
+      Value<DateTime>? createdAt}) {
+    return ParsedEventGroupsCompanion(
+      id: id ?? this.id,
+      semanticFingerprint: semanticFingerprint ?? this.semanticFingerprint,
+      canonicalLogId: canonicalLogId ?? this.canonicalLogId,
+      amountPiastres: amountPiastres ?? this.amountPiastres,
+      type: type ?? this.type,
+      resolvedWalletId: resolvedWalletId ?? this.resolvedWalletId,
+      eventType: eventType ?? this.eventType,
+      eventTime: eventTime ?? this.eventTime,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (semanticFingerprint.present) {
+      map['semantic_fingerprint'] = Variable<String>(semanticFingerprint.value);
+    }
+    if (canonicalLogId.present) {
+      map['canonical_log_id'] = Variable<int>(canonicalLogId.value);
+    }
+    if (amountPiastres.present) {
+      map['amount_piastres'] = Variable<int>(amountPiastres.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (resolvedWalletId.present) {
+      map['resolved_wallet_id'] = Variable<int>(resolvedWalletId.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (eventTime.present) {
+      map['event_time'] = Variable<DateTime>(eventTime.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ParsedEventGroupsCompanion(')
+          ..write('id: $id, ')
+          ..write('semanticFingerprint: $semanticFingerprint, ')
+          ..write('canonicalLogId: $canonicalLogId, ')
+          ..write('amountPiastres: $amountPiastres, ')
+          ..write('type: $type, ')
+          ..write('resolvedWalletId: $resolvedWalletId, ')
+          ..write('eventType: $eventType, ')
+          ..write('eventTime: $eventTime, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5928,6 +6670,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CategoryMappingsTable categoryMappings =
       $CategoryMappingsTable(this);
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
+  late final $ParsedEventGroupsTable parsedEventGroups =
+      $ParsedEventGroupsTable(this);
   late final WalletDao walletDao = WalletDao(this as AppDatabase);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao =
@@ -5945,6 +6689,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       CategoryMappingDao(this as AppDatabase);
   late final ChatMessageDao chatMessageDao =
       ChatMessageDao(this as AppDatabase);
+  late final ParsedEventGroupDao parsedEventGroupDao =
+      ParsedEventGroupDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5961,7 +6707,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         smsParserLogs,
         exchangeRates,
         categoryMappings,
-        chatMessages
+        chatMessages,
+        parsedEventGroups
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -5978,6 +6725,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('goal_contributions', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('wallets',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('goal_contributions', kind: UpdateKind.update),
             ],
           ),
           WritePropagation(
@@ -6001,6 +6755,8 @@ typedef $$WalletsTableCreateCompanionBuilder = WalletsCompanion Function({
   Value<String> colorHex,
   Value<bool> isArchived,
   Value<int> displayOrder,
+  Value<String> linkedSenders,
+  Value<bool> isSystemWallet,
   Value<DateTime> createdAt,
 });
 typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
@@ -6013,6 +6769,8 @@ typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
   Value<String> colorHex,
   Value<bool> isArchived,
   Value<int> displayOrder,
+  Value<String> linkedSenders,
+  Value<bool> isSystemWallet,
   Value<DateTime> createdAt,
 });
 
@@ -6094,6 +6852,23 @@ final class $$WalletsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$GoalContributionsTable, List<GoalContribution>>
+      _goalContributionsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.goalContributions,
+              aliasName: $_aliasNameGenerator(
+                  db.wallets.id, db.goalContributions.walletId));
+
+  $$GoalContributionsTableProcessedTableManager get goalContributionsRefs {
+    final manager =
+        $$GoalContributionsTableTableManager($_db, $_db.goalContributions)
+            .filter((f) => f.walletId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_goalContributionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$WalletsTableFilterComposer
@@ -6131,6 +6906,13 @@ class $$WalletsTableFilterComposer
 
   ColumnFilters<int> get displayOrder => $composableBuilder(
       column: $table.displayOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get linkedSenders => $composableBuilder(
+      column: $table.linkedSenders, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isSystemWallet => $composableBuilder(
+      column: $table.isSystemWallet,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -6239,6 +7021,27 @@ class $$WalletsTableFilterComposer
             ));
     return f(composer);
   }
+
+  Expression<bool> goalContributionsRefs(
+      Expression<bool> Function($$GoalContributionsTableFilterComposer f) f) {
+    final $$GoalContributionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.goalContributions,
+        getReferencedColumn: (t) => t.walletId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$GoalContributionsTableFilterComposer(
+              $db: $db,
+              $table: $db.goalContributions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$WalletsTableOrderingComposer
@@ -6277,6 +7080,14 @@ class $$WalletsTableOrderingComposer
 
   ColumnOrderings<int> get displayOrder => $composableBuilder(
       column: $table.displayOrder,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get linkedSenders => $composableBuilder(
+      column: $table.linkedSenders,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isSystemWallet => $composableBuilder(
+      column: $table.isSystemWallet,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
@@ -6318,6 +7129,12 @@ class $$WalletsTableAnnotationComposer
 
   GeneratedColumn<int> get displayOrder => $composableBuilder(
       column: $table.displayOrder, builder: (column) => column);
+
+  GeneratedColumn<String> get linkedSenders => $composableBuilder(
+      column: $table.linkedSenders, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSystemWallet => $composableBuilder(
+      column: $table.isSystemWallet, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -6426,6 +7243,28 @@ class $$WalletsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> goalContributionsRefs<T extends Object>(
+      Expression<T> Function($$GoalContributionsTableAnnotationComposer a) f) {
+    final $$GoalContributionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.goalContributions,
+            getReferencedColumn: (t) => t.walletId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$GoalContributionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.goalContributions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$WalletsTableTableManager extends RootTableManager<
@@ -6444,7 +7283,8 @@ class $$WalletsTableTableManager extends RootTableManager<
         bool savingsGoalsRefs,
         bool transactionsRefs,
         bool fromTransfers,
-        bool toTransfers})> {
+        bool toTransfers,
+        bool goalContributionsRefs})> {
   $$WalletsTableTableManager(_$AppDatabase db, $WalletsTable table)
       : super(TableManagerState(
           db: db,
@@ -6465,6 +7305,8 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<String> colorHex = const Value.absent(),
             Value<bool> isArchived = const Value.absent(),
             Value<int> displayOrder = const Value.absent(),
+            Value<String> linkedSenders = const Value.absent(),
+            Value<bool> isSystemWallet = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion(
@@ -6477,6 +7319,8 @@ class $$WalletsTableTableManager extends RootTableManager<
             colorHex: colorHex,
             isArchived: isArchived,
             displayOrder: displayOrder,
+            linkedSenders: linkedSenders,
+            isSystemWallet: isSystemWallet,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
@@ -6489,6 +7333,8 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<String> colorHex = const Value.absent(),
             Value<bool> isArchived = const Value.absent(),
             Value<int> displayOrder = const Value.absent(),
+            Value<String> linkedSenders = const Value.absent(),
+            Value<bool> isSystemWallet = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion.insert(
@@ -6501,6 +7347,8 @@ class $$WalletsTableTableManager extends RootTableManager<
             colorHex: colorHex,
             isArchived: isArchived,
             displayOrder: displayOrder,
+            linkedSenders: linkedSenders,
+            isSystemWallet: isSystemWallet,
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
@@ -6512,7 +7360,8 @@ class $$WalletsTableTableManager extends RootTableManager<
               savingsGoalsRefs = false,
               transactionsRefs = false,
               fromTransfers = false,
-              toTransfers = false}) {
+              toTransfers = false,
+              goalContributionsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
@@ -6520,7 +7369,8 @@ class $$WalletsTableTableManager extends RootTableManager<
                 if (savingsGoalsRefs) db.savingsGoals,
                 if (transactionsRefs) db.transactions,
                 if (fromTransfers) db.transfers,
-                if (toTransfers) db.transfers
+                if (toTransfers) db.transfers,
+                if (goalContributionsRefs) db.goalContributions
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -6586,6 +7436,19 @@ class $$WalletsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.toWalletId == item.id),
+                        typedResults: items),
+                  if (goalContributionsRefs)
+                    await $_getPrefetchedData<Wallet, $WalletsTable,
+                            GoalContribution>(
+                        currentTable: table,
+                        referencedTable: $$WalletsTableReferences
+                            ._goalContributionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$WalletsTableReferences(db, table, p0)
+                                .goalContributionsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.walletId == item.id),
                         typedResults: items)
                 ];
               },
@@ -6610,7 +7473,8 @@ typedef $$WalletsTableProcessedTableManager = ProcessedTableManager<
         bool savingsGoalsRefs,
         bool transactionsRefs,
         bool fromTransfers,
-        bool toTransfers})>;
+        bool toTransfers,
+        bool goalContributionsRefs})>;
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<int> id,
   required String name,
@@ -9728,6 +10592,7 @@ typedef $$GoalContributionsTableCreateCompanionBuilder
   required int amount,
   required DateTime date,
   Value<String?> note,
+  Value<int?> walletId,
 });
 typedef $$GoalContributionsTableUpdateCompanionBuilder
     = GoalContributionsCompanion Function({
@@ -9736,6 +10601,7 @@ typedef $$GoalContributionsTableUpdateCompanionBuilder
   Value<int> amount,
   Value<DateTime> date,
   Value<String?> note,
+  Value<int?> walletId,
 });
 
 final class $$GoalContributionsTableReferences extends BaseReferences<
@@ -9753,6 +10619,21 @@ final class $$GoalContributionsTableReferences extends BaseReferences<
     final manager = $$SavingsGoalsTableTableManager($_db, $_db.savingsGoals)
         .filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_goalIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $WalletsTable _walletIdTable(_$AppDatabase db) =>
+      db.wallets.createAlias(
+          $_aliasNameGenerator(db.goalContributions.walletId, db.wallets.id));
+
+  $$WalletsTableProcessedTableManager? get walletId {
+    final $_column = $_itemColumn<int>('wallet_id');
+    if ($_column == null) return null;
+    final manager = $$WalletsTableTableManager($_db, $_db.wallets)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_walletIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
@@ -9792,6 +10673,26 @@ class $$GoalContributionsTableFilterComposer
             $$SavingsGoalsTableFilterComposer(
               $db: $db,
               $table: $db.savingsGoals,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$WalletsTableFilterComposer get walletId {
+    final $$WalletsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.walletId,
+        referencedTable: $db.wallets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WalletsTableFilterComposer(
+              $db: $db,
+              $table: $db.wallets,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -9841,6 +10742,26 @@ class $$GoalContributionsTableOrderingComposer
             ));
     return composer;
   }
+
+  $$WalletsTableOrderingComposer get walletId {
+    final $$WalletsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.walletId,
+        referencedTable: $db.wallets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WalletsTableOrderingComposer(
+              $db: $db,
+              $table: $db.wallets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$GoalContributionsTableAnnotationComposer
@@ -9883,6 +10804,26 @@ class $$GoalContributionsTableAnnotationComposer
             ));
     return composer;
   }
+
+  $$WalletsTableAnnotationComposer get walletId {
+    final $$WalletsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.walletId,
+        referencedTable: $db.wallets,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$WalletsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.wallets,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$GoalContributionsTableTableManager extends RootTableManager<
@@ -9896,7 +10837,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
     $$GoalContributionsTableUpdateCompanionBuilder,
     (GoalContribution, $$GoalContributionsTableReferences),
     GoalContribution,
-    PrefetchHooks Function({bool goalId})> {
+    PrefetchHooks Function({bool goalId, bool walletId})> {
   $$GoalContributionsTableTableManager(
       _$AppDatabase db, $GoalContributionsTable table)
       : super(TableManagerState(
@@ -9915,6 +10856,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
             Value<int> amount = const Value.absent(),
             Value<DateTime> date = const Value.absent(),
             Value<String?> note = const Value.absent(),
+            Value<int?> walletId = const Value.absent(),
           }) =>
               GoalContributionsCompanion(
             id: id,
@@ -9922,6 +10864,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
             amount: amount,
             date: date,
             note: note,
+            walletId: walletId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -9929,6 +10872,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
             required int amount,
             required DateTime date,
             Value<String?> note = const Value.absent(),
+            Value<int?> walletId = const Value.absent(),
           }) =>
               GoalContributionsCompanion.insert(
             id: id,
@@ -9936,6 +10880,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
             amount: amount,
             date: date,
             note: note,
+            walletId: walletId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
@@ -9943,7 +10888,7 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
                     $$GoalContributionsTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({goalId = false}) {
+          prefetchHooksCallback: ({goalId = false, walletId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -9970,6 +10915,17 @@ class $$GoalContributionsTableTableManager extends RootTableManager<
                         $$GoalContributionsTableReferences._goalIdTable(db).id,
                   ) as T;
                 }
+                if (walletId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.walletId,
+                    referencedTable:
+                        $$GoalContributionsTableReferences._walletIdTable(db),
+                    referencedColumn: $$GoalContributionsTableReferences
+                        ._walletIdTable(db)
+                        .id,
+                  ) as T;
+                }
 
                 return state;
               },
@@ -9992,7 +10948,7 @@ typedef $$GoalContributionsTableProcessedTableManager = ProcessedTableManager<
     $$GoalContributionsTableUpdateCompanionBuilder,
     (GoalContribution, $$GoalContributionsTableReferences),
     GoalContribution,
-    PrefetchHooks Function({bool goalId})>;
+    PrefetchHooks Function({bool goalId, bool walletId})>;
 typedef $$SmsParserLogsTableCreateCompanionBuilder = SmsParserLogsCompanion
     Function({
   Value<int> id,
@@ -10005,6 +10961,8 @@ typedef $$SmsParserLogsTableCreateCompanionBuilder = SmsParserLogsCompanion
   required DateTime receivedAt,
   Value<DateTime> processedAt,
   Value<String?> aiEnrichmentJson,
+  Value<String?> semanticFingerprint,
+  Value<int?> transferId,
 });
 typedef $$SmsParserLogsTableUpdateCompanionBuilder = SmsParserLogsCompanion
     Function({
@@ -10018,7 +10976,32 @@ typedef $$SmsParserLogsTableUpdateCompanionBuilder = SmsParserLogsCompanion
   Value<DateTime> receivedAt,
   Value<DateTime> processedAt,
   Value<String?> aiEnrichmentJson,
+  Value<String?> semanticFingerprint,
+  Value<int?> transferId,
 });
+
+final class $$SmsParserLogsTableReferences
+    extends BaseReferences<_$AppDatabase, $SmsParserLogsTable, SmsParserLog> {
+  $$SmsParserLogsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$ParsedEventGroupsTable, List<ParsedEventGroup>>
+      _parsedEventGroupsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.parsedEventGroups,
+              aliasName: $_aliasNameGenerator(
+                  db.smsParserLogs.id, db.parsedEventGroups.canonicalLogId));
+
+  $$ParsedEventGroupsTableProcessedTableManager get parsedEventGroupsRefs {
+    final manager = $$ParsedEventGroupsTableTableManager(
+            $_db, $_db.parsedEventGroups)
+        .filter((f) => f.canonicalLogId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_parsedEventGroupsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
 
 class $$SmsParserLogsTableFilterComposer
     extends Composer<_$AppDatabase, $SmsParserLogsTable> {
@@ -10059,6 +11042,34 @@ class $$SmsParserLogsTableFilterComposer
   ColumnFilters<String> get aiEnrichmentJson => $composableBuilder(
       column: $table.aiEnrichmentJson,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> parsedEventGroupsRefs(
+      Expression<bool> Function($$ParsedEventGroupsTableFilterComposer f) f) {
+    final $$ParsedEventGroupsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.parsedEventGroups,
+        getReferencedColumn: (t) => t.canonicalLogId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ParsedEventGroupsTableFilterComposer(
+              $db: $db,
+              $table: $db.parsedEventGroups,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$SmsParserLogsTableOrderingComposer
@@ -10103,6 +11114,13 @@ class $$SmsParserLogsTableOrderingComposer
   ColumnOrderings<String> get aiEnrichmentJson => $composableBuilder(
       column: $table.aiEnrichmentJson,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SmsParserLogsTableAnnotationComposer
@@ -10143,6 +11161,34 @@ class $$SmsParserLogsTableAnnotationComposer
 
   GeneratedColumn<String> get aiEnrichmentJson => $composableBuilder(
       column: $table.aiEnrichmentJson, builder: (column) => column);
+
+  GeneratedColumn<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint, builder: (column) => column);
+
+  GeneratedColumn<int> get transferId => $composableBuilder(
+      column: $table.transferId, builder: (column) => column);
+
+  Expression<T> parsedEventGroupsRefs<T extends Object>(
+      Expression<T> Function($$ParsedEventGroupsTableAnnotationComposer a) f) {
+    final $$ParsedEventGroupsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.parsedEventGroups,
+            getReferencedColumn: (t) => t.canonicalLogId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$ParsedEventGroupsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.parsedEventGroups,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$SmsParserLogsTableTableManager extends RootTableManager<
@@ -10154,12 +11200,9 @@ class $$SmsParserLogsTableTableManager extends RootTableManager<
     $$SmsParserLogsTableAnnotationComposer,
     $$SmsParserLogsTableCreateCompanionBuilder,
     $$SmsParserLogsTableUpdateCompanionBuilder,
-    (
-      SmsParserLog,
-      BaseReferences<_$AppDatabase, $SmsParserLogsTable, SmsParserLog>
-    ),
+    (SmsParserLog, $$SmsParserLogsTableReferences),
     SmsParserLog,
-    PrefetchHooks Function()> {
+    PrefetchHooks Function({bool parsedEventGroupsRefs})> {
   $$SmsParserLogsTableTableManager(_$AppDatabase db, $SmsParserLogsTable table)
       : super(TableManagerState(
           db: db,
@@ -10181,6 +11224,8 @@ class $$SmsParserLogsTableTableManager extends RootTableManager<
             Value<DateTime> receivedAt = const Value.absent(),
             Value<DateTime> processedAt = const Value.absent(),
             Value<String?> aiEnrichmentJson = const Value.absent(),
+            Value<String?> semanticFingerprint = const Value.absent(),
+            Value<int?> transferId = const Value.absent(),
           }) =>
               SmsParserLogsCompanion(
             id: id,
@@ -10193,6 +11238,8 @@ class $$SmsParserLogsTableTableManager extends RootTableManager<
             receivedAt: receivedAt,
             processedAt: processedAt,
             aiEnrichmentJson: aiEnrichmentJson,
+            semanticFingerprint: semanticFingerprint,
+            transferId: transferId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -10205,6 +11252,8 @@ class $$SmsParserLogsTableTableManager extends RootTableManager<
             required DateTime receivedAt,
             Value<DateTime> processedAt = const Value.absent(),
             Value<String?> aiEnrichmentJson = const Value.absent(),
+            Value<String?> semanticFingerprint = const Value.absent(),
+            Value<int?> transferId = const Value.absent(),
           }) =>
               SmsParserLogsCompanion.insert(
             id: id,
@@ -10217,11 +11266,41 @@ class $$SmsParserLogsTableTableManager extends RootTableManager<
             receivedAt: receivedAt,
             processedAt: processedAt,
             aiEnrichmentJson: aiEnrichmentJson,
+            semanticFingerprint: semanticFingerprint,
+            transferId: transferId,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$SmsParserLogsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({parsedEventGroupsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (parsedEventGroupsRefs) db.parsedEventGroups
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (parsedEventGroupsRefs)
+                    await $_getPrefetchedData<SmsParserLog, $SmsParserLogsTable,
+                            ParsedEventGroup>(
+                        currentTable: table,
+                        referencedTable: $$SmsParserLogsTableReferences
+                            ._parsedEventGroupsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SmsParserLogsTableReferences(db, table, p0)
+                                .parsedEventGroupsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.canonicalLogId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
@@ -10234,12 +11313,9 @@ typedef $$SmsParserLogsTableProcessedTableManager = ProcessedTableManager<
     $$SmsParserLogsTableAnnotationComposer,
     $$SmsParserLogsTableCreateCompanionBuilder,
     $$SmsParserLogsTableUpdateCompanionBuilder,
-    (
-      SmsParserLog,
-      BaseReferences<_$AppDatabase, $SmsParserLogsTable, SmsParserLog>
-    ),
+    (SmsParserLog, $$SmsParserLogsTableReferences),
     SmsParserLog,
-    PrefetchHooks Function()>;
+    PrefetchHooks Function({bool parsedEventGroupsRefs})>;
 typedef $$ExchangeRatesTableCreateCompanionBuilder = ExchangeRatesCompanion
     Function({
   required String baseCurrency,
@@ -10841,6 +11917,345 @@ typedef $$ChatMessagesTableProcessedTableManager = ProcessedTableManager<
     ),
     ChatMessage,
     PrefetchHooks Function()>;
+typedef $$ParsedEventGroupsTableCreateCompanionBuilder
+    = ParsedEventGroupsCompanion Function({
+  Value<int> id,
+  required String semanticFingerprint,
+  required int canonicalLogId,
+  required int amountPiastres,
+  required String type,
+  Value<int?> resolvedWalletId,
+  Value<String> eventType,
+  required DateTime eventTime,
+  Value<DateTime> createdAt,
+});
+typedef $$ParsedEventGroupsTableUpdateCompanionBuilder
+    = ParsedEventGroupsCompanion Function({
+  Value<int> id,
+  Value<String> semanticFingerprint,
+  Value<int> canonicalLogId,
+  Value<int> amountPiastres,
+  Value<String> type,
+  Value<int?> resolvedWalletId,
+  Value<String> eventType,
+  Value<DateTime> eventTime,
+  Value<DateTime> createdAt,
+});
+
+final class $$ParsedEventGroupsTableReferences extends BaseReferences<
+    _$AppDatabase, $ParsedEventGroupsTable, ParsedEventGroup> {
+  $$ParsedEventGroupsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SmsParserLogsTable _canonicalLogIdTable(_$AppDatabase db) =>
+      db.smsParserLogs.createAlias($_aliasNameGenerator(
+          db.parsedEventGroups.canonicalLogId, db.smsParserLogs.id));
+
+  $$SmsParserLogsTableProcessedTableManager get canonicalLogId {
+    final $_column = $_itemColumn<int>('canonical_log_id')!;
+
+    final manager = $$SmsParserLogsTableTableManager($_db, $_db.smsParserLogs)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_canonicalLogIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ParsedEventGroupsTableFilterComposer
+    extends Composer<_$AppDatabase, $ParsedEventGroupsTable> {
+  $$ParsedEventGroupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get amountPiastres => $composableBuilder(
+      column: $table.amountPiastres,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get resolvedWalletId => $composableBuilder(
+      column: $table.resolvedWalletId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get eventTime => $composableBuilder(
+      column: $table.eventTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$SmsParserLogsTableFilterComposer get canonicalLogId {
+    final $$SmsParserLogsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.canonicalLogId,
+        referencedTable: $db.smsParserLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SmsParserLogsTableFilterComposer(
+              $db: $db,
+              $table: $db.smsParserLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ParsedEventGroupsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ParsedEventGroupsTable> {
+  $$ParsedEventGroupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get amountPiastres => $composableBuilder(
+      column: $table.amountPiastres,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get resolvedWalletId => $composableBuilder(
+      column: $table.resolvedWalletId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+      column: $table.eventType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get eventTime => $composableBuilder(
+      column: $table.eventTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$SmsParserLogsTableOrderingComposer get canonicalLogId {
+    final $$SmsParserLogsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.canonicalLogId,
+        referencedTable: $db.smsParserLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SmsParserLogsTableOrderingComposer(
+              $db: $db,
+              $table: $db.smsParserLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ParsedEventGroupsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ParsedEventGroupsTable> {
+  $$ParsedEventGroupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get semanticFingerprint => $composableBuilder(
+      column: $table.semanticFingerprint, builder: (column) => column);
+
+  GeneratedColumn<int> get amountPiastres => $composableBuilder(
+      column: $table.amountPiastres, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get resolvedWalletId => $composableBuilder(
+      column: $table.resolvedWalletId, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get eventTime =>
+      $composableBuilder(column: $table.eventTime, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$SmsParserLogsTableAnnotationComposer get canonicalLogId {
+    final $$SmsParserLogsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.canonicalLogId,
+        referencedTable: $db.smsParserLogs,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SmsParserLogsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.smsParserLogs,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ParsedEventGroupsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ParsedEventGroupsTable,
+    ParsedEventGroup,
+    $$ParsedEventGroupsTableFilterComposer,
+    $$ParsedEventGroupsTableOrderingComposer,
+    $$ParsedEventGroupsTableAnnotationComposer,
+    $$ParsedEventGroupsTableCreateCompanionBuilder,
+    $$ParsedEventGroupsTableUpdateCompanionBuilder,
+    (ParsedEventGroup, $$ParsedEventGroupsTableReferences),
+    ParsedEventGroup,
+    PrefetchHooks Function({bool canonicalLogId})> {
+  $$ParsedEventGroupsTableTableManager(
+      _$AppDatabase db, $ParsedEventGroupsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ParsedEventGroupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ParsedEventGroupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ParsedEventGroupsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> semanticFingerprint = const Value.absent(),
+            Value<int> canonicalLogId = const Value.absent(),
+            Value<int> amountPiastres = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<int?> resolvedWalletId = const Value.absent(),
+            Value<String> eventType = const Value.absent(),
+            Value<DateTime> eventTime = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              ParsedEventGroupsCompanion(
+            id: id,
+            semanticFingerprint: semanticFingerprint,
+            canonicalLogId: canonicalLogId,
+            amountPiastres: amountPiastres,
+            type: type,
+            resolvedWalletId: resolvedWalletId,
+            eventType: eventType,
+            eventTime: eventTime,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String semanticFingerprint,
+            required int canonicalLogId,
+            required int amountPiastres,
+            required String type,
+            Value<int?> resolvedWalletId = const Value.absent(),
+            Value<String> eventType = const Value.absent(),
+            required DateTime eventTime,
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              ParsedEventGroupsCompanion.insert(
+            id: id,
+            semanticFingerprint: semanticFingerprint,
+            canonicalLogId: canonicalLogId,
+            amountPiastres: amountPiastres,
+            type: type,
+            resolvedWalletId: resolvedWalletId,
+            eventType: eventType,
+            eventTime: eventTime,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ParsedEventGroupsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({canonicalLogId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (canonicalLogId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.canonicalLogId,
+                    referencedTable: $$ParsedEventGroupsTableReferences
+                        ._canonicalLogIdTable(db),
+                    referencedColumn: $$ParsedEventGroupsTableReferences
+                        ._canonicalLogIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ParsedEventGroupsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ParsedEventGroupsTable,
+    ParsedEventGroup,
+    $$ParsedEventGroupsTableFilterComposer,
+    $$ParsedEventGroupsTableOrderingComposer,
+    $$ParsedEventGroupsTableAnnotationComposer,
+    $$ParsedEventGroupsTableCreateCompanionBuilder,
+    $$ParsedEventGroupsTableUpdateCompanionBuilder,
+    (ParsedEventGroup, $$ParsedEventGroupsTableReferences),
+    ParsedEventGroup,
+    PrefetchHooks Function({bool canonicalLogId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10869,4 +12284,6 @@ class $AppDatabaseManager {
       $$CategoryMappingsTableTableManager(_db, _db.categoryMappings);
   $$ChatMessagesTableTableManager get chatMessages =>
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
+  $$ParsedEventGroupsTableTableManager get parsedEventGroups =>
+      $$ParsedEventGroupsTableTableManager(_db, _db.parsedEventGroups);
 }

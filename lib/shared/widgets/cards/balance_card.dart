@@ -23,6 +23,7 @@ class BalanceCard extends StatelessWidget {
     this.hidden = false,
     this.onToggleHide,
     this.accountName,
+    this.inGoalsPiastres = 0,
   });
 
   final int totalPiastres;
@@ -36,6 +37,9 @@ class BalanceCard extends StatelessWidget {
   /// When non-null, displayed instead of the l10n "Total Balance" label.
   final String? accountName;
 
+  /// Amount allocated to active savings goals (piastres). Shows split row when > 0.
+  final int inGoalsPiastres;
+
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
@@ -48,8 +52,8 @@ class BalanceCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: cs.primary.withValues(alpha: AppSizes.opacityLight4),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: AppSizes.heroShadowBlur,
+            offset: const Offset(0, AppSizes.heroShadowOffsetY),
           ),
         ],
       ),
@@ -65,7 +69,8 @@ class BalanceCard extends StatelessWidget {
               height: AppSizes.decorCircleLg,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: cs.onPrimary.withValues(alpha: AppSizes.decorCircleLgOpacity),
+                color: cs.onPrimary
+                    .withValues(alpha: AppSizes.decorCircleLgOpacity),
               ),
             ),
           ),
@@ -77,7 +82,8 @@ class BalanceCard extends StatelessWidget {
               height: AppSizes.decorCircleSm,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: cs.onPrimary.withValues(alpha: AppSizes.decorCircleSmOpacity),
+                color: cs.onPrimary
+                    .withValues(alpha: AppSizes.decorCircleSmOpacity),
               ),
             ),
           ),
@@ -94,8 +100,9 @@ class BalanceCard extends StatelessWidget {
                     Text(
                       accountName ?? context.l10n.wallet_total_balance,
                       style: context.textStyles.bodyMedium?.copyWith(
-                            color: cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
-                          ),
+                        color: cs.onPrimary
+                            .withValues(alpha: AppSizes.opacityHeavy),
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -105,7 +112,9 @@ class BalanceCard extends StatelessWidget {
                         size: AppSizes.iconSm,
                         color: cs.onPrimary,
                       ),
-                      tooltip: hidden ? context.l10n.balance_show : context.l10n.balance_hide,
+                      tooltip: hidden
+                          ? context.l10n.balance_show
+                          : context.l10n.balance_hide,
                       onPressed: () {
                         HapticFeedback.selectionClick();
                         onToggleHide?.call();
@@ -124,15 +133,19 @@ class BalanceCard extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   builder: (_, value, __) {
                     return Semantics(
-                      label: '${context.l10n.wallet_balance}: ${MoneyFormatter.format(totalPiastres, currency: currencyCode)}',
+                      label:
+                          '${context.l10n.wallet_balance}: ${MoneyFormatter.format(totalPiastres, currency: currencyCode)}',
                       child: Text(
                         hidden
                             ? '••••••'
-                            : MoneyFormatter.format(value, currency: currencyCode),
+                            : MoneyFormatter.format(
+                                value,
+                                currency: currencyCode,
+                              ),
                         style: context.textStyles.displaySmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: cs.onPrimary,
-                            ),
+                          fontWeight: FontWeight.w700,
+                          color: cs.onPrimary,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -144,35 +157,59 @@ class BalanceCard extends StatelessWidget {
                     lastMonthExpensePiastres! > 0 &&
                     !hidden) ...[
                   const SizedBox(height: AppSizes.xs),
-                  Builder(builder: (context) {
-                    final diff = monthlyExpensePiastres -
-                        lastMonthExpensePiastres!;
-                    final pct =
-                        ((diff / lastMonthExpensePiastres!) * 100).round();
-                    final isUp = diff > 0;
-                    return Row(
-                      children: [
-                        Icon(
-                          isUp
-                              ? AppIcons.trendingUp
-                              : AppIcons.trendingDown,
-                          size: AppSizes.iconXxs2,
-                          color: isUp
-                              ? context.appTheme.expenseColor
-                              : context.appTheme.incomeColor,
+                  Builder(
+                    builder: (context) {
+                      final diff =
+                          monthlyExpensePiastres - lastMonthExpensePiastres!;
+                      final pct =
+                          ((diff / lastMonthExpensePiastres!) * 100).round();
+                      final isUp = diff > 0;
+                      return Row(
+                        children: [
+                          Icon(
+                            isUp ? AppIcons.trendingUp : AppIcons.trendingDown,
+                            size: AppSizes.iconXxs2,
+                            color: isUp
+                                ? context.appTheme.expenseColor
+                                : context.appTheme.incomeColor,
+                          ),
+                          const SizedBox(width: AppSizes.xs),
+                          Text(
+                            '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
+                            style: context.textStyles.bodySmall?.copyWith(
+                              color: cs.onPrimary
+                                  .withValues(alpha: AppSizes.opacityStrong),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+                // Available vs In Goals split row
+                if (inGoalsPiastres > 0 && !hidden) ...[
+                  const SizedBox(height: AppSizes.xs),
+                  Row(
+                    children: [
+                      Text(
+                        '${context.l10n.balance_available}: ${MoneyFormatter.formatCompact(totalPiastres - inGoalsPiastres, currency: currencyCode)}',
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.onPrimary
+                              .withValues(alpha: AppSizes.opacityStrong),
                         ),
-                        const SizedBox(width: AppSizes.xs),
-                        Text(
-                          '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
-                          style: context.textStyles.bodySmall?.copyWith(
-                                color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(width: AppSizes.sm),
+                      Text(
+                        '${context.l10n.balance_in_goals}: ${MoneyFormatter.formatCompact(inGoalsPiastres, currency: currencyCode)}',
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.onPrimary
+                              .withValues(alpha: AppSizes.opacityStrong),
                         ),
-                      ],
-                    );
-                  },),
+                      ),
+                    ],
+                  ),
                 ],
                 const SizedBox(height: AppSizes.lg),
                 // Glass-effect income / expense row
@@ -250,8 +287,8 @@ class _SummaryItem extends StatelessWidget {
               Text(
                 label,
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
-                    ),
+                  color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
+                ),
               ),
               Text(
                 hidden
@@ -261,9 +298,9 @@ class _SummaryItem extends StatelessWidget {
                         currency: currencyCode,
                       ),
                 style: context.textStyles.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.onPrimary,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  color: cs.onPrimary,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

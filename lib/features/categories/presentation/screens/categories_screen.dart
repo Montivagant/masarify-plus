@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -53,28 +55,47 @@ class CategoriesScreen extends ConsumerWidget {
           final income = nonArchived
               .where((c) => c.type == 'income' || c.type == 'both')
               .toList();
+          // E4: Build children with a running index for stagger animation.
+          final reduceMotion = context.reduceMotion;
+          var staggerIndex = 0;
+
+          Widget animateTile(CategoryEntity c) {
+            final tile = _CategoryTile(
+              category: c,
+              onTap: () => context.push(AppRoutes.editCategoryPath(c.id)),
+              onDelete: () => _confirmDelete(context, ref, c),
+            );
+            if (reduceMotion) return tile;
+            final idx = staggerIndex++;
+            return tile
+                .animate()
+                .fadeIn(duration: AppDurations.listItemEntry)
+                .slideY(
+                  begin: 0.03,
+                  end: 0,
+                  duration: AppDurations.listItemEntry,
+                  curve: Curves.easeOutCubic,
+                )
+                .then(delay: AppDurations.staggerDelay * idx);
+          }
+
           return ListView(
-            padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             children: [
               if (expense.isNotEmpty) ...[
-                _SectionHeader(title: context.l10n.categories_expense, count: expense.length),
-                ...expense.map(
-                  (c) => _CategoryTile(
-                    category: c,
-                    onTap: () => context.push(AppRoutes.editCategoryPath(c.id)),
-                    onDelete: () => _confirmDelete(context, ref, c),
-                  ),
+                _SectionHeader(
+                  title: context.l10n.categories_expense,
+                  count: expense.length,
                 ),
+                ...expense.map(animateTile),
               ],
               if (income.isNotEmpty) ...[
-                _SectionHeader(title: context.l10n.categories_income, count: income.length),
-                ...income.map(
-                  (c) => _CategoryTile(
-                    category: c,
-                    onTap: () => context.push(AppRoutes.editCategoryPath(c.id)),
-                    onDelete: () => _confirmDelete(context, ref, c),
-                  ),
+                _SectionHeader(
+                  title: context.l10n.categories_income,
+                  count: income.length,
                 ),
+                ...income.map(animateTile),
               ],
             ],
           );
@@ -106,7 +127,8 @@ class CategoriesScreen extends ConsumerWidget {
     final confirmed = await ConfirmDialog.confirmDelete(
       context,
       title: context.l10n.category_delete_title,
-      message: context.l10n.category_delete_confirm(category.displayName(context.languageCode)),
+      message: context.l10n
+          .category_delete_confirm(category.displayName(context.languageCode)),
     );
 
     if (confirmed) {
@@ -142,7 +164,7 @@ class _SectionHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSizes.sm,
-              vertical: 2,
+              vertical: AppSizes.xxs,
             ),
             decoration: BoxDecoration(
               color: cs.surfaceContainerHighest,
@@ -166,7 +188,8 @@ class _CategoryTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
-  static String _groupLabel(BuildContext context, String group) => switch (group) {
+  static String _groupLabel(BuildContext context, String group) =>
+      switch (group) {
         'needs' => context.l10n.category_group_needs,
         'wants' => context.l10n.category_group_wants,
         'savings' => context.l10n.category_group_savings,

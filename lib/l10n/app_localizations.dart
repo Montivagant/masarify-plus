@@ -398,11 +398,11 @@ abstract class AppLocalizations {
   /// **'Transfer'**
   String get wallets_transfer;
 
-  /// No description provided for @wallet_type_cash.
+  /// No description provided for @wallet_type_physical_cash.
   ///
   /// In en, this message translates to:
-  /// **'Cash'**
-  String get wallet_type_cash;
+  /// **'Physical Cash'**
+  String get wallet_type_physical_cash;
 
   /// No description provided for @wallet_type_bank.
   ///
@@ -413,7 +413,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_mobile_wallet.
   ///
   /// In en, this message translates to:
-  /// **'Mobile Account'**
+  /// **'Mobile Wallet'**
   String get wallet_type_mobile_wallet;
 
   /// No description provided for @wallet_type_credit_card.
@@ -422,11 +422,17 @@ abstract class AppLocalizations {
   /// **'Credit Card'**
   String get wallet_type_credit_card;
 
-  /// No description provided for @wallet_type_savings.
+  /// No description provided for @wallet_type_prepaid_card.
   ///
   /// In en, this message translates to:
-  /// **'Savings'**
-  String get wallet_type_savings;
+  /// **'Prepaid Card'**
+  String get wallet_type_prepaid_card;
+
+  /// No description provided for @wallet_type_investment.
+  ///
+  /// In en, this message translates to:
+  /// **'Investment Account'**
+  String get wallet_type_investment;
 
   /// No description provided for @wallet_name_hint.
   ///
@@ -1190,12 +1196,6 @@ abstract class AppLocalizations {
   /// **'Type DELETE to confirm'**
   String get settings_clear_data_confirm;
 
-  /// No description provided for @settings_smart_input.
-  ///
-  /// In en, this message translates to:
-  /// **'Smart Input'**
-  String get settings_smart_input;
-
   /// No description provided for @settings_voice_input.
   ///
   /// In en, this message translates to:
@@ -1733,7 +1733,7 @@ abstract class AppLocalizations {
   /// No description provided for @parsed_transactions_title.
   ///
   /// In en, this message translates to:
-  /// **'Parsed Transactions'**
+  /// **'Auto-detected Transactions'**
   String get parsed_transactions_title;
 
   /// No description provided for @sms_review_approve.
@@ -1765,6 +1765,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No pending transactions to review'**
   String get parser_no_pending;
+
+  /// No description provided for @parser_no_pending_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions for this source — try \"All\"'**
+  String get parser_no_pending_filtered;
 
   /// No description provided for @parser_approved_msg.
   ///
@@ -1819,6 +1825,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enriching…'**
   String get parser_enriching;
+
+  /// No description provided for @parser_possible_duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Possible duplicate'**
+  String get parser_possible_duplicate;
+
+  /// No description provided for @parser_similar_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar transaction found ({date})'**
+  String parser_similar_exists(String date);
+
+  /// No description provided for @parser_wallet_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get parser_wallet_label;
+
+  /// No description provided for @parser_source_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get parser_source_all;
+
+  /// No description provided for @parser_source_sms.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS'**
+  String get parser_source_sms;
+
+  /// No description provided for @parser_source_notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get parser_source_notification;
+
+  /// No description provided for @parser_approve_as_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve as Transfer'**
+  String get parser_approve_as_transfer;
+
+  /// No description provided for @parser_atm_detected.
+  ///
+  /// In en, this message translates to:
+  /// **'ATM Withdrawal'**
+  String get parser_atm_detected;
+
+  /// No description provided for @parser_select_cash_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Select cash wallet'**
+  String get parser_select_cash_wallet;
+
+  /// No description provided for @parser_duplicate_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar transaction already exists. Create anyway?'**
+  String get parser_duplicate_exists;
+
+  /// No description provided for @parser_auto_resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} parsed transaction(s) matched and auto-resolved'**
+  String parser_auto_resolved(int count);
+
+  /// No description provided for @settings_smart_detection.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Detection'**
+  String get settings_smart_detection;
+
+  /// No description provided for @settings_smart_detection_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-detect transactions from SMS and notifications'**
+  String get settings_smart_detection_subtitle;
+
+  /// No description provided for @settings_ai_models.
+  ///
+  /// In en, this message translates to:
+  /// **'AI & Models'**
+  String get settings_ai_models;
+
+  /// No description provided for @dashboard_pending_review.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transaction(s) to review'**
+  String dashboard_pending_review(int count);
+
+  /// No description provided for @dashboard_pending_review_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get dashboard_pending_review_action;
 
   /// No description provided for @goal_link_prompt.
   ///
@@ -2174,11 +2276,11 @@ abstract class AppLocalizations {
   /// **'Add Account'**
   String get wallet_add_button;
 
-  /// No description provided for @wallet_type_cash_short.
+  /// No description provided for @wallet_type_physical_cash_short.
   ///
   /// In en, this message translates to:
   /// **'Cash'**
-  String get wallet_type_cash_short;
+  String get wallet_type_physical_cash_short;
 
   /// No description provided for @wallet_type_bank_short.
   ///
@@ -2189,7 +2291,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_mobile_wallet_short.
   ///
   /// In en, this message translates to:
-  /// **'Mobile'**
+  /// **'Wallet'**
   String get wallet_type_mobile_wallet_short;
 
   /// No description provided for @wallet_type_credit_card_short.
@@ -2198,11 +2300,95 @@ abstract class AppLocalizations {
   /// **'Credit'**
   String get wallet_type_credit_card_short;
 
-  /// No description provided for @wallet_type_savings_short.
+  /// No description provided for @wallet_type_prepaid_card_short.
   ///
   /// In en, this message translates to:
-  /// **'Savings'**
-  String get wallet_type_savings_short;
+  /// **'Prepaid'**
+  String get wallet_type_prepaid_card_short;
+
+  /// No description provided for @wallet_type_investment_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Invest'**
+  String get wallet_type_investment_short;
+
+  /// No description provided for @wallet_system_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get wallet_system_badge;
+
+  /// No description provided for @wallet_cannot_archive_system.
+  ///
+  /// In en, this message translates to:
+  /// **'The Physical Cash wallet cannot be archived'**
+  String get wallet_cannot_archive_system;
+
+  /// No description provided for @balance_available.
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get balance_available;
+
+  /// No description provided for @balance_in_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'In Goals'**
+  String get balance_in_goals;
+
+  /// No description provided for @goal_link_sheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to goal?'**
+  String get goal_link_sheet_title;
+
+  /// No description provided for @goal_link_sheet_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to allocate to {goalName}?'**
+  String goal_link_sheet_subtitle(Object goalName);
+
+  /// No description provided for @goal_link_sheet_save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Goal'**
+  String get goal_link_sheet_save;
+
+  /// No description provided for @goal_contribution_from_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'From account'**
+  String get goal_contribution_from_wallet;
+
+  /// No description provided for @goal_contribution_deducted.
+  ///
+  /// In en, this message translates to:
+  /// **'Deducted from {walletName}'**
+  String goal_contribution_deducted(Object walletName);
+
+  /// No description provided for @onboarding_physical_cash_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cash-in-hand wallet is created automatically'**
+  String get onboarding_physical_cash_note;
+
+  /// No description provided for @wallet_linked_senders_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked SMS Senders'**
+  String get wallet_linked_senders_label;
+
+  /// No description provided for @wallet_linked_senders_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. CIB, NBE, BankMisr'**
+  String get wallet_linked_senders_hint;
+
+  /// No description provided for @wallet_linked_senders_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match auto-detected transactions to this account'**
+  String get wallet_linked_senders_subtitle;
 
   /// No description provided for @wallets_empty_title.
   ///
@@ -3380,42 +3566,6 @@ abstract class AppLocalizations {
   /// **'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.'**
   String get permission_sms_body;
 
-  /// No description provided for @settings_ai_model.
-  ///
-  /// In en, this message translates to:
-  /// **'AI Model'**
-  String get settings_ai_model;
-
-  /// No description provided for @settings_ai_model_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose which AI model processes voice input'**
-  String get settings_ai_model_subtitle;
-
-  /// No description provided for @settings_ai_model_auto.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto (Recommended)'**
-  String get settings_ai_model_auto;
-
-  /// No description provided for @settings_ai_model_gemma_27b.
-  ///
-  /// In en, this message translates to:
-  /// **'Gemma 3 27B'**
-  String get settings_ai_model_gemma_27b;
-
-  /// No description provided for @settings_ai_model_gemini_flash.
-  ///
-  /// In en, this message translates to:
-  /// **'Gemini 2.0 Flash'**
-  String get settings_ai_model_gemini_flash;
-
-  /// No description provided for @settings_ai_model_qwen3_4b.
-  ///
-  /// In en, this message translates to:
-  /// **'Qwen3 4B'**
-  String get settings_ai_model_qwen3_4b;
-
   /// No description provided for @fab_expense.
   ///
   /// In en, this message translates to:
@@ -3668,6 +3818,24 @@ abstract class AppLocalizations {
   /// **'Account'**
   String get pdf_col_wallet;
 
+  /// No description provided for @pdf_page_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Page'**
+  String get pdf_page_label;
+
+  /// No description provided for @pdf_of_label.
+  ///
+  /// In en, this message translates to:
+  /// **'of'**
+  String get pdf_of_label;
+
+  /// No description provided for @pdf_unknown_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get pdf_unknown_category;
+
   /// No description provided for @dashboard_all_accounts.
   ///
   /// In en, this message translates to:
@@ -3731,7 +3899,7 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_insight_parsed_transactions.
   ///
   /// In en, this message translates to:
-  /// **'Parsed Transactions'**
+  /// **'Auto-detected Transactions'**
   String get dashboard_insight_parsed_transactions;
 
   /// No description provided for @insight_recurring_detected.
@@ -3805,6 +3973,703 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get common_undo;
+
+  /// No description provided for @auto_detected_transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-detected Transactions'**
+  String get auto_detected_transactions;
+
+  /// No description provided for @dashboard_chat_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get dashboard_chat_tooltip;
+
+  /// No description provided for @chat_action_budget_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Budget'**
+  String get chat_action_budget_title;
+
+  /// No description provided for @chat_action_recurring_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Recurring'**
+  String get chat_action_recurring_title;
+
+  /// No description provided for @chat_action_wallet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get chat_action_wallet_title;
+
+  /// No description provided for @chat_action_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Transaction'**
+  String get chat_action_delete_title;
+
+  /// No description provided for @chat_budget_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget created for {category}'**
+  String chat_budget_created(String category);
+
+  /// No description provided for @chat_recurring_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring rule \"{title}\" created'**
+  String chat_recurring_created(String title);
+
+  /// No description provided for @chat_wallet_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" created'**
+  String chat_wallet_created(String name);
+
+  /// No description provided for @chat_transaction_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction deleted'**
+  String get chat_transaction_deleted;
+
+  /// No description provided for @chat_confirm_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this transaction?'**
+  String get chat_confirm_delete;
+
+  /// No description provided for @chat_no_match_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find a matching category'**
+  String get chat_no_match_category;
+
+  /// No description provided for @chat_no_active_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'No active account available'**
+  String get chat_no_active_wallet;
+
+  /// No description provided for @chat_budget_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'A budget already exists for this category'**
+  String get chat_budget_exists;
+
+  /// No description provided for @chat_wallet_name_taken.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this name already exists'**
+  String get chat_wallet_name_taken;
+
+  /// No description provided for @quick_start_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Start'**
+  String get quick_start_title;
+
+  /// No description provided for @quick_start_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your finances in a few steps'**
+  String get quick_start_subtitle;
+
+  /// No description provided for @quick_start_step_wallets.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you manage your money?'**
+  String get quick_start_step_wallets;
+
+  /// No description provided for @quick_start_step_categories.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you spend most on?'**
+  String get quick_start_step_categories;
+
+  /// No description provided for @quick_start_step_budgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Set monthly budgets'**
+  String get quick_start_step_budgets;
+
+  /// No description provided for @quick_start_step_bills.
+  ///
+  /// In en, this message translates to:
+  /// **'Any regular bills?'**
+  String get quick_start_step_bills;
+
+  /// No description provided for @quick_start_step_goals.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving for something?'**
+  String get quick_start_step_goals;
+
+  /// No description provided for @quick_start_source_cash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash only'**
+  String get quick_start_source_cash;
+
+  /// No description provided for @quick_start_source_bank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank account'**
+  String get quick_start_source_bank;
+
+  /// No description provided for @quick_start_source_mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile wallet'**
+  String get quick_start_source_mobile;
+
+  /// No description provided for @quick_start_source_multiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple sources'**
+  String get quick_start_source_multiple;
+
+  /// No description provided for @quick_start_category_food.
+  ///
+  /// In en, this message translates to:
+  /// **'Food'**
+  String get quick_start_category_food;
+
+  /// No description provided for @quick_start_category_rent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get quick_start_category_rent;
+
+  /// No description provided for @quick_start_category_transport.
+  ///
+  /// In en, this message translates to:
+  /// **'Transport'**
+  String get quick_start_category_transport;
+
+  /// No description provided for @quick_start_category_bills.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills'**
+  String get quick_start_category_bills;
+
+  /// No description provided for @quick_start_category_shopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping'**
+  String get quick_start_category_shopping;
+
+  /// No description provided for @quick_start_category_health.
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get quick_start_category_health;
+
+  /// No description provided for @quick_start_category_education.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get quick_start_category_education;
+
+  /// No description provided for @quick_start_category_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get quick_start_category_other;
+
+  /// No description provided for @quick_start_budget_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly limit'**
+  String get quick_start_budget_hint;
+
+  /// No description provided for @quick_start_bill_internet.
+  ///
+  /// In en, this message translates to:
+  /// **'Internet'**
+  String get quick_start_bill_internet;
+
+  /// No description provided for @quick_start_bill_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get quick_start_bill_phone;
+
+  /// No description provided for @quick_start_bill_electricity.
+  ///
+  /// In en, this message translates to:
+  /// **'Electricity'**
+  String get quick_start_bill_electricity;
+
+  /// No description provided for @quick_start_bill_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas'**
+  String get quick_start_bill_gas;
+
+  /// No description provided for @quick_start_bill_gym.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym'**
+  String get quick_start_bill_gym;
+
+  /// No description provided for @quick_start_bill_subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get quick_start_bill_subscription;
+
+  /// No description provided for @quick_start_goal_emergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency fund'**
+  String get quick_start_goal_emergency;
+
+  /// No description provided for @quick_start_goal_vacation.
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation'**
+  String get quick_start_goal_vacation;
+
+  /// No description provided for @quick_start_goal_car.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get quick_start_goal_car;
+
+  /// No description provided for @quick_start_goal_wedding.
+  ///
+  /// In en, this message translates to:
+  /// **'Wedding'**
+  String get quick_start_goal_wedding;
+
+  /// No description provided for @quick_start_goal_education.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get quick_start_goal_education;
+
+  /// No description provided for @quick_start_goal_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get quick_start_goal_custom;
+
+  /// No description provided for @quick_start_goal_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Target amount'**
+  String get quick_start_goal_target;
+
+  /// No description provided for @quick_start_source_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get quick_start_source_other;
+
+  /// No description provided for @quick_start_custom_wallet_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Account name'**
+  String get quick_start_custom_wallet_name;
+
+  /// No description provided for @quick_start_bill_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom bill'**
+  String get quick_start_bill_other;
+
+  /// No description provided for @quick_start_bill_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill name'**
+  String get quick_start_bill_name_hint;
+
+  /// No description provided for @quick_start_goal_custom_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal name'**
+  String get quick_start_goal_custom_name;
+
+  /// No description provided for @quick_start_wallet_type_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Account type'**
+  String get quick_start_wallet_type_label;
+
+  /// No description provided for @quick_start_done_title.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all set!'**
+  String get quick_start_done_title;
+
+  /// No description provided for @quick_start_done_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your finances are ready to track'**
+  String get quick_start_done_subtitle;
+
+  /// No description provided for @quick_start_tip_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick start your finances'**
+  String get quick_start_tip_title;
+
+  /// No description provided for @quick_start_tip_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up budgets, bills, and goals in seconds'**
+  String get quick_start_tip_subtitle;
+
+  /// No description provided for @quick_start_add_another.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another?'**
+  String get quick_start_add_another;
+
+  /// No description provided for @quick_start_adjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust?'**
+  String get quick_start_adjust;
+
+  /// No description provided for @quick_start_amount_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get quick_start_amount_label;
+
+  /// No description provided for @backup_cloud_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Backup'**
+  String get backup_cloud_title;
+
+  /// No description provided for @backup_sign_in_google.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get backup_sign_in_google;
+
+  /// No description provided for @backup_sign_out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get backup_sign_out;
+
+  /// No description provided for @backup_signed_in_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String backup_signed_in_as(String email);
+
+  /// No description provided for @backup_last_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {date}'**
+  String backup_last_date(String date);
+
+  /// No description provided for @backup_now.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Now'**
+  String get backup_now;
+
+  /// No description provided for @backup_restore_drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Drive'**
+  String get backup_restore_drive;
+
+  /// No description provided for @backup_encrypting.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypting...'**
+  String get backup_encrypting;
+
+  /// No description provided for @backup_uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading to Drive...'**
+  String get backup_uploading;
+
+  /// No description provided for @backup_downloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading from Drive...'**
+  String get backup_downloading;
+
+  /// No description provided for @backup_restore_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will replace ALL local data with the backup. Continue?'**
+  String get backup_restore_warning;
+
+  /// No description provided for @backup_no_backups.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups found on Google Drive'**
+  String get backup_no_backups;
+
+  /// No description provided for @backup_welcome_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back?'**
+  String get backup_welcome_back;
+
+  /// No description provided for @backup_start_fresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Fresh'**
+  String get backup_start_fresh;
+
+  /// No description provided for @backup_restore_from_drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Google Drive'**
+  String get backup_restore_from_drive;
+
+  /// No description provided for @backup_offline_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to internet to use cloud backup'**
+  String get backup_offline_error;
+
+  /// No description provided for @backup_drive_success.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to Google Drive'**
+  String get backup_drive_success;
+
+  /// No description provided for @backup_drive_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud backup failed. Please try again.'**
+  String get backup_drive_failed;
+
+  /// No description provided for @backup_pre_reset_offer.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a backup before deleting?'**
+  String get backup_pre_reset_offer;
+
+  /// No description provided for @backup_pre_reset_drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup to Google Drive'**
+  String get backup_pre_reset_drive;
+
+  /// No description provided for @backup_pre_reset_file.
+  ///
+  /// In en, this message translates to:
+  /// **'Export to file'**
+  String get backup_pre_reset_file;
+
+  /// No description provided for @backup_pre_reset_skip.
+  ///
+  /// In en, this message translates to:
+  /// **'No, just delete'**
+  String get backup_pre_reset_skip;
+
+  /// No description provided for @backup_failed_continue.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed. Delete all data anyway?'**
+  String get backup_failed_continue;
+
+  /// No description provided for @voice_wallet_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \'\'{name}\'\' not found — create it?'**
+  String voice_wallet_not_found(String name);
+
+  /// No description provided for @voice_select_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get voice_select_wallet;
+
+  /// No description provided for @voice_confirm_count.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm ({count})'**
+  String voice_confirm_count(int count);
+
+  /// No description provided for @voice_select_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Select All'**
+  String get voice_select_all;
+
+  /// No description provided for @voice_deselect_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get voice_deselect_all;
+
+  /// No description provided for @voice_wallet_not_matched.
+  ///
+  /// In en, this message translates to:
+  /// **'Account not found'**
+  String get voice_wallet_not_matched;
+
+  /// No description provided for @common_create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get common_create;
+
+  /// No description provided for @backup_encryption_warning.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud backups are encrypted and tied to this device. If you reinstall the app or switch devices, you will not be able to restore cloud backups. Use local file backup for device transfers.'**
+  String get backup_encryption_warning;
+
+  /// No description provided for @chat_action_invalid_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount must be greater than zero'**
+  String get chat_action_invalid_amount;
+
+  /// No description provided for @chat_action_invalid_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Target amount must be greater than zero'**
+  String get chat_action_invalid_target;
+
+  /// No description provided for @chat_action_invalid_budget_limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget limit must be greater than zero'**
+  String get chat_action_invalid_budget_limit;
+
+  /// No description provided for @chat_action_category_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not match category \"{name}\". Available: {available}'**
+  String chat_action_category_not_found(String name, String available);
+
+  /// No description provided for @chat_action_no_active_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'No active account available. Please create one first.'**
+  String get chat_action_no_active_wallet;
+
+  /// No description provided for @chat_action_budget_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'A budget already exists for \"{category}\" this month'**
+  String chat_action_budget_exists(String category);
+
+  /// No description provided for @chat_action_wallet_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this name already exists'**
+  String get chat_action_wallet_exists;
+
+  /// No description provided for @chat_action_tx_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No transaction found matching \"{title}\" with that amount'**
+  String chat_action_tx_not_found(String title);
+
+  /// No description provided for @chat_action_goal_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal \"{name}\" created with a target of {amount}!'**
+  String chat_action_goal_created(String name, String amount);
+
+  /// No description provided for @chat_action_tx_recorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction \"{title}\" of {amount} recorded!'**
+  String chat_action_tx_recorded(String title, String amount);
+
+  /// No description provided for @chat_action_budget_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget of {amount} created for \"{category}\"!'**
+  String chat_action_budget_created(String amount, String category);
+
+  /// No description provided for @chat_action_recurring_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring \"{title}\" ({frequency}) of {amount} created!'**
+  String chat_action_recurring_created(
+      String title, String frequency, String amount);
+
+  /// No description provided for @chat_action_wallet_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" created with balance {amount}!'**
+  String chat_action_wallet_created(String name, String amount);
+
+  /// No description provided for @chat_action_tx_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction \"{title}\" of {amount} deleted!'**
+  String chat_action_tx_deleted(String title, String amount);
+
+  /// No description provided for @onboarding_features_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover Masarify'**
+  String get onboarding_features_title;
+
+  /// No description provided for @onboarding_feature_voice_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Input'**
+  String get onboarding_feature_voice_title;
+
+  /// No description provided for @onboarding_feature_voice_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Just speak. AI will parse your transactions instantly.'**
+  String get onboarding_feature_voice_body;
+
+  /// No description provided for @onboarding_feature_budget_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Budgets'**
+  String get onboarding_feature_budget_title;
+
+  /// No description provided for @onboarding_feature_budget_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Set limits, get alerts, stay on track.'**
+  String get onboarding_feature_budget_body;
+
+  /// No description provided for @onboarding_feature_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal Tracking'**
+  String get onboarding_feature_goal_title;
+
+  /// No description provided for @onboarding_feature_goal_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Save towards what matters most to you.'**
+  String get onboarding_feature_goal_body;
+
+  /// No description provided for @onboarding_ready_title.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re All Set!'**
+  String get onboarding_ready_title;
+
+  /// No description provided for @onboarding_ready_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Start tracking your money today.'**
+  String get onboarding_ready_body;
+
+  /// No description provided for @onboarding_ready_cta.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Tracking'**
+  String get onboarding_ready_cta;
 }
 
 class _AppLocalizationsDelegate

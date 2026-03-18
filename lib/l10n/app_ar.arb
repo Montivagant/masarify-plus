@@ -55,11 +55,12 @@
   "wallets_title": "الحسابات",
   "wallets_add": "إضافة حساب",
   "wallets_transfer": "تحويل",
-  "wallet_type_cash": "نقدي",
+  "wallet_type_physical_cash": "نقدي (كاش)",
   "wallet_type_bank": "حساب بنكي",
-  "wallet_type_mobile_wallet": "حساب إلكتروني",
+  "wallet_type_mobile_wallet": "محفظة إلكترونية",
   "wallet_type_credit_card": "بطاقة ائتمانية",
-  "wallet_type_savings": "ادخار",
+  "wallet_type_prepaid_card": "بطاقة مسبقة الدفع",
+  "wallet_type_investment": "حساب استثماري",
   "wallet_name_hint": "اسم الحساب",
   "wallet_initial_balance": "الرصيد الابتدائي",
   "wallet_delete_warning": "لا يمكن حذف حساب به معاملات",
@@ -199,7 +200,6 @@
   "settings_pin_lockout": "محاولات كثيرة. حاول مرة أخرى بعد {duration}.",
   "settings_clear_data": "مسح جميع البيانات",
   "settings_clear_data_confirm": "اكتب حذف للتأكيد",
-  "settings_smart_input": "الإدخال الذكي",
   "settings_voice_input": "الإدخال الصوتي",
   "settings_notification_parser": "تحليل الإشعارات",
   "settings_sms_parser": "تحليل الرسائل",
@@ -299,13 +299,14 @@
   "permission_deny": "رفض",
 
   "sms_review_title": "معاملات مكتشفة",
-  "parsed_transactions_title": "المعاملات المستخرجة",
+  "parsed_transactions_title": "المعاملات المكتشفة تلقائياً",
   "sms_review_approve": "موافقة",
   "sms_review_skip": "تخطي",
   "sms_review_edit": "تعديل",
   "sms_new_found": "تم اكتشاف {count} معاملة — اضغط للمراجعة",
   "@sms_new_found": {"placeholders": {"count": {"type": "int"}}},
   "parser_no_pending": "لا توجد معاملات معلقة للمراجعة",
+  "parser_no_pending_filtered": "لا توجد معاملات لهذا المصدر — جرّب \"الكل\"",
   "parser_approved_msg": "تم اعتماد المعاملة",
   "parser_skipped_msg": "تم تخطي المعاملة",
   "parser_approve_all": "اعتماد الكل",
@@ -315,6 +316,29 @@
   "parser_enrich": "تحسين",
   "parser_enrich_all": "تحسين الكل",
   "parser_enriching": "جاري التحسين…",
+  "parser_possible_duplicate": "مكرر محتمل",
+  "parser_similar_exists": "معاملة مشابهة موجودة ({date})",
+  "@parser_similar_exists": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "parser_wallet_label": "الحساب",
+  "parser_source_all": "الكل",
+  "parser_source_sms": "رسائل SMS",
+  "parser_source_notification": "الإشعارات",
+  "parser_approve_as_transfer": "اعتماد كتحويل",
+  "parser_atm_detected": "سحب من الصراف",
+  "parser_select_cash_wallet": "اختر حساب النقد",
+  "parser_duplicate_exists": "معاملة مشابهة موجودة بالفعل. هل تريد الإنشاء؟",
+  "parser_auto_resolved": "تمت مطابقة {count} معاملة تلقائياً",
+  "@parser_auto_resolved": {"placeholders": {"count": {"type": "int"}}},
+  "settings_smart_detection": "الكشف الذكي",
+  "settings_smart_detection_subtitle": "اكتشاف المعاملات تلقائياً من الرسائل والإشعارات",
+  "settings_ai_models": "الذكاء الاصطناعي والنماذج",
+  "dashboard_pending_review": "{count} معاملة للمراجعة",
+  "@dashboard_pending_review": {"placeholders": {"count": {"type": "int"}}},
+  "dashboard_pending_review_action": "مراجعة",
 
   "goal_link_prompt": "يبدو أن هذا مرتبط بهدفك '{goalName}'. هل تريد ربطه؟",
   "@goal_link_prompt": {"placeholders": {"goalName": {"type": "String"}}},
@@ -385,11 +409,25 @@
   "wallet_type_label": "نوع الحساب",
   "wallet_color_label": "لون الحساب",
   "wallet_add_button": "إضافة الحساب",
-  "wallet_type_cash_short": "نقدي",
+  "wallet_type_physical_cash_short": "كاش",
   "wallet_type_bank_short": "بنك",
-  "wallet_type_mobile_wallet_short": "رقمي",
+  "wallet_type_mobile_wallet_short": "محفظة",
   "wallet_type_credit_card_short": "ائتمان",
-  "wallet_type_savings_short": "توفير",
+  "wallet_type_prepaid_card_short": "مسبقة",
+  "wallet_type_investment_short": "استثمار",
+  "wallet_system_badge": "نظام",
+  "wallet_cannot_archive_system": "لا يمكن أرشفة محفظة الكاش",
+  "balance_available": "متاح",
+  "balance_in_goals": "في الأهداف",
+  "goal_link_sheet_title": "ادخر لهدف؟",
+  "goal_link_sheet_subtitle": "هل ترغب في تخصيص مبلغ لهدف {goalName}؟",
+  "goal_link_sheet_save": "ادخر للهدف",
+  "goal_contribution_from_wallet": "من حساب",
+  "goal_contribution_deducted": "تم الخصم من {walletName}",
+  "onboarding_physical_cash_note": "محفظة النقدي تُنشأ تلقائيًا",
+  "wallet_linked_senders_label": "مرسلي الرسائل المرتبطين",
+  "wallet_linked_senders_hint": "مثال: CIB, NBE, BankMisr",
+  "wallet_linked_senders_subtitle": "ربط المعاملات المكتشفة تلقائياً بهذا الحساب",
   "wallets_empty_title": "لا توجد حسابات",
   "wallets_empty_sub": "أضف حسابك الأول لتبدأ تتبع فلوسك",
   "wallets_transfer_button": "تحويل بين الحسابات",
@@ -611,13 +649,6 @@
   "permission_sms_title": "صلاحية الرسائل",
   "permission_sms_body": "يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على 'إثراء' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.",
 
-  "settings_ai_model": "نموذج الذكاء الاصطناعي",
-  "settings_ai_model_subtitle": "اختر النموذج الذي يعالج الإدخال الصوتي",
-  "settings_ai_model_auto": "تلقائي (موصى به)",
-  "settings_ai_model_gemma_27b": "Gemma 3 27B",
-  "settings_ai_model_gemini_flash": "Gemini 2.0 Flash",
-  "settings_ai_model_qwen3_4b": "Qwen3 4B",
-
   "fab_expense": "مصروف",
   "fab_income": "دخل",
   "fab_voice": "صوت",
@@ -664,6 +695,9 @@
   "pdf_col_type": "النوع",
   "pdf_col_category": "الفئة",
   "pdf_col_wallet": "الحساب",
+  "pdf_page_label": "صفحة",
+  "pdf_of_label": "من",
+  "pdf_unknown_category": "غير معروف",
 
   "dashboard_all_accounts": "جميع الحسابات",
 
@@ -681,7 +715,7 @@
   "@dashboard_insight_spending_up": { "placeholders": { "percent": { "type": "int" } } },
   "dashboard_insight_spending_down": "{percent}% إنفاق أقل",
   "@dashboard_insight_spending_down": { "placeholders": { "percent": { "type": "int" } } },
-  "dashboard_insight_parsed_transactions": "المعاملات المحللة",
+  "dashboard_insight_parsed_transactions": "المعاملات المكتشفة تلقائياً",
   "insight_recurring_detected": "شهري: {title} — أضف كمتكرر؟",
   "@insight_recurring_detected": { "placeholders": { "title": { "type": "String" } } },
   "insight_weekly_detected": "أسبوعي: {title} — أضف كمتكرر؟",
@@ -700,5 +734,196 @@
 
   "dashboard_quick_add": "إضافة سريعة",
   "quick_add_saved": "تمت إضافة {title}",
-  "common_undo": "تراجع"
+  "@quick_add_saved": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "common_undo": "تراجع",
+
+  "auto_detected_transactions": "المعاملات المكتشفة تلقائياً",
+  "dashboard_chat_tooltip": "المساعد الذكي",
+
+  "chat_action_budget_title": "إنشاء ميزانية",
+  "chat_action_recurring_title": "إنشاء متكرر",
+  "chat_action_wallet_title": "إنشاء حساب",
+  "chat_action_delete_title": "حذف معاملة",
+  "chat_budget_created": "تم إنشاء ميزانية لـ {category}",
+  "@chat_budget_created": {"placeholders": {"category": {"type": "String"}}},
+  "chat_recurring_created": "تم إنشاء قاعدة متكررة \"{title}\"",
+  "@chat_recurring_created": {"placeholders": {"title": {"type": "String"}}},
+  "chat_wallet_created": "تم إنشاء حساب \"{name}\"",
+  "@chat_wallet_created": {"placeholders": {"name": {"type": "String"}}},
+  "chat_transaction_deleted": "تم حذف المعاملة",
+  "chat_confirm_delete": "هل أنت متأكد من حذف هذه المعاملة؟",
+  "chat_no_match_category": "لم يتم العثور على فئة مطابقة",
+  "chat_no_active_wallet": "لا يوجد حساب نشط متاح",
+  "chat_budget_exists": "يوجد ميزانية بالفعل لهذه الفئة",
+  "chat_wallet_name_taken": "يوجد حساب بهذا الاسم بالفعل",
+
+  "quick_start_title": "بداية سريعة",
+  "quick_start_subtitle": "أعد ماليتك في خطوات بسيطة",
+  "quick_start_step_wallets": "كيف تدير أموالك؟",
+  "quick_start_step_categories": "على ماذا تنفق أكثر؟",
+  "quick_start_step_budgets": "حدد ميزانيات شهرية",
+  "quick_start_step_bills": "هل لديك فواتير منتظمة؟",
+  "quick_start_step_goals": "تدخر لشيء ما؟",
+  "quick_start_source_cash": "نقداً فقط",
+  "quick_start_source_bank": "حساب بنكي",
+  "quick_start_source_mobile": "محفظة إلكترونية",
+  "quick_start_source_multiple": "مصادر متعددة",
+  "quick_start_category_food": "طعام",
+  "quick_start_category_rent": "إيجار",
+  "quick_start_category_transport": "مواصلات",
+  "quick_start_category_bills": "فواتير",
+  "quick_start_category_shopping": "تسوق",
+  "quick_start_category_health": "صحة",
+  "quick_start_category_education": "تعليم",
+  "quick_start_category_other": "أخرى",
+  "quick_start_budget_hint": "الحد الشهري",
+  "quick_start_bill_internet": "إنترنت",
+  "quick_start_bill_phone": "هاتف",
+  "quick_start_bill_electricity": "كهرباء",
+  "quick_start_bill_gas": "غاز",
+  "quick_start_bill_gym": "نادي رياضي",
+  "quick_start_bill_subscription": "اشتراك",
+  "quick_start_goal_emergency": "صندوق طوارئ",
+  "quick_start_goal_vacation": "إجازة",
+  "quick_start_goal_car": "سيارة",
+  "quick_start_goal_wedding": "زفاف",
+  "quick_start_goal_education": "تعليم",
+  "quick_start_goal_custom": "مخصص",
+  "quick_start_goal_target": "المبلغ المستهدف",
+  "quick_start_source_other": "أخرى",
+  "quick_start_custom_wallet_name": "اسم الحساب",
+  "quick_start_bill_other": "فاتورة مخصصة",
+  "quick_start_bill_name_hint": "اسم الفاتورة",
+  "quick_start_goal_custom_name": "اسم الهدف",
+  "quick_start_wallet_type_label": "نوع الحساب",
+  "quick_start_done_title": "أنت جاهز!",
+  "quick_start_done_subtitle": "ماليتك جاهزة للتتبع",
+  "quick_start_tip_title": "ابدأ ماليتك بسرعة",
+  "quick_start_tip_subtitle": "أعد الميزانيات والفواتير والأهداف في ثوانٍ",
+  "quick_start_add_another": "إضافة آخر؟",
+  "quick_start_adjust": "تعديل؟",
+  "quick_start_amount_label": "المبلغ",
+
+  "backup_cloud_title": "نسخ احتياطي سحابي",
+  "backup_sign_in_google": "تسجيل الدخول بجوجل",
+  "backup_sign_out": "تسجيل الخروج",
+  "backup_signed_in_as": "مسجل كـ {email}",
+  "@backup_signed_in_as": {"placeholders": {"email": {"type": "String"}}},
+  "backup_last_date": "آخر نسخ: {date}",
+  "@backup_last_date": {"placeholders": {"date": {"type": "String"}}},
+  "backup_now": "نسخ احتياطي الآن",
+  "backup_restore_drive": "استعادة من Drive",
+  "backup_encrypting": "جاري التشفير...",
+  "backup_uploading": "جاري الرفع إلى Drive...",
+  "backup_downloading": "جاري التحميل من Drive...",
+  "backup_restore_warning": "سيتم استبدال جميع البيانات المحلية بالنسخة الاحتياطية. هل تريد المتابعة؟",
+  "backup_no_backups": "لا توجد نسخ احتياطية على Google Drive",
+  "backup_welcome_back": "مرحباً بعودتك؟",
+  "backup_start_fresh": "ابدأ من جديد",
+  "backup_restore_from_drive": "استعادة من Google Drive",
+  "backup_offline_error": "اتصل بالإنترنت لاستخدام النسخ الاحتياطي السحابي",
+  "backup_drive_success": "تم حفظ النسخة الاحتياطية على Google Drive",
+  "backup_drive_failed": "فشل النسخ الاحتياطي السحابي. حاول مرة أخرى.",
+  "backup_pre_reset_offer": "حفظ نسخة احتياطية قبل الحذف؟",
+  "backup_pre_reset_drive": "نسخ احتياطي إلى Google Drive",
+  "backup_pre_reset_file": "تصدير كملف",
+  "backup_pre_reset_skip": "لا، فقط احذف",
+  "backup_failed_continue": "فشل النسخ الاحتياطي. هل تريد حذف البيانات على أي حال؟",
+  "voice_wallet_not_found": "الحساب ''{name}'' غير موجود — إنشاؤه؟",
+  "@voice_wallet_not_found": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "voice_select_wallet": "اختر الحساب",
+  "voice_confirm_count": "تأكيد ({count})",
+  "@voice_confirm_count": {"placeholders": {"count": {"type": "int"}}},
+  "voice_select_all": "تحديد الكل",
+  "voice_deselect_all": "إلغاء التحديد",
+  "voice_wallet_not_matched": "الحساب غير موجود",
+  "common_create": "إنشاء",
+  "backup_encryption_warning": "النسخ الاحتياطية السحابية مشفرة ومرتبطة بهذا الجهاز. إذا أعدت تثبيت التطبيق أو غيّرت الجهاز، لن تتمكن من استعادتها. استخدم النسخ المحلي لنقل البيانات بين الأجهزة.",
+
+  "chat_action_invalid_amount": "المبلغ يجب أن يكون أكبر من صفر",
+  "chat_action_invalid_target": "المبلغ المستهدف يجب أن يكون أكبر من صفر",
+  "chat_action_invalid_budget_limit": "الحد يجب أن يكون أكبر من صفر",
+  "chat_action_category_not_found": "لم يتم العثور على فئة \"{name}\". المتاح: {available}",
+  "@chat_action_category_not_found": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "available": {"type": "String"}
+    }
+  },
+  "chat_action_no_active_wallet": "لا يوجد حساب نشط. يرجى إنشاء حساب أولاً.",
+  "chat_action_budget_exists": "يوجد ميزانية بالفعل لـ \"{category}\" لهذا الشهر",
+  "@chat_action_budget_exists": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_wallet_exists": "يوجد حساب بهذا الاسم بالفعل",
+  "chat_action_tx_not_found": "لم يتم العثور على معاملة \"{title}\" بهذا المبلغ",
+  "@chat_action_tx_not_found": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "chat_action_goal_created": "تم إنشاء هدف \"{name}\" بمبلغ مستهدف {amount}!",
+  "@chat_action_goal_created": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_tx_recorded": "تم تسجيل معاملة \"{title}\" بمبلغ {amount}!",
+  "@chat_action_tx_recorded": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_budget_created": "تم إنشاء ميزانية \"{amount}\" لـ \"{category}\"!",
+  "@chat_action_budget_created": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_recurring_created": "تم إنشاء \"{frequency}\" متكرر \"{title}\" بمبلغ {amount}!",
+  "@chat_action_recurring_created": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "frequency": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_wallet_created": "تم إنشاء حساب \"{name}\" برصيد {amount}!",
+  "@chat_action_wallet_created": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_tx_deleted": "تم حذف معاملة \"{title}\" بمبلغ {amount}!",
+  "@chat_action_tx_deleted": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+
+  "onboarding_features_title": "اكتشف مصاريفي",
+  "onboarding_feature_voice_title": "الإدخال الصوتي",
+  "onboarding_feature_voice_body": "تكلم فقط. الذكاء الاصطناعي سيحلل معاملاتك فوراً.",
+  "onboarding_feature_budget_title": "ميزانيات ذكية",
+  "onboarding_feature_budget_body": "حدد حدوداً، واحصل على تنبيهات، وابقَ على المسار.",
+  "onboarding_feature_goal_title": "تتبع الأهداف",
+  "onboarding_feature_goal_body": "وفّر من أجل ما يهمك أكثر.",
+  "onboarding_ready_title": "أنت جاهز!",
+  "onboarding_ready_body": "ابدأ بتتبع أموالك اليوم.",
+  "onboarding_ready_cta": "ابدأ التتبع"
 }

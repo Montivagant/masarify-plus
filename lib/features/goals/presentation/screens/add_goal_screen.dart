@@ -90,8 +90,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
   Future<void> _pickDeadline() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate:
-          _deadline ?? DateTime.now().add(const Duration(days: 90)),
+      initialDate: _deadline ?? DateTime.now().add(const Duration(days: 90)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
     );
@@ -144,9 +143,8 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
               name: name,
               iconName: _iconName,
               colorHex: _colorHex,
-              targetAmount: _targetPiastres > 0
-                  ? _targetPiastres
-                  : existing.targetAmount,
+              targetAmount:
+                  _targetPiastres > 0 ? _targetPiastres : existing.targetAmount,
               currentAmount: existing.currentAmount,
               currencyCode: existing.currencyCode,
               deadline: _deadline,
@@ -187,7 +185,10 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
     final selectedColor = ColorUtils.fromHex(_colorHex);
 
     return Scaffold(
-      appBar: AppAppBar(title: isEdit ? context.l10n.goal_edit_title : context.l10n.goal_add_title),
+      appBar: AppAppBar(
+        title:
+            isEdit ? context.l10n.goal_edit_title : context.l10n.goal_add_title,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
@@ -211,8 +212,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Target amount
             Text(
               context.l10n.goal_target,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             AmountInput(
@@ -224,8 +224,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Deadline
             Text(
               context.l10n.goal_deadline,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             Row(
@@ -236,7 +235,8 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                     icon: const Icon(AppIcons.calendar, size: AppSizes.iconSm),
                     label: Text(
                       _deadline != null
-                          ? DateFormat.yMd(context.languageCode).format(_deadline!)
+                          ? DateFormat.yMd(context.languageCode)
+                              .format(_deadline!)
                           : context.l10n.goal_pick_date,
                     ),
                   ),
@@ -256,8 +256,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Keywords
             Text(
               context.l10n.goal_keywords,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             Wrap(
@@ -267,9 +266,11 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                 ..._keywords.map(
                   (kw) => Chip(
                     label: Text(kw),
-                    deleteIcon: const Icon(AppIcons.close, size: AppSizes.iconXxs2),
+                    deleteIcon:
+                        const Icon(AppIcons.close, size: AppSizes.iconXxs2),
                     onDeleted: () => setState(
-                      () => _keywords = _keywords.where((k) => k != kw).toList(),
+                      () =>
+                          _keywords = _keywords.where((k) => k != kw).toList(),
                     ),
                   ),
                 ),
@@ -298,8 +299,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Color picker
             Text(
               context.l10n.goal_color_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             Wrap(
@@ -325,11 +325,21 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                             color: color,
                             shape: BoxShape.circle,
                             border: isSelected
-                                ? Border.all(color: cs.primary, width: AppSizes.colorSwatchBorder)
-                                : Border.all(color: AppColors.transparent, width: AppSizes.colorSwatchBorder),
+                                ? Border.all(
+                                    color: cs.primary,
+                                    width: AppSizes.colorSwatchBorder,
+                                  )
+                                : Border.all(
+                                    color: AppColors.transparent,
+                                    width: AppSizes.colorSwatchBorder,
+                                  ),
                           ),
                           child: isSelected
-                              ? Icon(AppIcons.check, color: ColorUtils.contrastColor(color), size: AppSizes.iconXs)
+                              ? Icon(
+                                  AppIcons.check,
+                                  color: ColorUtils.contrastColor(color),
+                                  size: AppSizes.iconXs,
+                                )
                               : null,
                         ),
                       ),
@@ -343,8 +353,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             // Icon picker
             Text(
               context.l10n.goal_icon_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: cs.outline),
+              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
             GridView.builder(
@@ -368,12 +377,17 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? selectedColor.withValues(alpha: AppSizes.opacityLight)
+                            ? selectedColor.withValues(
+                                alpha: AppSizes.opacityLight,
+                              )
                             : cs.surfaceContainerHighest,
                         borderRadius:
                             BorderRadius.circular(AppSizes.borderRadiusSm),
                         border: isSelected
-                            ? Border.all(color: selectedColor, width: 2)
+                            ? Border.all(
+                                color: selectedColor,
+                                width: AppSizes.borderWidthFocus,
+                              )
                             : null,
                       ),
                       child: Icon(
@@ -386,15 +400,25 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                 );
               },
             ),
-            const SizedBox(height: AppSizes.xl),
-
-            AppButton(
-              label: isEdit ? context.l10n.common_save_changes : context.l10n.goal_add,
-              onPressed: _loading ? null : _save,
-              isLoading: _loading,
-              icon: AppIcons.check,
-            ),
           ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSizes.screenHPadding,
+            AppSizes.sm,
+            AppSizes.screenHPadding,
+            AppSizes.md,
+          ),
+          child: AppButton(
+            label: isEdit
+                ? context.l10n.common_save_changes
+                : context.l10n.goal_add,
+            onPressed: _loading ? null : _save,
+            isLoading: _loading,
+            icon: AppIcons.check,
+          ),
         ),
       ),
     );

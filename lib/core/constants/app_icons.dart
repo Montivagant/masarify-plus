@@ -23,9 +23,7 @@ abstract final class AppIcons {
   static const IconData delete = PhosphorIconsRegular.trash;
   static const IconData search = PhosphorIconsRegular.magnifyingGlass;
   static const IconData filter = PhosphorIconsRegular.funnelSimple;
-  static const IconData share = PhosphorIconsRegular.shareFat;
   static const IconData mic = PhosphorIconsFill.microphone;
-  static const IconData camera = PhosphorIconsRegular.camera;
   static const IconData location = PhosphorIconsFill.mapPin;
   static const IconData close = PhosphorIconsBold.x;
   static const IconData check = PhosphorIconsBold.check;
@@ -37,9 +35,7 @@ abstract final class AppIcons {
   static const IconData backspace = PhosphorIconsRegular.backspace;
   static const IconData chevronRight = PhosphorIconsRegular.caretRight;
   static const IconData chevronLeft = PhosphorIconsRegular.caretLeft;
-  static const IconData moreVert = PhosphorIconsBold.dotsThreeVertical;
   static const IconData refresh = PhosphorIconsRegular.arrowsClockwise;
-  static const IconData sort = PhosphorIconsRegular.arrowsDownUp;
 
   // ── Transaction types ─────────────────────────────────────────────────
   static const IconData expense = PhosphorIconsBold.arrowDown;
@@ -61,7 +57,6 @@ abstract final class AppIcons {
   static const IconData eye = PhosphorIconsRegular.eye;
   static const IconData eyeOff = PhosphorIconsRegular.eyeSlash;
   static const IconData star = PhosphorIconsFill.star;
-  static const IconData crown = PhosphorIconsFill.crown;
   static const IconData goals = PhosphorIconsFill.target;
   static const IconData reports = PhosphorIconsFill.lightbulb;
   static const IconData bank = PhosphorIconsFill.bank;
@@ -81,6 +76,11 @@ abstract final class AppIcons {
   static const IconData expandMore = PhosphorIconsRegular.caretDown;
   static const IconData expandLess = PhosphorIconsRegular.caretUp;
   static const IconData creditCard = PhosphorIconsRegular.creditCard;
+
+  // ── Account types ───────────────────────────────────────────────────
+  static const IconData physicalCash = PhosphorIconsFill.coins;
+  static const IconData prepaidCard = PhosphorIconsFill.creditCard;
+  static const IconData investmentAccount = PhosphorIconsBold.trendUp;
 
   // ── Category icons (subset used in UI) ───────────────────────────────
   static const IconData food = PhosphorIconsFill.forkKnife;
@@ -105,6 +105,7 @@ abstract final class AppIcons {
   static const IconData otherExpense = PhosphorIconsRegular.dotsThreeOutline;
   static const IconData otherIncome = PhosphorIconsRegular.dotsThreeOutline;
   static const IconData ai = PhosphorIconsFill.sparkle;
+  static const IconData quickStart = PhosphorIconsFill.rocketLaunch;
   static const IconData send = PhosphorIconsFill.paperPlaneRight;
 
   // ── Trend indicators ───────────────────────────────────────────────────

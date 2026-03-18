@@ -36,10 +36,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       _dao.watchByWallet(walletId).map((list) => list.map(_toEntity).toList());
 
   @override
-  Stream<List<TransactionEntity>> watchByMonth(int year, int month) =>
-      _dao
-          .watchByMonth(year, month)
-          .map((list) => list.map(_toEntity).toList());
+  Stream<List<TransactionEntity>> watchByMonth(int year, int month) => _dao
+      .watchByMonth(year, month)
+      .map((list) => list.map(_toEntity).toList());
 
   // ── Queries ───────────────────────────────────────────────────────────────
 
@@ -108,7 +107,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       // Validation inside transaction to avoid TOCTOU race
       final cat = await _categoryDao.getById(categoryId);
       if (cat != null && cat.type != 'both' && cat.type != type) {
-        throw ArgumentError('Category type "${cat.type}" does not match transaction type "$type"');
+        throw ArgumentError(
+          'Category type "${cat.type}" does not match transaction type "$type"',
+        );
       }
       final wallet = await _walletDao.getById(walletId);
       if (wallet == null) {
@@ -162,7 +163,8 @@ class TransactionRepositoryImpl implements ITransactionRepository {
         }
       }
       // Reverse old balance effect
-      final oldDelta = existing.type == 'income' ? -existing.amount : existing.amount;
+      final oldDelta =
+          existing.type == 'income' ? -existing.amount : existing.amount;
       await _walletDao.adjustBalance(existing.walletId, oldDelta);
 
       // Apply new balance effect
@@ -197,7 +199,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
         ),
       );
       if (!saved) {
-        throw StateError('Transaction ${transaction.id} was deleted during update');
+        throw StateError(
+          'Transaction ${transaction.id} was deleted during update',
+        );
       }
       return true;
     });
@@ -227,7 +231,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       // Verify wallet still exists before restoring
       final wallet = await _walletDao.getById(tx.walletId);
       if (wallet == null) {
-        throw StateError('Cannot restore: wallet ${tx.walletId} no longer exists');
+        throw StateError(
+          'Cannot restore: wallet ${tx.walletId} no longer exists',
+        );
       }
       await _dao.insertTransaction(
         TransactionsCompanion(
@@ -294,6 +300,7 @@ class TransactionRepositoryImpl implements ITransactionRepository {
             source: Value(p.source),
             rawSourceText: Value(p.rawSourceText),
             note: Value(p.note),
+            goalId: Value(p.goalId),
           ),
         );
         final delta = p.type == 'income' ? p.amount : -p.amount;

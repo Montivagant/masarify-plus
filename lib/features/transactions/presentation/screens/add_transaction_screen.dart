@@ -17,6 +17,7 @@ import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/permission_helper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/transaction_entity.dart';
+import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
@@ -24,6 +25,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
@@ -32,13 +34,12 @@ import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Core transaction entry screen — supports both add and edit modes.
 ///
-/// Layout (≤ 4 taps to save):
-///   Zone 1  Type toggle (مصروف | دخل)
-///   Zone 2  Amount display
-///   Zone 3  Category chips (top 6 + "الكل" overflow)
-///   Zone 4  Optional fields (collapsed by default)
-///           Calculator keypad fills remaining space
-///   Sticky save button in bottomNavigationBar
+/// Layout (Glass Sections):
+///   SegmentedButton (type: expense/income) — standalone
+///   GlassCard (Amount) — tinted with type color
+///   GlassCard (Details) — title, category chips, wallet picker
+///   GlassCard (Optional) — date, note, location chips
+///   AppButton (Save) — sticky bottom
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({
     super.key,
@@ -339,7 +340,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       builder: (ctx) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
+            maxHeight:
+                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -352,12 +354,16 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: ctx.colors.outlineVariant,
-                  borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
                 ),
               ),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppSizes.md, 0, AppSizes.md, AppSizes.sm,
+                  AppSizes.md,
+                  0,
+                  AppSizes.md,
+                  AppSizes.sm,
                 ),
                 child: Text(
                   context.l10n.transaction_wallet_picker,
@@ -367,18 +373,21 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  children: wallets.map(
-                    (w) => ListTile(
-                      leading: const Icon(AppIcons.wallet),
-                      title: Text(w.name),
-                      trailing:
-                          _walletId == w.id ? const Icon(AppIcons.check) : null,
-                      onTap: () {
-                        setState(() => _walletId = w.id);
-                        ctx.pop();
-                      },
-                    ),
-                  ).toList(),
+                  children: wallets
+                      .map(
+                        (w) => ListTile(
+                          leading: Icon(_walletTypeIcon(w.type)),
+                          title: Text(w.name),
+                          trailing: _walletId == w.id
+                              ? const Icon(AppIcons.check)
+                              : null,
+                          onTap: () {
+                            setState(() => _walletId = w.id);
+                            ctx.pop();
+                          },
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
               const SizedBox(height: AppSizes.md),
@@ -405,6 +414,18 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     );
   }
 
+  // ── Wallet icon helper ─────────────────────────────────────────────────
+
+  static IconData _walletTypeIcon(String type) => switch (type) {
+        'physical_cash' => AppIcons.physicalCash,
+        'bank' => AppIcons.bank,
+        'mobile_wallet' => AppIcons.phone,
+        'credit_card' => AppIcons.creditCard,
+        'prepaid_card' => AppIcons.prepaidCard,
+        'investment' => AppIcons.investmentAccount,
+        _ => AppIcons.wallet,
+      };
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -427,174 +448,200 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final canSave =
         _amountPiastres > 0 && _selectedCategoryId != null && _walletId != null;
 
+    // Resolve current wallet for the wallet picker row.
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+    final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
+
     return Scaffold(
       appBar: AppAppBar(
         title: widget.editId != null
             ? context.l10n.transaction_edit_title
             : context.l10n.transactions_add,
-        actions: [
-          ref.watch(walletsProvider).when(
-            data: (wallets) {
-              final w = wallets.where((w) => w.id == _walletId).firstOrNull;
-              if (w == null) return const SizedBox.shrink();
-              return TextButton.icon(
-                onPressed: _showWalletPicker,
-                label: Text(w.name, overflow: TextOverflow.ellipsis),
-                icon: const Icon(AppIcons.wallet, size: AppSizes.iconXs),
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                ),
-              );
-            },
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-          ),
-        ],
       ),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Zone 1: Type toggle ──────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.screenHPadding,
-              vertical: AppSizes.sm,
-            ),
-            child: SegmentedButton<String>(
-              segments: [
-                ButtonSegment(
-                  value: 'expense',
-                  label: Text(context.l10n.transaction_type_expense),
-                  icon: const Icon(AppIcons.expense),
-                ),
-                ButtonSegment(
-                  value: 'income',
-                  label: Text(context.l10n.transaction_type_income),
-                  icon: const Icon(AppIcons.income),
-                ),
-              ],
-              selected: {_type},
-              onSelectionChanged: (v) {
-                setState(() {
-                  _type = v.first;
-                  _selectedCategoryId = null;
-                  _smartDefaultApplied = false;
-                });
-              },
-            ),
-          ),
-
-          // ── Zone 2: Amount input (native keyboard) ─────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.screenHPadding,
-              vertical: AppSizes.xs,
-            ),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-              decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: AppSizes.opacityLight),
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Type toggle (standalone — no glass card) ─────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+                vertical: AppSizes.sm,
               ),
-              child: AmountInput(
-                initialPiastres: _amountPiastres,
-                onAmountChanged: (p) => setState(() => _amountPiastres = p),
-                autofocus: widget.editId == null,
-                textColor: typeColor,
+              child: SegmentedButton<String>(
+                segments: [
+                  ButtonSegment(
+                    value: 'expense',
+                    label: Text(context.l10n.transaction_type_expense),
+                    icon: const Icon(AppIcons.expense),
+                  ),
+                  ButtonSegment(
+                    value: 'income',
+                    label: Text(context.l10n.transaction_type_income),
+                    icon: const Icon(AppIcons.income),
+                  ),
+                ],
+                selected: {_type},
+                onSelectionChanged: (v) {
+                  setState(() {
+                    _type = v.first;
+                    _selectedCategoryId = null;
+                    _smartDefaultApplied = false;
+                  });
+                },
               ),
             ),
-          ),
 
-          // ── WS-10: Title input ────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.screenHPadding,
-              vertical: AppSizes.xs,
-            ),
-            child: AppTextField(
-              label: context.l10n.transaction_title_label,
-              hint: context.l10n.transaction_title_hint,
-              controller: _titleController,
-            ),
-          ),
-
-          // ── Zone 3: Category chips ───────────────────────────────────
-          SizedBox(
-            height: AppSizes.categoryChipSize,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
+            // ── Amount Card (tinted glass) ───────────────────────────
+            Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.screenHPadding,
               ),
-              itemCount: topCats.length + 1,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSizes.xs),
-              itemBuilder: (_, i) {
-                if (i == topCats.length) {
-                  return ActionChip(
-                    label: Text(context.l10n.common_all),
-                    avatar: const Icon(AppIcons.expandMore, size: AppSizes.iconXxs2),
-                    onPressed: () => _showAllCategories(typeCats),
-                  );
-                }
-                final cat = topCats[i];
-                final color = ColorUtils.fromHex(cat.colorHex);
-                final isSelected = cat.id == _selectedCategoryId;
-                final isTimeHint = !isSelected &&
-                    todKeywords.any(
-                      (kw) =>
-                          cat.name.toLowerCase().contains(kw) ||
-                          cat.nameAr.contains(kw),
-                    );
-                return FilterChip(
-                  selected: isSelected,
-                  avatar: Icon(
-                    CategoryIconMapper.fromName(cat.iconName),
-                    size: AppSizes.iconXs,
-                    color: isSelected ? cs.onSecondaryContainer : color,
-                  ),
-                  label: Text(cat.displayName(context.languageCode)),
-                  side: isTimeHint
-                      ? BorderSide(
-                          color: cs.primary,
-                          width: AppSizes.borderWidthEmphasis,
-                        )
-                      : null,
-                  onSelected: (_) {
-                    setState(() => _selectedCategoryId = cat.id);
-                    // WS-10: auto-fill title on category selection if empty.
-                    if (_titleController.text.trim().isEmpty) {
-                      _titleController.text =
-                          cat.displayName(context.languageCode);
-                    }
-                  },
-                  showCheckmark: false,
-                );
-              },
+              child: GlassCard(
+                tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSizes.sm,
+                ),
+                child: AmountInput(
+                  initialPiastres: _amountPiastres,
+                  onAmountChanged: (p) => setState(() => _amountPiastres = p),
+                  autofocus: widget.editId == null,
+                  textColor: typeColor,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSizes.xs),
+            const SizedBox(height: AppSizes.md),
 
-          // ── Zone 4: Optional fields ──────────────────────────────────
-          _OptionalSection(
-            expanded: _showOptional,
-            onToggle: () => setState(() => _showOptional = !_showOptional),
-            date: _date,
-            onDateChanged: (d) => setState(() => _date = d),
-            noteController: _noteController,
-            locationName: _locationName,
-            detectingLocation: _detectingLocation,
-            onDetectLocation: _detectLocation,
-            onLocationChanged: (v) => setState(() => _locationName = v),
-          ),
+            // ── Details Card (title + categories + wallet) ───────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title input with icon prefix, no floating label
+                    AppTextField(
+                      label: context.l10n.transaction_title_label,
+                      hint: context.l10n.transaction_title_hint,
+                      controller: _titleController,
+                      prefixIcon: Icon(
+                        AppIcons.edit,
+                        size: AppSizes.iconSm,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.sm),
 
-          // Extra space for scrolling when keyboard opens
-          const SizedBox(height: AppSizes.xl),
-        ],
-      ),
+                    // Category chips row
+                    SizedBox(
+                      height: AppSizes.categoryChipSize,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: topCats.length + 1,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(width: AppSizes.xs),
+                        itemBuilder: (_, i) {
+                          if (i == topCats.length) {
+                            return ActionChip(
+                              label: Text(context.l10n.common_all),
+                              avatar: const Icon(
+                                AppIcons.expandMore,
+                                size: AppSizes.iconXxs2,
+                              ),
+                              onPressed: () => _showAllCategories(typeCats),
+                            );
+                          }
+                          final cat = topCats[i];
+                          final color = ColorUtils.fromHex(cat.colorHex);
+                          final isSelected = cat.id == _selectedCategoryId;
+                          final isTimeHint = !isSelected &&
+                              todKeywords.any(
+                                (kw) =>
+                                    cat.name.toLowerCase().contains(kw) ||
+                                    cat.nameAr.contains(kw),
+                              );
+                          return AnimatedScale(
+                            scale: isSelected ? 1.0 : 0.95,
+                            duration: context.reduceMotion
+                                ? Duration.zero
+                                : AppDurations.microBounce,
+                            curve: Curves.easeOutBack,
+                            child: FilterChip(
+                              selected: isSelected,
+                              avatar: Icon(
+                                CategoryIconMapper.fromName(
+                                  cat.iconName,
+                                ),
+                                size: AppSizes.iconXs,
+                                color: isSelected
+                                    ? cs.onSecondaryContainer
+                                    : color,
+                              ),
+                              label: Text(
+                                cat.displayName(
+                                  context.languageCode,
+                                ),
+                              ),
+                              side: isTimeHint
+                                  ? BorderSide(
+                                      color: cs.primary,
+                                      width: AppSizes.borderWidthEmphasis,
+                                    )
+                                  : null,
+                              onSelected: (_) {
+                                setState(() => _selectedCategoryId = cat.id);
+                                // WS-10: auto-fill title on category selection if empty.
+                                if (_titleController.text.trim().isEmpty) {
+                                  _titleController.text = cat.displayName(
+                                    context.languageCode,
+                                  );
+                                }
+                              },
+                              showCheckmark: false,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.sm),
+
+                    // Wallet picker row
+                    _WalletPickerRow(
+                      wallet: currentWallet,
+                      onTap: _showWalletPicker,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+
+            // ── Optional Card (date, note, location) ─────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: _OptionalSection(
+                expanded: _showOptional,
+                onToggle: () => setState(() => _showOptional = !_showOptional),
+                date: _date,
+                onDateChanged: (d) => setState(() => _date = d),
+                noteController: _noteController,
+                locationName: _locationName,
+                detectingLocation: _detectingLocation,
+                onDetectLocation: _detectLocation,
+                onLocationChanged: (v) => setState(() => _locationName = v),
+              ),
+            ),
+
+            // Extra space for scrolling when keyboard opens
+            const SizedBox(height: AppSizes.xl),
+          ],
+        ),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
@@ -618,7 +665,68 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   }
 }
 
-// ── Optional section ──────────────────────────────────────────────────────
+// ── Wallet picker row ────────────────────────────────────────────────────
+
+class _WalletPickerRow extends StatelessWidget {
+  const _WalletPickerRow({
+    required this.wallet,
+    required this.onTap,
+  });
+
+  final WalletEntity? wallet;
+  final VoidCallback onTap;
+
+  static IconData _typeIcon(String type) => switch (type) {
+        'physical_cash' => AppIcons.physicalCash,
+        'bank' => AppIcons.bank,
+        'mobile_wallet' => AppIcons.phone,
+        'credit_card' => AppIcons.creditCard,
+        'prepaid_card' => AppIcons.prepaidCard,
+        'investment' => AppIcons.investmentAccount,
+        _ => AppIcons.wallet,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    if (wallet == null) {
+      return const SizedBox.shrink();
+    }
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+        child: Row(
+          children: [
+            Icon(
+              _typeIcon(wallet!.type),
+              size: AppSizes.iconSm,
+              color: cs.primary,
+            ),
+            const SizedBox(width: AppSizes.sm),
+            Expanded(
+              child: Text(
+                wallet!.name,
+                style: context.textStyles.bodyLarge,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Icon(
+              AppIcons.chevronRight,
+              size: AppSizes.iconXs,
+              color: cs.outline,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Optional section (wrapped in GlassCard) ──────────────────────────────
 
 class _OptionalSection extends StatelessWidget {
   const _OptionalSection({
@@ -645,117 +753,173 @@ class _OptionalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: onToggle,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.screenHPadding,
-              vertical: AppSizes.xs,
-            ),
+    final cs = context.colors;
+
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Collapsed state: tappable chips row ──────────────────
+          GestureDetector(
+            onTap: onToggle,
+            behavior: HitTestBehavior.opaque,
             child: Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   expanded ? AppIcons.expandLess : AppIcons.expandMore,
                   size: AppSizes.iconXs,
-                  color: context.colors.outline,
+                  color: cs.outline,
                 ),
                 const SizedBox(width: AppSizes.xs),
                 Text(
                   context.l10n.transaction_optional_details,
                   style: context.textStyles.bodySmall?.copyWith(
-                        color: context.colors.outline,
-                      ),
+                    color: cs.outline,
+                  ),
                 ),
+                const Spacer(),
+                // Quick-access chips when collapsed
+                if (!expanded) ...[
+                  _QuickChip(
+                    icon: AppIcons.calendar,
+                    label: context.l10n.date_today,
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  if (locationName != null)
+                    _QuickChip(
+                      icon: AppIcons.location,
+                      label: locationName!,
+                    ),
+                ],
               ],
             ),
           ),
-        ),
-        AnimatedSize(
-          duration: context.reduceMotion ? Duration.zero : AppDurations.animQuick,
-          curve: Curves.easeInOut,
-          child: expanded
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(
-                    AppSizes.screenHPadding,
-                    AppSizes.xs,
-                    AppSizes.screenHPadding,
-                    AppSizes.sm,
-                  ),
-                  child: Column(
-                    children: [
-                      AppDatePicker(
-                        selectedDate: date,
-                        onDateChanged: onDateChanged,
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-                      AppTextField(
-                        label: context.l10n.transaction_note,
-                        hint: context.l10n.transaction_note_hint,
-                        controller: noteController,
-                        maxLines: 2,
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-                      // ── Location ──────────────────────────────
-                      Row(
-                        children: [
-                          const Icon(
-                            AppIcons.location,
-                            size: AppSizes.iconXs,
-                          ),
-                          const SizedBox(width: AppSizes.xs),
-                          Expanded(
-                            child: locationName != null
-                                ? Text(
-                                    locationName!,
-                                    style: context.textStyles.bodySmall,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  )
-                                : Text(
-                                    context.l10n.location_hint,
-                                    style: context.textStyles.bodySmall
-                                        ?.copyWith(
-                                          color: context.colors.outline,
-                                        ),
-                                  ),
-                          ),
-                          if (locationName != null)
-                            IconButton(
-                              icon: const Icon(
-                                AppIcons.close,
-                                size: AppSizes.iconXs,
-                              ),
-                              onPressed: () => onLocationChanged(null),
-                              visualDensity: VisualDensity.compact,
-                              tooltip: context.l10n.common_delete,
+
+          // ── Expanded state: full form fields ─────────────────────
+          AnimatedSize(
+            duration:
+                context.reduceMotion ? Duration.zero : AppDurations.animQuick,
+            curve: Curves.easeInOut,
+            child: expanded
+                ? Padding(
+                    padding: const EdgeInsets.only(top: AppSizes.sm),
+                    child: Column(
+                      children: [
+                        AppDatePicker(
+                          selectedDate: date,
+                          onDateChanged: onDateChanged,
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        AppTextField(
+                          label: context.l10n.transaction_note,
+                          hint: context.l10n.transaction_note_hint,
+                          controller: noteController,
+                          maxLines: 2,
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        // ── Location ──────────────────────────────
+                        Row(
+                          children: [
+                            const Icon(
+                              AppIcons.location,
+                              size: AppSizes.iconXs,
                             ),
-                          const SizedBox(width: AppSizes.xs),
-                          TextButton(
-                            onPressed:
-                                detectingLocation ? null : onDetectLocation,
-                            child: detectingLocation
-                                ? const SizedBox(
-                                    width: AppSizes.md,
-                                    height: AppSizes.md,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
+                            const SizedBox(width: AppSizes.xs),
+                            Expanded(
+                              child: locationName != null
+                                  ? Text(
+                                      locationName!,
+                                      style: context.textStyles.bodySmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                  : Text(
+                                      context.l10n.location_hint,
+                                      style: context.textStyles.bodySmall
+                                          ?.copyWith(
+                                        color: cs.outline,
+                                      ),
                                     ),
-                                  )
-                                : Text(context.l10n.location_detect),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+                            ),
+                            if (locationName != null)
+                              IconButton(
+                                icon: const Icon(
+                                  AppIcons.close,
+                                  size: AppSizes.iconXs,
+                                ),
+                                onPressed: () => onLocationChanged(null),
+                                visualDensity: VisualDensity.compact,
+                                tooltip: context.l10n.common_delete,
+                              ),
+                            const SizedBox(width: AppSizes.xs),
+                            TextButton(
+                              onPressed:
+                                  detectingLocation ? null : onDetectLocation,
+                              child: detectingLocation
+                                  ? const SizedBox(
+                                      width: AppSizes.md,
+                                      height: AppSizes.md,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth:
+                                            AppSizes.spinnerStrokeWidth,
+                                      ),
+                                    )
+                                  : Text(
+                                      context.l10n.location_detect,
+                                    ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Quick chip (compact label for collapsed optional section) ────────────
+
+class _QuickChip extends StatelessWidget {
+  const _QuickChip({
+    required this.icon,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xs,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: cs.outlineVariant),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: AppSizes.iconXxs2, color: cs.primary),
+          const SizedBox(width: AppSizes.xs),
+          Text(
+            label,
+            style: context.textStyles.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -778,9 +942,9 @@ class _CategoryPickerSheet extends StatelessWidget {
     final cs = context.colors;
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
+      initialChildSize: AppSizes.sheetInitialSize,
+      minChildSize: AppSizes.sheetSmallInitialSize,
+      maxChildSize: AppSizes.sheetMaxSize,
       expand: false,
       builder: (ctx, scrollController) => Column(
         children: [
@@ -835,9 +999,13 @@ class _CategoryPickerSheet extends StatelessWidget {
                         decoration: isSelected
                             ? BoxDecoration(
                                 color: cs.primaryContainer,
-                                borderRadius:
-                                    BorderRadius.circular(AppSizes.borderRadiusMd),
-                                border: Border.all(color: cs.primary, width: 2),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.borderRadiusMd,
+                                ),
+                                border: Border.all(
+                                  color: cs.primary,
+                                  width: AppSizes.borderWidthFocus,
+                                ),
                               )
                             : null,
                         child: Icon(

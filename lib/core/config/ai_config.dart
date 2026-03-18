@@ -5,15 +5,8 @@ import 'env.dart';
 /// API keys are loaded from [Env] (gitignored env.dart).
 /// Can be overridden at build time via `--dart-define=OPENROUTER_API_KEY=...`.
 abstract final class AiConfig {
-  /// Build-time overrides (optional).
-  static const String _envOverride =
-      String.fromEnvironment('OPENROUTER_API_KEY');
-  static const String _googleAiEnvOverride =
-      String.fromEnvironment('GOOGLE_AI_API_KEY');
-
-  /// OpenRouter API key — env.dart primary, --dart-define override.
-  static String get openRouterApiKey =>
-      _envOverride.isNotEmpty ? _envOverride : Env.openRouterApiKey;
+  /// OpenRouter API key — provided via `--dart-define=OPENROUTER_API_KEY=...`.
+  static String get openRouterApiKey => Env.openRouterApiKey;
 
   /// OpenRouter API base URL.
   static const String openRouterBaseUrl = 'https://openrouter.ai/api/v1';
@@ -58,10 +51,8 @@ abstract final class AiConfig {
 
   // ── Google AI / Gemini Direct API ──────────────────────────────────────
 
-  /// Google AI Studio API key — env.dart primary, --dart-define override.
-  static String get googleAiApiKey => _googleAiEnvOverride.isNotEmpty
-      ? _googleAiEnvOverride
-      : Env.googleAiApiKey;
+  /// Google AI Studio API key — provided via `--dart-define=GOOGLE_AI_API_KEY=...`.
+  static String get googleAiApiKey => Env.googleAiApiKey;
 
   /// Whether a valid Google AI API key has been provided.
   static bool get hasGoogleAiKey => googleAiApiKey.isNotEmpty;

@@ -160,19 +160,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallets_transfer => 'Transfer';
 
   @override
-  String get wallet_type_cash => 'Cash';
+  String get wallet_type_physical_cash => 'Physical Cash';
 
   @override
   String get wallet_type_bank => 'Bank Account';
 
   @override
-  String get wallet_type_mobile_wallet => 'Mobile Account';
+  String get wallet_type_mobile_wallet => 'Mobile Wallet';
 
   @override
   String get wallet_type_credit_card => 'Credit Card';
 
   @override
-  String get wallet_type_savings => 'Savings';
+  String get wallet_type_prepaid_card => 'Prepaid Card';
+
+  @override
+  String get wallet_type_investment => 'Investment Account';
 
   @override
   String get wallet_name_hint => 'Account name';
@@ -568,9 +571,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_clear_data_confirm => 'Type DELETE to confirm';
 
   @override
-  String get settings_smart_input => 'Smart Input';
-
-  @override
   String get settings_voice_input => 'Voice Input';
 
   @override
@@ -850,7 +850,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sms_review_title => 'Transactions Found';
 
   @override
-  String get parsed_transactions_title => 'Parsed Transactions';
+  String get parsed_transactions_title => 'Auto-detected Transactions';
 
   @override
   String get sms_review_approve => 'Approve';
@@ -868,6 +868,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parser_no_pending => 'No pending transactions to review';
+
+  @override
+  String get parser_no_pending_filtered =>
+      'No transactions for this source — try \"All\"';
 
   @override
   String get parser_approved_msg => 'Transaction approved';
@@ -895,6 +899,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parser_enriching => 'Enriching…';
+
+  @override
+  String get parser_possible_duplicate => 'Possible duplicate';
+
+  @override
+  String parser_similar_exists(String date) {
+    return 'Similar transaction found ($date)';
+  }
+
+  @override
+  String get parser_wallet_label => 'Account';
+
+  @override
+  String get parser_source_all => 'All';
+
+  @override
+  String get parser_source_sms => 'SMS';
+
+  @override
+  String get parser_source_notification => 'Notifications';
+
+  @override
+  String get parser_approve_as_transfer => 'Approve as Transfer';
+
+  @override
+  String get parser_atm_detected => 'ATM Withdrawal';
+
+  @override
+  String get parser_select_cash_wallet => 'Select cash wallet';
+
+  @override
+  String get parser_duplicate_exists =>
+      'Similar transaction already exists. Create anyway?';
+
+  @override
+  String parser_auto_resolved(int count) {
+    return '$count parsed transaction(s) matched and auto-resolved';
+  }
+
+  @override
+  String get settings_smart_detection => 'Smart Detection';
+
+  @override
+  String get settings_smart_detection_subtitle =>
+      'Auto-detect transactions from SMS and notifications';
+
+  @override
+  String get settings_ai_models => 'AI & Models';
+
+  @override
+  String dashboard_pending_review(int count) {
+    return '$count transaction(s) to review';
+  }
+
+  @override
+  String get dashboard_pending_review_action => 'Review';
 
   @override
   String goal_link_prompt(String goalName) {
@@ -1085,19 +1145,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_add_button => 'Add Account';
 
   @override
-  String get wallet_type_cash_short => 'Cash';
+  String get wallet_type_physical_cash_short => 'Cash';
 
   @override
   String get wallet_type_bank_short => 'Bank';
 
   @override
-  String get wallet_type_mobile_wallet_short => 'Mobile';
+  String get wallet_type_mobile_wallet_short => 'Wallet';
 
   @override
   String get wallet_type_credit_card_short => 'Credit';
 
   @override
-  String get wallet_type_savings_short => 'Savings';
+  String get wallet_type_prepaid_card_short => 'Prepaid';
+
+  @override
+  String get wallet_type_investment_short => 'Invest';
+
+  @override
+  String get wallet_system_badge => 'System';
+
+  @override
+  String get wallet_cannot_archive_system =>
+      'The Physical Cash wallet cannot be archived';
+
+  @override
+  String get balance_available => 'Available';
+
+  @override
+  String get balance_in_goals => 'In Goals';
+
+  @override
+  String get goal_link_sheet_title => 'Save to goal?';
+
+  @override
+  String goal_link_sheet_subtitle(Object goalName) {
+    return 'Would you like to allocate to $goalName?';
+  }
+
+  @override
+  String get goal_link_sheet_save => 'Save to Goal';
+
+  @override
+  String get goal_contribution_from_wallet => 'From account';
+
+  @override
+  String goal_contribution_deducted(Object walletName) {
+    return 'Deducted from $walletName';
+  }
+
+  @override
+  String get onboarding_physical_cash_note =>
+      'Your cash-in-hand wallet is created automatically';
+
+  @override
+  String get wallet_linked_senders_label => 'Linked SMS Senders';
+
+  @override
+  String get wallet_linked_senders_hint => 'e.g. CIB, NBE, BankMisr';
+
+  @override
+  String get wallet_linked_senders_subtitle =>
+      'Match auto-detected transactions to this account';
 
   @override
   String get wallets_empty_title => 'No accounts yet';
@@ -1719,25 +1828,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.';
 
   @override
-  String get settings_ai_model => 'AI Model';
-
-  @override
-  String get settings_ai_model_subtitle =>
-      'Choose which AI model processes voice input';
-
-  @override
-  String get settings_ai_model_auto => 'Auto (Recommended)';
-
-  @override
-  String get settings_ai_model_gemma_27b => 'Gemma 3 27B';
-
-  @override
-  String get settings_ai_model_gemini_flash => 'Gemini 2.0 Flash';
-
-  @override
-  String get settings_ai_model_qwen3_4b => 'Qwen3 4B';
-
-  @override
   String get fab_expense => 'Expense';
 
   @override
@@ -1871,6 +1961,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pdf_col_wallet => 'Account';
 
   @override
+  String get pdf_page_label => 'Page';
+
+  @override
+  String get pdf_of_label => 'of';
+
+  @override
+  String get pdf_unknown_category => 'Unknown';
+
+  @override
   String get dashboard_all_accounts => 'All Accounts';
 
   @override
@@ -1907,7 +2006,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dashboard_insight_parsed_transactions => 'Parsed Transactions';
+  String get dashboard_insight_parsed_transactions =>
+      'Auto-detected Transactions';
 
   @override
   String insight_recurring_detected(String title) {
@@ -1954,4 +2054,397 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get common_undo => 'Undo';
+
+  @override
+  String get auto_detected_transactions => 'Auto-detected Transactions';
+
+  @override
+  String get dashboard_chat_tooltip => 'AI Assistant';
+
+  @override
+  String get chat_action_budget_title => 'Create Budget';
+
+  @override
+  String get chat_action_recurring_title => 'Create Recurring';
+
+  @override
+  String get chat_action_wallet_title => 'Create Account';
+
+  @override
+  String get chat_action_delete_title => 'Delete Transaction';
+
+  @override
+  String chat_budget_created(String category) {
+    return 'Budget created for $category';
+  }
+
+  @override
+  String chat_recurring_created(String title) {
+    return 'Recurring rule \"$title\" created';
+  }
+
+  @override
+  String chat_wallet_created(String name) {
+    return 'Account \"$name\" created';
+  }
+
+  @override
+  String get chat_transaction_deleted => 'Transaction deleted';
+
+  @override
+  String get chat_confirm_delete =>
+      'Are you sure you want to delete this transaction?';
+
+  @override
+  String get chat_no_match_category => 'Could not find a matching category';
+
+  @override
+  String get chat_no_active_wallet => 'No active account available';
+
+  @override
+  String get chat_budget_exists => 'A budget already exists for this category';
+
+  @override
+  String get chat_wallet_name_taken =>
+      'An account with this name already exists';
+
+  @override
+  String get quick_start_title => 'Quick Start';
+
+  @override
+  String get quick_start_subtitle => 'Set up your finances in a few steps';
+
+  @override
+  String get quick_start_step_wallets => 'How do you manage your money?';
+
+  @override
+  String get quick_start_step_categories => 'What do you spend most on?';
+
+  @override
+  String get quick_start_step_budgets => 'Set monthly budgets';
+
+  @override
+  String get quick_start_step_bills => 'Any regular bills?';
+
+  @override
+  String get quick_start_step_goals => 'Saving for something?';
+
+  @override
+  String get quick_start_source_cash => 'Cash only';
+
+  @override
+  String get quick_start_source_bank => 'Bank account';
+
+  @override
+  String get quick_start_source_mobile => 'Mobile wallet';
+
+  @override
+  String get quick_start_source_multiple => 'Multiple sources';
+
+  @override
+  String get quick_start_category_food => 'Food';
+
+  @override
+  String get quick_start_category_rent => 'Rent';
+
+  @override
+  String get quick_start_category_transport => 'Transport';
+
+  @override
+  String get quick_start_category_bills => 'Bills';
+
+  @override
+  String get quick_start_category_shopping => 'Shopping';
+
+  @override
+  String get quick_start_category_health => 'Health';
+
+  @override
+  String get quick_start_category_education => 'Education';
+
+  @override
+  String get quick_start_category_other => 'Other';
+
+  @override
+  String get quick_start_budget_hint => 'Monthly limit';
+
+  @override
+  String get quick_start_bill_internet => 'Internet';
+
+  @override
+  String get quick_start_bill_phone => 'Phone';
+
+  @override
+  String get quick_start_bill_electricity => 'Electricity';
+
+  @override
+  String get quick_start_bill_gas => 'Gas';
+
+  @override
+  String get quick_start_bill_gym => 'Gym';
+
+  @override
+  String get quick_start_bill_subscription => 'Subscription';
+
+  @override
+  String get quick_start_goal_emergency => 'Emergency fund';
+
+  @override
+  String get quick_start_goal_vacation => 'Vacation';
+
+  @override
+  String get quick_start_goal_car => 'Car';
+
+  @override
+  String get quick_start_goal_wedding => 'Wedding';
+
+  @override
+  String get quick_start_goal_education => 'Education';
+
+  @override
+  String get quick_start_goal_custom => 'Custom';
+
+  @override
+  String get quick_start_goal_target => 'Target amount';
+
+  @override
+  String get quick_start_source_other => 'Other';
+
+  @override
+  String get quick_start_custom_wallet_name => 'Account name';
+
+  @override
+  String get quick_start_bill_other => 'Custom bill';
+
+  @override
+  String get quick_start_bill_name_hint => 'Bill name';
+
+  @override
+  String get quick_start_goal_custom_name => 'Goal name';
+
+  @override
+  String get quick_start_wallet_type_label => 'Account type';
+
+  @override
+  String get quick_start_done_title => 'You\'re all set!';
+
+  @override
+  String get quick_start_done_subtitle => 'Your finances are ready to track';
+
+  @override
+  String get quick_start_tip_title => 'Quick start your finances';
+
+  @override
+  String get quick_start_tip_subtitle =>
+      'Set up budgets, bills, and goals in seconds';
+
+  @override
+  String get quick_start_add_another => 'Add another?';
+
+  @override
+  String get quick_start_adjust => 'Adjust?';
+
+  @override
+  String get quick_start_amount_label => 'Amount';
+
+  @override
+  String get backup_cloud_title => 'Cloud Backup';
+
+  @override
+  String get backup_sign_in_google => 'Sign in with Google';
+
+  @override
+  String get backup_sign_out => 'Sign Out';
+
+  @override
+  String backup_signed_in_as(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String backup_last_date(String date) {
+    return 'Last backup: $date';
+  }
+
+  @override
+  String get backup_now => 'Backup Now';
+
+  @override
+  String get backup_restore_drive => 'Restore from Drive';
+
+  @override
+  String get backup_encrypting => 'Encrypting...';
+
+  @override
+  String get backup_uploading => 'Uploading to Drive...';
+
+  @override
+  String get backup_downloading => 'Downloading from Drive...';
+
+  @override
+  String get backup_restore_warning =>
+      'This will replace ALL local data with the backup. Continue?';
+
+  @override
+  String get backup_no_backups => 'No backups found on Google Drive';
+
+  @override
+  String get backup_welcome_back => 'Welcome back?';
+
+  @override
+  String get backup_start_fresh => 'Start Fresh';
+
+  @override
+  String get backup_restore_from_drive => 'Restore from Google Drive';
+
+  @override
+  String get backup_offline_error => 'Connect to internet to use cloud backup';
+
+  @override
+  String get backup_drive_success => 'Backup saved to Google Drive';
+
+  @override
+  String get backup_drive_failed => 'Cloud backup failed. Please try again.';
+
+  @override
+  String get backup_pre_reset_offer => 'Save a backup before deleting?';
+
+  @override
+  String get backup_pre_reset_drive => 'Backup to Google Drive';
+
+  @override
+  String get backup_pre_reset_file => 'Export to file';
+
+  @override
+  String get backup_pre_reset_skip => 'No, just delete';
+
+  @override
+  String get backup_failed_continue => 'Backup failed. Delete all data anyway?';
+
+  @override
+  String voice_wallet_not_found(String name) {
+    return 'Account \'\'$name\'\' not found — create it?';
+  }
+
+  @override
+  String get voice_select_wallet => 'Select account';
+
+  @override
+  String voice_confirm_count(int count) {
+    return 'Confirm ($count)';
+  }
+
+  @override
+  String get voice_select_all => 'Select All';
+
+  @override
+  String get voice_deselect_all => 'Deselect All';
+
+  @override
+  String get voice_wallet_not_matched => 'Account not found';
+
+  @override
+  String get common_create => 'Create';
+
+  @override
+  String get backup_encryption_warning =>
+      'Cloud backups are encrypted and tied to this device. If you reinstall the app or switch devices, you will not be able to restore cloud backups. Use local file backup for device transfers.';
+
+  @override
+  String get chat_action_invalid_amount => 'Amount must be greater than zero';
+
+  @override
+  String get chat_action_invalid_target =>
+      'Target amount must be greater than zero';
+
+  @override
+  String get chat_action_invalid_budget_limit =>
+      'Budget limit must be greater than zero';
+
+  @override
+  String chat_action_category_not_found(String name, String available) {
+    return 'Could not match category \"$name\". Available: $available';
+  }
+
+  @override
+  String get chat_action_no_active_wallet =>
+      'No active account available. Please create one first.';
+
+  @override
+  String chat_action_budget_exists(String category) {
+    return 'A budget already exists for \"$category\" this month';
+  }
+
+  @override
+  String get chat_action_wallet_exists =>
+      'An account with this name already exists';
+
+  @override
+  String chat_action_tx_not_found(String title) {
+    return 'No transaction found matching \"$title\" with that amount';
+  }
+
+  @override
+  String chat_action_goal_created(String name, String amount) {
+    return 'Goal \"$name\" created with a target of $amount!';
+  }
+
+  @override
+  String chat_action_tx_recorded(String title, String amount) {
+    return 'Transaction \"$title\" of $amount recorded!';
+  }
+
+  @override
+  String chat_action_budget_created(String amount, String category) {
+    return 'Budget of $amount created for \"$category\"!';
+  }
+
+  @override
+  String chat_action_recurring_created(
+      String title, String frequency, String amount) {
+    return 'Recurring \"$title\" ($frequency) of $amount created!';
+  }
+
+  @override
+  String chat_action_wallet_created(String name, String amount) {
+    return 'Account \"$name\" created with balance $amount!';
+  }
+
+  @override
+  String chat_action_tx_deleted(String title, String amount) {
+    return 'Transaction \"$title\" of $amount deleted!';
+  }
+
+  @override
+  String get onboarding_features_title => 'Discover Masarify';
+
+  @override
+  String get onboarding_feature_voice_title => 'Voice Input';
+
+  @override
+  String get onboarding_feature_voice_body =>
+      'Just speak. AI will parse your transactions instantly.';
+
+  @override
+  String get onboarding_feature_budget_title => 'Smart Budgets';
+
+  @override
+  String get onboarding_feature_budget_body =>
+      'Set limits, get alerts, stay on track.';
+
+  @override
+  String get onboarding_feature_goal_title => 'Goal Tracking';
+
+  @override
+  String get onboarding_feature_goal_body =>
+      'Save towards what matters most to you.';
+
+  @override
+  String get onboarding_ready_title => 'You\'re All Set!';
+
+  @override
+  String get onboarding_ready_body => 'Start tracking your money today.';
+
+  @override
+  String get onboarding_ready_cta => 'Start Tracking';
 }
