@@ -189,8 +189,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 10) {
             // Seed "ATM" category for cash withdrawal/deposit transactions.
             await customStatement(
-              'INSERT OR IGNORE INTO categories (name, icon_name, type, is_default, display_order) '
-              "VALUES ('ATM', 'bank', 'both', 1, 99)",
+              'INSERT OR IGNORE INTO categories '
+              '(name, name_ar, icon_name, type, is_default, display_order) '
+              "VALUES ('ATM', 'صراف آلي', 'bank', 'both', 1, 99)",
             );
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.

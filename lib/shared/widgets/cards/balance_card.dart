@@ -247,11 +247,16 @@ class BalanceCard extends StatelessWidget {
     final radius = BorderRadius.circular(AppSizes.gradientBorderRadius);
 
     // Parse wallet color for tinting, fallback to primary.
-    final walletColor = walletColorHex != null && walletColorHex!.length >= 7
-        ? Color(
-            int.parse(walletColorHex!.substring(1), radix: 16) + 0xFF000000,
-          )
-        : cs.primary;
+    Color walletColor;
+    try {
+      walletColor = walletColorHex != null && walletColorHex!.length >= 7
+          ? Color(
+              int.parse(walletColorHex!.substring(1), radix: 16) + 0xFF000000,
+            )
+          : cs.primary;
+    } catch (_) {
+      walletColor = cs.primary;
+    }
 
     return Container(
       decoration: BoxDecoration(

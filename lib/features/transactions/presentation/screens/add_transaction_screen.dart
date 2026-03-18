@@ -401,7 +401,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
   // ── Pickers ───────────────────────────────────────────────────────────────
 
   void _showWalletPicker() {
-    final wallets = ref.read(walletsProvider).valueOrNull ?? [];
+    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
+        .where((w) => !w.isSystemWallet)
+        .toList();
     if (wallets.isEmpty) return;
 
     showModalBottomSheet<void>(

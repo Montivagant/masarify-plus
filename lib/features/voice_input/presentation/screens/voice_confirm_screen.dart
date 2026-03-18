@@ -54,6 +54,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     final wallets = ref.read(walletsProvider).valueOrNull ?? [];
     final defaultWalletId = wallets.isNotEmpty ? wallets.first.id : null;
+    // For cash types, default to the first non-system wallet (not Cash itself).
+    final defaultBankWalletId =
+        wallets.where((w) => !w.isSystemWallet).firstOrNull?.id;
     final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
 
     String? unmatchedWalletHint;
@@ -117,7 +120,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           // Multiple matches: leave walletId null — user picks manually
         }
       }
-      draft.walletId ??= defaultWalletId;
+      final isCash =
+          draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
+      draft.walletId ??= isCash ? defaultBankWalletId : defaultWalletId;
 
       // Goal inline suggestion: check rawText against active goal keywords.
       if (draft.matchedGoalName == null) {
@@ -253,6 +258,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                     draft.amountPiastres = piastres;
                   },
                   onTypeToggle: () {
+                    if (draft.type == 'cash_withdrawal' ||
+                        draft.type == 'cash_deposit') {
+                      return;
+                    }
                     setState(() {
                       draft.type =
                           draft.type == 'income' ? 'expense' : 'income';
@@ -552,7 +561,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     BuildContext context,
     _EditableDraft draft,
   ) async {
-    final wallets = ref.read(walletsProvider).valueOrNull ?? [];
+    final isCash =
+        draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
+    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
+        .where((w) => !isCash || !w.isSystemWallet)
+        .toList();
 
     await showModalBottomSheet<void>(
       context: context,
