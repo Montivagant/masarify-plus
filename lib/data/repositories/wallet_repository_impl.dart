@@ -126,7 +126,7 @@ class WalletRepositoryImpl implements IWalletRepository {
       if (existing != null) return existing.id;
       return _dao.insertWallet(
         WalletsCompanion.insert(
-          name: 'Physical Cash',
+          name: 'Cash',
           type: 'physical_cash',
           balance: const Value(0),
           displayOrder: const Value(-1),

@@ -55,7 +55,7 @@
   "wallets_title": "الحسابات",
   "wallets_add": "إضافة حساب",
   "wallets_transfer": "تحويل",
-  "wallet_type_physical_cash": "نقدي (كاش)",
+  "wallet_type_physical_cash": "كاش",
   "wallet_type_bank": "حساب بنكي",
   "wallet_type_mobile_wallet": "محفظة إلكترونية",
   "wallet_type_credit_card": "بطاقة ائتمانية",

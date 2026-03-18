@@ -160,7 +160,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallets_transfer => 'Transfer';
 
   @override
-  String get wallet_type_physical_cash => 'Physical Cash';
+  String get wallet_type_physical_cash => 'Cash';
 
   @override
   String get wallet_type_bank => 'Bank Account';
@@ -1167,7 +1167,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wallet_cannot_archive_system =>
-      'The Physical Cash wallet cannot be archived';
+      'The Cash wallet cannot be archived';
 
   @override
   String get balance_available => 'Available';

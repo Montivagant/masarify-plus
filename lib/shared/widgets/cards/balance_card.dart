@@ -8,22 +8,37 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
 
-/// Hero balance card for the Dashboard (Zone 1).
+/// Visual variant for [BalanceCard].
+enum BalanceCardVariant {
+  /// Full gradient hero card with income/expense summary and info chips.
+  hero,
+
+  /// Simpler per-account card with glass surface background.
+  account,
+}
+
+/// Balance card used in the Dashboard carousel.
 ///
-/// WS-7: Gradient background with decorative circles and glass-effect
-/// income/expense row.
+/// [BalanceCardVariant.hero] (default): Gradient background with decorative
+/// circles, income/expense summary, cash/goals chips, and trend indicator.
+///
+/// [BalanceCardVariant.account]: Glass surface card showing account name,
+/// wallet type icon, and balance only — no summary rows or chips.
 class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
     required this.totalPiastres,
-    required this.monthlyIncomePiastres,
-    required this.monthlyExpensePiastres,
+    this.monthlyIncomePiastres = 0,
+    this.monthlyExpensePiastres = 0,
     this.lastMonthExpensePiastres,
     this.currencyCode = 'EGP',
     this.hidden = false,
     this.onToggleHide,
     this.accountName,
     this.inGoalsPiastres = 0,
+    this.cashPiastres = 0,
+    this.variant = BalanceCardVariant.hero,
+    this.walletTypeIcon,
   });
 
   final int totalPiastres;
@@ -37,11 +52,29 @@ class BalanceCard extends StatelessWidget {
   /// When non-null, displayed instead of the l10n "Total Balance" label.
   final String? accountName;
 
-  /// Amount allocated to active savings goals (piastres). Shows split row when > 0.
+  /// Amount allocated to active savings goals (piastres). Shows chip when > 0.
   final int inGoalsPiastres;
+
+  /// Physical cash balance (piastres). Shows chip when > 0 in hero variant.
+  final int cashPiastres;
+
+  /// Controls the visual style of the card.
+  final BalanceCardVariant variant;
+
+  /// Optional wallet type icon shown in account variant.
+  final IconData? walletTypeIcon;
 
   @override
   Widget build(BuildContext context) {
+    return switch (variant) {
+      BalanceCardVariant.hero => _buildHero(context),
+      BalanceCardVariant.account => _buildAccount(context),
+    };
+  }
+
+  // ── Hero variant ────────────────────────────────────────────────────────
+
+  Widget _buildHero(BuildContext context) {
     final cs = context.colors;
     final theme = context.appTheme;
 
@@ -125,89 +158,47 @@ class BalanceCard extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSizes.xs),
                 // Count-up balance animation
-                TweenAnimationBuilder<int>(
-                  tween: IntTween(begin: 0, end: totalPiastres),
-                  duration: context.reduceMotion
-                      ? Duration.zero
-                      : AppDurations.countUp,
-                  curve: Curves.easeOutCubic,
-                  builder: (_, value, __) {
-                    return Semantics(
-                      label:
-                          '${context.l10n.wallet_balance}: ${MoneyFormatter.format(totalPiastres, currency: currencyCode)}',
-                      child: Text(
-                        hidden
-                            ? '••••••'
-                            : MoneyFormatter.format(
-                                value,
-                                currency: currencyCode,
-                              ),
-                        style: context.textStyles.displaySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  },
+                _CountUpBalance(
+                  totalPiastres: totalPiastres,
+                  currencyCode: currencyCode,
+                  hidden: hidden,
+                  style: context.textStyles.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onPrimary,
+                  ),
                 ),
                 // Trend indicator vs last month
                 if (lastMonthExpensePiastres != null &&
                     lastMonthExpensePiastres! > 0 &&
                     !hidden) ...[
                   const SizedBox(height: AppSizes.xs),
-                  Builder(
-                    builder: (context) {
-                      final diff =
-                          monthlyExpensePiastres - lastMonthExpensePiastres!;
-                      final pct =
-                          ((diff / lastMonthExpensePiastres!) * 100).round();
-                      final isUp = diff > 0;
-                      return Row(
-                        children: [
-                          Icon(
-                            isUp ? AppIcons.trendingUp : AppIcons.trendingDown,
-                            size: AppSizes.iconXxs2,
-                            color: isUp
-                                ? context.appTheme.expenseColor
-                                : context.appTheme.incomeColor,
-                          ),
-                          const SizedBox(width: AppSizes.xs),
-                          Text(
-                            '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
-                            style: context.textStyles.bodySmall?.copyWith(
-                              color: cs.onPrimary
-                                  .withValues(alpha: AppSizes.opacityStrong),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      );
-                    },
+                  _TrendIndicator(
+                    monthlyExpensePiastres: monthlyExpensePiastres,
+                    lastMonthExpensePiastres: lastMonthExpensePiastres!,
                   ),
                 ],
-                // Available vs In Goals split row
-                if (inGoalsPiastres > 0 && !hidden) ...[
-                  const SizedBox(height: AppSizes.xs),
+                // Cash / In-Goals info chips
+                if (!hidden && (cashPiastres > 0 || inGoalsPiastres > 0)) ...[
+                  const SizedBox(height: AppSizes.sm),
                   Row(
                     children: [
-                      Text(
-                        '${context.l10n.balance_available}: ${MoneyFormatter.formatCompact(totalPiastres - inGoalsPiastres, currency: currencyCode)}',
-                        style: context.textStyles.bodySmall?.copyWith(
-                          color: cs.onPrimary
-                              .withValues(alpha: AppSizes.opacityStrong),
+                      if (cashPiastres > 0) ...[
+                        _InfoChip(
+                          icon: AppIcons.physicalCash,
+                          label: context.l10n.wallet_type_physical_cash_short,
+                          amountPiastres: cashPiastres,
+                          currencyCode: currencyCode,
                         ),
-                      ),
-                      const SizedBox(width: AppSizes.sm),
-                      Text(
-                        '${context.l10n.balance_in_goals}: ${MoneyFormatter.formatCompact(inGoalsPiastres, currency: currencyCode)}',
-                        style: context.textStyles.bodySmall?.copyWith(
-                          color: cs.onPrimary
-                              .withValues(alpha: AppSizes.opacityStrong),
+                        if (inGoalsPiastres > 0)
+                          const SizedBox(width: AppSizes.sm),
+                      ],
+                      if (inGoalsPiastres > 0)
+                        _InfoChip(
+                          icon: AppIcons.goals,
+                          label: context.l10n.balance_in_goals,
+                          amountPiastres: inGoalsPiastres,
+                          currencyCode: currencyCode,
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -246,7 +237,235 @@ class BalanceCard extends StatelessWidget {
       ),
     );
   }
+
+  // ── Account variant ─────────────────────────────────────────────────────
+
+  Widget _buildAccount(BuildContext context) {
+    final cs = context.colors;
+    final theme = context.appTheme;
+    final radius = BorderRadius.circular(AppSizes.gradientBorderRadius);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.glassCardSurface,
+        borderRadius: radius,
+        border: Border.all(color: theme.glassCardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: theme.glassShadow,
+            blurRadius: AppSizes.cardShadowBlur,
+            offset: const Offset(0, AppSizes.cardShadowOffsetY),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Account name + type icon + hide toggle
+            Row(
+              children: [
+                if (walletTypeIcon != null) ...[
+                  Container(
+                    width: AppSizes.iconContainerSm,
+                    height: AppSizes.iconContainerSm,
+                    decoration: BoxDecoration(
+                      color:
+                          cs.primary.withValues(alpha: AppSizes.opacityLight2),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.borderRadiusSm),
+                    ),
+                    child: Icon(
+                      walletTypeIcon,
+                      size: AppSizes.iconSm,
+                      color: cs.primary,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                ],
+                Expanded(
+                  child: Text(
+                    accountName ?? '',
+                    style: context.textStyles.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    hidden ? AppIcons.eye : AppIcons.eyeOff,
+                    size: AppSizes.iconSm,
+                    color: cs.onSurfaceVariant,
+                  ),
+                  tooltip: hidden
+                      ? context.l10n.balance_show
+                      : context.l10n.balance_hide,
+                  onPressed: () {
+                    HapticFeedback.selectionClick();
+                    onToggleHide?.call();
+                  },
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSizes.md),
+            // Count-up balance animation (smaller than hero)
+            _CountUpBalance(
+              totalPiastres: totalPiastres,
+              currencyCode: currencyCode,
+              hidden: hidden,
+              style: context.textStyles.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppSizes.xs),
+            // Currency code subtitle
+            Text(
+              currencyCode,
+              style: context.textStyles.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant
+                    .withValues(alpha: AppSizes.opacityStrong),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+// ── Count-up balance animation ──────────────────────────────────────────────
+
+class _CountUpBalance extends StatelessWidget {
+  const _CountUpBalance({
+    required this.totalPiastres,
+    required this.currencyCode,
+    required this.hidden,
+    required this.style,
+  });
+
+  final int totalPiastres;
+  final String currencyCode;
+  final bool hidden;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<int>(
+      tween: IntTween(begin: 0, end: totalPiastres),
+      duration: context.reduceMotion ? Duration.zero : AppDurations.countUp,
+      curve: Curves.easeOutCubic,
+      builder: (_, value, __) {
+        return Semantics(
+          label:
+              '${context.l10n.wallet_balance}: ${MoneyFormatter.format(totalPiastres, currency: currencyCode)}',
+          child: Text(
+            hidden
+                ? '\u2022\u2022\u2022\u2022\u2022\u2022'
+                : MoneyFormatter.format(value, currency: currencyCode),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Trend indicator ─────────────────────────────────────────────────────────
+
+class _TrendIndicator extends StatelessWidget {
+  const _TrendIndicator({
+    required this.monthlyExpensePiastres,
+    required this.lastMonthExpensePiastres,
+  });
+
+  final int monthlyExpensePiastres;
+  final int lastMonthExpensePiastres;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final diff = monthlyExpensePiastres - lastMonthExpensePiastres;
+    final pct = ((diff / lastMonthExpensePiastres) * 100).round();
+    final isUp = diff > 0;
+
+    return Row(
+      children: [
+        Icon(
+          isUp ? AppIcons.trendingUp : AppIcons.trendingDown,
+          size: AppSizes.iconXxs2,
+          color: isUp
+              ? context.appTheme.expenseColor
+              : context.appTheme.incomeColor,
+        ),
+        const SizedBox(width: AppSizes.xs),
+        Text(
+          '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
+          style: context.textStyles.bodySmall?.copyWith(
+            color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+// ── Info chip (cash / goals) ────────────────────────────────────────────────
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.amountPiastres,
+    required this.currencyCode,
+  });
+
+  final IconData icon;
+  final String label;
+  final int amountPiastres;
+  final String currencyCode;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xs,
+      ),
+      decoration: BoxDecoration(
+        color: cs.onPrimary.withValues(alpha: AppSizes.opacityLight),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: AppSizes.iconXxs2, color: cs.onPrimary),
+          const SizedBox(width: AppSizes.xs),
+          Text(
+            '$label: ${MoneyFormatter.formatCompact(amountPiastres, currency: currencyCode)}',
+            style: context.textStyles.labelSmall?.copyWith(
+              color: cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Summary item (income / expense) ─────────────────────────────────────────
 
 class _SummaryItem extends StatelessWidget {
   const _SummaryItem({
@@ -292,7 +511,7 @@ class _SummaryItem extends StatelessWidget {
               ),
               Text(
                 hidden
-                    ? '•••'
+                    ? '\u2022\u2022\u2022'
                     : MoneyFormatter.formatCompact(
                         piastres,
                         currency: currencyCode,

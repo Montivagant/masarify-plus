@@ -401,7 +401,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_type_physical_cash.
   ///
   /// In en, this message translates to:
-  /// **'Physical Cash'**
+  /// **'Cash'**
   String get wallet_type_physical_cash;
 
   /// No description provided for @wallet_type_bank.
@@ -2321,7 +2321,7 @@ abstract class AppLocalizations {
   /// No description provided for @wallet_cannot_archive_system.
   ///
   /// In en, this message translates to:
-  /// **'The Physical Cash wallet cannot be archived'**
+  /// **'The Cash wallet cannot be archived'**
   String get wallet_cannot_archive_system;
 
   /// No description provided for @balance_available.

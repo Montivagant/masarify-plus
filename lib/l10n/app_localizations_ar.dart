@@ -159,7 +159,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallets_transfer => 'تحويل';
 
   @override
-  String get wallet_type_physical_cash => 'نقدي (كاش)';
+  String get wallet_type_physical_cash => 'كاش';
 
   @override
   String get wallet_type_bank => 'حساب بنكي';

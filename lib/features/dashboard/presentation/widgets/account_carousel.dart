@@ -43,6 +43,17 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     super.dispose();
   }
 
+  /// Map wallet type string to its Phosphor icon.
+  static IconData _typeIcon(String type) => switch (type) {
+        'physical_cash' => AppIcons.physicalCash,
+        'bank' => AppIcons.bank,
+        'mobile_wallet' => AppIcons.phone,
+        'credit_card' => AppIcons.creditCard,
+        'prepaid_card' => AppIcons.prepaidCard,
+        'investment' => AppIcons.investmentAccount,
+        _ => AppIcons.wallet,
+      };
+
   @override
   Widget build(BuildContext context) {
     final walletsAsync = ref.watch(walletsProvider);
@@ -50,6 +61,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     final hidden = ref.watch(hideBalancesProvider);
     final selectedIndex = ref.watch(selectedAccountIndexProvider);
     final inGoals = ref.watch(totalInGoalsProvider);
+    final systemWalletAsync = ref.watch(systemWalletProvider);
 
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
@@ -61,10 +73,15 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     final lastMonthTxs =
         ref.watch(transactionsByMonthProvider(lastMonthKey)).valueOrNull ?? [];
 
-    final wallets = walletsAsync.valueOrNull ?? [];
+    final allWallets = walletsAsync.valueOrNull ?? [];
     final totalBalance = totalBalanceAsync.valueOrNull ?? 0;
+    final systemWallet = systemWalletAsync.valueOrNull;
+
+    // Filter out the system wallet from per-account pages.
+    final userWallets = allWallets.where((w) => !w.isSystemWallet).toList();
+
     // +1 for total balance, +1 for "Add Account" card at the end.
-    final pageCount = 1 + wallets.length + 1;
+    final pageCount = 1 + userWallets.length + 1;
 
     // Clamp selected index if wallets were removed.
     final safeIndex = selectedIndex.clamp(0, pageCount - 1);
@@ -119,7 +136,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
             },
             itemBuilder: (context, index) {
               if (index == 0) {
-                // Page 0: Total balance across all accounts.
+                // Page 0: Total balance across all accounts (hero variant).
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.xs,
@@ -137,6 +154,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                     onToggleHide: () =>
                         ref.read(hideBalancesProvider.notifier).toggle(),
                     inGoalsPiastres: inGoals,
+                    cashPiastres: systemWallet?.balance ?? 0,
                   ),
                 );
               }
@@ -154,15 +172,11 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                 );
               }
 
-              // Pages 1-N: Individual account cards.
-              if (index - 1 >= wallets.length) {
+              // Pages 1-N: Individual account cards (account variant).
+              if (index - 1 >= userWallets.length) {
                 return const SizedBox.shrink();
               }
-              final wallet = wallets[index - 1];
-
-              final walletIncome = incomeByWallet[wallet.id] ?? 0;
-              final walletExpense = expenseByWallet[wallet.id] ?? 0;
-              final walletLastExpense = lastExpenseByWallet[wallet.id] ?? 0;
+              final wallet = userWallets[index - 1];
 
               return Padding(
                 padding: const EdgeInsets.symmetric(
@@ -170,16 +184,14 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                   vertical: AppSizes.xs,
                 ),
                 child: BalanceCard(
+                  variant: BalanceCardVariant.account,
                   accountName: wallet.name,
                   totalPiastres: wallet.balance,
-                  monthlyIncomePiastres: walletIncome,
-                  monthlyExpensePiastres: walletExpense,
-                  lastMonthExpensePiastres:
-                      walletLastExpense > 0 ? walletLastExpense : null,
                   currencyCode: wallet.currencyCode,
                   hidden: hidden,
                   onToggleHide: () =>
                       ref.read(hideBalancesProvider.notifier).toggle(),
+                  walletTypeIcon: _typeIcon(wallet.type),
                 ),
               );
             },

@@ -63,14 +63,18 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   bool _isExpanded = false;
 
-  /// Whether action buttons + scrim are in the widget tree.
-  /// True when expanded; stays true during close animation so buttons
-  /// animate out, then flips false on [AnimationStatus.dismissed].
+  /// Whether the FAB icon shows the close (×) rotation.
+  /// True when expanded; stays true during close animation so the FAB
+  /// rotation animates out, then flips false on [AnimationStatus.dismissed].
   bool _showOverlay = false;
 
-  /// Full-screen scrim overlay entry. Uses [Overlay] so the scrim covers
-  /// the entire screen, not just the speed dial [SizedBox].
+  /// Full-screen overlay entry containing both the scrim AND the arc action
+  /// buttons. Rendered via [Overlay] so everything sits above the Scaffold.
   OverlayEntry? _scrimEntry;
+
+  /// Key attached to the main FAB button so we can compute its global
+  /// position and place the arc buttons relative to it inside the overlay.
+  final GlobalKey _fabKey = GlobalKey();
 
   late final List<_DialAction> _actions;
 
@@ -91,6 +95,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
       duration: AppDurations.fabExpand,
     );
     _controller.addStatusListener(_onAnimationStatus);
+    _controller.addListener(_onAnimationTick);
 
     // Staggered intervals: each button starts slightly later.
     // WS4: tighter intervals (0.12 gap) for snappier animation.
@@ -147,12 +152,19 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   void dispose() {
     _scrimEntry?.remove();
     _scrimEntry = null;
+    _controller.removeListener(_onAnimationTick);
     _controller.removeStatusListener(_onAnimationStatus);
     for (final anim in _staggerAnimations) {
       anim.dispose();
     }
     _controller.dispose();
     super.dispose();
+  }
+
+  /// Force the [OverlayEntry] to rebuild every animation frame so the arc
+  /// buttons animate smoothly inside the overlay.
+  void _onAnimationTick() {
+    _scrimEntry?.markNeedsBuild();
   }
 
   void _onAnimationStatus(AnimationStatus status) {
@@ -176,22 +188,17 @@ class _SpeedDialFabState extends State<SpeedDialFab>
       _showOverlay = true;
     });
 
-    // Insert a full-screen scrim via Overlay so it covers the entire screen,
-    // not just the constrained SizedBox that hosts the speed dial.
     final scrimColor = Theme.of(context).colorScheme.scrim.withValues(
           alpha: AppSizes.opacityLight4,
         );
+
+    // Insert a full-screen overlay containing BOTH the scrim AND the arc
+    // action buttons. This guarantees the buttons render above the scrim
+    // and receive taps correctly.
     _scrimEntry = OverlayEntry(
-      builder: (_) => FadeTransition(
-        opacity: _controller,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _collapse,
-          child: ColoredBox(
-            color: scrimColor,
-            child: const SizedBox.expand(),
-          ),
-        ),
+      builder: (overlayContext) => _buildOverlayContent(
+        overlayContext,
+        scrimColor: scrimColor,
       ),
     );
     Overlay.of(context).insert(_scrimEntry!);
@@ -223,8 +230,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.colors;
-
+    // Action buttons are now rendered inside the OverlayEntry (see
+    // _buildOverlayContent) so they sit above the scrim and receive taps.
     return SizedBox(
       width: AppSizes.speedDialArcWidth,
       height: AppSizes.speedDialArcHeight,
@@ -232,11 +239,6 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
         children: [
-          // Action buttons — only in tree when expanded/animating.
-          // The scrim is handled via Overlay (see _expand/_collapse).
-          if (_showOverlay)
-            for (int i = 0; i < _actions.length; i++) _buildArcButton(i, cs),
-
           // Main FAB — always in tree.
           Positioned(
             bottom: 0,
@@ -249,6 +251,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                 );
               },
               child: FloatingActionButton(
+                key: _fabKey,
                 heroTag: 'nav_fab',
                 onPressed: _toggle,
                 elevation: AppSizes.elevationHigh,
@@ -261,84 +264,134 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     );
   }
 
-  /// Builds a single arc button that animates radially from the FAB center.
-  ///
-  /// Anchored at FAB center via [Positioned], then [Transform.translate]
-  /// moves it to its arc position. [Transform.scale] provides the burst
-  /// effect. Hit testing passes through transforms automatically.
-  Widget _buildArcButton(int index, ColorScheme cs) {
+  /// Builds the full overlay content: a full-screen [Stack] with the scrim
+  /// on the bottom layer and the 3 arc action buttons on top, positioned
+  /// relative to the FAB's global coordinates.
+  Widget _buildOverlayContent(
+    BuildContext overlayContext, {
+    required Color scrimColor,
+  }) {
+    // Resolve the FAB's global center position.
+    final fabBox = _fabKey.currentContext?.findRenderObject() as RenderBox?;
+    // Fallback to screen center-bottom if the FAB hasn't laid out yet.
+    final size = MediaQuery.sizeOf(context);
+    final Offset fabCenter;
+    if (fabBox != null && fabBox.hasSize) {
+      fabCenter = fabBox.localToGlobal(
+        Offset(fabBox.size.width / 2, fabBox.size.height / 2),
+      );
+    } else {
+      fabCenter = Offset(size.width / 2, size.height - AppSizes.fabSize / 2);
+    }
+
+    final cs = Theme.of(context).colorScheme;
+    final isRtl = context.isRtl;
+    final dirFactor = isRtl ? -1.0 : 1.0;
+
+    return Stack(
+      children: [
+        // Bottom layer: full-screen scrim.
+        FadeTransition(
+          opacity: _controller,
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _collapse,
+            child: ColoredBox(
+              color: scrimColor,
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ),
+
+        // Top layer: arc action buttons.
+        for (int i = 0; i < _actions.length; i++)
+          _buildOverlayArcButton(
+            index: i,
+            cs: cs,
+            fabCenter: fabCenter,
+            dirFactor: dirFactor,
+          ),
+      ],
+    );
+  }
+
+  /// Builds a single arc button positioned absolutely in the overlay,
+  /// relative to [fabCenter].
+  Widget _buildOverlayArcButton({
+    required int index,
+    required ColorScheme cs,
+    required Offset fabCenter,
+    required double dirFactor,
+  }) {
     final action = _actions[index];
     final animation = _staggerAnimations[index];
     final accentColor = action.color(context);
     final angle = _angles[index];
-    final isRtl = context.isRtl;
-    final dirFactor = isRtl ? -1.0 : 1.0;
 
-    // Anchor at FAB vertical center so buttons expand from the FAB.
+    final value = animation.value;
+    final radius = AppSizes.speedDialArcRadius * value;
+    // Polar to Cartesian. dx flips for RTL.
+    final dx = math.sin(angle) * radius * dirFactor;
+    final dy = -math.cos(angle) * radius; // negative = upward
+
+    // Position the button center at fabCenter + (dx, dy).
+    final buttonLeft = fabCenter.dx + dx;
+    final buttonTop = fabCenter.dy + dy;
+
     return Positioned(
-      bottom: AppSizes.fabSize / 2,
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          final value = animation.value;
-          final radius = AppSizes.speedDialArcRadius * value;
-          // Polar → Cartesian. dx flips for RTL.
-          final dx = math.sin(angle) * radius * dirFactor;
-          final dy = -math.cos(angle) * radius; // negative = upward
-          return Transform.translate(
-            offset: Offset(dx, dy),
-            child: Transform.scale(
-              scale: value,
-              child: child,
-            ),
-          );
-        },
-        child: Semantics(
-          label: action.labelKey(context),
-          button: true,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Circular icon button with ink splash
-              Material(
-                color: Color.alphaBlend(
-                  accentColor.withValues(alpha: AppSizes.opacityLight),
-                  cs.surface,
-                ),
-                shape: CircleBorder(
-                  side: BorderSide(
-                    color: accentColor.withValues(
+      left: buttonLeft,
+      top: buttonTop,
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, -0.5),
+        child: Transform.scale(
+          scale: value,
+          child: Semantics(
+            label: action.labelKey(context),
+            button: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Circular icon button with ink splash
+                Material(
+                  color: Color.alphaBlend(
+                    accentColor.withValues(alpha: AppSizes.opacityLight),
+                    cs.surface,
+                  ),
+                  shape: CircleBorder(
+                    side: BorderSide(
+                      color: accentColor.withValues(
+                        alpha: AppSizes.opacityLight3,
+                      ),
+                    ),
+                  ),
+                  child: InkWell(
+                    onTap: () => _collapse(selectedIndex: index),
+                    customBorder: const CircleBorder(),
+                    splashColor: accentColor.withValues(
                       alpha: AppSizes.opacityLight3,
                     ),
-                  ),
-                ),
-                child: InkWell(
-                  onTap: () => _collapse(selectedIndex: index),
-                  customBorder: const CircleBorder(),
-                  splashColor: accentColor.withValues(
-                    alpha: AppSizes.opacityLight3,
-                  ),
-                  child: SizedBox(
-                    width: AppSizes.speedDialButtonSize,
-                    height: AppSizes.speedDialButtonSize,
-                    child: Icon(
-                      action.icon,
-                      size: AppSizes.speedDialIconSize,
-                      color: accentColor,
+                    child: SizedBox(
+                      width: AppSizes.speedDialButtonSize,
+                      height: AppSizes.speedDialButtonSize,
+                      child: Icon(
+                        action.icon,
+                        size: AppSizes.speedDialIconSize,
+                        color: accentColor,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSizes.speedDialLabelGap),
-              // Label
-              Text(
-                action.labelKey(context),
-                style: context.textStyles.labelSmall?.copyWith(
-                  color: accentColor,
-                  fontWeight: FontWeight.w600,
+                const SizedBox(height: AppSizes.speedDialLabelGap),
+                // Label
+                Text(
+                  action.labelKey(context),
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

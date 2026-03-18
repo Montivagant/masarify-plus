@@ -175,7 +175,7 @@ class AppDatabase extends _$AppDatabase {
               await customStatement(
                 'INSERT INTO wallets (name, type, balance, currency_code, '
                 'icon_name, color_hex, is_archived, display_order, '
-                "is_system_wallet, linked_senders) VALUES ('Physical Cash', "
+                "is_system_wallet, linked_senders) VALUES ('Cash', "
                 "'physical_cash', 0, 'EGP', 'wallet', '#1A6B5E', 0, -1, 1, "
                 "'[]')",
               );
