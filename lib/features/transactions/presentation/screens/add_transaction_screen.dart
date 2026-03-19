@@ -415,6 +415,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
         final l10n = context.l10n;
         messenger.showSnackBar(
           SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: AppSizes.snackbarBottomMargin,
+              left: AppSizes.md,
+              right: AppSizes.md,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            ),
             duration: AppDurations.snackbarLong,
             content: Text(l10n.goal_link_prompt(match.goalName)),
             action: SnackBarAction(
@@ -1171,6 +1180,15 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
         final l10n = context.l10n;
         messenger.showSnackBar(
           SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: AppSizes.snackbarBottomMargin,
+              left: AppSizes.md,
+              right: AppSizes.md,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            ),
             duration: AppDurations.snackbarLong,
             content: Text(l10n.goal_link_prompt(match.goalName)),
             action: SnackBarAction(

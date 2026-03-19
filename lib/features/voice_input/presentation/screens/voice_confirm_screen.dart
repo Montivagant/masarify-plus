@@ -226,11 +226,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   Widget build(BuildContext context) {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final defaultWalletId = wallets.isNotEmpty ? wallets.first.id : null;
+    final hasNonSystemWallet = wallets.any((w) => !w.isSystemWallet);
 
     // Apply auto-matching once when categories/wallets become available.
     // Set flag immediately to prevent duplicate scheduling from rebuilds.
-    if (categories.isNotEmpty && defaultWalletId != null && !_defaultsApplied) {
+    if (categories.isNotEmpty && hasNonSystemWallet && !_defaultsApplied) {
       _defaultsApplied = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -463,7 +463,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         final cashWallet = ref.read(systemWalletProvider).valueOrNull;
         if (cashWallet == null) {
           setState(() => _saving = false);
-          messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+          if (mounted) SnackHelper.showError(ctx, errorMsg);
           return;
         }
 
@@ -527,18 +527,27 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (matchedGoalName != null) {
         messenger.showSnackBar(
           SnackBar(
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: AppSizes.snackbarBottomMargin,
+              left: AppSizes.md,
+              right: AppSizes.md,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            ),
             duration: AppDurations.snackbarLong,
             content: Text(l10n.goal_link_prompt(matchedGoalName)),
           ),
         );
       } else {
-        messenger.showSnackBar(SnackBar(content: Text(savedMsg)));
+        if (mounted) SnackHelper.showSuccess(context, savedMsg);
       }
       nav.pop();
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);
-      messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+      SnackHelper.showError(context, errorMsg);
     }
   }
 

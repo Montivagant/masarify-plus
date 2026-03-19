@@ -782,12 +782,6 @@ abstract class AppLocalizations {
   /// **'Trends'**
   String get reports_trends;
 
-  /// No description provided for @reports_comparison.
-  ///
-  /// In en, this message translates to:
-  /// **'Comparison'**
-  String get reports_comparison;
-
   /// No description provided for @reports_empty_title.
   ///
   /// In en, this message translates to:
@@ -4676,12 +4670,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start tracking your money today.'**
   String get onboarding_ready_body;
-
-  /// No description provided for @onboarding_ready_cta.
-  ///
-  /// In en, this message translates to:
-  /// **'Start Tracking'**
-  String get onboarding_ready_cta;
 
   /// No description provided for @cash_in_hand.
   ///

@@ -361,9 +361,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_trends => 'Trends';
 
   @override
-  String get reports_comparison => 'Comparison';
-
-  @override
   String get reports_empty_title => 'Not enough data';
 
   @override
@@ -2451,9 +2448,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_ready_body => 'Start tracking your money today.';
-
-  @override
-  String get onboarding_ready_cta => 'Start Tracking';
 
   @override
   String get cash_in_hand => 'Cash in Hand';

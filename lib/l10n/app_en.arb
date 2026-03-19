@@ -127,7 +127,6 @@
   "reports_overview": "Overview",
   "reports_categories": "Categories",
   "reports_trends": "Trends",
-  "reports_comparison": "Comparison",
   "reports_empty_title": "Not enough data",
   "reports_empty_sub": "Add some transactions to see insights",
 
@@ -947,7 +946,6 @@
   "onboarding_feature_goal_body": "Save towards what matters most to you.",
   "onboarding_ready_title": "You're All Set!",
   "onboarding_ready_body": "Start tracking your money today.",
-  "onboarding_ready_cta": "Start Tracking",
 
   "cash_in_hand": "Cash in Hand",
 

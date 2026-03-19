@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
@@ -14,7 +15,7 @@ class AppSearchBar extends StatefulWidget {
     required this.onChanged,
     this.hint,
     this.autofocus = false,
-    this.debounceMs = 300,
+    this.debounceMs = AppDurations.searchDebounceMs,
   });
 
   final ValueChanged<String> onChanged;

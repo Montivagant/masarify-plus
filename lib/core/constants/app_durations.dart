@@ -50,6 +50,11 @@ abstract final class AppDurations {
   static const Duration voiceBarUpdate = Duration(milliseconds: 50);
   static const Duration voiceShimmer = Duration(milliseconds: 1500);
 
+  // Search
+  static const int searchDebounceMs = 300;
+  static const Duration searchDebounce =
+      Duration(milliseconds: searchDebounceMs);
+
   // Service delays
   static const Duration listenerBindDelay = Duration(seconds: 3);
 

@@ -359,9 +359,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_trends => 'الاتجاهات';
 
   @override
-  String get reports_comparison => 'المقارنة';
-
-  @override
   String get reports_empty_title => 'بيانات غير كافية';
 
   @override
@@ -2434,9 +2431,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_ready_body => 'ابدأ بتتبع أموالك اليوم.';
-
-  @override
-  String get onboarding_ready_cta => 'ابدأ التتبع';
 
   @override
   String get cash_in_hand => 'النقدي في اليد';

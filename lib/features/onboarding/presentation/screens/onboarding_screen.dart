@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -10,6 +11,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../widgets/onboarding_pages.dart';
 
 /// 3-page onboarding flow with glass card design & animations:
@@ -101,7 +103,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await showDialog(
         context: context,
         barrierDismissible: false,
-        barrierColor: Colors.black54,
+        barrierColor: AppColors.barrierScrim,
         builder: (_) => const _SuccessOverlay(),
       );
       if (!mounted) return;
@@ -109,9 +111,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
@@ -133,7 +133,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await showDialog(
         context: context,
         barrierDismissible: false,
-        barrierColor: Colors.black54,
+        barrierColor: AppColors.barrierScrim,
         builder: (_) => const _SuccessOverlay(),
       );
       if (!mounted) return;
@@ -141,9 +141,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 

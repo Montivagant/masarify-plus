@@ -127,7 +127,6 @@
   "reports_overview": "نظرة عامة",
   "reports_categories": "التصنيفات",
   "reports_trends": "الاتجاهات",
-  "reports_comparison": "المقارنة",
   "reports_empty_title": "بيانات غير كافية",
   "reports_empty_sub": "أضف معاملات لترى الإحصائيات",
 
@@ -928,7 +927,6 @@
   "onboarding_feature_goal_body": "وفّر من أجل ما يهمك أكثر.",
   "onboarding_ready_title": "أنت جاهز!",
   "onboarding_ready_body": "ابدأ بتتبع أموالك اليوم.",
-  "onboarding_ready_cta": "ابدأ التتبع",
 
   "cash_in_hand": "النقدي في اليد",
 
