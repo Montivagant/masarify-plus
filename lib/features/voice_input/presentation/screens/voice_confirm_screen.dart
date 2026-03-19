@@ -133,14 +133,15 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           } else if (containsMatches.isEmpty) {
             unmatchedWalletHint ??= draft.walletHint;
             // Find closest wallet by simple character overlap
+            final hintChars = draft.walletHint!.toLowerCase();
             WalletEntity? closest;
             int bestScore = 0;
             for (final w in wallets) {
-              final score = _similarityScore(
-                draft.walletHint!.toLowerCase(),
-                w.name.toLowerCase(),
-              );
-              if (score > bestScore && score > 2) {
+              final score = _similarityScore(hintChars, w.name.toLowerCase());
+              // Require at least 50% char overlap to avoid Arabic false positives.
+              final threshold =
+                  (hintChars.length * 0.5).ceil().clamp(3, hintChars.length);
+              if (score > bestScore && score >= threshold) {
                 bestScore = score;
                 closest = w;
               }
@@ -206,7 +207,12 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                     setState(() {});
                   }
                 } catch (_) {
-                  // Name conflict or other error — ignore silently
+                  if (mounted) {
+                    SnackHelper.showError(
+                      context,
+                      context.l10n.wallet_name_duplicate,
+                    );
+                  }
                 }
               },
             ),
@@ -384,20 +390,6 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
   /// Checks [text] against active goals' keywords.
   /// Returns the first matching goal name, or null.
-  String? _matchGoalForDraft(String text) {
-    final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
-    for (final goal in goals) {
-      final List<String> kws;
-      try {
-        kws = (jsonDecode(goal.keywords) as List).cast<String>();
-      } catch (_) {
-        continue;
-      }
-      final matcher = GoalKeywordMatcher(keywords: kws);
-      if (matcher.matches(text)) return goal.name;
-    }
-    return null;
-  }
 
   /// Returns true if [type] is a cash withdrawal or deposit.
   static bool _isCashType(String type) =>
@@ -526,12 +518,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
       if (!mounted) return;
 
-      // Check goal keyword match across saved drafts (only for regular txs).
-      String? matchedGoalName;
-      for (final draft in txDrafts) {
-        matchedGoalName = _matchGoalForDraft(draft.rawText);
-        if (matchedGoalName != null) break;
-      }
+      // Use the goal match already computed during _applyDefaults.
+      final matchedGoalName = txDrafts.map((d) => d.matchedGoalName).firstWhere(
+            (n) => n != null,
+            orElse: () => null,
+          );
 
       if (matchedGoalName != null) {
         messenger.showSnackBar(

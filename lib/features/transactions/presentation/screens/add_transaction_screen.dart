@@ -467,15 +467,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                width: AppSizes.dragHandleWidth,
-                height: AppSizes.dragHandleHeight,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ctx.colors.outlineVariant,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+                  width: AppSizes.dragHandleWidth,
+                  height: AppSizes.dragHandleHeight,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: ctx.colors.outlineVariant,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                  ),
                 ),
               ),
               Padding(
@@ -1219,15 +1221,17 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                width: AppSizes.dragHandleWidth,
-                height: AppSizes.dragHandleHeight,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ctx.colors.outlineVariant,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
+                  width: AppSizes.dragHandleWidth,
+                  height: AppSizes.dragHandleHeight,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: ctx.colors.outlineVariant,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
+                  ),
                 ),
               ),
               Padding(

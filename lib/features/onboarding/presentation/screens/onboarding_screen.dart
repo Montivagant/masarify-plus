@@ -120,9 +120,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _loading = true);
     try {
       final walletRepo = ref.read(walletRepositoryProvider);
-      await walletRepo.ensureSystemWalletExists();
+      final cashId = await walletRepo.ensureSystemWalletExists();
 
       final prefs = await ref.read(preferencesFutureProvider.future);
+      // Set Cash as default for skip path so voice/manual forms have a fallback.
+      await prefs.setDefaultWalletId(cashId);
       await prefs.markOnboardingDone();
 
       if (!mounted) return;
@@ -241,7 +243,7 @@ class _SuccessOverlayState extends State<_SuccessOverlay> {
           Text(
             context.l10n.onboarding_ready_title,
             style: context.textStyles.headlineMedium?.copyWith(
-              color: Colors.white,
+              color: context.colors.onInverseSurface,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -249,7 +251,8 @@ class _SuccessOverlayState extends State<_SuccessOverlay> {
           Text(
             context.l10n.onboarding_ready_body,
             style: context.textStyles.bodyMedium?.copyWith(
-              color: Colors.white70,
+              color: context.colors.onInverseSurface
+                  .withValues(alpha: AppSizes.opacityStrong),
             ),
           ),
         ],

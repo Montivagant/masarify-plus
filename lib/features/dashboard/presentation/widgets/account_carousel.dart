@@ -185,6 +185,9 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
               top: AppSizes.sm,
               end: AppSizes.md,
               child: IconButton(
+                tooltip: hidden
+                    ? context.l10n.balance_show
+                    : context.l10n.balance_hide,
                 icon: Icon(
                   hidden ? AppIcons.eyeOff : AppIcons.eye,
                   color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
