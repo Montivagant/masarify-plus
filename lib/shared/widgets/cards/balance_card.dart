@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../app/theme/app_theme_extension.dart';
 import '../../../core/constants/app_durations.dart';
@@ -30,10 +29,8 @@ class BalanceCard extends StatelessWidget {
     required this.totalPiastres,
     this.monthlyIncomePiastres = 0,
     this.monthlyExpensePiastres = 0,
-    this.lastMonthExpensePiastres,
     this.currencyCode = 'EGP',
     this.hidden = false,
-    this.onToggleHide,
     this.accountName,
     this.inGoalsPiastres = 0,
     this.cashPiastres = 0,
@@ -45,10 +42,8 @@ class BalanceCard extends StatelessWidget {
   final int totalPiastres;
   final int monthlyIncomePiastres;
   final int monthlyExpensePiastres;
-  final int? lastMonthExpensePiastres;
   final String currencyCode;
   final bool hidden;
-  final VoidCallback? onToggleHide;
 
   /// When non-null, displayed instead of the l10n "Total Balance" label.
   final String? accountName;
@@ -130,35 +125,15 @@ class BalanceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Label + hide toggle
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      accountName ?? context.l10n.wallet_total_balance,
-                      style: context.textStyles.bodyMedium?.copyWith(
-                        color: cs.onPrimary
-                            .withValues(alpha: AppSizes.opacityHeavy),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        hidden ? AppIcons.eye : AppIcons.eyeOff,
-                        size: AppSizes.iconSm,
-                        color: cs.onPrimary,
-                      ),
-                      tooltip: hidden
-                          ? context.l10n.balance_show
-                          : context.l10n.balance_hide,
-                      onPressed: () {
-                        HapticFeedback.selectionClick();
-                        onToggleHide?.call();
-                      },
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ],
+                // Label
+                Text(
+                  accountName ?? context.l10n.wallet_total_balance,
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    color:
+                        cs.onPrimary.withValues(alpha: AppSizes.opacityHeavy),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSizes.xs),
                 // Count-up balance animation
@@ -171,18 +146,8 @@ class BalanceCard extends StatelessWidget {
                     color: cs.onPrimary,
                   ),
                 ),
-                // Trend indicator vs last month
-                if (lastMonthExpensePiastres != null &&
-                    lastMonthExpensePiastres! > 0 &&
-                    !hidden) ...[
-                  const SizedBox(height: AppSizes.xs),
-                  _TrendIndicator(
-                    monthlyExpensePiastres: monthlyExpensePiastres,
-                    lastMonthExpensePiastres: lastMonthExpensePiastres!,
-                  ),
-                ],
-                // Cash in Hand — prominent row
-                if (!hidden && cashPiastres > 0) ...[
+                // Cash in Hand — always visible
+                if (!hidden) ...[
                   const SizedBox(height: AppSizes.sm),
                   _CashRow(
                     cashPiastres: cashPiastres,
@@ -203,7 +168,7 @@ class BalanceCard extends StatelessWidget {
                     ],
                   ),
                 ],
-                const SizedBox(height: AppSizes.lg),
+                const SizedBox(height: AppSizes.sm),
                 // Glass-effect income / expense row
                 _GlassInsetRow(
                   theme: theme,
@@ -305,7 +270,7 @@ class BalanceCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Account name + type icon + hide toggle
+                // Account name + type icon
                 Row(
                   children: [
                     if (walletTypeIcon != null) ...[
@@ -337,21 +302,6 @@ class BalanceCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        hidden ? AppIcons.eye : AppIcons.eyeOff,
-                        size: AppSizes.iconSm,
-                        color: cs.onSurfaceVariant,
-                      ),
-                      tooltip: hidden
-                          ? context.l10n.balance_show
-                          : context.l10n.balance_hide,
-                      onPressed: () {
-                        HapticFeedback.selectionClick();
-                        onToggleHide?.call();
-                      },
-                      visualDensity: VisualDensity.compact,
                     ),
                   ],
                 ),
@@ -423,47 +373,6 @@ class _CountUpBalance extends StatelessWidget {
   }
 }
 
-// ── Trend indicator ─────────────────────────────────────────────────────────
-
-class _TrendIndicator extends StatelessWidget {
-  const _TrendIndicator({
-    required this.monthlyExpensePiastres,
-    required this.lastMonthExpensePiastres,
-  });
-
-  final int monthlyExpensePiastres;
-  final int lastMonthExpensePiastres;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = context.colors;
-    final diff = monthlyExpensePiastres - lastMonthExpensePiastres;
-    final pct = ((diff / lastMonthExpensePiastres) * 100).round();
-    final isUp = diff > 0;
-
-    return Row(
-      children: [
-        Icon(
-          isUp ? AppIcons.trendingUp : AppIcons.trendingDown,
-          size: AppSizes.iconXxs2,
-          color: isUp
-              ? context.appTheme.expenseColor
-              : context.appTheme.incomeColor,
-        ),
-        const SizedBox(width: AppSizes.xs),
-        Text(
-          '${isUp ? '+' : ''}${MoneyFormatter.formatPercent(pct)} ${context.l10n.reports_vs_last_month}',
-          style: context.textStyles.bodySmall?.copyWith(
-            color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-}
-
 // ── Cash row (prominent, hero card) ──────────────────────────────────────────
 
 class _CashRow extends StatelessWidget {
@@ -478,6 +387,7 @@ class _CashRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
+    final isZero = cashPiastres == 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -515,7 +425,9 @@ class _CashRow extends StatelessWidget {
             MoneyFormatter.format(cashPiastres, currency: currencyCode),
             style: context.textStyles.bodyMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: cs.onPrimary,
+              color: isZero
+                  ? cs.onPrimary.withValues(alpha: AppSizes.opacityMedium)
+                  : cs.onPrimary,
             ),
           ),
         ],

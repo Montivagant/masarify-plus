@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/voice_dictionary.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -16,12 +15,14 @@ import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
+import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../domain/repositories/i_transaction_repository.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -116,6 +117,23 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             draft.walletId = containsMatches.first.id;
           } else if (containsMatches.isEmpty) {
             unmatchedWalletHint ??= draft.walletHint;
+            // Find closest wallet by simple character overlap
+            WalletEntity? closest;
+            int bestScore = 0;
+            for (final w in wallets) {
+              final score = _similarityScore(
+                draft.walletHint!.toLowerCase(),
+                w.name.toLowerCase(),
+              );
+              if (score > bestScore && score > 2) {
+                bestScore = score;
+                closest = w;
+              }
+            }
+            if (closest != null) {
+              draft.suggestedWalletId = closest.id;
+              draft.suggestedWalletName = closest.name;
+            }
           }
           // Multiple matches: leave walletId null — user picks manually
         }
@@ -156,10 +174,18 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             action: SnackBarAction(
               label: context.l10n.common_create,
               onPressed: () async {
-                await context.push(AppRoutes.walletAdd);
-                if (mounted) {
-                  _applyDefaults();
-                  setState(() {});
+                try {
+                  await ref.read(walletRepositoryProvider).create(
+                        name: unmatchedWalletHint!,
+                        type: 'bank',
+                        initialBalance: 0,
+                      );
+                  if (mounted) {
+                    _applyDefaults();
+                    setState(() {});
+                  }
+                } catch (_) {
+                  // Name conflict or other error — ignore silently
                 }
               },
             ),
@@ -281,6 +307,13 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   onCategoryTap: () => _showCategoryPicker(context, draft),
                   onWalletTap: () => _showWalletPicker(context, draft),
                   walletNotMatched: walletNotMatched,
+                  onAcceptSuggestedWallet: draft.suggestedWalletId != null
+                      ? () {
+                          setState(() {
+                            draft.walletId = draft.suggestedWalletId;
+                          });
+                        }
+                      : null,
                 );
                 if (context.reduceMotion) return card;
                 return card
@@ -349,6 +382,15 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   static bool _isCashType(String type) =>
       type == 'cash_withdrawal' || type == 'cash_deposit';
 
+  /// Simple character-overlap similarity score between two strings.
+  static int _similarityScore(String a, String b) {
+    int score = 0;
+    for (int i = 0; i < a.length; i++) {
+      if (b.contains(a[i])) score++;
+    }
+    return score;
+  }
+
   Future<void> _confirmAll(BuildContext ctx) async {
     // R5-I7 fix: prevent double-tap race condition
     if (_saving) return;
@@ -356,6 +398,15 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     // Only save included drafts
     final included = _editableDrafts.where((d) => d.isIncluded).toList();
     if (included.isEmpty) return;
+
+    // Change 4: validate all included drafts have a wallet assigned
+    final missingWallet = included.any((d) => d.walletId == null);
+    if (missingWallet) {
+      if (mounted) {
+        SnackHelper.showError(ctx, ctx.l10n.voice_assign_accounts_first);
+      }
+      return;
+    }
 
     // Separate cash-type drafts from regular transaction drafts
     final cashDrafts = included.where((d) => _isCashType(d.type)).toList();
@@ -445,7 +496,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   categoryId: draft.categoryId!,
                   amount: draft.amountPiastres,
                   type: draft.type,
-                  title: draft.rawText,
+                  title: draft.noteController.text.trim().isNotEmpty
+                      ? draft.noteController.text.trim()
+                      : draft.rawText,
                   transactionDate: draft.transactionDate,
                   source: 'voice',
                   rawSourceText: draft.rawText,
@@ -637,7 +690,7 @@ class _EditableDraft {
     this.note,
     required this.type,
     required this.transactionDate,
-  });
+  }) : noteController = TextEditingController(text: note ?? rawText);
 
   factory _EditableDraft.from(VoiceTransactionDraft d) => _EditableDraft(
         rawText: d.rawText,
@@ -661,6 +714,13 @@ class _EditableDraft {
   String type;
   DateTime transactionDate;
   bool isIncluded = true;
+
+  /// Fuzzy-matched wallet suggestion when exact/contains match fails.
+  int? suggestedWalletId;
+  String? suggestedWalletName;
+
+  /// Editable title/note for refining the transaction description.
+  final TextEditingController noteController;
 }
 
 // ── Draft card widget ─────────────────────────────────────────────────────
@@ -680,6 +740,7 @@ class _DraftCard extends StatelessWidget {
     required this.onCategoryTap,
     required this.onWalletTap,
     required this.walletNotMatched,
+    this.onAcceptSuggestedWallet,
   });
 
   final _EditableDraft draft;
@@ -695,6 +756,7 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onWalletTap;
   final bool walletNotMatched;
+  final VoidCallback? onAcceptSuggestedWallet;
 
   @override
   Widget build(BuildContext context) {
@@ -744,7 +806,29 @@ class _DraftCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSizes.md),
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Editable title field ─────────────────────────────
+            IgnorePointer(
+              ignoring: !isIncluded,
+              child: TextField(
+                controller: draft.noteController,
+                style: context.textStyles.bodySmall,
+                decoration: InputDecoration(
+                  hintText: context.l10n.voice_edit_title_hint,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusSm),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.sm),
 
             // ── Type toggle + Category picker ──────────────────
             IgnorePointer(
@@ -891,6 +975,29 @@ class _DraftCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                  // ── "Did you mean X?" suggestion ──────────────
+                  if (draft.suggestedWalletName != null &&
+                      draft.walletId != draft.suggestedWalletId)
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.only(start: AppSizes.sm),
+                      child: TextButton(
+                        onPressed: onAcceptSuggestedWallet,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.sm,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: Text(
+                          context.l10n
+                              .voice_did_you_mean(draft.suggestedWalletName!),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: cs.primary,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

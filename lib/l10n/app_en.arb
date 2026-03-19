@@ -657,6 +657,7 @@
   "fab_expense": "Expense",
   "fab_income": "Income",
   "fab_voice": "Voice",
+  "fab_manual": "Manual",
 
   "wallet_archive_balance_warning": "This account still has a remaining balance. The balance will be excluded from your totals after archiving.",
 
@@ -935,6 +936,8 @@
     }
   },
 
+  "onboarding_default_account_note": "This will be your default account for transactions",
+
   "onboarding_features_title": "Discover Masarify",
   "onboarding_feature_voice_title": "Voice Input",
   "onboarding_feature_voice_body": "Just speak. AI will parse your transactions instantly.",
@@ -952,5 +955,14 @@
   "transaction_type_cash_withdrawal_short": "Withdraw",
   "transaction_type_cash_deposit": "Cash Deposit",
   "transaction_type_cash_deposit_short": "Deposit",
-  "category_atm": "ATM"
+  "category_atm": "ATM",
+
+  "voice_edit_title_hint": "Refine title...",
+  "voice_assign_accounts_first": "Please assign an account to all transactions first",
+  "voice_did_you_mean": "Did you mean {name}?",
+  "@voice_did_you_mean": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  }
 }

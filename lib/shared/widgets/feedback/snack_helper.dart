@@ -91,9 +91,9 @@ abstract final class SnackHelper {
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
           ),
           margin: const EdgeInsets.only(
+            bottom: AppSizes.bottomScrollPadding,
             left: AppSizes.md,
             right: AppSizes.md,
-            bottom: AppSizes.lg,
           ),
           duration: duration,
           action: action,

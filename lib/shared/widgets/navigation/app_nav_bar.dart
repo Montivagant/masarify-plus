@@ -5,9 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_navigation.dart';
-import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
+import '../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
 import 'raised_center_docked_fab_location.dart';
 import 'speed_dial_fab.dart';
@@ -137,19 +137,8 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
       ),
       floatingActionButton: SpeedDialFab(
         tabIndex: widget.navigationShell.currentIndex,
-        onExpense: () {
-          context.push(
-            AppRoutes.transactionAdd,
-            extra: const {'type': 'expense'},
-          );
-        },
-        onIncome: () {
-          context.push(
-            AppRoutes.transactionAdd,
-            extra: const {'type': 'income'},
-          );
-        },
         onVoice: () => VoiceInputButton.handleVoiceInput(context),
+        onManual: () => AddTransactionScreen.show(context),
       ),
       floatingActionButtonLocation: RaisedCenterDockedFabLocation.raised,
     );

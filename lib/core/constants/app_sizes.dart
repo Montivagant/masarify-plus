@@ -104,7 +104,7 @@ abstract final class AppSizes {
   static const double colorSwatchBorder = 3.0;
 
   // ── Dashboard carousel ─────────────────────────────────────────────
-  static const double carouselHeight = 240;
+  static const double carouselHeight = 280;
   static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 
@@ -242,6 +242,7 @@ abstract final class AppSizes {
   static const double sheetMaxSize = 0.85;
   static const double sheetSmallInitialSize = 0.4;
   static const double sheetSmallMaxSize = 0.6;
+  static const double sheetFullSize = 0.95;
 
   // ── Onboarding ─────────────────────────────────────────────────────────
   static const double onboardingFeatureCardHeight = 200.0;

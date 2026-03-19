@@ -65,13 +65,9 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
 
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
-    final lastMonthKey =
-        now.month == 1 ? (now.year - 1, 12) : (now.year, now.month - 1);
 
     final monthTxs =
         ref.watch(transactionsByMonthProvider(monthKey)).valueOrNull ?? [];
-    final lastMonthTxs =
-        ref.watch(transactionsByMonthProvider(lastMonthKey)).valueOrNull ?? [];
 
     final allWallets = walletsAsync.valueOrNull ?? [];
     final totalBalance = totalBalanceAsync.valueOrNull ?? 0;
@@ -95,108 +91,110 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
       });
     }
 
-    // Pre-compute aggregates once (avoid O(wallets * transactions) in itemBuilder).
-    final incomeByWallet = <int, int>{};
-    final expenseByWallet = <int, int>{};
+    // Pre-compute aggregates once.
     int totalIncome = 0;
     int totalExpense = 0;
     for (final t in monthTxs) {
       if (t.type == 'income') {
         totalIncome += t.amount;
-        incomeByWallet[t.walletId] =
-            (incomeByWallet[t.walletId] ?? 0) + t.amount;
       } else if (t.type == 'expense') {
         totalExpense += t.amount;
-        expenseByWallet[t.walletId] =
-            (expenseByWallet[t.walletId] ?? 0) + t.amount;
       }
     }
-    final lastExpenseByWallet = <int, int>{};
-    int lastMonthExpenseTotal = 0;
-    for (final t in lastMonthTxs) {
-      if (t.type == 'expense') {
-        lastMonthExpenseTotal += t.amount;
-        lastExpenseByWallet[t.walletId] =
-            (lastExpenseByWallet[t.walletId] ?? 0) + t.amount;
-      }
-    }
+    final cs = context.colors;
 
     return Column(
       children: [
-        SizedBox(
-          height: AppSizes.carouselHeight,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: pageCount,
-            onPageChanged: (index) {
-              // Don't update selection when swiping to the "Add Account" card.
-              if (index < pageCount - 1) {
-                ref.read(selectedAccountIndexProvider.notifier).state = index;
-              }
-            },
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // Page 0: Total balance across all accounts (hero variant).
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.xs,
-                    vertical: AppSizes.xs,
-                  ),
-                  child: BalanceCard(
-                    accountName: context.l10n.dashboard_all_accounts,
-                    totalPiastres: totalBalance,
-                    monthlyIncomePiastres: totalIncome,
-                    monthlyExpensePiastres: totalExpense,
-                    lastMonthExpensePiastres: lastMonthExpenseTotal > 0
-                        ? lastMonthExpenseTotal
-                        : null,
-                    hidden: hidden,
-                    onToggleHide: () =>
-                        ref.read(hideBalancesProvider.notifier).toggle(),
-                    inGoalsPiastres: inGoals,
-                    cashPiastres: systemWallet?.balance ?? 0,
-                  ),
-                );
-              }
+        Stack(
+          children: [
+            SizedBox(
+              height: AppSizes.carouselHeight,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: pageCount,
+                onPageChanged: (index) {
+                  // Don't update selection when swiping to the "Add Account" card.
+                  if (index < pageCount - 1) {
+                    ref.read(selectedAccountIndexProvider.notifier).state =
+                        index;
+                  }
+                },
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    // Page 0: Total balance across all accounts (hero variant).
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.xs,
+                        vertical: AppSizes.xs,
+                      ),
+                      child: BalanceCard(
+                        accountName: context.l10n.dashboard_all_accounts,
+                        totalPiastres: totalBalance,
+                        monthlyIncomePiastres: totalIncome,
+                        monthlyExpensePiastres: totalExpense,
+                        hidden: hidden,
+                        inGoalsPiastres: inGoals,
+                        cashPiastres: systemWallet?.balance ?? 0,
+                      ),
+                    );
+                  }
 
-              // Last page: "Add Account" card.
-              if (index == pageCount - 1) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.xs,
-                    vertical: AppSizes.xs,
-                  ),
-                  child: _AddAccountCard(
-                    onTap: () => context.push(AppRoutes.walletAdd),
-                  ),
-                );
-              }
+                  // Last page: "Add Account" card.
+                  if (index == pageCount - 1) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.xs,
+                        vertical: AppSizes.xs,
+                      ),
+                      child: _AddAccountCard(
+                        onTap: () => context.push(AppRoutes.walletAdd),
+                      ),
+                    );
+                  }
 
-              // Pages 1-N: Individual account cards (account variant).
-              if (index - 1 >= userWallets.length) {
-                return const SizedBox.shrink();
-              }
-              final wallet = userWallets[index - 1];
+                  // Pages 1-N: Individual account cards (account variant).
+                  if (index - 1 >= userWallets.length) {
+                    return const SizedBox.shrink();
+                  }
+                  final wallet = userWallets[index - 1];
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.xs,
-                  vertical: AppSizes.xs,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.xs,
+                      vertical: AppSizes.xs,
+                    ),
+                    child: GestureDetector(
+                      onLongPress: () =>
+                          context.push(AppRoutes.editWalletPath(wallet.id)),
+                      child: BalanceCard(
+                        variant: BalanceCardVariant.account,
+                        accountName: wallet.name,
+                        totalPiastres: wallet.balance,
+                        currencyCode: wallet.currencyCode,
+                        hidden: hidden,
+                        walletTypeIcon: _typeIcon(wallet.type),
+                        walletColorHex: wallet.colorHex,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            // Global eye icon for hide/show balances
+            PositionedDirectional(
+              top: AppSizes.sm,
+              end: AppSizes.md,
+              child: IconButton(
+                icon: Icon(
+                  hidden ? AppIcons.eyeOff : AppIcons.eye,
+                  color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
+                  size: AppSizes.iconSm,
                 ),
-                child: BalanceCard(
-                  variant: BalanceCardVariant.account,
-                  accountName: wallet.name,
-                  totalPiastres: wallet.balance,
-                  currencyCode: wallet.currencyCode,
-                  hidden: hidden,
-                  onToggleHide: () =>
-                      ref.read(hideBalancesProvider.notifier).toggle(),
-                  walletTypeIcon: _typeIcon(wallet.type),
-                  walletColorHex: wallet.colorHex,
-                ),
-              );
-            },
-          ),
+                onPressed: () =>
+                    ref.read(hideBalancesProvider.notifier).toggle(),
+              ),
+            ),
+          ],
         ),
 
         // Page indicator dots + quick add button.

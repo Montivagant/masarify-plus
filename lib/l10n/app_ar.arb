@@ -652,6 +652,7 @@
   "fab_expense": "مصروف",
   "fab_income": "دخل",
   "fab_voice": "صوت",
+  "fab_manual": "يدوي",
 
   "wallet_archive_balance_warning": "هذا الحساب لا يزال يحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.",
 
@@ -916,6 +917,8 @@
     }
   },
 
+  "onboarding_default_account_note": "سيكون هذا حسابك الافتراضي للمعاملات",
+
   "onboarding_features_title": "اكتشف مصاريفي",
   "onboarding_feature_voice_title": "الإدخال الصوتي",
   "onboarding_feature_voice_body": "تكلم فقط. الذكاء الاصطناعي سيحلل معاملاتك فوراً.",
@@ -933,5 +936,14 @@
   "transaction_type_cash_withdrawal_short": "سحب",
   "transaction_type_cash_deposit": "إيداع نقدي",
   "transaction_type_cash_deposit_short": "إيداع",
-  "category_atm": "صراف آلي"
+  "category_atm": "صراف آلي",
+
+  "voice_edit_title_hint": "تعديل العنوان...",
+  "voice_assign_accounts_first": "يرجى تعيين حساب لجميع المعاملات أولاً",
+  "voice_did_you_mean": "هل تقصد {name}؟",
+  "@voice_did_you_mean": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  }
 }

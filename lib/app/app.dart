@@ -79,7 +79,7 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
       // Theme
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ref.watch(themeModeProvider),
+      themeMode: ThemeMode.light,
 
       // Router
       routerConfig: appRouter,

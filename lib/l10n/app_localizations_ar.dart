@@ -1823,6 +1823,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get fab_voice => 'صوت';
 
   @override
+  String get fab_manual => 'يدوي';
+
+  @override
   String get wallet_archive_balance_warning =>
       'هذا الحساب لا يزال يحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.';
 
@@ -2400,6 +2403,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get onboarding_default_account_note =>
+      'سيكون هذا حسابك الافتراضي للمعاملات';
+
+  @override
   String get onboarding_features_title => 'اكتشف مصاريفي';
 
   @override
@@ -2448,4 +2455,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get category_atm => 'صراف آلي';
+
+  @override
+  String get voice_edit_title_hint => 'تعديل العنوان...';
+
+  @override
+  String get voice_assign_accounts_first =>
+      'يرجى تعيين حساب لجميع المعاملات أولاً';
+
+  @override
+  String voice_did_you_mean(String name) {
+    return 'هل تقصد $name؟';
+  }
 }

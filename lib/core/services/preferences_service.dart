@@ -23,6 +23,7 @@ class PreferencesService {
   static const _kNotificationPermissionPending =
       'notification_permission_pending';
   static const _kAiModel = 'ai_model';
+  static const _kDefaultWalletId = 'defaultWalletId';
   static const _kQuickStartDone = 'quick_start_done';
   static const _kLastBackupDate = 'last_backup_date';
   static const _kDriveFileId = 'drive_file_id';
@@ -188,6 +189,12 @@ class PreferencesService {
         type == 'income' ? _kLastCatIncome : _kLastCatExpense,
         categoryId,
       );
+
+  // ── Default Wallet ───────────────────────────────────────────────────────
+  int? get defaultWalletId => _prefs.getInt(_kDefaultWalletId);
+
+  Future<void> setDefaultWalletId(int id) =>
+      _prefs.setInt(_kDefaultWalletId, id);
 
   // ── Quick Start ──────────────────────────────────────────────────────────
   bool get isQuickStartDone => _prefs.getBool(_kQuickStartDone) ?? false;

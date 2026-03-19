@@ -21,33 +21,29 @@ class _DialAction {
   final Color Function(BuildContext) color;
 }
 
-/// Speed-dial FAB with 3 action buttons arranged in a semi-circular arc.
+/// Speed-dial FAB with 2 action buttons arranged in a semi-circular arc.
 ///
 /// - **Tap**: expand/collapse the action buttons
 /// - **Tap action**: navigate + collapse
 /// - Semi-transparent scrim overlay when expanded
-/// - FAB rotates + → × when expanded
+/// - FAB rotates + -> x when expanded
 /// - Buttons burst outward in an arc (radial expansion + scale)
-/// - RTL-aware: Expense/Income swap sides, Voice stays centered
+/// - RTL-aware: Voice/Manual swap sides
 ///
 /// ```
-///         [Voice]           ← straight up (center)
-///        /       \
-///    [Expense]  [Income]    ← 55° left / right
-///          [+]              ← FAB center
+///    [Voice]    [Manual]    <- 45 deg left / right
+///          [+]              <- FAB center
 /// ```
 class SpeedDialFab extends StatefulWidget {
   const SpeedDialFab({
     super.key,
-    required this.onExpense,
-    required this.onIncome,
     required this.onVoice,
+    required this.onManual,
     this.tabIndex = 0,
   });
 
-  final VoidCallback onExpense;
-  final VoidCallback onIncome;
   final VoidCallback onVoice;
+  final VoidCallback onManual;
 
   /// Current navigation tab index. When this changes, the FAB auto-collapses.
   final int tabIndex;
@@ -63,7 +59,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   bool _isExpanded = false;
 
-  /// Whether the FAB icon shows the close (×) rotation.
+  /// Whether the FAB icon shows the close (x) rotation.
   /// True when expanded; stays true during close animation so the FAB
   /// rotation animates out, then flips false on [AnimationStatus.dismissed].
   bool _showOverlay = false;
@@ -79,12 +75,11 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   late final List<_DialAction> _actions;
 
   /// Angles from vertical (12 o'clock), clockwise positive.
-  /// Expense = -55° (left), Voice = 0° (center/top), Income = +55° (right).
-  /// Tightened from ±75° to ±55° (11π/36) for a less spread-out fan.
+  /// Voice = -45deg (left), Manual = +45deg (right).
+  static const double _angleSpread = math.pi / 4; // 45 degrees
   static final List<double> _angles = [
-    -11 * math.pi / 36, // Expense: upper-left (55°)
-    0, // Voice: straight up (center)
-    11 * math.pi / 36, // Income: upper-right (55°)
+    -_angleSpread, // Voice: upper-left (45deg)
+    _angleSpread, // Manual: upper-right (45deg)
   ];
 
   @override
@@ -98,10 +93,9 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     _controller.addListener(_onAnimationTick);
 
     // Staggered intervals: each button starts slightly later.
-    // WS4: tighter intervals (0.12 gap) for snappier animation.
-    _staggerAnimations = List.generate(3, (i) {
-      final start = i * 0.12; // 0.0, 0.12, 0.24
-      final end = (start + 0.76).clamp(0.0, 1.0); // 0.76, 0.88, 1.0
+    _staggerAnimations = List.generate(2, (i) {
+      final start = i * 0.12; // 0.0, 0.12
+      final end = (start + 0.76).clamp(0.0, 1.0); // 0.76, 0.88
       return CurvedAnimation(
         parent: _controller,
         curve: Interval(start, end, curve: Curves.easeOutBack),
@@ -111,19 +105,14 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
     _actions = [
       _DialAction(
-        icon: AppIcons.expense,
-        labelKey: (ctx) => ctx.l10n.fab_expense,
-        color: (ctx) => ctx.appTheme.expenseColor,
-      ),
-      _DialAction(
         icon: AppIcons.mic,
         labelKey: (ctx) => ctx.l10n.fab_voice,
         color: (ctx) => ctx.colors.primary,
       ),
       _DialAction(
-        icon: AppIcons.income,
-        labelKey: (ctx) => ctx.l10n.fab_income,
-        color: (ctx) => ctx.appTheme.incomeColor,
+        icon: AppIcons.edit,
+        labelKey: (ctx) => ctx.l10n.fab_manual,
+        color: (ctx) => ctx.colors.secondary,
       ),
     ];
   }
@@ -218,11 +207,9 @@ class _SpeedDialFabState extends State<SpeedDialFab>
         HapticFeedback.heavyImpact();
         switch (selectedIndex) {
           case 0:
-            widget.onExpense();
-          case 1:
             widget.onVoice();
-          case 2:
-            widget.onIncome();
+          case 1:
+            widget.onManual();
         }
       }
     });
@@ -265,7 +252,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
   }
 
   /// Builds the full overlay content: a full-screen [Stack] with the scrim
-  /// on the bottom layer and the 3 arc action buttons on top, positioned
+  /// on the bottom layer and the 2 arc action buttons on top, positioned
   /// relative to the FAB's global coordinates.
   Widget _buildOverlayContent(
     BuildContext overlayContext, {

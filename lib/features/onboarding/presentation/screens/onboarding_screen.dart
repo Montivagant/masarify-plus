@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../../core/constants/app_durations.dart';
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -11,11 +12,10 @@ import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../widgets/onboarding_pages.dart';
 
-/// 4-page onboarding flow with glass card design & animations:
+/// 3-page onboarding flow with glass card design & animations:
 ///   Page 1 — Welcome hero (app value prop + language toggle)
 ///   Page 2 — Feature highlights (3 GlassCard feature cards)
 ///   Page 3 — Account setup (wallet name, type, balance in GlassCard)
-///   Page 4 — Ready! (animated checkmark + CTA)
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -33,7 +33,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   /// Current page offset for parallax — updated on scroll.
   double _currentPage = 0;
 
-  static const _pageCount = 4;
+  static const _pageCount = 3;
 
   @override
   void initState() {
@@ -70,7 +70,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  /// Called from Page 4 "Start Tracking" — creates Physical Cash + user wallet.
+  /// Called from Page 3 "Start Tracking" — creates Physical Cash + user wallet.
   Future<void> _finishWithWallet() async {
     setState(() => _loading = true);
     try {
@@ -84,16 +84,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final walletName = _nameController.text.trim().isNotEmpty
           ? _nameController.text.trim()
           : context.l10n.onboarding_default_wallet_name;
-      await walletRepo.create(
+      final walletId = await walletRepo.create(
         name: walletName,
         type: _walletType,
         initialBalance: _balancePiastres,
       );
 
-      // Mark onboarding complete
+      // Mark onboarding complete and set default wallet
       final prefs = await ref.read(preferencesFutureProvider.future);
+      await prefs.setDefaultWalletId(walletId);
       await prefs.markOnboardingDone();
 
+      if (!mounted) return;
+
+      // Show brief success overlay before navigating
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        builder: (_) => const _SuccessOverlay(),
+      );
       if (!mounted) return;
       context.go(AppRoutes.dashboard);
     } catch (_) {
@@ -115,6 +125,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final prefs = await ref.read(preferencesFutureProvider.future);
       await prefs.markOnboardingDone();
 
+      if (!mounted) return;
+
+      // Show brief success overlay before navigating
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        builder: (_) => const _SuccessOverlay(),
+      );
       if (!mounted) return;
       context.go(AppRoutes.dashboard);
     } catch (_) {
@@ -161,15 +180,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     onAmountChanged: (p) =>
                         setState(() => _balancePiastres = p),
                     onBack: _previousPage,
-                    onFinish: _loading ? null : () => _nextPage(),
+                    onFinish: _loading ? null : _finishWithWallet,
                     onSkip: _loading ? null : _finishSkip,
                     loading: _loading,
                     pageOffset: _offsetForPage(2),
-                  ),
-                  // ── Page 4: Ready! ─────────────────────────────────────
-                  ReadyPage(
-                    onStart: _loading ? null : _finishWithWallet,
-                    pageOffset: _offsetForPage(3),
                   ),
                 ],
               ),
@@ -189,6 +203,56 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Success Overlay ──────────────────────────────────────────────────────────
+
+class _SuccessOverlay extends StatefulWidget {
+  const _SuccessOverlay();
+
+  @override
+  State<_SuccessOverlay> createState() => _SuccessOverlayState();
+}
+
+class _SuccessOverlayState extends State<_SuccessOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(AppDurations.splashHold, () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            AppIcons.checkCircle,
+            size: AppSizes.iconXl3,
+            color: context.colors.primary,
+          ),
+          const SizedBox(height: AppSizes.md),
+          Text(
+            context.l10n.onboarding_ready_title,
+            style: context.textStyles.headlineMedium?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+          Text(
+            context.l10n.onboarding_ready_body,
+            style: context.textStyles.bodyMedium?.copyWith(
+              color: Colors.white70,
+            ),
+          ),
+        ],
       ),
     );
   }

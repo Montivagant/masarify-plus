@@ -358,7 +358,14 @@ class AccountSetupPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Wallet name field
+                // ── Account name ──────────────────────────────────────────
+                Text(
+                  context.l10n.onboarding_account_name_label,
+                  style: context.textStyles.labelMedium?.copyWith(
+                    color: cs.outline,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xs),
                 AppTextField(
                   label: context.l10n.onboarding_account_name_label,
                   hint: context.l10n.onboarding_account_name_hint,
@@ -366,7 +373,7 @@ class AccountSetupPage extends StatelessWidget {
                   prefixIcon: const Icon(AppIcons.wallet),
                 ),
                 const SizedBox(height: AppSizes.md),
-                // Wallet type selector
+                // ── Account type ──────────────────────────────────────────
                 Text(
                   context.l10n.onboarding_account_type_label,
                   style: context.textStyles.labelMedium?.copyWith(
@@ -374,48 +381,46 @@ class AccountSetupPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSizes.xs),
-                Wrap(
-                  spacing: AppSizes.sm,
-                  runSpacing: AppSizes.sm,
-                  children: [
-                    _WalletTypeChip(
-                      value: 'bank',
-                      label: context.l10n.wallet_type_bank_short,
-                      icon: AppIcons.bank,
-                      selected: walletType == 'bank',
-                      onSelected: () => onWalletTypeChanged('bank'),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(
+                        value: 'bank',
+                        label: Text(context.l10n.wallet_type_bank_short),
+                        icon: const Icon(AppIcons.bank),
+                      ),
+                      ButtonSegment(
+                        value: 'mobile_wallet',
+                        label: Text(
+                          context.l10n.wallet_type_mobile_wallet_short,
+                        ),
+                        icon: const Icon(AppIcons.phone),
+                      ),
+                      ButtonSegment(
+                        value: 'credit_card',
+                        label: Text(
+                          context.l10n.wallet_type_credit_card_short,
+                        ),
+                        icon: const Icon(AppIcons.creditCard),
+                      ),
+                    ],
+                    selected: {walletType},
+                    onSelectionChanged: (set) => onWalletTypeChanged(set.first),
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
                     ),
-                    _WalletTypeChip(
-                      value: 'mobile_wallet',
-                      label: context.l10n.wallet_type_mobile_wallet_short,
-                      icon: AppIcons.phone,
-                      selected: walletType == 'mobile_wallet',
-                      onSelected: () => onWalletTypeChanged('mobile_wallet'),
-                    ),
-                    _WalletTypeChip(
-                      value: 'credit_card',
-                      label: context.l10n.wallet_type_credit_card_short,
-                      icon: AppIcons.creditCard,
-                      selected: walletType == 'credit_card',
-                      onSelected: () => onWalletTypeChanged('credit_card'),
-                    ),
-                    _WalletTypeChip(
-                      value: 'prepaid_card',
-                      label: context.l10n.wallet_type_prepaid_card_short,
-                      icon: AppIcons.prepaidCard,
-                      selected: walletType == 'prepaid_card',
-                      onSelected: () => onWalletTypeChanged('prepaid_card'),
-                    ),
-                    _WalletTypeChip(
-                      value: 'investment',
-                      label: context.l10n.wallet_type_investment_short,
-                      icon: AppIcons.investmentAccount,
-                      selected: walletType == 'investment',
-                      onSelected: () => onWalletTypeChanged('investment'),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: AppSizes.lg),
+                const SizedBox(height: AppSizes.md),
+                // ── Starting balance ──────────────────────────────────────
+                Text(
+                  context.l10n.wallet_initial_balance,
+                  style: context.textStyles.labelMedium?.copyWith(
+                    color: cs.outline,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xs),
                 AmountInput(
                   onAmountChanged: onAmountChanged,
                   autofocus: false,
@@ -427,6 +432,15 @@ class AccountSetupPage extends StatelessWidget {
           // Physical cash note
           Text(
             context.l10n.onboarding_physical_cash_note,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.outline,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSizes.xs),
+          // Default account note
+          Text(
+            context.l10n.onboarding_default_account_note,
             style: context.textStyles.bodySmall?.copyWith(
               color: cs.outline,
             ),
@@ -453,130 +467,6 @@ class AccountSetupPage extends StatelessWidget {
           const SizedBox(height: AppSizes.xl),
         ],
       ),
-    );
-  }
-}
-
-// ── Page 4: Ready! ──────────────────────────────────────────────────────────
-
-class ReadyPage extends StatelessWidget {
-  const ReadyPage({
-    super.key,
-    required this.onStart,
-    required this.pageOffset,
-  });
-
-  final VoidCallback? onStart;
-  final double pageOffset;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = context.colors;
-    final noMotion = context.reduceMotion;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
-      child: Column(
-        children: [
-          const Spacer(flex: 2),
-          // ── Animated check icon ─────────────────────────────────────────
-          Transform.translate(
-            offset: Offset(pageOffset * AppSizes.onboardingParallaxOffset, 0),
-            child: Container(
-              width: AppSizes.onboardingIcon,
-              height: AppSizes.onboardingIcon,
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: AppSizes.opacityLight),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                AppIcons.checkCircle,
-                size: AppSizes.iconXl2,
-                color: cs.primary,
-              ),
-            ),
-          )
-              .animate(target: noMotion ? 0 : 1)
-              .scale(
-                begin: const Offset(0.4, 0.4),
-                end: const Offset(1.0, 1.0),
-                duration: AppDurations.countUp,
-                curve: Curves.easeOutBack,
-              )
-              .fadeIn(duration: AppDurations.countUp),
-          const SizedBox(height: AppSizes.xl),
-          Text(
-            context.l10n.onboarding_ready_title,
-            style: context.textStyles.headlineLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-            textAlign: TextAlign.center,
-          )
-              .animate(target: noMotion ? 0 : 1)
-              .fadeIn(
-                delay: AppDurations.onboardingTextDelay1,
-                duration: AppDurations.listItemEntry,
-              )
-              .slideY(begin: 0.15, end: 0),
-          const SizedBox(height: AppSizes.md),
-          Text(
-            context.l10n.onboarding_ready_body,
-            style: context.textStyles.bodyLarge?.copyWith(
-              color: cs.outline,
-              height: AppSizes.lineHeightRelaxed,
-            ),
-            textAlign: TextAlign.center,
-          )
-              .animate(target: noMotion ? 0 : 1)
-              .fadeIn(
-                delay: AppDurations.onboardingTextDelay2,
-                duration: AppDurations.listItemEntry,
-              )
-              .slideY(begin: 0.15, end: 0),
-          const Spacer(flex: 3),
-          AppButton(
-            label: context.l10n.onboarding_ready_cta,
-            onPressed: onStart,
-            icon: AppIcons.check,
-          )
-              .animate(target: noMotion ? 0 : 1)
-              .fadeIn(
-                delay: AppDurations.onboardingCtaDelay,
-                duration: AppDurations.listItemEntry,
-              )
-              .slideY(begin: 0.1, end: 0),
-          const SizedBox(height: AppSizes.xl),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Wallet type chip for onboarding ─────────────────────────────────────
-
-class _WalletTypeChip extends StatelessWidget {
-  const _WalletTypeChip({
-    required this.value,
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onSelected,
-  });
-
-  final String value;
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return ChoiceChip(
-      selected: selected,
-      avatar: Icon(icon, size: AppSizes.iconXs),
-      label: Text(label),
-      onSelected: (_) => onSelected(),
-      showCheckmark: false,
     );
   }
 }

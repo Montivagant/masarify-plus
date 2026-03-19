@@ -1837,6 +1837,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fab_voice => 'Voice';
 
   @override
+  String get fab_manual => 'Manual';
+
+  @override
   String get wallet_archive_balance_warning =>
       'This account still has a remaining balance. The balance will be excluded from your totals after archiving.';
 
@@ -2416,6 +2419,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get onboarding_default_account_note =>
+      'This will be your default account for transactions';
+
+  @override
   String get onboarding_features_title => 'Discover Masarify';
 
   @override
@@ -2465,4 +2472,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get category_atm => 'ATM';
+
+  @override
+  String get voice_edit_title_hint => 'Refine title...';
+
+  @override
+  String get voice_assign_accounts_first =>
+      'Please assign an account to all transactions first';
+
+  @override
+  String voice_did_you_mean(String name) {
+    return 'Did you mean $name?';
+  }
 }

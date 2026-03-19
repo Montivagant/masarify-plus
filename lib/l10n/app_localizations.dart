@@ -3584,6 +3584,12 @@ abstract class AppLocalizations {
   /// **'Voice'**
   String get fab_voice;
 
+  /// No description provided for @fab_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get fab_manual;
+
   /// No description provided for @wallet_archive_balance_warning.
   ///
   /// In en, this message translates to:
@@ -4611,6 +4617,12 @@ abstract class AppLocalizations {
   /// **'Transaction \"{title}\" of {amount} deleted!'**
   String chat_action_tx_deleted(String title, String amount);
 
+  /// No description provided for @onboarding_default_account_note.
+  ///
+  /// In en, this message translates to:
+  /// **'This will be your default account for transactions'**
+  String get onboarding_default_account_note;
+
   /// No description provided for @onboarding_features_title.
   ///
   /// In en, this message translates to:
@@ -4706,6 +4718,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ATM'**
   String get category_atm;
+
+  /// No description provided for @voice_edit_title_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Refine title...'**
+  String get voice_edit_title_hint;
+
+  /// No description provided for @voice_assign_accounts_first.
+  ///
+  /// In en, this message translates to:
+  /// **'Please assign an account to all transactions first'**
+  String get voice_assign_accounts_first;
+
+  /// No description provided for @voice_did_you_mean.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you mean {name}?'**
+  String voice_did_you_mean(String name);
 }
 
 class _AppLocalizationsDelegate
