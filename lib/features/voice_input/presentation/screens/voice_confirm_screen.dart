@@ -19,6 +19,7 @@ import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../domain/repositories/i_transaction_repository.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
@@ -47,6 +48,14 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     _editableDrafts = widget.drafts.map((d) => _EditableDraft.from(d)).toList();
   }
 
+  @override
+  void dispose() {
+    for (final d in _editableDrafts) {
+      d.noteController.dispose();
+    }
+    super.dispose();
+  }
+
   /// Apply category auto-match, wallet hint matching, and goal suggestions.
   ///
   /// Reads categories/wallets/goals from providers so it can be re-called
@@ -54,10 +63,16 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   void _applyDefaults() {
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     final wallets = ref.read(walletsProvider).valueOrNull ?? [];
-    final defaultWalletId = wallets.isNotEmpty ? wallets.first.id : null;
-    // For cash types, default to the first non-system wallet (not Cash itself).
-    final defaultBankWalletId =
-        wallets.where((w) => !w.isSystemWallet).firstOrNull?.id;
+    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+    // Prefer user's saved default wallet, fallback to first non-system.
+    final prefs = ref.read(preferencesFutureProvider).valueOrNull;
+    final savedDefaultId = prefs?.defaultWalletId;
+    final defaultWalletId =
+        (savedDefaultId != null && nonSystem.any((w) => w.id == savedDefaultId))
+            ? savedDefaultId
+            : nonSystem.firstOrNull?.id ??
+                (wallets.isNotEmpty ? wallets.first.id : null);
+    final defaultBankWalletId = nonSystem.firstOrNull?.id;
     final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
 
     String? unmatchedWalletHint;
@@ -169,6 +184,12 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           SnackBar(
             content: Text(
               context.l10n.voice_wallet_not_found(unmatchedWalletHint!),
+            ),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: AppSizes.snackbarBottomMargin,
+              left: AppSizes.md,
+              right: AppSizes.md,
             ),
             duration: AppDurations.snackbarLong,
             action: SnackBarAction(
@@ -418,26 +439,19 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       final draft = included[i];
       final prefix = total > 1 ? '(${i + 1}/$total) ' : '';
       if (draft.amountPiastres <= 0) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('$prefix${ctx.l10n.error_amount_zero}')),
-        );
+        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_amount_zero}');
         return;
       }
       // Cash types don't need a category
       if (draft.categoryId == null && !_isCashType(draft.type)) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            content: Text('$prefix${ctx.l10n.error_category_required}'),
-          ),
+        SnackHelper.showError(
+          ctx,
+          '$prefix${ctx.l10n.error_category_required}',
         );
         return;
       }
       if (draft.walletId == null) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(
-            content: Text('$prefix${ctx.l10n.error_wallet_required}'),
-          ),
-        );
+        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
         return;
       }
     }
@@ -614,10 +628,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     BuildContext context,
     _EditableDraft draft,
   ) async {
-    final isCash =
-        draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
     final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
-        .where((w) => !isCash || !w.isSystemWallet)
+        .where((w) => !w.isSystemWallet)
         .toList();
 
     await showModalBottomSheet<void>(

@@ -222,7 +222,7 @@ class _SuccessOverlayState extends State<_SuccessOverlay> {
   void initState() {
     super.initState();
     Future.delayed(AppDurations.splashHold, () {
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) context.pop();
     });
   }
 

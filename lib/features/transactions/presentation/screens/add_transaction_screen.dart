@@ -21,6 +21,7 @@ import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -137,14 +138,26 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted) return;
     if (wallets.isEmpty) return;
-    // For cash types, pick the first non-system (bank) wallet.
+    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+
+    // Prefer the user's saved default wallet.
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    final defaultId = prefs.defaultWalletId;
+    if (defaultId != null && nonSystem.any((w) => w.id == defaultId)) {
+      setState(() => _walletId = defaultId);
+      return;
+    }
+    // Fallback: first non-system wallet (for cash types) or first wallet.
     if (_isCashType) {
-      final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
       if (nonSystem.isNotEmpty) {
         setState(() => _walletId = nonSystem.first.id);
       }
     } else {
-      setState(() => _walletId = wallets.first.id);
+      if (nonSystem.isNotEmpty) {
+        setState(() => _walletId = nonSystem.first.id);
+      } else {
+        setState(() => _walletId = wallets.first.id);
+      }
     }
   }
 
@@ -288,9 +301,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
@@ -431,9 +442,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
@@ -941,13 +950,25 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted) return;
     if (wallets.isEmpty) return;
+    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+
+    // Prefer the user's saved default wallet.
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    final defaultId = prefs.defaultWalletId;
+    if (defaultId != null && nonSystem.any((w) => w.id == defaultId)) {
+      setState(() => _walletId = defaultId);
+      return;
+    }
     if (_isCashType) {
-      final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
       if (nonSystem.isNotEmpty) {
         setState(() => _walletId = nonSystem.first.id);
       }
     } else {
-      setState(() => _walletId = wallets.first.id);
+      if (nonSystem.isNotEmpty) {
+        setState(() => _walletId = nonSystem.first.id);
+      } else {
+        setState(() => _walletId = wallets.first.id);
+      }
     }
   }
 
@@ -1062,9 +1083,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
@@ -1175,9 +1194,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
