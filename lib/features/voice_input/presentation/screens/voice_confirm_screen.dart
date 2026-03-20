@@ -594,16 +594,24 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   Future<void> _createWalletFromHint(_EditableDraft draft) async {
     final duplicateMsg = context.l10n.wallet_name_duplicate;
     final genericMsg = context.l10n.common_error_generic;
+    final hintName = draft.unmatchedHint!;
     try {
       final newId = await ref.read(walletRepositoryProvider).create(
-            name: draft.unmatchedHint!,
+            name: hintName,
             type: 'bank',
             initialBalance: 0,
           );
       if (mounted) {
         setState(() {
-          draft.walletId = newId;
-          draft.unmatchedHint = null;
+          // Update ALL drafts that share the same unmatched wallet hint —
+          // not just the one clicked. Otherwise other drafts stay on the
+          // default wallet and transactions get assigned to the wrong account.
+          for (final d in _editableDrafts) {
+            if (d.unmatchedHint == hintName) {
+              d.walletId = newId;
+              d.unmatchedHint = null;
+            }
+          }
         });
       }
     } on ArgumentError {

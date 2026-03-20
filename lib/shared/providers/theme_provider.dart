@@ -23,7 +23,8 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     return switch (saved) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
+      _ =>
+        ThemeMode.light, // Default to light until dark mode is fully polished
     };
   }
 
@@ -72,7 +73,6 @@ class LocaleNotifier extends StateNotifier<Locale?> {
   }
 }
 
-final localeProvider =
-    StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
+final localeProvider = StateNotifierProvider<LocaleNotifier, Locale?>((ref) {
   return LocaleNotifier(ref.watch(sharedPreferencesProvider));
 });
