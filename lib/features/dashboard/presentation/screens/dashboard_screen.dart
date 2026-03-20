@@ -8,11 +8,13 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/account_carousel.dart';
+import '../widgets/insight_cards_zone.dart';
 import '../widgets/month_summary_zone.dart';
 import '../widgets/pending_review_card.dart';
 import '../widgets/quick_add_zone.dart';
@@ -107,9 +109,15 @@ class DashboardScreen extends ConsumerWidget {
               const SizedBox(height: AppSizes.sectionGap),
 
               // ── Zone 2: Month Summary ──────────────────────────────
-              MonthSummaryZone(filterWalletId: selectedWalletId),
+              MonthSummaryZone(
+                filterWalletId: selectedWalletId,
+                hidden: ref.watch(hideBalancesProvider),
+              ),
 
               const SizedBox(height: AppSizes.sectionGap),
+
+              // ── Zone 3: AI Insight Cards ────────────────────────
+              const InsightCardsZone(),
 
               // ── Zone 4: Quick Add ───────────────────────────────
               const QuickAddZone(),

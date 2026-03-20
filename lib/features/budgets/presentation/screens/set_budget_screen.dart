@@ -17,6 +17,7 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 class SetBudgetScreen extends ConsumerStatefulWidget {
   const SetBudgetScreen({
@@ -73,16 +74,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
         maxChildSize: 0.85,
         builder: (_, controller) => Column(
           children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-              width: AppSizes.dragHandleWidth,
-              height: AppSizes.dragHandleHeight,
-              decoration: BoxDecoration(
-                color: ctx.colors.outlineVariant,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-              ),
-            ),
+            const DragHandle(),
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 AppSizes.md,

@@ -1,17 +1,11 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
-import 'persistent_notification_service.dart';
-
 /// Wrapper around flutter_local_notifications.
 /// Handles initialization, permission, and scheduling.
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
-
-  /// Exposes the shared plugin instance for services that need direct access
-  /// (e.g. [PersistentNotificationService]).
-  static FlutterLocalNotificationsPlugin get plugin => _plugin;
 
   static Future<void> initialize() async {
     if (_initialized) return;
@@ -31,12 +25,7 @@ class NotificationService {
         android: androidSettings,
         iOS: iosSettings,
       ),
-      onDidReceiveNotificationResponse: (response) {
-        final actionId = response.actionId;
-        if (actionId != null && actionId.isNotEmpty) {
-          PersistentNotificationService.onActionTapped?.call(actionId);
-        }
-      },
+      onDidReceiveNotificationResponse: (_) {},
     );
     _initialized = true;
   }

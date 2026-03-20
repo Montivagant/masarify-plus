@@ -26,6 +26,7 @@ abstract final class AppIcons {
   static const IconData mic = PhosphorIconsFill.microphone;
   static const IconData location = PhosphorIconsFill.mapPin;
   static const IconData close = PhosphorIconsBold.x;
+  static const IconData lock = PhosphorIconsFill.lock;
   static const IconData check = PhosphorIconsBold.check;
   static const IconData checkCircle = PhosphorIconsFill.checkCircle;
   static const IconData errorCircle = PhosphorIconsFill.warningCircle;
@@ -111,4 +112,18 @@ abstract final class AppIcons {
   // ── Trend indicators ───────────────────────────────────────────────────
   static const IconData trendingUp = PhosphorIconsBold.trendUp;
   static const IconData trendingDown = PhosphorIconsBold.trendDown;
+
+  // ── Wallet type resolver ──────────────────────────────────────────────
+  /// Maps a wallet type string to its icon. Single source of truth —
+  /// replaces the 3 duplicate `_typeIcon()` methods that existed in
+  /// AccountCarousel, WalletsScreen, and AddTransactionScreen.
+  static IconData walletType(String type) => switch (type) {
+        'physical_cash' => physicalCash,
+        'bank' => bank,
+        'mobile_wallet' => phone,
+        'credit_card' => creditCard,
+        'prepaid_card' => prepaidCard,
+        'investment' => investmentAccount,
+        _ => wallet,
+      };
 }

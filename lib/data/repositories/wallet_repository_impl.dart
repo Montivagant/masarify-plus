@@ -56,12 +56,20 @@ class WalletRepositoryImpl implements IWalletRepository {
     String colorHex = '#1A6B5E',
     int displayOrder = 0,
     List<String> linkedSenders = const [],
+    bool isDefaultAccount = false,
   }) async {
     // Atomic: check + insert in one transaction to prevent TOCTOU race
     return _db.transaction(() async {
       final exists = await _dao.existsByName(name);
       if (exists) {
         throw ArgumentError('A wallet with name "$name" already exists');
+      }
+      // If marking as default, clear existing default first (unique index).
+      if (isDefaultAccount) {
+        await _db.customStatement(
+          'UPDATE wallets SET is_default_account = 0 '
+          'WHERE is_default_account = 1',
+        );
       }
       return _dao.insertWallet(
         WalletsCompanion.insert(
@@ -73,6 +81,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           colorHex: Value(colorHex),
           displayOrder: Value(displayOrder),
           linkedSenders: Value(jsonEncode(linkedSenders)),
+          isDefaultAccount: Value(isDefaultAccount),
         ),
       );
     });
@@ -120,17 +129,43 @@ class WalletRepositoryImpl implements IWalletRepository {
       _dao.watchSystemWallet().map((w) => w != null ? _toEntity(w) : null);
 
   @override
-  Future<int> ensureSystemWalletExists() async {
+  Future<int> ensureSystemWalletExists({String? localizedName}) async {
     return _db.transaction(() async {
       final existing = await _dao.getSystemWallet();
       if (existing != null) return existing.id;
       return _dao.insertWallet(
         WalletsCompanion.insert(
-          name: 'Cash',
+          name: localizedName ?? 'Cash',
           type: 'physical_cash',
           balance: const Value(0),
           displayOrder: const Value(-1),
           isSystemWallet: const Value(true),
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<WalletEntity?> getDefaultAccount() async {
+    final row = await _dao.getDefaultAccount();
+    return row != null ? _toEntity(row) : null;
+  }
+
+  @override
+  Stream<WalletEntity?> watchDefaultAccount() =>
+      _dao.watchDefaultAccount().map((w) => w != null ? _toEntity(w) : null);
+
+  @override
+  Future<int> ensureDefaultAccountExists({String? localizedName}) async {
+    return _db.transaction(() async {
+      final existing = await _dao.getDefaultAccount();
+      if (existing != null) return existing.id;
+      return _dao.insertWallet(
+        WalletsCompanion.insert(
+          name: localizedName ?? 'Default',
+          type: 'bank',
+          balance: const Value(0),
+          isDefaultAccount: const Value(true),
         ),
       );
     });
@@ -161,6 +196,7 @@ class WalletRepositoryImpl implements IWalletRepository {
         createdAt: w.createdAt,
         linkedSenders: _decodeSenders(w.linkedSenders),
         isSystemWallet: w.isSystemWallet,
+        isDefaultAccount: w.isDefaultAccount,
       );
 
   @override

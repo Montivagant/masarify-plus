@@ -17,6 +17,7 @@ class FinancialContext {
     required this.topCategories,
     required this.userLocale,
     required this.categoryList,
+    this.walletList = const [],
     this.unbudgetedHighSpend = const [],
     this.savingsRate = 0,
     this.recurringCount = 0,
@@ -36,6 +37,9 @@ class FinancialContext {
 
   /// Available categories for action matching, e.g. 'Food (طعام)|expense'.
   final List<String> categoryList;
+
+  /// User's wallet/account names, e.g. 'CIB (bank)', 'Vodafone Cash (mobile_wallet)'.
+  final List<String> walletList;
 
   /// Unbudgeted categories with significant spending (>500 EGP/mo).
   final List<String> unbudgetedHighSpend;
@@ -81,6 +85,9 @@ class AiChatService {
         : '\n- Unbudgeted high-spend: ${ctx.unbudgetedHighSpend.join(', ')}';
     final savingsInfo =
         ctx.monthlyIncome > 0 ? '\n- Savings rate: ${ctx.savingsRate}%' : '';
+    final walletNames =
+        ctx.walletList.isEmpty ? 'No accounts' : ctx.walletList.join(', ');
+    final walletCount = ctx.walletList.length;
 
     return '⚡ LANGUAGE RULE (HIGHEST PRIORITY): You MUST respond in $langName. Every word of your reply must be in $langName.\n'
         'EXCEPTION: If user writes in Franco-Arab/Arabezi (Arabic in Latin letters, e.g. "3ayz", "7aga", "el", "kda", "ana"), ALWAYS respond in Arabic.\n'
@@ -90,6 +97,7 @@ class AiChatService {
         '\n'
         'FINANCIAL SNAPSHOT:\n'
         '- Balance: $balance | Income: $income | Expense: $expense$savingsInfo\n'
+        '- Accounts ($walletCount): $walletNames\n'
         '- Budgets (${ctx.activeBudgetCount}): $budgets\n'
         '- Goals (${ctx.activeGoalCount}): $goals\n'
         '- Top spending: $cats\n'
@@ -99,13 +107,22 @@ class AiChatService {
         '1. IDENTIFY GAPS: No budgets + has income? Suggest creating budgets. Savings rate < 20%? Warn.\n'
         '2. FLAG ISSUES: Budget > monthly income? Warn. Goal deadline passed? Note it. Budget at > 80%? Alert.\n'
         '3. SUGGEST: After creating a transaction, suggest a budget if category is unbudgeted and spend > 500 EGP/mo.\n'
-        '4. **ALWAYS CLARIFY BEFORE ACTING**: NEVER create an action without explicit confirmation from the user. '
-        'If ANY detail is missing or ambiguous (amount, category, account, deadline, type), ASK the user first. '
-        'For example, if user says "add 500" — ask: income or expense? Which category? Which account? Do NOT assume.\n'
+        '4. **INFER WHEN OBVIOUS, ASK WHEN AMBIGUOUS**:\n'
+        '   - Amount: ALWAYS required from the user — never guess.\n'
+        '   - Category: Infer from keywords (e.g. "uber"→Transport, "kfc"→Food). Use the category list. Only ask if truly ambiguous.\n'
+        '   - Account: If only 1 account exists, use it automatically. If multiple, infer from name if the user mentions one. Only ask if ambiguous.\n'
+        '   - Type: Default to "expense" unless user says income/salary/received/deposited. Cash withdrawal/deposit only if explicit.\n'
+        '   - Date: Default to today unless user specifies ("yesterday", "last Friday", a specific date).\n'
+        '   - Month/Year: Default to current month for budgets unless specified.\n'
+        '   - Frequency: Default to "monthly" for recurring unless specified.\n'
+        '   - NEVER assume the amount. ALWAYS confirm the complete action before generating JSON.\n'
         '5. **DISCUSS BEFORE CREATING**: If the user asks for advice, planning help, or general questions, '
         'have a conversation and suggest options — do NOT immediately generate an action JSON. '
         'Only create actions when the user clearly and explicitly requests a specific action with enough details.\n'
         '6. CONTEXT-AWARE: Reference actual data. "Your Food is at 85% with 10 days left."\n'
+        '7. **USE YOUR DATA**: You already have the user\'s accounts, categories, budgets, goals, and spending. '
+        'NEVER ask "what\'s your budget?" or "how much did you spend?" — you KNOW. '
+        'Reference specific numbers from the snapshot. Answer data questions directly.\n'
         '\n'
         'ACTIONS (one JSON block per response, amounts in EGP):\n'
         'Categories: $categoryNames\n'
@@ -117,7 +134,7 @@ class AiChatService {
         'create_wallet: {"action":"create_wallet","name":"CIB","type":"bank","initial_balance":5000}\n'
         'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"2026-03-09"}\n'
         '\n'
-        'One action/response. Valid JSON with double quotes. Never assume amounts, categories, or account names.\n';
+        'One action/response. Valid JSON with double quotes. Never assume amounts.\n';
   }
 
   List<ChatMessageEntity> _trimHistory(List<ChatMessageEntity> allMessages) {

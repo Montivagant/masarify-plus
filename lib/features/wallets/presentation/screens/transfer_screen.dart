@@ -14,6 +14,7 @@ import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Transfer between wallets — Rule #8: never income/expense.
 class TransferScreen extends ConsumerStatefulWidget {
@@ -73,18 +74,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: AppSizes.sm),
-                  width: AppSizes.dragHandleWidth,
-                  height: AppSizes.dragHandleHeight,
-                  decoration: BoxDecoration(
-                    color: ctx.colors.outlineVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                  ),
-                ),
-              ),
+              const DragHandle(),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
                   AppSizes.screenHPadding,

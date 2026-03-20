@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
@@ -28,7 +29,8 @@ class AppDatePicker extends StatelessWidget {
       context: context,
       initialDate: selectedDate,
       firstDate: firstDate ?? DateTime(2000),
-      lastDate: lastDate ?? DateTime.now().add(const Duration(days: 365 * 5)),
+      lastDate:
+          lastDate ?? DateTime.now().add(AppDurations.datePickerMaxOffset),
     );
     if (picked != null) onDateChanged(picked);
   }

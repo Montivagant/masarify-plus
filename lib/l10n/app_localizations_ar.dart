@@ -12,6 +12,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appName => 'مصاريفي';
 
   @override
+  String get appBrandEnglish => 'Masarify';
+
+  @override
+  String get appBrandArabic => 'مصاريفي';
+
+  @override
   String get appTagline => 'سيطر على فلوسك';
 
   @override
@@ -211,6 +217,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get category_name_hint => 'مثال: قهوة، بقالة';
+
+  @override
+  String get category_name_duplicate => 'يوجد تصنيف بهذا الاسم بالفعل';
 
   @override
   String get category_icon => 'الأيقونة';
@@ -570,9 +579,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_voice_input => 'الإدخال الصوتي';
 
   @override
-  String get settings_notification_parser => 'تحليل الإشعارات';
-
-  @override
   String get settings_sms_parser => 'تحليل الرسائل';
 
   @override
@@ -713,6 +719,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_done => 'تم';
 
   @override
+  String get common_none => 'بدون';
+
+  @override
   String get common_next => 'التالي';
 
   @override
@@ -765,13 +774,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get location_failed => 'لم نتمكن من تحديد الموقع';
-
-  @override
-  String get permission_notification_title => 'الوصول للإشعارات';
-
-  @override
-  String get permission_notification_body =>
-      'يمكن لمصاريفي قراءة إشعارات البنك لاكتشاف المعاملات تلقائياً. لا يُرسل شيء لأي خادم.';
 
   @override
   String get error_amount_zero => 'يجب أن يكون المبلغ أكبر من صفر';
@@ -866,10 +868,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get parser_no_pending => 'لا توجد معاملات معلقة للمراجعة';
 
   @override
-  String get parser_no_pending_filtered =>
-      'لا توجد معاملات لهذا المصدر — جرّب \"الكل\"';
-
-  @override
   String get parser_approved_msg => 'تم اعتماد المعاملة';
 
   @override
@@ -908,15 +906,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get parser_wallet_label => 'الحساب';
 
   @override
-  String get parser_source_all => 'الكل';
-
-  @override
-  String get parser_source_sms => 'رسائل SMS';
-
-  @override
-  String get parser_source_notification => 'الإشعارات';
-
-  @override
   String get parser_approve_as_transfer => 'اعتماد كتحويل';
 
   @override
@@ -939,7 +928,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_smart_detection_subtitle =>
-      'اكتشاف المعاملات تلقائياً من الرسائل والإشعارات';
+      'اكتشاف المعاملات تلقائياً من رسائل SMS';
 
   @override
   String get settings_ai_models => 'الذكاء الاصطناعي والنماذج';
@@ -1000,6 +989,79 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get paywall_title => 'Masarify Pro';
+
+  @override
+  String get paywall_headline => 'افتح كل الإمكانيات';
+
+  @override
+  String get paywall_subheadline => 'ميزانيات بلا حدود، تحليلات ذكية، وأكتر.';
+
+  @override
+  String get paywall_includes => 'Pro يشمل:';
+
+  @override
+  String get paywall_feature_budgets => 'ميزانيات بلا حدود';
+
+  @override
+  String get paywall_feature_goals => 'أهداف ادخار بلا حدود';
+
+  @override
+  String get paywall_feature_insights => 'تحليلات إنفاق ذكية';
+
+  @override
+  String get paywall_feature_analytics => 'تحليلات متقدمة واتجاهات';
+
+  @override
+  String get paywall_feature_backup => 'نسخ احتياطي سحابي (Google Drive)';
+
+  @override
+  String get paywall_feature_export => 'تصدير CSV و PDF';
+
+  @override
+  String get paywall_feature_chat => 'مساعد مالي ذكي';
+
+  @override
+  String paywall_monthly(String price) {
+    return '$price/شهر';
+  }
+
+  @override
+  String paywall_yearly(String price) {
+    return '$price/سنة — وفّر ٣٠٪';
+  }
+
+  @override
+  String get paywall_restore => 'استعادة المشتريات';
+
+  @override
+  String get subscription_active => 'Pro مفعّل';
+
+  @override
+  String get subscription_inactive => 'الخطة المجانية';
+
+  @override
+  String get subscription_upgrade_prompt => 'ترقى لـ Pro لفتح كل الميزات.';
+
+  @override
+  String get paywall_restored => 'تم استعادة الاشتراك بنجاح!';
+
+  @override
+  String get paywall_no_purchases => 'لا توجد مشتريات سابقة.';
+
+  @override
+  String get paywall_store_unavailable =>
+      'المتجر غير متاح حالياً. حاول مرة أخرى لاحقاً.';
+
+  @override
+  String paywall_trial_banner(int days) {
+    return 'متبقي $days يوم من الفترة التجريبية المجانية';
+  }
+
+  @override
+  String get paywall_pro_feature => 'ميزة Pro';
+
+  @override
+  String get paywall_unlock_cta => 'اضغط للفتح';
 
   @override
   String get common_ok => 'حسناً';
@@ -1796,10 +1858,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quick_add_voice => 'إدخال صوتي';
 
   @override
-  String get settings_notification_parser_subtitle =>
-      'اكتشاف المعاملات تلقائياً من إشعارات البنك';
-
-  @override
   String get settings_sms_parser_subtitle =>
       'فحص الرسائل النصية لاكتشاف معاملات البنك';
 
@@ -2308,11 +2366,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'فشل النسخ الاحتياطي. هل تريد حذف البيانات على أي حال؟';
 
   @override
-  String voice_wallet_not_found(String name) {
-    return 'الحساب \'\'$name\'\' غير موجود — إنشاؤه؟';
-  }
-
-  @override
   String get voice_select_wallet => 'اختر الحساب';
 
   @override
@@ -2325,9 +2378,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_deselect_all => 'إلغاء التحديد';
-
-  @override
-  String get voice_wallet_not_matched => 'الحساب غير موجود';
 
   @override
   String get common_create => 'إنشاء';
@@ -2433,6 +2483,122 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_ready_body => 'ابدأ بتتبع أموالك اليوم.';
 
   @override
+  String get onboarding_slide1_title => 'سجّل في ضغطتين';
+
+  @override
+  String get onboarding_slide1_body =>
+      'اضغط الزر، اكتب المبلغ، خلاص.\nأسرع طريقة لتسجيل مصاريفك.';
+
+  @override
+  String get onboarding_slide2_title => 'قولها وبس';
+
+  @override
+  String get onboarding_slide2_body =>
+      'اتكلم بشكل طبيعي. الذكاء الاصطناعي\nيفهم مصاريفك بأي لغة.';
+
+  @override
+  String get onboarding_slide3_title => 'كشف SMS تلقائي';
+
+  @override
+  String get onboarding_slide3_body =>
+      'رسائل البنك تتحول لمعاملات\nتلقائياً. من غير ما تكتب حاجة.';
+
+  @override
+  String get onboarding_demo_amount => '١٥٠٫٠٠ جنيه';
+
+  @override
+  String get onboarding_demo_food => 'أكل';
+
+  @override
+  String get onboarding_demo_transport => 'مواصلات';
+
+  @override
+  String get onboarding_demo_voice_text => '\"غدا ١٥٠ جنيه\"';
+
+  @override
+  String get onboarding_demo_sms_sender => 'بنك CIB';
+
+  @override
+  String get onboarding_demo_sms_body => 'عملية شراء ٢٥٠.٠٠ جنيه...';
+
+  @override
+  String get onboarding_demo_sms_result => '٢٥٠ جنيه — تم الكشف تلقائياً';
+
+  @override
+  String get onboarding_pick_account_title => 'حسابك الأساسي إيه؟';
+
+  @override
+  String get onboarding_pick_account_body =>
+      'اختار واحد عشان تبدأ — تقدر تضيف تاني بعدين.';
+
+  @override
+  String get onboarding_type_bank => 'حساب بنكي';
+
+  @override
+  String get onboarding_type_bank_desc => 'CIB، الأهلي، بنك مصر، إلخ.';
+
+  @override
+  String get onboarding_type_cash => 'كاش بس';
+
+  @override
+  String get onboarding_type_cash_desc => 'تتبع المصاريف النقدية من غير بنك.';
+
+  @override
+  String get onboarding_type_mobile => 'محفظة موبايل';
+
+  @override
+  String get onboarding_type_mobile_desc => 'فودافون كاش، أورانج، إلخ.';
+
+  @override
+  String get onboarding_default_bank_name => 'حسابي البنكي';
+
+  @override
+  String get onboarding_default_mobile_name => 'محفظة الموبايل';
+
+  @override
+  String get common_dismiss => 'إخفاء';
+
+  @override
+  String insight_budget_risk_title(String category) {
+    return 'ميزانية $category في خطر';
+  }
+
+  @override
+  String insight_budget_risk_body(int percent) {
+    return 'صرفت $percent% من ميزانيتك هذا الشهر';
+  }
+
+  @override
+  String insight_prediction_title(String category) {
+    return '$category ممكن تتخطى الميزانية';
+  }
+
+  @override
+  String insight_prediction_body(String amount) {
+    return 'بالمعدل الحالي، هتتخطى ميزانيتك بـ $amount';
+  }
+
+  @override
+  String insight_recurring_title(String title) {
+    return 'متكرر: $title';
+  }
+
+  @override
+  String insight_recurring_body(String amount, String frequency) {
+    return '$amount $frequency — عايز تتابعها؟';
+  }
+
+  @override
+  String insight_suggest_title(String category) {
+    return 'تحط ميزانية لـ $category؟';
+  }
+
+  @override
+  String insight_suggest_body(String amount) {
+    return 'بتصرف في المتوسط $amount/شهر على التصنيف ده';
+  }
+
+  @override
   String get cash_in_hand => 'النقدي في اليد';
 
   @override
@@ -2454,11 +2620,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_edit_title_hint => 'تعديل العنوان...';
 
   @override
-  String get voice_assign_accounts_first =>
-      'يرجى تعيين حساب لجميع المعاملات أولاً';
-
-  @override
-  String voice_did_you_mean(String name) {
-    return 'هل تقصد $name؟';
+  String voice_create_wallet_instead(String name) {
+    return 'إنشاء \'\'$name\'\' بدلاً من ذلك؟';
   }
 }

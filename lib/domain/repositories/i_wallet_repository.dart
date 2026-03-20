@@ -20,6 +20,7 @@ abstract interface class IWalletRepository {
     String colorHex = '#1A6B5E',
     int displayOrder = 0,
     List<String> linkedSenders = const [],
+    bool isDefaultAccount = false,
   });
 
   Future<bool> update(WalletEntity wallet);
@@ -51,5 +52,16 @@ abstract interface class IWalletRepository {
   Stream<WalletEntity?> watchSystemWallet();
 
   /// Ensure the Physical Cash system wallet exists. Returns its id.
-  Future<int> ensureSystemWalletExists();
+  /// [localizedName] overrides the default English name for l10n support.
+  Future<int> ensureSystemWalletExists({String? localizedName});
+
+  /// The mandatory default bank account (fallback for transaction assignment).
+  Future<WalletEntity?> getDefaultAccount();
+
+  /// Reactive stream of the default account.
+  Stream<WalletEntity?> watchDefaultAccount();
+
+  /// Ensure a default bank account exists. Returns its id.
+  /// [localizedName] overrides the default English name for l10n support.
+  Future<int> ensureDefaultAccountExists({String? localizedName});
 }

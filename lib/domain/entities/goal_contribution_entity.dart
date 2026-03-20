@@ -6,6 +6,7 @@ class GoalContributionEntity {
     required this.amount,
     required this.date,
     this.note,
+    this.walletId,
   });
 
   final int id;
@@ -16,6 +17,10 @@ class GoalContributionEntity {
 
   final DateTime date;
   final String? note;
+
+  /// The wallet that was deducted when this contribution was made.
+  /// Null for legacy contributions created before wallet-deduction was added.
+  final int? walletId;
 
   @override
   bool operator ==(Object other) =>

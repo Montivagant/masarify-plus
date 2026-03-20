@@ -20,6 +20,7 @@ import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 import 'voice_wave_bars.dart';
 
 /// Voice input states.
@@ -289,7 +290,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       try {
         final file = File(_tempFilePath!);
         if (file.existsSync()) await file.delete();
-      } catch (_) {}
+      } catch (_) {} // Best-effort cleanup — failure is non-critical.
       _tempFilePath = null;
     }
   }
@@ -317,16 +318,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // -- Drag handle --
-          Container(
-            width: AppSizes.dragHandleWidth,
-            height: AppSizes.dragHandleHeight,
-            decoration: BoxDecoration(
-              color: cs.outline.withValues(alpha: AppSizes.opacityLight4),
-              borderRadius:
-                  BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
+          const DragHandle(),
 
           // -- Close button --
           Align(

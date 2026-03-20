@@ -22,5 +22,10 @@ class Wallets extends Table {
   BoolColumn get isSystemWallet =>
       boolean().withDefault(const Constant(false))();
 
+  /// True for the mandatory default bank account — fallback for all transaction assignment.
+  /// Exactly one wallet may have this flag set (enforced by partial unique index).
+  BoolColumn get isDefaultAccount =>
+      boolean().withDefault(const Constant(false))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }

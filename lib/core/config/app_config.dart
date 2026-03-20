@@ -4,7 +4,6 @@ abstract final class AppConfig {
   /// SMS transaction parsing — enabled (owner-approved).
   static const bool kSmsEnabled = true;
 
-  /// In-app purchases / monetization — enable only in Phase 5
-  /// after 1000+ active users.
-  static const bool kMonetizationEnabled = false;
+  /// In-app purchases / monetization — enabled (P5).
+  static const bool kMonetizationEnabled = true;
 }

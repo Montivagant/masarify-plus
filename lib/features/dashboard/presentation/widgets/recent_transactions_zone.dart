@@ -70,7 +70,9 @@ class RecentTransactionsZone extends ConsumerWidget {
                     onPressed: () => context.go(AppRoutes.transactions),
                     label: Text(context.l10n.dashboard_see_all),
                     icon: Icon(
-                      context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+                      context.isRtl
+                          ? AppIcons.chevronLeft
+                          : AppIcons.chevronRight,
                       size: AppSizes.iconXs,
                     ),
                     iconAlignment: IconAlignment.end,
@@ -99,7 +101,17 @@ class RecentTransactionsZone extends ConsumerWidget {
       ),
       error: (_, __) => Padding(
         padding: const EdgeInsets.all(AppSizes.lg),
-        child: EmptyState(title: context.l10n.dashboard_failed_transactions),
+        child: Column(
+          children: [
+            EmptyState(title: context.l10n.dashboard_failed_transactions),
+            const SizedBox(height: AppSizes.sm),
+            TextButton.icon(
+              onPressed: () => ref.invalidate(recentTransactionsProvider),
+              icon: const Icon(AppIcons.refresh, size: AppSizes.iconSm),
+              label: Text(context.l10n.common_retry),
+            ),
+          ],
+        ),
       ),
     );
   }

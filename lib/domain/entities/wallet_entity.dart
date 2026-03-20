@@ -13,6 +13,7 @@ class WalletEntity {
     required this.createdAt,
     this.linkedSenders = const [],
     this.isSystemWallet = false,
+    this.isDefaultAccount = false,
   });
 
   final int id;
@@ -38,6 +39,9 @@ class WalletEntity {
   /// True for the mandatory Physical Cash system wallet.
   final bool isSystemWallet;
 
+  /// True for the mandatory default bank account (fallback for transaction assignment).
+  final bool isDefaultAccount;
+
   bool get isPhysicalCash => isSystemWallet;
 
   WalletEntity copyWith({
@@ -53,6 +57,7 @@ class WalletEntity {
     DateTime? createdAt,
     List<String>? linkedSenders,
     bool? isSystemWallet,
+    bool? isDefaultAccount,
   }) =>
       WalletEntity(
         id: id ?? this.id,
@@ -67,6 +72,7 @@ class WalletEntity {
         createdAt: createdAt ?? this.createdAt,
         linkedSenders: linkedSenders ?? this.linkedSenders,
         isSystemWallet: isSystemWallet ?? this.isSystemWallet,
+        isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
       );
 
   @override

@@ -118,6 +118,13 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
   final recurringRules = ref.watch(recurringRulesProvider).valueOrNull ?? [];
   final activeRecurringCount = recurringRules.where((r) => r.isActive).length;
 
+  // Wallet/account names for AI context (non-system, non-archived).
+  final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+  final walletList = wallets
+      .where((w) => !w.isSystemWallet && !w.isArchived)
+      .map((w) => '${w.name} (${w.type})')
+      .toList();
+
   return FinancialContext(
     totalBalance: balance,
     monthlyIncome: monthlyIncome,
@@ -127,6 +134,7 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     topCategories: topCategories,
     userLocale: lang,
     categoryList: categoryList,
+    walletList: walletList,
     unbudgetedHighSpend: unbudgetedHighSpend,
     savingsRate: savingsRate,
     recurringCount: activeRecurringCount,

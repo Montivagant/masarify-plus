@@ -29,7 +29,7 @@ class PendingReviewCard extends ConsumerWidget {
         tintColor:
             cs.primaryContainer.withValues(alpha: AppSizes.opacityXLight),
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppSizes.cardRadius),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
           onTap: () => context.push(AppRoutes.parserReview),
           child: Row(
             children: [

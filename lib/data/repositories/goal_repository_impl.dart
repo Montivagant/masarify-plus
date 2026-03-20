@@ -219,6 +219,14 @@ class GoalRepositoryImpl implements IGoalRepository {
       if (contribution == null) return false;
       await _dao.subtractProgress(contribution.goalId, contribution.amount);
 
+      // Restore wallet balance if contribution was made with wallet deduction.
+      if (contribution.walletId != null) {
+        await _walletDao.adjustBalance(
+          contribution.walletId!,
+          contribution.amount,
+        );
+      }
+
       // I2 fix: unmark completed if current drops below target
       final goal = await _dao.getById(contribution.goalId);
       if (goal != null &&
@@ -260,5 +268,6 @@ class GoalRepositoryImpl implements IGoalRepository {
         amount: c.amount,
         date: c.date,
         note: c.note,
+        walletId: c.walletId,
       );
 }

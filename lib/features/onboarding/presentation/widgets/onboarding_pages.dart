@@ -9,10 +9,8 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/theme_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
-import '../../../../shared/widgets/inputs/amount_input.dart';
-import '../../../../shared/widgets/inputs/app_text_field.dart';
 
-// ── Page 1: Welcome ─────────────────────────────────────────────────────────
+// ── Page 0: Welcome ─────────────────────────────────────────────────────────
 
 class WelcomePage extends ConsumerWidget {
   const WelcomePage({
@@ -22,9 +20,6 @@ class WelcomePage extends ConsumerWidget {
   });
 
   final VoidCallback onNext;
-
-  /// Fractional offset from PageController for parallax.
-  /// 0.0 = this page is fully centred, ±1.0 = one page away.
   final double pageOffset;
 
   @override
@@ -129,16 +124,25 @@ class WelcomePage extends ConsumerWidget {
   }
 }
 
-// ── Page 2: Feature Highlights ──────────────────────────────────────────────
+// ── Value Preview Slide ──────────────────────────────────────────────────────
 
-class FeaturesPage extends StatelessWidget {
-  const FeaturesPage({
+/// A single value-preview slide showing an animated feature demo.
+class ValuePreviewSlide extends StatelessWidget {
+  const ValuePreviewSlide({
     super.key,
-    required this.onNext,
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.demoWidget,
     required this.pageOffset,
   });
 
-  final VoidCallback onNext;
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final Widget demoWidget;
   final double pageOffset;
 
   @override
@@ -146,23 +150,391 @@ class FeaturesPage extends StatelessWidget {
     final cs = context.colors;
     final noMotion = context.reduceMotion;
 
-    final features = [
-      _FeatureItem(
-        icon: AppIcons.mic,
-        title: context.l10n.onboarding_feature_voice_title,
-        body: context.l10n.onboarding_feature_voice_body,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+      child: Column(
+        children: [
+          const Spacer(flex: 2),
+          // ── Animated demo ──────────────────────────────────────────────
+          Transform.translate(
+            offset: Offset(pageOffset * AppSizes.onboardingParallaxOffset, 0),
+            child: SizedBox(
+              height: AppSizes.onboardingDemoHeight,
+              child: demoWidget,
+            ),
+          ),
+          const SizedBox(height: AppSizes.xl),
+          // ── Title ──────────────────────────────────────────────────────
+          Text(
+            title,
+            style: context.textStyles.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(duration: AppDurations.listItemEntry)
+              .slideY(begin: 0.1, end: 0),
+          const SizedBox(height: AppSizes.md),
+          // ── Subtitle ───────────────────────────────────────────────────
+          Text(
+            subtitle,
+            style: context.textStyles.bodyLarge?.copyWith(
+              color: cs.outline,
+              height: AppSizes.lineHeightRelaxed,
+            ),
+            textAlign: TextAlign.center,
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(
+                delay: AppDurations.onboardingTextDelay1,
+                duration: AppDurations.listItemEntry,
+              )
+              .slideY(begin: 0.1, end: 0),
+          const Spacer(flex: 3),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Slide 1 Demo: "Track in 2 taps" ─────────────────────────────────────────
+
+class TrackingDemo extends StatelessWidget {
+  const TrackingDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final noMotion = context.reduceMotion;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // FAB icon
+          Container(
+            width: AppSizes.iconXl3,
+            height: AppSizes.iconXl3,
+            decoration: BoxDecoration(
+              color: cs.primary,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: cs.primary.withValues(alpha: AppSizes.opacityLight4),
+                  blurRadius: AppSizes.heroShadowBlur,
+                  offset: const Offset(0, AppSizes.heroShadowOffsetY),
+                ),
+              ],
+            ),
+            child: Icon(
+              AppIcons.add,
+              color: cs.onPrimary,
+              size: AppSizes.iconLg,
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .scale(
+                begin: const Offset(0.5, 0.5),
+                duration: AppDurations.progressAnim,
+                curve: Curves.easeOutBack,
+              )
+              .fadeIn(),
+          const SizedBox(height: AppSizes.lg),
+          // Mock amount card
+          GlassCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.lg,
+              vertical: AppSizes.md,
+            ),
+            child: Text(
+              context.l10n.onboarding_demo_amount,
+              style: context.textStyles.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.appTheme.expenseColor,
+              ),
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay1)
+              .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+          const SizedBox(height: AppSizes.sm),
+          // Mock category chips
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _MockChip(
+                label: context.l10n.onboarding_demo_food,
+                selected: true,
+                color: cs.primary,
+              ),
+              const SizedBox(width: AppSizes.xs),
+              _MockChip(
+                label: context.l10n.onboarding_demo_transport,
+                selected: false,
+                color: cs.outline,
+              ),
+            ],
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay3)
+              .slideY(begin: 0.2, end: 0),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Slide 2 Demo: "Just say it" ──────────────────────────────────────────────
+
+class VoiceDemo extends StatelessWidget {
+  const VoiceDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final noMotion = context.reduceMotion;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Mic icon with pulse ring
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: AppSizes.onboardingIcon,
+                height: AppSizes.onboardingIcon,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: AppSizes.opacitySubtle),
+                  shape: BoxShape.circle,
+                ),
+              )
+                  .animate(
+                    target: noMotion ? 0 : 1,
+                    onPlay: (c) => c.repeat(reverse: true),
+                  )
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1.2, 1.2),
+                    duration: AppDurations.onboardingPulse,
+                    curve: Curves.easeInOut,
+                  ),
+              Container(
+                width: AppSizes.iconXl3,
+                height: AppSizes.iconXl3,
+                decoration: BoxDecoration(
+                  color: cs.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.mic,
+                  color: cs.onPrimary,
+                  size: AppSizes.iconLg,
+                ),
+              )
+                  .animate(target: noMotion ? 0 : 1)
+                  .scale(
+                    begin: const Offset(0.5, 0.5),
+                    duration: AppDurations.progressAnim,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(),
+            ],
+          ),
+          const SizedBox(height: AppSizes.lg),
+          // Mock speech bubble
+          GlassCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.md,
+              vertical: AppSizes.sm,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.mic,
+                  color: cs.primary,
+                  size: AppSizes.iconSm,
+                ),
+                const SizedBox(width: AppSizes.sm),
+                Text(
+                  context.l10n.onboarding_demo_voice_text,
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay2)
+              .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Slide 3 Demo: "SMS auto-detect" ──────────────────────────────────────────
+
+class SmsDemo extends StatelessWidget {
+  const SmsDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final noMotion = context.reduceMotion;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Phone icon
+          Container(
+            width: AppSizes.iconXl3,
+            height: AppSizes.iconXl3,
+            decoration: BoxDecoration(
+              color: cs.tertiary.withValues(alpha: AppSizes.opacityLight2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              AppIcons.sms,
+              color: cs.tertiary,
+              size: AppSizes.iconLg,
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .scale(
+                begin: const Offset(0.5, 0.5),
+                duration: AppDurations.progressAnim,
+                curve: Curves.easeOutBack,
+              )
+              .fadeIn(),
+          const SizedBox(height: AppSizes.lg),
+          // Mock SMS notification
+          GlassCard(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.notification,
+                  color: cs.tertiary,
+                  size: AppSizes.iconSm,
+                ),
+                const SizedBox(width: AppSizes.sm),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        context.l10n.onboarding_demo_sms_sender,
+                        style: context.textStyles.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        context.l10n.onboarding_demo_sms_body,
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.outline,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay1)
+              .slideX(
+                begin: context.isRtl ? 0.3 : -0.3,
+                end: 0,
+                curve: Curves.easeOut,
+              ),
+          const SizedBox(height: AppSizes.sm),
+          // Arrow down
+          Icon(AppIcons.expense, color: cs.primary, size: AppSizes.iconMd)
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay4),
+          const SizedBox(height: AppSizes.sm),
+          // Auto-detected transaction card
+          GlassCard(
+            tintColor: cs.primary.withValues(alpha: AppSizes.opacitySubtle),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.checkCircle,
+                  color: cs.primary,
+                  size: AppSizes.iconSm,
+                ),
+                const SizedBox(width: AppSizes.sm),
+                Text(
+                  context.l10n.onboarding_demo_sms_result,
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: cs.primary,
+                  ),
+                ),
+              ],
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay5)
+              .slideY(begin: 0.3, end: 0, curve: Curves.easeOut),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Page 4: Account Type Picker ──────────────────────────────────────────────
+
+class AccountTypePicker extends StatelessWidget {
+  const AccountTypePicker({
+    super.key,
+    required this.onTypeSelected,
+    required this.loading,
+    required this.pageOffset,
+  });
+
+  final ValueChanged<String> onTypeSelected;
+  final bool loading;
+  final double pageOffset;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final noMotion = context.reduceMotion;
+
+    final options = [
+      (
+        type: 'bank',
+        icon: AppIcons.bank,
+        label: context.l10n.onboarding_type_bank,
+        subtitle: context.l10n.onboarding_type_bank_desc,
         color: cs.primary,
       ),
-      _FeatureItem(
-        icon: AppIcons.budget,
-        title: context.l10n.onboarding_feature_budget_title,
-        body: context.l10n.onboarding_feature_budget_body,
+      (
+        type: 'physical_cash',
+        icon: AppIcons.physicalCash,
+        label: context.l10n.onboarding_type_cash,
+        subtitle: context.l10n.onboarding_type_cash_desc,
         color: cs.tertiary,
       ),
-      _FeatureItem(
-        icon: AppIcons.goals,
-        title: context.l10n.onboarding_feature_goal_title,
-        body: context.l10n.onboarding_feature_goal_body,
+      (
+        type: 'mobile_wallet',
+        icon: AppIcons.phone,
+        label: context.l10n.onboarding_type_mobile,
+        subtitle: context.l10n.onboarding_type_mobile_desc,
         color: cs.secondary,
       ),
     ];
@@ -171,93 +543,93 @@ class FeaturesPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
       child: Column(
         children: [
-          const SizedBox(height: AppSizes.xxl),
+          const Spacer(),
           Transform.translate(
             offset: Offset(pageOffset * AppSizes.onboardingParallaxOffset, 0),
             child: Text(
-              context.l10n.onboarding_features_title,
+              context.l10n.onboarding_pick_account_title,
               style: context.textStyles.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: AppSizes.xl),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < features.length; i++) ...[
-                  if (i > 0) const SizedBox(height: AppSizes.md),
-                  _FeatureCard(item: features[i])
-                      .animate(target: noMotion ? 0 : 1)
-                      .fadeIn(
-                        delay: Duration(
-                          milliseconds:
-                              AppDurations.staggerDelay.inMilliseconds *
-                                  (i + 1) *
-                                  2,
-                        ),
-                        duration: AppDurations.listItemEntry,
-                      )
-                      .slideX(
-                        begin: context.isRtl ? -0.1 : 0.1,
-                        end: 0,
-                        delay: Duration(
-                          milliseconds:
-                              AppDurations.staggerDelay.inMilliseconds *
-                                  (i + 1) *
-                                  2,
-                        ),
-                        duration: AppDurations.listItemEntry,
-                      ),
-                ],
-              ],
+          const SizedBox(height: AppSizes.sm),
+          Text(
+            context.l10n.onboarding_pick_account_body,
+            style: context.textStyles.bodyMedium?.copyWith(
+              color: cs.outline,
+              height: AppSizes.lineHeightNormal,
             ),
-          ),
-          AppButton(
-            label: context.l10n.common_next,
-            onPressed: onNext,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppSizes.xl),
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(AppSizes.xl),
+              child: CircularProgressIndicator.adaptive(),
+            )
+          else
+            ...options.asMap().entries.map((entry) {
+              final i = entry.key;
+              final opt = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSizes.md),
+                child: _AccountTypeCard(
+                  icon: opt.icon,
+                  label: opt.label,
+                  subtitle: opt.subtitle,
+                  color: opt.color,
+                  onTap: () => onTypeSelected(opt.type),
+                )
+                    .animate(target: noMotion ? 0 : 1)
+                    .fadeIn(
+                      delay: Duration(
+                        milliseconds: AppDurations.staggerDelay.inMilliseconds *
+                            (i + 1) *
+                            2,
+                      ),
+                      duration: AppDurations.listItemEntry,
+                    )
+                    .slideY(begin: 0.1, end: 0),
+              );
+            }),
+          const Spacer(flex: 2),
         ],
       ),
     );
   }
 }
 
-class _FeatureItem {
-  const _FeatureItem({
+class _AccountTypeCard extends StatelessWidget {
+  const _AccountTypeCard({
     required this.icon,
-    required this.title,
-    required this.body,
+    required this.label,
+    required this.subtitle,
     required this.color,
+    required this.onTap,
   });
 
   final IconData icon;
-  final String title;
-  final String body;
   final Color color;
-}
-
-class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.item});
-
-  final _FeatureItem item;
+  final String label;
+  final String subtitle;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
+      onTap: onTap,
       child: Row(
         children: [
           Container(
             width: AppSizes.iconContainerLg,
             height: AppSizes.iconContainerLg,
             decoration: BoxDecoration(
-              color: item.color.withValues(alpha: AppSizes.opacityLight),
+              color: color.withValues(alpha: AppSizes.opacityLight),
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
             ),
-            child: Icon(item.icon, color: item.color, size: AppSizes.iconMd),
+            child: Icon(icon, color: color, size: AppSizes.iconMd),
           ),
           const SizedBox(width: AppSizes.md),
           Expanded(
@@ -265,21 +637,25 @@ class _FeatureCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.title,
+                  label,
                   style: context.textStyles.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: AppSizes.xs),
+                const SizedBox(height: AppSizes.xxs),
                 Text(
-                  item.body,
+                  subtitle,
                   style: context.textStyles.bodySmall?.copyWith(
                     color: context.colors.outline,
-                    height: AppSizes.lineHeightNormal,
                   ),
                 ),
               ],
             ),
+          ),
+          Icon(
+            context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+            color: context.colors.outline,
+            size: AppSizes.iconSm,
           ),
         ],
       ),
@@ -287,185 +663,40 @@ class _FeatureCard extends StatelessWidget {
   }
 }
 
-// ── Page 3: Account Setup ───────────────────────────────────────────────────
+// ── Mock chip for demo slides ───────────────────────────────────────────────
 
-class AccountSetupPage extends StatelessWidget {
-  const AccountSetupPage({
-    super.key,
-    required this.nameController,
-    required this.walletType,
-    required this.onWalletTypeChanged,
-    required this.onAmountChanged,
-    required this.onBack,
-    required this.onFinish,
-    required this.onSkip,
-    required this.loading,
-    required this.pageOffset,
+class _MockChip extends StatelessWidget {
+  const _MockChip({
+    required this.label,
+    required this.selected,
+    required this.color,
   });
 
-  final TextEditingController nameController;
-  final String walletType;
-  final ValueChanged<String> onWalletTypeChanged;
-  final ValueChanged<int> onAmountChanged;
-  final VoidCallback onBack;
-  final VoidCallback? onFinish;
-  final VoidCallback? onSkip;
-  final bool loading;
-  final double pageOffset;
+  final String label;
+  final bool selected;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
-      child: Column(
-        children: [
-          const SizedBox(height: AppSizes.md),
-          // Back button row
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: IconButton(
-              onPressed: onBack,
-              icon: Icon(
-                context.isRtl ? AppIcons.arrowForward : AppIcons.arrowBack,
-              ),
-              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
-          Transform.translate(
-            offset: Offset(pageOffset * AppSizes.onboardingParallaxOffset, 0),
-            child: Text(
-              context.l10n.onboarding_page2_title,
-              style: context.textStyles.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
-          Text(
-            context.l10n.onboarding_page2_body,
-            style: context.textStyles.bodyMedium?.copyWith(
-              color: cs.outline,
-              height: AppSizes.lineHeightNormal,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSizes.lg),
-          GlassCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Account name ──────────────────────────────────────────
-                Text(
-                  context.l10n.onboarding_account_name_label,
-                  style: context.textStyles.labelMedium?.copyWith(
-                    color: cs.outline,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.xs),
-                AppTextField(
-                  label: context.l10n.onboarding_account_name_label,
-                  hint: context.l10n.onboarding_account_name_hint,
-                  controller: nameController,
-                  prefixIcon: const Icon(AppIcons.wallet),
-                ),
-                const SizedBox(height: AppSizes.md),
-                // ── Account type ──────────────────────────────────────────
-                Text(
-                  context.l10n.onboarding_account_type_label,
-                  style: context.textStyles.labelMedium?.copyWith(
-                    color: cs.outline,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.xs),
-                SizedBox(
-                  width: double.infinity,
-                  child: SegmentedButton<String>(
-                    segments: [
-                      ButtonSegment(
-                        value: 'bank',
-                        label: Text(context.l10n.wallet_type_bank_short),
-                        icon: const Icon(AppIcons.bank),
-                      ),
-                      ButtonSegment(
-                        value: 'mobile_wallet',
-                        label: Text(
-                          context.l10n.wallet_type_mobile_wallet_short,
-                        ),
-                        icon: const Icon(AppIcons.phone),
-                      ),
-                      ButtonSegment(
-                        value: 'credit_card',
-                        label: Text(
-                          context.l10n.wallet_type_credit_card_short,
-                        ),
-                        icon: const Icon(AppIcons.creditCard),
-                      ),
-                    ],
-                    selected: {walletType},
-                    onSelectionChanged: (set) => onWalletTypeChanged(set.first),
-                    style: const ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSizes.md),
-                // ── Starting balance ──────────────────────────────────────
-                Text(
-                  context.l10n.wallet_initial_balance,
-                  style: context.textStyles.labelMedium?.copyWith(
-                    color: cs.outline,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.xs),
-                AmountInput(
-                  onAmountChanged: onAmountChanged,
-                  autofocus: false,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSizes.sm),
-          // Physical cash note
-          Text(
-            context.l10n.onboarding_physical_cash_note,
-            style: context.textStyles.bodySmall?.copyWith(
-              color: cs.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSizes.xs),
-          // Default account note
-          Text(
-            context.l10n.onboarding_default_account_note,
-            style: context.textStyles.bodySmall?.copyWith(
-              color: cs.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(),
-          AppButton(
-            label: loading
-                ? context.l10n.onboarding_saving
-                : context.l10n.onboarding_page2_cta,
-            onPressed: onFinish,
-            icon: AppIcons.check,
-          ),
-          const SizedBox(height: AppSizes.sm),
-          TextButton(
-            onPressed: onSkip,
-            child: Text(
-              context.l10n.onboarding_page2_skip,
-              style: context.textStyles.bodyMedium?.copyWith(
-                color: cs.outline,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.xl),
-        ],
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.md,
+        vertical: AppSizes.xs,
+      ),
+      decoration: BoxDecoration(
+        color: selected
+            ? color.withValues(alpha: AppSizes.opacityLight2)
+            : cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+        border: selected ? Border.all(color: color) : null,
+      ),
+      child: Text(
+        label,
+        style: context.textStyles.labelMedium?.copyWith(
+          color: selected ? color : cs.outline,
+          fontWeight: selected ? FontWeight.w600 : null,
+        ),
       ),
     );
   }

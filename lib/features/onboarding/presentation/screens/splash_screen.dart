@@ -91,18 +91,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               ),
               const SizedBox(height: AppSizes.md),
               Text(
-                'Masarify',
+                context.l10n.appBrandEnglish,
                 style: context.textStyles.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.onPrimary,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  color: cs.onPrimary,
+                ),
               ),
               const SizedBox(height: AppSizes.sm),
               Text(
-                'مصاريفي',
+                context.l10n.appBrandArabic,
                 style: context.textStyles.bodyLarge?.copyWith(
-                      color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
-                    ),
+                  color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
+                ),
               ),
             ],
           ),

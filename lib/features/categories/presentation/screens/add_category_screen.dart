@@ -9,6 +9,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
+import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -92,11 +93,24 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
       setState(() => _nameError = context.l10n.error_name_required);
       return;
     }
+
+    // Check for duplicate category name (same pattern as add_wallet_screen).
+    final allCats = ref.read(categoriesProvider).valueOrNull ?? [];
+    final isAr = context.languageCode == 'ar';
+    final duplicate = allCats.any((c) {
+      if (widget.editId != null && c.id == widget.editId) return false;
+      final existingName = isAr ? c.nameAr : c.name;
+      return existingName.toLowerCase() == name.toLowerCase();
+    });
+    if (duplicate) {
+      setState(() => _nameError = context.l10n.category_name_duplicate);
+      return;
+    }
+
     setState(() {
       _nameError = null;
       _loading = true;
     });
-    final isAr = context.languageCode == 'ar';
     try {
       final repo = ref.read(categoryRepositoryProvider);
       if (widget.editId != null) {

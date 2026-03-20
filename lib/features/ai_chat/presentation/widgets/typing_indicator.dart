@@ -14,7 +14,6 @@ class TypingIndicator extends StatefulWidget {
 class _TypingIndicatorState extends State<TypingIndicator>
     with TickerProviderStateMixin {
   static const _dotCount = 3;
-  static const _duration = AppDurations.countUp;
   static const _staggerDelay = AppDurations.animQuick;
 
   late final List<AnimationController> _controllers;
@@ -24,12 +23,18 @@ class _TypingIndicatorState extends State<TypingIndicator>
     super.initState();
     _controllers = List.generate(
       _dotCount,
-      (index) => AnimationController(vsync: this, duration: _duration),
+      (index) => AnimationController(
+        vsync: this,
+        duration: AppDurations.typingIndicator,
+      ),
     );
     _startAnimations();
   }
 
   Future<void> _startAnimations() async {
+    // Respect reduce-motion: skip animation entirely.
+    if (context.reduceMotion) return;
+
     for (var i = 0; i < _controllers.length; i++) {
       if (i > 0) {
         await Future<void>.delayed(_staggerDelay);
@@ -50,6 +55,28 @@ class _TypingIndicatorState extends State<TypingIndicator>
   @override
   Widget build(BuildContext context) {
     final baseColor = context.colors.onSurfaceVariant;
+
+    // When reduce-motion is enabled, show static dots at mid-opacity.
+    if (context.reduceMotion) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(
+          _dotCount,
+          (index) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.xxs),
+            child: Container(
+              width: AppSizes.dotSm,
+              height: AppSizes.dotSm,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: baseColor.withValues(alpha: 0.55),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(_dotCount, (index) {

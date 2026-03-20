@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -194,6 +194,37 @@ class AppDatabase extends _$AppDatabase {
               "VALUES ('ATM', 'صراف آلي', 'bank', 'both', 1, 99)",
             );
           }
+          if (from < 11) {
+            // Add isDefaultAccount flag to wallets.
+            await m.addColumn(wallets, wallets.isDefaultAccount);
+
+            // Ensure exactly one non-system wallet is marked as default.
+            final existing = await customSelect(
+              'SELECT id FROM wallets WHERE is_default_account = 1',
+            ).get();
+            if (existing.isEmpty) {
+              // Mark the first non-system bank wallet as default, or create one.
+              final banks = await customSelect(
+                'SELECT id FROM wallets '
+                'WHERE is_system_wallet = 0 AND is_archived = 0 '
+                'ORDER BY id ASC LIMIT 1',
+              ).get();
+              if (banks.isNotEmpty) {
+                await customStatement(
+                  'UPDATE wallets SET is_default_account = 1 WHERE id = ?',
+                  [banks.first.read<int>('id')],
+                );
+              } else {
+                await customStatement(
+                  'INSERT INTO wallets (name, type, balance, currency_code, '
+                  'icon_name, color_hex, is_archived, display_order, '
+                  'is_system_wallet, is_default_account, linked_senders) '
+                  "VALUES ('Default', 'bank', 0, 'EGP', 'bank', '#1A6B5E', "
+                  "0, 0, 0, 1, '[]')",
+                );
+              }
+            }
+          }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
         },
@@ -278,6 +309,11 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_system '
       'ON wallets(is_system_wallet) WHERE is_system_wallet = 1',
+    );
+    // Only one default account allowed
+    await customStatement(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_default '
+      'ON wallets(is_default_account) WHERE is_default_account = 1',
     );
   }
 

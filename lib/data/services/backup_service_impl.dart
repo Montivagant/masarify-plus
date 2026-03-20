@@ -21,7 +21,7 @@ class BackupServiceImpl implements BackupService {
 
   // Hardcoded to avoid creating a throwaway AppDatabase() instance (leaked connection).
   // Must be kept in sync with AppDatabase.schemaVersion.
-  static const int _schemaVersion = 10;
+  static const int _schemaVersion = 11;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -186,6 +186,52 @@ class BackupServiceImpl implements BackupService {
         _db.chatMessages,
         _mapToChatMessage,
       );
+
+      // Ensure system wallet and default account invariants after restore.
+      // Old backups (v10 and earlier) may lack isDefaultAccount / isSystemWallet.
+      final hasSystem = await _db
+          .customSelect(
+            'SELECT 1 FROM wallets WHERE is_system_wallet = 1 LIMIT 1',
+          )
+          .get();
+      if (hasSystem.isEmpty) {
+        await _db.customStatement(
+          'INSERT INTO wallets (name, type, balance, currency_code, '
+          'icon_name, color_hex, is_archived, display_order, '
+          'is_system_wallet, is_default_account, linked_senders) VALUES '
+          "('Cash', 'physical_cash', 0, 'EGP', 'wallet', '#1A6B5E', "
+          "0, -1, 1, 0, '[]')",
+        );
+      }
+      final hasDefault = await _db
+          .customSelect(
+            'SELECT 1 FROM wallets WHERE is_default_account = 1 LIMIT 1',
+          )
+          .get();
+      if (hasDefault.isEmpty) {
+        // Mark first non-system, non-archived wallet as default.
+        final candidates = await _db
+            .customSelect(
+              'SELECT id FROM wallets '
+              'WHERE is_system_wallet = 0 AND is_archived = 0 '
+              'ORDER BY id ASC LIMIT 1',
+            )
+            .get();
+        if (candidates.isNotEmpty) {
+          await _db.customStatement(
+            'UPDATE wallets SET is_default_account = 1 WHERE id = ?',
+            [candidates.first.read<int>('id')],
+          );
+        } else {
+          await _db.customStatement(
+            'INSERT INTO wallets (name, type, balance, currency_code, '
+            'icon_name, color_hex, is_archived, display_order, '
+            'is_system_wallet, is_default_account, linked_senders) VALUES '
+            "('Default', 'bank', 0, 'EGP', 'bank', '#1A6B5E', "
+            "0, 0, 0, 1, '[]')",
+          );
+        }
+      }
     });
   }
 
@@ -327,6 +373,7 @@ class BackupServiceImpl implements BackupService {
         'displayOrder': w.displayOrder,
         'linkedSenders': w.linkedSenders,
         'isSystemWallet': w.isSystemWallet,
+        'isDefaultAccount': w.isDefaultAccount,
         'createdAt': w.createdAt.toIso8601String(),
       };
 
@@ -492,6 +539,7 @@ class BackupServiceImpl implements BackupService {
         displayOrder: Value(_int(m['displayOrder'])),
         linkedSenders: Value(m['linkedSenders'] as String? ?? '[]'),
         isSystemWallet: Value(m['isSystemWallet'] as bool? ?? false),
+        isDefaultAccount: Value(m['isDefaultAccount'] as bool? ?? false),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
       );
 

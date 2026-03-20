@@ -18,12 +18,8 @@ class PreferencesService {
   static const _kBiometricEnabled = 'biometric_enabled';
   static const _kAutoLockTimeout = 'auto_lock_timeout';
   static const _kHideBalances = 'hide_balances';
-  static const _kNotificationParserEnabled = 'notification_parser_enabled';
   static const _kSmsParserEnabled = 'sms_parser_enabled';
-  static const _kNotificationPermissionPending =
-      'notification_permission_pending';
   static const _kAiModel = 'ai_model';
-  static const _kDefaultWalletId = 'defaultWalletId';
   static const _kQuickStartDone = 'quick_start_done';
   static const _kLastBackupDate = 'last_backup_date';
   static const _kDriveFileId = 'drive_file_id';
@@ -100,20 +96,6 @@ class PreferencesService {
   Future<void> setFirstDayOfMonth(int day) =>
       _prefs.setInt(_kFirstDayOfMonth, day);
 
-  // ── Notification Parser ───────────────────────────────────────────────────
-  bool get isNotificationParserEnabled =>
-      _prefs.getBool(_kNotificationParserEnabled) ?? false;
-
-  Future<void> setNotificationParserEnabled(bool value) =>
-      _prefs.setBool(_kNotificationParserEnabled, value);
-
-  // ── Notification Permission Pending (crash recovery) ────────────────────
-  bool get isNotificationPermissionPending =>
-      _prefs.getBool(_kNotificationPermissionPending) ?? false;
-
-  Future<void> setNotificationPermissionPending(bool value) =>
-      _prefs.setBool(_kNotificationPermissionPending, value);
-
   // ── SMS Parser ──────────────────────────────────────────────────────────────
   bool get isSmsParserEnabled => _prefs.getBool(_kSmsParserEnabled) ?? false;
 
@@ -189,12 +171,6 @@ class PreferencesService {
         type == 'income' ? _kLastCatIncome : _kLastCatExpense,
         categoryId,
       );
-
-  // ── Default Wallet ───────────────────────────────────────────────────────
-  int? get defaultWalletId => _prefs.getInt(_kDefaultWalletId);
-
-  Future<void> setDefaultWalletId(int id) =>
-      _prefs.setInt(_kDefaultWalletId, id);
 
   // ── Quick Start ──────────────────────────────────────────────────────────
   bool get isQuickStartDone => _prefs.getBool(_kQuickStartDone) ?? false;

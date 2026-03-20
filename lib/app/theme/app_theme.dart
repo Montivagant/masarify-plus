@@ -55,6 +55,17 @@ abstract final class AppTheme {
         elevation: AppSizes.elevationNone,
         height: AppSizes.bottomNavHeight,
       ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        ),
+        insetPadding: const EdgeInsets.only(
+          bottom: AppSizes.snackbarBottomMargin,
+          left: AppSizes.md,
+          right: AppSizes.md,
+        ),
+      ),
       extensions: const [AppThemeExtension.light],
     );
   }
@@ -105,6 +116,17 @@ abstract final class AppTheme {
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         elevation: AppSizes.elevationNone,
         height: AppSizes.bottomNavHeight,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        ),
+        insetPadding: const EdgeInsets.only(
+          bottom: AppSizes.snackbarBottomMargin,
+          left: AppSizes.md,
+          right: AppSizes.md,
+        ),
       ),
       extensions: const [AppThemeExtension.dark],
     );

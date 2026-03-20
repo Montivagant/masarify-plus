@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/services/glass_config_service.dart';
@@ -134,7 +135,14 @@ class GlassCard extends StatelessWidget {
     }
 
     if (onTap != null) {
-      content = GestureDetector(onTap: onTap, child: content);
+      content = Material(
+        color: AppColors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: radius,
+          child: content,
+        ),
+      );
     }
 
     return content;

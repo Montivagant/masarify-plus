@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/constants/brand_registry.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../../domain/entities/transaction_entity.dart';
-
 
 /// Single transaction row for TransactionListSection and Dashboard.
 ///
 /// Callers must pre-resolve category data (icon, color, name) to keep
 /// this widget pure/stateless and avoid duplicate provider lookups.
+///
+/// When [brandInfo] is provided, a brand icon (colored circle with initial)
+/// is shown instead of the category icon.
 ///
 /// When [onDelete] or [onEdit] are provided, the card becomes swipeable
 /// via flutter_slidable (left-swipe to delete, right-swipe to edit).
@@ -22,6 +26,7 @@ class TransactionCard extends StatelessWidget {
     required this.categoryIcon,
     required this.categoryColor,
     required this.categoryName,
+    this.brandInfo,
     this.onTap,
     this.onDelete,
     this.onEdit,
@@ -31,6 +36,7 @@ class TransactionCard extends StatelessWidget {
   final IconData categoryIcon;
   final Color categoryColor;
   final String categoryName;
+  final BrandInfo? brandInfo;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
@@ -64,6 +70,7 @@ class TransactionCard extends StatelessWidget {
       categoryIcon: categoryIcon,
       categoryColor: categoryColor,
       categoryName: categoryName,
+      brandInfo: brandInfo,
       amountColor: amountColor,
       amountPrefix: _amountPrefix,
       sourceIcon: _sourceIcon,
@@ -119,6 +126,7 @@ class _CardContent extends StatelessWidget {
     required this.categoryIcon,
     required this.categoryColor,
     required this.categoryName,
+    this.brandInfo,
     required this.amountColor,
     required this.amountPrefix,
     required this.sourceIcon,
@@ -129,6 +137,7 @@ class _CardContent extends StatelessWidget {
   final IconData categoryIcon;
   final Color categoryColor;
   final String categoryName;
+  final BrandInfo? brandInfo;
   final Color amountColor;
   final String amountPrefix;
   final IconData? sourceIcon;
@@ -149,12 +158,15 @@ class _CardContent extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Category icon — plain colored icon
-            Icon(
-              categoryIcon,
-              size: AppSizes.iconMd,
-              color: categoryColor,
-            ),
+            // Brand icon (colored circle + initial) or category icon fallback.
+            if (brandInfo != null)
+              _BrandIconCircle(brand: brandInfo!)
+            else
+              Icon(
+                categoryIcon,
+                size: AppSizes.iconMd,
+                color: categoryColor,
+              ),
             const SizedBox(width: AppSizes.md),
             // Title + category
             Expanded(
@@ -164,8 +176,8 @@ class _CardContent extends StatelessWidget {
                   Text(
                     transaction.title,
                     style: context.textStyles.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -175,11 +187,9 @@ class _CardContent extends StatelessWidget {
                       Flexible(
                         child: Text(
                           categoryName,
-                          style:
-                              context.textStyles.bodySmall?.copyWith(
-                                    color:
-                                        context.colors.outline,
-                                  ),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.colors.outline,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -205,12 +215,46 @@ class _CardContent extends StatelessWidget {
               child: Text(
                 '$amountPrefix $formatted',
                 style: context.textStyles.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: amountColor,
-                    ),
+                  fontWeight: FontWeight.w700,
+                  color: amountColor,
+                ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Colored circle with brand initial — used as leading icon when a brand match
+/// is found. Sized to match the category icon (AppSizes.iconMd = 24).
+class _BrandIconCircle extends StatelessWidget {
+  const _BrandIconCircle({required this.brand});
+
+  final BrandInfo brand;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: AppSizes.iconLg,
+      height: AppSizes.iconLg,
+      decoration: BoxDecoration(
+        color: brand.color,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        brand.displayInitial,
+        style: context.textStyles.labelSmall?.copyWith(
+          color: ThemeData.estimateBrightnessForColor(brand.color) ==
+                  Brightness.dark
+              ? AppColors.white
+              : AppColors.black,
+          fontWeight: FontWeight.w800,
+          fontSize: brand.displayInitial.length > 2
+              ? AppSizes.brandIconFontSmall
+              : AppSizes.brandIconFontLarge,
         ),
       ),
     );

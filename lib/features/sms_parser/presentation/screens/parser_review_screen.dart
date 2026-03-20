@@ -55,9 +55,6 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
   final _walletOverrides = <int, int>{}; // logId → walletId
   bool _enrichingAll = false;
 
-  /// WS2: source filter — null means "All".
-  String? _sourceFilter;
-
   @override
   Widget build(BuildContext context) {
     final pendingAsync = ref.watch(pendingParsedTransactionsProvider);
@@ -79,71 +76,17 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
         error: (_, __) => Center(
           child: Text(context.l10n.common_error_generic),
         ),
-        data: (allLogs) {
-          if (allLogs.isEmpty) {
+        data: (logs) {
+          if (logs.isEmpty) {
             return EmptyState(
               title: context.l10n.sms_review_title,
               subtitle: context.l10n.parser_no_pending,
             );
           }
 
-          // WS2: source filter counts and filtered list.
-          final smsCount = allLogs.where((l) => l.source == 'sms').length;
-          final notifCount = allLogs.where((l) => l.source != 'sms').length;
-          final logs = _sourceFilter == null
-              ? allLogs
-              : allLogs.where((l) {
-                  if (_sourceFilter == 'sms') return l.source == 'sms';
-                  return l.source != 'sms'; // notification
-                }).toList();
-
           final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
 
-          return Column(
-            children: [
-              // WS2: source filter chips.
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                  vertical: AppSizes.sm,
-                ),
-                child: Row(
-                  children: [
-                    _SourceChip(
-                      label:
-                          '${context.l10n.parser_source_all} (${allLogs.length})',
-                      selected: _sourceFilter == null,
-                      onTap: () => setState(() => _sourceFilter = null),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    _SourceChip(
-                      label: '${context.l10n.parser_source_sms} ($smsCount)',
-                      selected: _sourceFilter == 'sms',
-                      onTap: () => setState(() => _sourceFilter = 'sms'),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    _SourceChip(
-                      label:
-                          '${context.l10n.parser_source_notification} ($notifCount)',
-                      selected: _sourceFilter == 'notification',
-                      onTap: () =>
-                          setState(() => _sourceFilter = 'notification'),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: logs.isEmpty
-                    ? EmptyState(
-                        title: context.l10n.sms_review_title,
-                        subtitle: _sourceFilter == null
-                            ? context.l10n.parser_no_pending
-                            : context.l10n.parser_no_pending_filtered,
-                      )
-                    : _buildLogList(logs, wallets, isOnline),
-              ),
-            ],
-          );
+          return _buildLogList(logs, wallets, isOnline);
         },
       ),
     );
@@ -165,19 +108,25 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       if (p != null) parsedAmounts[log.id] = p.amountPiastres;
     }
 
-    // Pre-compute duplicate flags using the cached amounts.
+    // Pre-compute duplicate flags using HashMap grouping (O(N) vs O(N²)).
+    // Group logs by amount, then check time windows only within same-amount groups.
     final duplicateIds = <int>{};
+    final byAmount = <int, List<SmsParserLogEntity>>{};
     for (final log in logs) {
       final amount = parsedAmounts[log.id];
-      if (amount == null) continue;
-      final isDup = logs.any(
-        (other) =>
-            other.id != log.id &&
-            parsedAmounts[other.id] == amount &&
-            (other.receivedAt.difference(log.receivedAt).abs() <
-                AppDurations.transactionDedupeWindow),
-      );
-      if (isDup) duplicateIds.add(log.id);
+      if (amount != null) (byAmount[amount] ??= []).add(log);
+    }
+    for (final group in byAmount.values) {
+      if (group.length < 2) continue;
+      for (var i = 0; i < group.length; i++) {
+        for (var j = i + 1; j < group.length; j++) {
+          if ((group[i].receivedAt.difference(group[j].receivedAt).abs() <
+              AppDurations.transactionDedupeWindow)) {
+            duplicateIds.add(group[i].id);
+            duplicateIds.add(group[j].id);
+          }
+        }
+      }
     }
 
     final hasCashWallet = wallets.any((w) => w.isSystemWallet);
@@ -193,13 +142,18 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
         final hasEnrichment = log.aiEnrichmentJson != null;
         final isDuplicate = duplicateIds.contains(log.id);
 
-        // Resolve wallet for display.
+        // Resolve wallet: override > sender match > default account > first non-system.
+        final defaultAccount =
+            wallets.where((w) => w.isDefaultAccount).firstOrNull;
+        final fallbackId = defaultAccount?.id ??
+            wallets.where((w) => !w.isSystemWallet).firstOrNull?.id ??
+            wallets.firstOrNull?.id;
         final resolvedWalletId = _walletOverrides[log.id] ??
             WalletResolver.resolve(
               log.senderAddress,
               wallets,
             ) ??
-            wallets.firstOrNull?.id;
+            fallbackId;
 
         final walletName =
             wallets.where((w) => w.id == resolvedWalletId).firstOrNull?.name ??
@@ -353,16 +307,26 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       return;
     }
 
-    // Resolve wallet: user override > auto-match by sender > fallback to first.
+    // Resolve wallet: user override > auto-match by sender > default account > first non-system.
+    final approveDefaultAccount =
+        wallets.where((w) => w.isDefaultAccount).firstOrNull;
+    final approveFallbackId = approveDefaultAccount?.id ??
+        wallets.where((w) => !w.isSystemWallet).firstOrNull?.id ??
+        wallets.firstOrNull?.id;
+    if (approveFallbackId == null) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
+      return;
+    }
     final resolvedWalletId = _walletOverrides[log.id] ??
         WalletResolver.resolve(log.senderAddress, wallets) ??
-        wallets.first.id;
+        approveFallbackId;
 
     final txRepo = ref.read(transactionRepositoryProvider);
     final smsRepo = ref.read(smsParserLogRepositoryProvider);
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final approvedMsg = context.l10n.parser_approved_msg;
     final errorMsg = context.l10n.common_error_generic;
 
@@ -486,6 +450,7 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
           amount: parsed.amountPiastres,
           type: parsed.type,
           title: title,
+          currencyCode: parsed.currency,
           transactionDate: log.receivedAt,
           source: log.source,
           rawSourceText: log.body,
@@ -505,23 +470,22 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
           .addLinkedSender(resolvedWalletId, log.senderAddress);
 
       ref.invalidate(pendingParsedTransactionsProvider);
-      messenger.showSnackBar(SnackBar(content: Text(approvedMsg)));
+      if (mounted) SnackHelper.showSuccess(context, approvedMsg);
     } catch (e) {
       dev.log('Approve failed: $e', name: 'ParserReview');
-      messenger.showSnackBar(SnackBar(content: Text(errorMsg)));
+      if (mounted) SnackHelper.showError(context, errorMsg);
     }
   }
 
   Future<void> _skip(SmsParserLogEntity log) async {
     final repo = ref.read(smsParserLogRepositoryProvider);
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final skippedMsg = context.l10n.parser_skipped_msg;
 
     HapticFeedback.lightImpact();
     await repo.markStatus(log.id, 'skipped');
     ref.invalidate(pendingParsedTransactionsProvider);
-    messenger.showSnackBar(SnackBar(content: Text(skippedMsg)));
+    if (mounted) SnackHelper.showInfo(context, skippedMsg);
   }
 
   /// WS3b: Approve an ATM withdrawal as a transfer (bank → cash wallet).
@@ -588,9 +552,14 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       cashWalletId = picked;
     }
 
+    final transferDefaultAccount =
+        wallets.where((w) => w.isDefaultAccount).firstOrNull;
+    final transferFallbackId = transferDefaultAccount?.id ??
+        wallets.where((w) => !w.isSystemWallet).firstOrNull?.id ??
+        wallets.firstOrNull?.id;
     final fromWalletId = _walletOverrides[log.id] ??
         WalletResolver.resolve(log.senderAddress, wallets) ??
-        wallets.firstOrNull?.id;
+        transferFallbackId;
     if (fromWalletId == null) return;
 
     // Guard: cannot transfer to the same wallet.
@@ -604,7 +573,6 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     final transferRepo = ref.read(transferRepositoryProvider);
     final smsRepo = ref.read(smsParserLogRepositoryProvider);
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
     final approvedMsg = context.l10n.parser_approved_msg;
 
     HapticFeedback.mediumImpact();
@@ -625,7 +593,7 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       });
 
       ref.invalidate(pendingParsedTransactionsProvider);
-      messenger.showSnackBar(SnackBar(content: Text(approvedMsg)));
+      if (mounted) SnackHelper.showSuccess(context, approvedMsg);
     } catch (e) {
       dev.log('Approve as transfer failed: $e', name: 'ParserReview');
       if (mounted) {
@@ -720,7 +688,7 @@ class _PendingLogCard extends StatelessWidget {
                 const SizedBox(width: AppSizes.xs),
               ] else ...[
                 Icon(
-                  log.source == 'sms' ? AppIcons.sms : AppIcons.notification,
+                  AppIcons.sms,
                   size: AppSizes.iconXs,
                   color: cs.outline,
                 ),
@@ -781,7 +749,9 @@ class _PendingLogCard extends StatelessWidget {
           const SizedBox(height: AppSizes.md),
 
           // ── Wallet + currency + duplicate indicators ──────────
-          Row(
+          Wrap(
+            spacing: AppSizes.xs,
+            runSpacing: AppSizes.xxs,
             children: [
               if (walletName.isNotEmpty)
                 GestureDetector(
@@ -801,7 +771,6 @@ class _PendingLogCard extends StatelessWidget {
                   ),
                 ),
               if (parsed != null && parsed.currency != 'EGP') ...[
-                const SizedBox(width: AppSizes.xs),
                 Chip(
                   avatar: Icon(
                     AppIcons.currency,
@@ -820,7 +789,6 @@ class _PendingLogCard extends StatelessWidget {
                 ),
               ],
               if (isDuplicate) ...[
-                const SizedBox(width: AppSizes.xs),
                 Chip(
                   avatar: Icon(
                     AppIcons.warning,
@@ -839,7 +807,6 @@ class _PendingLogCard extends StatelessWidget {
               ],
               // WS3b: ATM withdrawal chip.
               if (isAtm) ...[
-                const SizedBox(width: AppSizes.xs),
                 Chip(
                   avatar: Icon(
                     AppIcons.wallet,
@@ -865,71 +832,76 @@ class _PendingLogCard extends StatelessWidget {
           Row(
             children: [
               Icon(
-                log.source == 'sms' ? AppIcons.sms : AppIcons.notification,
+                AppIcons.sms,
                 size: AppSizes.iconXs,
                 color: cs.outline,
               ),
               const SizedBox(width: AppSizes.xxs),
               Text(
-                log.source == 'sms'
-                    ? context.l10n.transaction_source_sms
-                    : context.l10n.transaction_source_notification,
+                context.l10n.transaction_source_sms,
                 style: context.textStyles.labelSmall?.copyWith(
                   color: cs.outline,
                 ),
               ),
               const Spacer(),
-              if (showEnrichButton)
-                TextButton(
-                  onPressed: onEnrich,
-                  child: isEnriching
-                      ? SizedBox(
-                          width: AppSizes.iconXs,
-                          height: AppSizes.iconXs,
-                          child: CircularProgressIndicator(
-                            strokeWidth: AppSizes.spinnerStrokeWidth,
-                            color: cs.primary,
-                          ),
-                        )
-                      : Text(context.l10n.parser_enrich),
+              Flexible(
+                child: Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: AppSizes.xs,
+                  runSpacing: AppSizes.xxs,
+                  children: [
+                    if (showEnrichButton)
+                      TextButton(
+                        onPressed: onEnrich,
+                        child: isEnriching
+                            ? SizedBox(
+                                width: AppSizes.iconXs,
+                                height: AppSizes.iconXs,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: AppSizes.spinnerStrokeWidth,
+                                  color: cs.primary,
+                                ),
+                              )
+                            : Text(context.l10n.parser_enrich),
+                      ),
+                    TextButton(
+                      onPressed: onSkip,
+                      child: Text(context.l10n.sms_review_skip),
+                    ),
+                    // WS3b: Split approve button for ATM withdrawals.
+                    if (isAtm && hasCashWallet) ...[
+                      OutlinedButton(
+                        onPressed: onApprove,
+                        child: Text(context.l10n.sms_review_approve),
+                      ),
+                      FilledButton.tonal(
+                        onPressed: onApproveAsTransfer,
+                        child: isProcessing
+                            ? const SizedBox(
+                                width: AppSizes.spinnerSizeSm,
+                                height: AppSizes.spinnerSizeSm,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: AppSizes.spinnerStrokeWidth,
+                                ),
+                              )
+                            : Text(context.l10n.parser_approve_as_transfer),
+                      ),
+                    ] else
+                      FilledButton.tonal(
+                        onPressed: onApprove,
+                        child: isProcessing
+                            ? const SizedBox(
+                                width: AppSizes.spinnerSizeSm,
+                                height: AppSizes.spinnerSizeSm,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: AppSizes.spinnerStrokeWidth,
+                                ),
+                              )
+                            : Text(context.l10n.sms_review_approve),
+                      ),
+                  ],
                 ),
-              TextButton(
-                onPressed: onSkip,
-                child: Text(context.l10n.sms_review_skip),
               ),
-              const SizedBox(width: AppSizes.sm),
-              // WS3b: Split approve button for ATM withdrawals.
-              if (isAtm && hasCashWallet) ...[
-                OutlinedButton(
-                  onPressed: onApprove,
-                  child: Text(context.l10n.sms_review_approve),
-                ),
-                const SizedBox(width: AppSizes.xs),
-                FilledButton.tonal(
-                  onPressed: onApproveAsTransfer,
-                  child: isProcessing
-                      ? const SizedBox(
-                          width: AppSizes.spinnerSizeSm,
-                          height: AppSizes.spinnerSizeSm,
-                          child: CircularProgressIndicator(
-                            strokeWidth: AppSizes.spinnerStrokeWidth,
-                          ),
-                        )
-                      : Text(context.l10n.parser_approve_as_transfer),
-                ),
-              ] else
-                FilledButton.tonal(
-                  onPressed: onApprove,
-                  child: isProcessing
-                      ? const SizedBox(
-                          width: AppSizes.spinnerSizeSm,
-                          height: AppSizes.spinnerSizeSm,
-                          child: CircularProgressIndicator(
-                            strokeWidth: AppSizes.spinnerStrokeWidth,
-                          ),
-                        )
-                      : Text(context.l10n.sms_review_approve),
-                ),
             ],
           ),
         ],
@@ -975,32 +947,5 @@ class _PendingLogCard extends StatelessWidget {
     return (first >= 0x0600 && first <= 0x06FF)
         ? TextDirection.rtl
         : TextDirection.ltr;
-  }
-}
-
-/// WS2: filter chip for source selection (All / SMS / Notifications).
-class _SourceChip extends StatelessWidget {
-  const _SourceChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(
-        label,
-        style: context.textStyles.labelSmall,
-      ),
-      selected: selected,
-      onSelected: (_) => onTap(),
-      visualDensity: VisualDensity.compact,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -14,10 +15,12 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Add / Edit recurring transaction rule or one-time bill.
 class AddRecurringScreen extends ConsumerStatefulWidget {
@@ -112,16 +115,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         maxChildSize: 0.85,
         builder: (_, controller) => Column(
           children: [
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-              width: AppSizes.dragHandleWidth,
-              height: AppSizes.dragHandleHeight,
-              decoration: BoxDecoration(
-                color: ctx.colors.outlineVariant,
-                borderRadius:
-                    BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-              ),
-            ),
+            const DragHandle(),
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(
                 AppSizes.screenHPadding,
@@ -180,17 +174,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                width: AppSizes.dragHandleWidth,
-                height: AppSizes.dragHandleHeight,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ctx.colors.outlineVariant,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                ),
-              ),
+              const DragHandle(),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
                   AppSizes.screenHPadding,
@@ -317,9 +301,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       // M1 fix: show error feedback instead of silently stopping spinner
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
@@ -562,7 +544,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
             _endDate = d;
           }),
           firstDate: DateTime(2020),
-          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+          lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
         ),
         const SizedBox(height: AppSizes.lg),
       ];
@@ -580,7 +562,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           selectedDate: _startDate,
           onDateChanged: (d) => setState(() => _startDate = d),
           firstDate: DateTime(2020),
-          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+          lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
         ),
         const SizedBox(height: AppSizes.lg),
         Text(
@@ -592,7 +574,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           selectedDate: _endDate ?? _startDate,
           onDateChanged: (d) => setState(() => _endDate = d),
           firstDate: _startDate,
-          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+          lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
         ),
         const SizedBox(height: AppSizes.lg),
       ];
@@ -609,7 +591,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         selectedDate: _startDate,
         onDateChanged: (d) => setState(() => _startDate = d),
         firstDate: DateTime(2020),
-        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+        lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
       ),
       const SizedBox(height: AppSizes.lg),
       // Optional end date.
@@ -635,7 +617,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           selectedDate: _endDate!,
           onDateChanged: (d) => setState(() => _endDate = d),
           firstDate: _startDate,
-          lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+          lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
         )
       else
         GestureDetector(
@@ -644,7 +626,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               context: context,
               initialDate: _startDate,
               firstDate: _startDate,
-              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+              lastDate: DateTime.now().add(AppDurations.datePickerMaxOffset),
             );
             if (picked != null && mounted) {
               setState(() => _endDate = picked);

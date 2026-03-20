@@ -15,14 +15,10 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/services/crash_log_service.dart';
-import '../../../../core/services/notification_listener_wrapper.dart';
-import '../../../../core/services/notification_service.dart';
-import '../../../../core/services/persistent_notification_service.dart';
 import '../../../../core/services/sms_parser_service.dart';
 import '../../../../core/utils/permission_helper.dart';
 import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
-import '../../../../shared/providers/notification_listener_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -51,9 +47,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   bool _loaded = false;
 
   // WS5: Smart Detection state (moved from SmartInputScreen).
-  bool _notificationParserEnabled = false;
   bool _smsParserEnabled = false;
-  bool _awaitingNotificationPermission = false;
   bool _awaitingSmsPermission = false;
 
   List<({String code, String label})> _currencies(BuildContext context) => [
@@ -87,7 +81,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (_awaitingNotificationPermission) _finishNotificationPermission();
       if (_awaitingSmsPermission) _finishSmsPermission();
     }
   }
@@ -103,7 +96,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       _pinEnabled = prefs.isPinEnabled;
       _biometricEnabled = prefs.isBiometricEnabled;
       _autoLockTimeoutMs = prefs.autoLockTimeoutMs;
-      _notificationParserEnabled = prefs.isNotificationParserEnabled;
       _smsParserEnabled = prefs.isSmsParserEnabled;
       _loaded = true;
     });
@@ -332,74 +324,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   // ── WS5: Smart Detection toggles (from SmartInputScreen) ──────────────
-
-  Future<void> _toggleNotificationParser(bool value) async {
-    if (!Platform.isAndroid) return;
-    try {
-      if (value) {
-        if (!mounted) return;
-        final allowed = await PermissionHelper.showRationale(
-          context,
-          title: context.l10n.permission_notification_title,
-          rationale: context.l10n.permission_notification_body,
-        );
-        if (!allowed || !mounted) return;
-        _awaitingNotificationPermission = true;
-        final pendingPrefs = await ref.read(preferencesFutureProvider.future);
-        await pendingPrefs.setNotificationPermissionPending(true);
-        await NotificationListenerWrapper.requestPermission();
-      } else {
-        try {
-          ref.read(notificationListenerProvider).stop();
-        } catch (e) {
-          CrashLogService.log(e, StackTrace.current);
-        }
-        final prefs = await ref.read(preferencesFutureProvider.future);
-        await prefs.setNotificationParserEnabled(false);
-        if (!mounted) return;
-        setState(() => _notificationParserEnabled = false);
-        PersistentNotificationService(NotificationService.plugin).dismiss();
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      _awaitingNotificationPermission = false;
-      final errPrefs = await ref.read(preferencesFutureProvider.future);
-      await errPrefs.setNotificationPermissionPending(false);
-      if (!mounted) return;
-      setState(() => _notificationParserEnabled = !value);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  Future<void> _finishNotificationPermission() async {
-    if (!Platform.isAndroid) return;
-    _awaitingNotificationPermission = false;
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    await prefs.setNotificationPermissionPending(false);
-    try {
-      final granted = await NotificationListenerWrapper.hasPermission();
-      if (!mounted || !granted) return;
-      await Future<void>.delayed(AppDurations.listenerBindDelay);
-      if (!mounted) return;
-      try {
-        final listener = ref.read(notificationListenerProvider);
-        await listener.start();
-        final prefs2 = await ref.read(preferencesFutureProvider.future);
-        await prefs2.setNotificationParserEnabled(true);
-        if (!mounted) return;
-        setState(() => _notificationParserEnabled = true);
-        PersistentNotificationService(NotificationService.plugin).show();
-      } catch (e) {
-        CrashLogService.log(e, StackTrace.current);
-        if (!mounted) return;
-        SnackHelper.showInfo(context, context.l10n.common_error_generic);
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      if (!mounted) return;
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
 
   Future<void> _toggleSmsParser(bool value) async {
     if (!Platform.isAndroid) return;
@@ -658,7 +582,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeModeProvider);
     final cs = context.colors;
 
     final l10n = context.l10n;
@@ -677,52 +600,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         children: [
           // ── Appearance ──────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_appearance),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.screenHPadding,
-              vertical: AppSizes.sm,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.settings_theme,
-                  style: context.textStyles.bodyMedium
-                      ?.copyWith(color: cs.outline),
-                ),
-                const SizedBox(height: AppSizes.sm),
-                SegmentedButton<ThemeMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: ThemeMode.system,
-                      label: Text(l10n.settings_theme_auto),
-                      icon:
-                          const Icon(AppIcons.settings, size: AppSizes.iconXs),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.light,
-                      label: Text(l10n.settings_theme_light),
-                      icon: const Icon(
-                        AppIcons.themeLight,
-                        size: AppSizes.iconXs,
-                      ),
-                    ),
-                    ButtonSegment(
-                      value: ThemeMode.dark,
-                      label: Text(l10n.settings_theme_dark),
-                      icon: const Icon(AppIcons.theme, size: AppSizes.iconXs),
-                    ),
-                  ],
-                  selected: {themeMode},
-                  onSelectionChanged: (set) =>
-                      ref.read(themeModeProvider.notifier).setMode(set.first),
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ],
-            ),
-          ),
 
           // ── Language ───────────────────────────────────────────────────
           Builder(
@@ -841,16 +718,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           // ── Smart Detection (WS5: moved from SmartInputScreen) ──────
           if (Platform.isAndroid) ...[
             _SectionHeader(title: l10n.settings_smart_detection),
-            SwitchListTile(
-              secondary: _SettingsIconBox(
-                icon: AppIcons.notification,
-                cs: cs,
-              ),
-              title: Text(l10n.settings_notification_parser),
-              subtitle: Text(l10n.settings_notification_parser_subtitle),
-              value: _notificationParserEnabled,
-              onChanged: _toggleNotificationParser,
-            ),
             SwitchListTile(
               secondary: _SettingsIconBox(icon: AppIcons.sms, cs: cs),
               title: Text(l10n.settings_sms_parser),

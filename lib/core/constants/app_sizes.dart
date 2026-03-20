@@ -63,6 +63,7 @@ abstract final class AppSizes {
   static const double voiceMicSize = 72;
   static const double progressRingLg = 96;
   static const double onboardingIcon = 120;
+  static const double onboardingDemoHeight = 260;
 
   // ── Chart heights ───────────────────────────────────────────────────
   static const double chartHeightSm = 160;
@@ -112,6 +113,10 @@ abstract final class AppSizes {
   /// bottomNavHeight (64) + fabVerticalOffset (24) + md (16) = 104
   static const double snackbarBottomMargin =
       bottomNavHeight + fabVerticalOffset + md;
+
+  // ── Brand icon ──────────────────────────────────────────────────────
+  static const double brandIconFontLarge = 11;
+  static const double brandIconFontSmall = 8;
 
   // ── Border widths ───────────────────────────────────────────────────
   static const double borderWidth = 1.0;
@@ -164,6 +169,7 @@ abstract final class AppSizes {
   static const double opacityQuarter = 0.25;
   static const double opacityLight4 = 0.3;
   static const double opacityLight5 = 0.4;
+  static const double opacityDisabled = 0.38;
   static const double opacityMedium = 0.5;
   static const double opacityMedium2 = 0.6;
   static const double opacityStrong = 0.7;
@@ -185,11 +191,6 @@ abstract final class AppSizes {
   static const double speedDialArcHeight = 220.0; // container height
   static const double speedDialIconSize = 20.0;
   static const double speedDialLabelGap = 4.0; // circle to label gap
-
-  // ── Card ──────────────────────────────────────────────────────────────
-  static const double cardPadding = md;
-  static const double cardRadius = borderRadiusMd;
-  static const double cardElevation = elevationLow;
 
   // ── Pie chart ──────────────────────────────────────────────────────────
   static const double pieChartRadius = 36.0; // WS-9: increased from 28

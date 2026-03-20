@@ -45,6 +45,12 @@ abstract final class AppDurations {
   static const Duration onboardingTextDelay1 = Duration(milliseconds: 200);
   static const Duration onboardingTextDelay2 = Duration(milliseconds: 350);
   static const Duration onboardingCtaDelay = Duration(milliseconds: 500);
+  static const Duration onboardingDemoDelay1 = Duration(milliseconds: 400);
+  static const Duration onboardingDemoDelay2 = Duration(milliseconds: 600);
+  static const Duration onboardingDemoDelay3 = Duration(milliseconds: 700);
+  static const Duration onboardingDemoDelay4 = Duration(milliseconds: 800);
+  static const Duration onboardingDemoDelay5 = Duration(milliseconds: 1100);
+  static const Duration onboardingPulse = Duration(milliseconds: 1500);
 
   // Voice
   static const Duration voiceBarUpdate = Duration(milliseconds: 50);
@@ -64,4 +70,10 @@ abstract final class AppDurations {
   // Smart defaults
   static const Duration quickAddLookback = Duration(days: 90);
   static const Duration transactionDedupeWindow = Duration(minutes: 10);
+
+  // Chat
+  static const Duration typingIndicator = Duration(milliseconds: 400);
+
+  // Date pickers
+  static const Duration datePickerMaxOffset = Duration(days: 365 * 5);
 }

@@ -100,6 +100,16 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("is_system_wallet" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _isDefaultAccountMeta =
+      const VerificationMeta('isDefaultAccount');
+  @override
+  late final GeneratedColumn<bool> isDefaultAccount = GeneratedColumn<bool>(
+      'is_default_account', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_default_account" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -121,6 +131,7 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
         displayOrder,
         linkedSenders,
         isSystemWallet,
+        isDefaultAccount,
         createdAt
       ];
   @override
@@ -190,6 +201,12 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           isSystemWallet.isAcceptableOrUnknown(
               data['is_system_wallet']!, _isSystemWalletMeta));
     }
+    if (data.containsKey('is_default_account')) {
+      context.handle(
+          _isDefaultAccountMeta,
+          isDefaultAccount.isAcceptableOrUnknown(
+              data['is_default_account']!, _isDefaultAccountMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -225,6 +242,8 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           .read(DriftSqlType.string, data['${effectivePrefix}linked_senders'])!,
       isSystemWallet: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_system_wallet'])!,
+      isDefaultAccount: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}is_default_account'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -253,6 +272,10 @@ class Wallet extends DataClass implements Insertable<Wallet> {
 
   /// True for the mandatory Physical Cash system wallet (auto-created, non-deletable).
   final bool isSystemWallet;
+
+  /// True for the mandatory default bank account — fallback for all transaction assignment.
+  /// Exactly one wallet may have this flag set (enforced by partial unique index).
+  final bool isDefaultAccount;
   final DateTime createdAt;
   const Wallet(
       {required this.id,
@@ -266,6 +289,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       required this.displayOrder,
       required this.linkedSenders,
       required this.isSystemWallet,
+      required this.isDefaultAccount,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -281,6 +305,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
     map['display_order'] = Variable<int>(displayOrder);
     map['linked_senders'] = Variable<String>(linkedSenders);
     map['is_system_wallet'] = Variable<bool>(isSystemWallet);
+    map['is_default_account'] = Variable<bool>(isDefaultAccount);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -298,6 +323,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       displayOrder: Value(displayOrder),
       linkedSenders: Value(linkedSenders),
       isSystemWallet: Value(isSystemWallet),
+      isDefaultAccount: Value(isDefaultAccount),
       createdAt: Value(createdAt),
     );
   }
@@ -317,6 +343,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       displayOrder: serializer.fromJson<int>(json['displayOrder']),
       linkedSenders: serializer.fromJson<String>(json['linkedSenders']),
       isSystemWallet: serializer.fromJson<bool>(json['isSystemWallet']),
+      isDefaultAccount: serializer.fromJson<bool>(json['isDefaultAccount']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -335,6 +362,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       'displayOrder': serializer.toJson<int>(displayOrder),
       'linkedSenders': serializer.toJson<String>(linkedSenders),
       'isSystemWallet': serializer.toJson<bool>(isSystemWallet),
+      'isDefaultAccount': serializer.toJson<bool>(isDefaultAccount),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -351,6 +379,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           int? displayOrder,
           String? linkedSenders,
           bool? isSystemWallet,
+          bool? isDefaultAccount,
           DateTime? createdAt}) =>
       Wallet(
         id: id ?? this.id,
@@ -364,6 +393,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
         displayOrder: displayOrder ?? this.displayOrder,
         linkedSenders: linkedSenders ?? this.linkedSenders,
         isSystemWallet: isSystemWallet ?? this.isSystemWallet,
+        isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
         createdAt: createdAt ?? this.createdAt,
       );
   Wallet copyWithCompanion(WalletsCompanion data) {
@@ -388,6 +418,9 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       isSystemWallet: data.isSystemWallet.present
           ? data.isSystemWallet.value
           : this.isSystemWallet,
+      isDefaultAccount: data.isDefaultAccount.present
+          ? data.isDefaultAccount.value
+          : this.isDefaultAccount,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -406,6 +439,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           ..write('displayOrder: $displayOrder, ')
           ..write('linkedSenders: $linkedSenders, ')
           ..write('isSystemWallet: $isSystemWallet, ')
+          ..write('isDefaultAccount: $isDefaultAccount, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -424,6 +458,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       displayOrder,
       linkedSenders,
       isSystemWallet,
+      isDefaultAccount,
       createdAt);
   @override
   bool operator ==(Object other) =>
@@ -440,6 +475,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           other.displayOrder == this.displayOrder &&
           other.linkedSenders == this.linkedSenders &&
           other.isSystemWallet == this.isSystemWallet &&
+          other.isDefaultAccount == this.isDefaultAccount &&
           other.createdAt == this.createdAt);
 }
 
@@ -455,6 +491,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
   final Value<int> displayOrder;
   final Value<String> linkedSenders;
   final Value<bool> isSystemWallet;
+  final Value<bool> isDefaultAccount;
   final Value<DateTime> createdAt;
   const WalletsCompanion({
     this.id = const Value.absent(),
@@ -468,6 +505,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.displayOrder = const Value.absent(),
     this.linkedSenders = const Value.absent(),
     this.isSystemWallet = const Value.absent(),
+    this.isDefaultAccount = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   WalletsCompanion.insert({
@@ -482,6 +520,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.displayOrder = const Value.absent(),
     this.linkedSenders = const Value.absent(),
     this.isSystemWallet = const Value.absent(),
+    this.isDefaultAccount = const Value.absent(),
     this.createdAt = const Value.absent(),
   })  : name = Value(name),
         type = Value(type);
@@ -497,6 +536,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     Expression<int>? displayOrder,
     Expression<String>? linkedSenders,
     Expression<bool>? isSystemWallet,
+    Expression<bool>? isDefaultAccount,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -511,6 +551,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       if (displayOrder != null) 'display_order': displayOrder,
       if (linkedSenders != null) 'linked_senders': linkedSenders,
       if (isSystemWallet != null) 'is_system_wallet': isSystemWallet,
+      if (isDefaultAccount != null) 'is_default_account': isDefaultAccount,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -527,6 +568,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       Value<int>? displayOrder,
       Value<String>? linkedSenders,
       Value<bool>? isSystemWallet,
+      Value<bool>? isDefaultAccount,
       Value<DateTime>? createdAt}) {
     return WalletsCompanion(
       id: id ?? this.id,
@@ -540,6 +582,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       displayOrder: displayOrder ?? this.displayOrder,
       linkedSenders: linkedSenders ?? this.linkedSenders,
       isSystemWallet: isSystemWallet ?? this.isSystemWallet,
+      isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -580,6 +623,9 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     if (isSystemWallet.present) {
       map['is_system_wallet'] = Variable<bool>(isSystemWallet.value);
     }
+    if (isDefaultAccount.present) {
+      map['is_default_account'] = Variable<bool>(isDefaultAccount.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -600,6 +646,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
           ..write('displayOrder: $displayOrder, ')
           ..write('linkedSenders: $linkedSenders, ')
           ..write('isSystemWallet: $isSystemWallet, ')
+          ..write('isDefaultAccount: $isDefaultAccount, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -6757,6 +6804,7 @@ typedef $$WalletsTableCreateCompanionBuilder = WalletsCompanion Function({
   Value<int> displayOrder,
   Value<String> linkedSenders,
   Value<bool> isSystemWallet,
+  Value<bool> isDefaultAccount,
   Value<DateTime> createdAt,
 });
 typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
@@ -6771,6 +6819,7 @@ typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
   Value<int> displayOrder,
   Value<String> linkedSenders,
   Value<bool> isSystemWallet,
+  Value<bool> isDefaultAccount,
   Value<DateTime> createdAt,
 });
 
@@ -6912,6 +6961,10 @@ class $$WalletsTableFilterComposer
 
   ColumnFilters<bool> get isSystemWallet => $composableBuilder(
       column: $table.isSystemWallet,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefaultAccount => $composableBuilder(
+      column: $table.isDefaultAccount,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
@@ -7090,6 +7143,10 @@ class $$WalletsTableOrderingComposer
       column: $table.isSystemWallet,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get isDefaultAccount => $composableBuilder(
+      column: $table.isDefaultAccount,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -7135,6 +7192,9 @@ class $$WalletsTableAnnotationComposer
 
   GeneratedColumn<bool> get isSystemWallet => $composableBuilder(
       column: $table.isSystemWallet, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefaultAccount => $composableBuilder(
+      column: $table.isDefaultAccount, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -7307,6 +7367,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<int> displayOrder = const Value.absent(),
             Value<String> linkedSenders = const Value.absent(),
             Value<bool> isSystemWallet = const Value.absent(),
+            Value<bool> isDefaultAccount = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion(
@@ -7321,6 +7382,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             displayOrder: displayOrder,
             linkedSenders: linkedSenders,
             isSystemWallet: isSystemWallet,
+            isDefaultAccount: isDefaultAccount,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
@@ -7335,6 +7397,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<int> displayOrder = const Value.absent(),
             Value<String> linkedSenders = const Value.absent(),
             Value<bool> isSystemWallet = const Value.absent(),
+            Value<bool> isDefaultAccount = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion.insert(
@@ -7349,6 +7412,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             displayOrder: displayOrder,
             linkedSenders: linkedSenders,
             isSystemWallet: isSystemWallet,
+            isDefaultAccount: isDefaultAccount,
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0

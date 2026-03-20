@@ -172,15 +172,7 @@ class _WalletCard extends StatelessWidget {
         _ => context.l10n.wallet_type_bank_short,
       };
 
-  static IconData _typeIcon(String type) => switch (type) {
-        'physical_cash' => AppIcons.physicalCash,
-        'bank' => AppIcons.bank,
-        'mobile_wallet' => AppIcons.phone,
-        'credit_card' => AppIcons.creditCard,
-        'prepaid_card' => AppIcons.prepaidCard,
-        'investment' => AppIcons.investmentAccount,
-        _ => AppIcons.wallet,
-      };
+  // Wallet type → icon resolved via AppIcons.walletType() (single source).
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +194,7 @@ class _WalletCard extends StatelessWidget {
             width: AppSizes.iconContainerLg,
             height: AppSizes.iconContainerLg,
             child: Icon(
-              _typeIcon(wallet.type),
+              AppIcons.walletType(wallet.type),
               color: color,
               size: AppSizes.iconSm,
             ),

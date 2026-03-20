@@ -21,7 +21,6 @@ import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
-import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -32,6 +31,7 @@ import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Core transaction entry screen — supports both add and edit modes.
 ///
@@ -80,59 +80,45 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
     );
   }
 
-  /// Helper to resolve wallet type to icon.
-  static IconData walletTypeIcon(String type) => switch (type) {
-        'physical_cash' => AppIcons.physicalCash,
-        'bank' => AppIcons.bank,
-        'mobile_wallet' => AppIcons.phone,
-        'credit_card' => AppIcons.creditCard,
-        'prepaid_card' => AppIcons.prepaidCard,
-        'investment' => AppIcons.investmentAccount,
-        _ => AppIcons.wallet,
-      };
+  // Wallet type → icon resolved via AppIcons.walletType() (single source).
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
       _AddTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
-  // ── Form state ────────────────────────────────────────────────────────────
+// ── Shared form logic (DRY: used by Screen and Sheet states) ──────────────
+
+/// Holds all form state, validation, save, and picker logic shared between
+/// [_AddTransactionScreenState] (full-screen) and [_AddTransactionSheetState]
+/// (bottom-sheet). Each concrete class provides its own [build] method and
+/// owns the [TextEditingController] instances (for proper disposal).
+mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
+    on ConsumerState<T> {
+  // ── Abstract — concrete classes own these for dispose ────────────────
+  TextEditingController get _noteController;
+  TextEditingController get _titleController;
+
+  // ── Shared form state ───────────────────────────────────────────────
   late String _type;
   int _amountPiastres = 0;
   int? _selectedCategoryId;
   int? _walletId;
   DateTime _date = DateTime.now();
-  final _noteController = TextEditingController();
-  final _titleController = TextEditingController(); // WS-10
   bool _loading = false;
   bool _showOptional = false;
   bool _smartDefaultApplied = false;
+  bool _isEditMode = false;
   TransactionEntity? _editTx;
   String? _locationName;
   double? _latitude;
   double? _longitude;
   bool _detectingLocation = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _type = widget.initialType;
-    if (widget.editId != null) {
-      _loadForEdit();
-    } else {
-      _initWallet();
-    }
-  }
+  // ── Computed ────────────────────────────────────────────────────────
+  bool get _isCashType => _type == 'cash_withdrawal' || _type == 'cash_deposit';
 
-  @override
-  void dispose() {
-    _noteController.dispose();
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  // ── Init helpers ──────────────────────────────────────────────────────────
+  // ── Init ────────────────────────────────────────────────────────────
 
   Future<void> _initWallet() async {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
@@ -140,11 +126,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     if (wallets.isEmpty) return;
     final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
 
-    // Prefer the user's saved default wallet.
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    final defaultId = prefs.defaultWalletId;
-    if (defaultId != null && nonSystem.any((w) => w.id == defaultId)) {
-      setState(() => _walletId = defaultId);
+    // Prefer the DB default account.
+    final defaultAccount =
+        nonSystem.where((w) => w.isDefaultAccount).firstOrNull;
+    if (defaultAccount != null) {
+      setState(() => _walletId = defaultAccount.id);
       return;
     }
     // Fallback: first non-system wallet (for cash types) or first wallet.
@@ -161,46 +147,44 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  /// Applies last-used category default once categories are loaded.
+  /// Applies smart category default once categories are loaded.
+  /// Priority: last-used → time-of-day match (from frequency-sorted list).
   /// Called from build — guarded by [_smartDefaultApplied] flag.
   void _tryApplySmartDefault(List<CategoryEntity> typeCats) {
-    if (_smartDefaultApplied || widget.editId != null) return;
+    if (_smartDefaultApplied || _isEditMode) return;
     if (typeCats.isEmpty) return;
     _smartDefaultApplied = true;
 
     final service = ref.read(categoryFrequencyServiceProvider);
+
+    // Priority 1: last-used category.
     final lastId = service.getLastUsedCategoryId(_type);
-    if (lastId == null) return;
-    final valid = typeCats.any((c) => c.id == lastId);
-    if (valid) {
-      // Safe: called during build, schedules after current frame.
+    if (lastId != null && typeCats.any((c) => c.id == lastId)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() => _selectedCategoryId = lastId);
       });
+      return;
+    }
+
+    // Priority 2: time-of-day match from frequency-sorted categories.
+    final todKeywords = service.getTimeOfDaySuggestedKeywords();
+    if (todKeywords.isNotEmpty) {
+      final sorted = service.sortByFrequency(typeCats, _type);
+      final todMatch = sorted.where((c) {
+        final name = c.name.toLowerCase();
+        return todKeywords.any(
+          (kw) => name.contains(kw) || c.nameAr.contains(kw),
+        );
+      }).firstOrNull;
+      if (todMatch != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _selectedCategoryId = todMatch.id);
+        });
+      }
     }
   }
 
-  Future<void> _loadForEdit() async {
-    final tx =
-        await ref.read(transactionRepositoryProvider).getById(widget.editId!);
-    if (!mounted || tx == null) return;
-
-    setState(() {
-      _editTx = tx;
-      _type = tx.type;
-      _amountPiastres = tx.amount;
-      _selectedCategoryId = tx.categoryId;
-      _walletId = tx.walletId;
-      _date = tx.transactionDate;
-      _locationName = tx.locationName;
-      _latitude = tx.latitude;
-      _longitude = tx.longitude;
-      if (tx.note != null) _noteController.text = tx.note!;
-      _titleController.text = tx.title; // WS-10
-    });
-  }
-
-  // ── Location detection ──────────────────────────────────────────────────
+  // ── Location detection ──────────────────────────────────────────────
 
   Future<void> _detectLocation() async {
     // Debounce: prevent concurrent requests
@@ -245,11 +229,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────
-
-  bool get _isCashType => _type == 'cash_withdrawal' || _type == 'cash_deposit';
-
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // ── Save ────────────────────────────────────────────────────────────
 
   /// Saves a cash withdrawal or cash deposit as a Transfer
   /// (bank account <-> Cash system wallet).
@@ -367,7 +347,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           : cat.displayName(context.languageCode);
       int txId;
 
-      if (widget.editId != null && _editTx != null) {
+      if (_editTx != null) {
         txId = _editTx!.id;
         await repo.update(
           _editTx!.copyWith(
@@ -429,16 +409,17 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             action: SnackBarAction(
               label: l10n.goal_link_action,
               onPressed: () async {
-                // CR-18 fix: wrap in try/catch to handle async errors
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   final tx = await repo.getById(txId);
                   if (tx != null) {
                     await repo.update(tx.copyWith(goalId: match.goalId));
                   }
                 } catch (_) {
-                  // M12 fix: show error feedback for goal link failure
                   messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.common_error_generic)),
+                    SnackBar(
+                      content: Text(l10n.common_error_generic),
+                    ),
                   );
                 }
               },
@@ -455,7 +436,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     }
   }
 
-  // ── Pickers ───────────────────────────────────────────────────────────────
+  // ── Pickers ─────────────────────────────────────────────────────────
 
   void _showWalletPicker() {
     final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
@@ -466,6 +447,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
       builder: (ctx) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -476,19 +462,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                  width: AppSizes.dragHandleWidth,
-                  height: AppSizes.dragHandleHeight,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: ctx.colors.outlineVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                  ),
-                ),
-              ),
+              const DragHandle(),
               Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(
                   AppSizes.md,
@@ -507,8 +481,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   children: wallets
                       .map(
                         (w) => ListTile(
-                          leading:
-                              Icon(AddTransactionScreen.walletTypeIcon(w.type)),
+                          leading: Icon(AppIcons.walletType(w.type)),
                           title: Text(w.name),
                           trailing: _walletId == w.id
                               ? const Icon(AppIcons.check)
@@ -545,8 +518,61 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
       ),
     );
   }
+}
 
-  // ── Build ─────────────────────────────────────────────────────────────────
+// ── Full-screen state ─────────────────────────────────────────────────────
+
+class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
+    with _TransactionFormMixin {
+  @override
+  final _noteController = TextEditingController();
+  @override
+  final _titleController = TextEditingController(); // WS-10
+
+  @override
+  void initState() {
+    super.initState();
+    _type = widget.initialType;
+    _isEditMode = widget.editId != null;
+    if (_isEditMode) {
+      _loadForEdit();
+    } else {
+      _initWallet();
+    }
+  }
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    _titleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadForEdit() async {
+    final tx =
+        await ref.read(transactionRepositoryProvider).getById(widget.editId!);
+    if (!mounted || tx == null) return;
+
+    setState(() {
+      _editTx = tx;
+      _type = tx.type;
+      _amountPiastres = tx.amount;
+      _selectedCategoryId = tx.categoryId;
+      _walletId = tx.walletId;
+      _date = tx.transactionDate;
+      _locationName = tx.locationName;
+      _latitude = tx.latitude;
+      _longitude = tx.longitude;
+      if (tx.note != null) _noteController.text = tx.note!;
+      _titleController.text = tx.title; // WS-10
+      // Auto-expand optional section if edit data has details.
+      _showOptional = tx.note != null ||
+          tx.locationName != null ||
+          !DateUtils.isSameDay(tx.transactionDate, DateTime.now());
+    });
+  }
+
+  // ── Build ───────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -575,6 +601,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
     // Resolve current wallet for the wallet picker row.
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
+    final nonSystemWallets = wallets.where((w) => !w.isSystemWallet).toList();
+    final showWalletPicker = nonSystemWallets.length > 1;
 
     // Type chip definitions: value, label, icon
     final typeOptions = <({String value, String label, IconData icon})>[
@@ -602,7 +630,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
 
     return Scaffold(
       appBar: AppAppBar(
-        title: widget.editId != null
+        title: _isEditMode
             ? context.l10n.transaction_edit_title
             : context.l10n.transactions_add,
       ),
@@ -613,7 +641,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Type toggle (scrollable chips — 4 options) ───────────
-            if (widget.editId == null)
+            if (!_isEditMode)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
@@ -668,7 +696,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
               ),
 
             // ── Type toggle (edit mode — only expense/income) ────────
-            if (widget.editId != null)
+            if (_isEditMode)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
@@ -711,7 +739,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                 child: AmountInput(
                   initialPiastres: _amountPiastres,
                   onAmountChanged: (p) => setState(() => _amountPiastres = p),
-                  autofocus: widget.editId == null,
+                  autofocus: !_isEditMode,
                   textColor: typeColor,
                 ),
               ),
@@ -758,19 +786,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title input with icon prefix, no floating label
-                      AppTextField(
-                        label: context.l10n.transaction_title_label,
-                        hint: context.l10n.transaction_title_hint,
-                        controller: _titleController,
-                        prefixIcon: Icon(
-                          AppIcons.edit,
-                          size: AppSizes.iconSm,
-                          color: cs.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-
                       // Category chips row
                       SizedBox(
                         height: AppSizes.categoryChipSize,
@@ -829,12 +844,6 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                                     : null,
                                 onSelected: (_) {
                                   setState(() => _selectedCategoryId = cat.id);
-                                  // WS-10: auto-fill title on category selection if empty.
-                                  if (_titleController.text.trim().isEmpty) {
-                                    _titleController.text = cat.displayName(
-                                      context.languageCode,
-                                    );
-                                  }
                                 },
                                 showCheckmark: false,
                               ),
@@ -842,13 +851,15 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                           },
                         ),
                       ),
-                      const SizedBox(height: AppSizes.sm),
 
-                      // Wallet picker row
-                      _WalletPickerRow(
-                        wallet: currentWallet,
-                        onTap: _showWalletPicker,
-                      ),
+                      // Wallet picker row (only when multiple wallets)
+                      if (showWalletPicker) ...[
+                        const SizedBox(height: AppSizes.sm),
+                        _WalletPickerRow(
+                          wallet: currentWallet,
+                          onTap: _showWalletPicker,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -866,6 +877,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
                       setState(() => _showOptional = !_showOptional),
                   date: _date,
                   onDateChanged: (d) => setState(() => _date = d),
+                  titleController: _titleController,
                   noteController: _noteController,
                   locationName: _locationName,
                   detectingLocation: _detectingLocation,
@@ -889,7 +901,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
             AppSizes.md,
           ),
           child: AppButton(
-            label: widget.editId != null
+            label: _isEditMode
                 ? context.l10n.common_save_changes
                 : context.l10n.common_save,
             onPressed: canSave && !_loading
@@ -924,22 +936,12 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
       _AddTransactionSheetState();
 }
 
-class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
-  // ── Form state ────────────────────────────────────────────────────────────
-  late String _type;
-  int _amountPiastres = 0;
-  int? _selectedCategoryId;
-  int? _walletId;
-  DateTime _date = DateTime.now();
+class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
+    with _TransactionFormMixin {
+  @override
   final _noteController = TextEditingController();
+  @override
   final _titleController = TextEditingController();
-  bool _loading = false;
-  bool _showOptional = false;
-  bool _smartDefaultApplied = false;
-  String? _locationName;
-  double? _latitude;
-  double? _longitude;
-  bool _detectingLocation = false;
 
   @override
   void initState() {
@@ -955,362 +957,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     super.dispose();
   }
 
-  // ── Init helpers ──────────────────────────────────────────────────────────
-
-  Future<void> _initWallet() async {
-    final wallets = await ref.read(walletRepositoryProvider).getAll();
-    if (!mounted) return;
-    if (wallets.isEmpty) return;
-    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
-
-    // Prefer the user's saved default wallet.
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    final defaultId = prefs.defaultWalletId;
-    if (defaultId != null && nonSystem.any((w) => w.id == defaultId)) {
-      setState(() => _walletId = defaultId);
-      return;
-    }
-    if (_isCashType) {
-      if (nonSystem.isNotEmpty) {
-        setState(() => _walletId = nonSystem.first.id);
-      }
-    } else {
-      if (nonSystem.isNotEmpty) {
-        setState(() => _walletId = nonSystem.first.id);
-      } else {
-        setState(() => _walletId = wallets.first.id);
-      }
-    }
-  }
-
-  void _tryApplySmartDefault(List<CategoryEntity> typeCats) {
-    if (_smartDefaultApplied) return;
-    if (typeCats.isEmpty) return;
-    _smartDefaultApplied = true;
-
-    final service = ref.read(categoryFrequencyServiceProvider);
-    final lastId = service.getLastUsedCategoryId(_type);
-    if (lastId == null) return;
-    final valid = typeCats.any((c) => c.id == lastId);
-    if (valid) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _selectedCategoryId = lastId);
-      });
-    }
-  }
-
-  // ── Location detection ──────────────────────────────────────────────────
-
-  Future<void> _detectLocation() async {
-    if (_detectingLocation) return;
-
-    try {
-      final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.deniedForever) {
-        if (!mounted) return;
-        await PermissionHelper.openAppSettings();
-        return;
-      }
-      if (permission == LocationPermission.denied) {
-        if (!mounted) return;
-        final allowed = await PermissionHelper.showRationale(
-          context,
-          title: context.l10n.permission_location_title,
-          rationale: context.l10n.permission_location_body,
-        );
-        if (!allowed || !mounted) return;
-      }
-
-      setState(() => _detectingLocation = true);
-      final result = await LocationService.detect();
-      if (!mounted) return;
-      if (result != null) {
-        setState(() {
-          _locationName = result.name;
-          _latitude = result.lat;
-          _longitude = result.lng;
-          _detectingLocation = false;
-        });
-      } else {
-        setState(() => _detectingLocation = false);
-        SnackHelper.showError(context, context.l10n.location_failed);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _detectingLocation = false);
-      SnackHelper.showError(context, context.l10n.location_failed);
-    }
-  }
-
-  // ── Helpers ─────────────────────────────────────────────────────────────
-
-  bool get _isCashType => _type == 'cash_withdrawal' || _type == 'cash_deposit';
-
-  // ── Save ──────────────────────────────────────────────────────────────────
-
-  Future<void> _saveCashTransfer() async {
-    if (_loading) return;
-    final walletId = _walletId;
-    if (_amountPiastres <= 0 || walletId == null) return;
-
-    setState(() => _loading = true);
-    try {
-      final cashWallet = ref.read(systemWalletProvider).valueOrNull;
-      if (cashWallet == null) {
-        setState(() => _loading = false);
-        if (mounted) {
-          SnackHelper.showError(context, context.l10n.common_error_generic);
-        }
-        return;
-      }
-
-      final transferRepo = ref.read(transferRepositoryProvider);
-      final note = _noteController.text.trim().isEmpty
-          ? null
-          : _noteController.text.trim();
-
-      if (_type == 'cash_withdrawal') {
-        await transferRepo.create(
-          fromWalletId: walletId,
-          toWalletId: cashWallet.id,
-          amount: _amountPiastres,
-          note: note,
-          transferDate: _date,
-        );
-      } else {
-        await transferRepo.create(
-          fromWalletId: cashWallet.id,
-          toWalletId: walletId,
-          amount: _amountPiastres,
-          note: note,
-          transferDate: _date,
-        );
-      }
-
-      HapticFeedback.heavyImpact();
-      if (!mounted) return;
-      SnackHelper.showSuccess(context, context.l10n.transfer_success);
-      context.pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  ({int goalId, String goalName})? _matchGoalWithName(
-    String title,
-    String? note,
-  ) {
-    final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
-    for (final goal in goals) {
-      final List<String> kws;
-      try {
-        kws = (jsonDecode(goal.keywords) as List).cast<String>();
-      } catch (_) {
-        continue;
-      }
-      final matcher = GoalKeywordMatcher(keywords: kws);
-      if (matcher.matches(title) || (note != null && matcher.matches(note))) {
-        return (goalId: goal.id, goalName: goal.name);
-      }
-    }
-    return null;
-  }
-
-  Future<void> _save() async {
-    if (_loading) return;
-    final categoryId = _selectedCategoryId;
-    final walletId = _walletId;
-    if (_amountPiastres <= 0 || categoryId == null || walletId == null) return;
-
-    setState(() => _loading = true);
-    try {
-      final repo = ref.read(transactionRepositoryProvider);
-      final cats = ref.read(categoriesProvider).valueOrNull ?? [];
-      final cat = cats.where((c) => c.id == categoryId).firstOrNull;
-      if (cat == null) {
-        setState(() => _loading = false);
-        if (mounted) {
-          SnackHelper.showError(context, context.l10n.common_error_generic);
-        }
-        return;
-      }
-      if (cat.type != _type && cat.type != 'both') {
-        setState(() => _loading = false);
-        if (mounted) {
-          SnackHelper.showError(context, context.l10n.common_error_generic);
-        }
-        return;
-      }
-
-      final note = _noteController.text.trim().isEmpty
-          ? null
-          : _noteController.text.trim();
-
-      final title = _titleController.text.trim().isNotEmpty
-          ? _titleController.text.trim()
-          : cat.displayName(context.languageCode);
-
-      final txId = await repo.create(
-        walletId: walletId,
-        categoryId: categoryId,
-        amount: _amountPiastres,
-        type: _type,
-        title: title,
-        transactionDate: _date,
-        note: note,
-        locationName: _locationName,
-        latitude: _latitude,
-        longitude: _longitude,
-      );
-      await ref
-          .read(categoryFrequencyServiceProvider)
-          .recordUsage(_type, categoryId);
-      await ref
-          .read(categorizationLearningServiceProvider)
-          .recordMapping(title, categoryId);
-
-      HapticFeedback.heavyImpact();
-      if (!mounted) return;
-
-      final match = _matchGoalWithName(title, note);
-      if (match != null) {
-        final messenger = ScaffoldMessenger.of(context);
-        final l10n = context.l10n;
-        messenger.showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(
-              bottom: AppSizes.snackbarBottomMargin,
-              left: AppSizes.md,
-              right: AppSizes.md,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-            ),
-            duration: AppDurations.snackbarLong,
-            content: Text(l10n.goal_link_prompt(match.goalName)),
-            action: SnackBarAction(
-              label: l10n.goal_link_action,
-              onPressed: () async {
-                try {
-                  final tx = await repo.getById(txId);
-                  if (tx != null) {
-                    await repo.update(tx.copyWith(goalId: match.goalId));
-                  }
-                } catch (_) {
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.common_error_generic)),
-                  );
-                }
-              },
-            ),
-          ),
-        );
-      }
-
-      context.pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  // ── Pickers ───────────────────────────────────────────────────────────────
-
-  void _showWalletPicker() {
-    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
-        .where((w) => !w.isSystemWallet)
-        .toList();
-    if (wallets.isEmpty) return;
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => SafeArea(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight:
-                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-                  width: AppSizes.dragHandleWidth,
-                  height: AppSizes.dragHandleHeight,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: ctx.colors.outlineVariant,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(
-                  AppSizes.md,
-                  0,
-                  AppSizes.md,
-                  AppSizes.sm,
-                ),
-                child: Text(
-                  context.l10n.transaction_wallet_picker,
-                  style: ctx.textStyles.titleMedium,
-                ),
-              ),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: wallets
-                      .map(
-                        (w) => ListTile(
-                          leading: Icon(
-                            AddTransactionScreen.walletTypeIcon(w.type),
-                          ),
-                          title: Text(w.name),
-                          trailing: _walletId == w.id
-                              ? const Icon(AppIcons.check)
-                              : null,
-                          onTap: () {
-                            setState(() => _walletId = w.id);
-                            ctx.pop();
-                          },
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: AppSizes.md),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showAllCategories(List<CategoryEntity> categories) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => _CategoryPickerSheet(
-        categories: categories,
-        selectedId: _selectedCategoryId,
-        onSelected: (id) {
-          setState(() => _selectedCategoryId = id);
-          context.pop();
-        },
-      ),
-    );
-  }
-
-  // ── Build ─────────────────────────────────────────────────────────────────
+  // ── Build ───────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -1338,6 +985,8 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
 
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
+    final nonSystemWallets = wallets.where((w) => !w.isSystemWallet).toList();
+    final showWalletPicker = nonSystemWallets.length > 1;
 
     final typeOptions = <({String value, String label, IconData icon})>[
       (
@@ -1365,18 +1014,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
     return Column(
       children: [
         // ── Drag handle ──────────────────────────────────────────────
-        Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-            width: AppSizes.dragHandleWidth,
-            height: AppSizes.dragHandleHeight,
-            decoration: BoxDecoration(
-              color: cs.outlineVariant,
-              borderRadius:
-                  BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-            ),
-          ),
-        ),
+        const DragHandle(),
         // ── Title ──────────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.symmetric(
@@ -1508,17 +1146,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        AppTextField(
-                          label: context.l10n.transaction_title_label,
-                          hint: context.l10n.transaction_title_hint,
-                          controller: _titleController,
-                          prefixIcon: Icon(
-                            AppIcons.edit,
-                            size: AppSizes.iconSm,
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: AppSizes.sm),
                         SizedBox(
                           height: AppSizes.categoryChipSize,
                           child: ListView.separated(
@@ -1578,11 +1205,6 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                                     setState(
                                       () => _selectedCategoryId = cat.id,
                                     );
-                                    if (_titleController.text.trim().isEmpty) {
-                                      _titleController.text = cat.displayName(
-                                        context.languageCode,
-                                      );
-                                    }
                                   },
                                   showCheckmark: false,
                                 ),
@@ -1590,11 +1212,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                             },
                           ),
                         ),
-                        const SizedBox(height: AppSizes.sm),
-                        _WalletPickerRow(
-                          wallet: currentWallet,
-                          onTap: _showWalletPicker,
-                        ),
+                        if (showWalletPicker) ...[
+                          const SizedBox(height: AppSizes.sm),
+                          _WalletPickerRow(
+                            wallet: currentWallet,
+                            onTap: _showWalletPicker,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -1610,6 +1234,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet> {
                         setState(() => _showOptional = !_showOptional),
                     date: _date,
                     onDateChanged: (d) => setState(() => _date = d),
+                    titleController: _titleController,
                     noteController: _noteController,
                     locationName: _locationName,
                     detectingLocation: _detectingLocation,
@@ -1669,7 +1294,7 @@ class _WalletPickerRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              AddTransactionScreen.walletTypeIcon(wallet!.type),
+              AppIcons.walletType(wallet!.type),
               size: AppSizes.iconSm,
               color: cs.primary,
             ),
@@ -1682,7 +1307,7 @@ class _WalletPickerRow extends StatelessWidget {
               ),
             ),
             Icon(
-              AppIcons.chevronRight,
+              context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
               size: AppSizes.iconXs,
               color: cs.outline,
             ),
@@ -1701,6 +1326,7 @@ class _OptionalSection extends StatelessWidget {
     required this.onToggle,
     required this.date,
     required this.onDateChanged,
+    required this.titleController,
     required this.noteController,
     required this.locationName,
     required this.detectingLocation,
@@ -1712,6 +1338,7 @@ class _OptionalSection extends StatelessWidget {
   final VoidCallback onToggle;
   final DateTime date;
   final ValueChanged<DateTime> onDateChanged;
+  final TextEditingController titleController;
   final TextEditingController noteController;
   final String? locationName;
   final bool detectingLocation;
@@ -1756,9 +1383,11 @@ class _OptionalSection extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSizes.xs),
                   if (locationName != null)
-                    _QuickChip(
-                      icon: AppIcons.location,
-                      label: locationName!,
+                    Flexible(
+                      child: _QuickChip(
+                        icon: AppIcons.location,
+                        label: locationName!,
+                      ),
                     ),
                 ],
               ],
@@ -1778,6 +1407,17 @@ class _OptionalSection extends StatelessWidget {
                         AppDatePicker(
                           selectedDate: date,
                           onDateChanged: onDateChanged,
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        AppTextField(
+                          label: context.l10n.transaction_title_label,
+                          hint: context.l10n.transaction_title_hint,
+                          controller: titleController,
+                          prefixIcon: Icon(
+                            AppIcons.edit,
+                            size: AppSizes.iconSm,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: AppSizes.sm),
                         AppTextField(
@@ -1818,8 +1458,11 @@ class _OptionalSection extends StatelessWidget {
                                   size: AppSizes.iconXs,
                                 ),
                                 onPressed: () => onLocationChanged(null),
-                                visualDensity: VisualDensity.compact,
                                 tooltip: context.l10n.common_delete,
+                                constraints: const BoxConstraints(
+                                  minWidth: AppSizes.minTapTarget,
+                                  minHeight: AppSizes.minTapTarget,
+                                ),
                               ),
                             const SizedBox(width: AppSizes.xs),
                             TextButton(
@@ -1918,15 +1561,7 @@ class _CategoryPickerSheet extends StatelessWidget {
       expand: false,
       builder: (ctx, scrollController) => Column(
         children: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: AppSizes.sm),
-            width: AppSizes.dragHandleWidth,
-            height: AppSizes.dragHandleHeight,
-            decoration: BoxDecoration(
-              color: cs.outlineVariant,
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusXs),
-            ),
-          ),
+          const DragHandle(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
             child: Align(

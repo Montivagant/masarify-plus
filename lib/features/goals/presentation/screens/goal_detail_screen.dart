@@ -17,6 +17,7 @@ import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/savings_goal_entity.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
@@ -24,6 +25,7 @@ import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 class GoalDetailScreen extends ConsumerWidget {
   const GoalDetailScreen({super.key, required this.id});
@@ -53,161 +55,163 @@ class GoalDetailScreen extends ConsumerWidget {
         }
 
         return Scaffold(
-      appBar: AppAppBar(
-        title: goal.name,
-        actions: [
-          IconButton(
-            icon: const Icon(AppIcons.edit),
-            tooltip: context.l10n.common_edit,
-            onPressed: () => context.push(AppRoutes.editGoalPath(goal.id)),
-          ),
-          // H6 fix: goal delete button
-          IconButton(
-            icon: const Icon(AppIcons.delete),
-            tooltip: context.l10n.common_delete,
-            onPressed: () => _confirmDeleteGoal(context, ref, goal.id),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding:
-            const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _GoalHeader(goal: goal),
-            const SizedBox(height: AppSizes.lg),
-
-            if (!goal.isCompleted)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
-                child: AppButton(
-                  label: context.l10n.goal_detail_add_savings,
-                  icon: AppIcons.add,
-                  onPressed: () =>
-                      _showAddContribution(context, ref, goal),
-                ),
+          appBar: AppAppBar(
+            title: goal.name,
+            actions: [
+              IconButton(
+                icon: const Icon(AppIcons.edit),
+                tooltip: context.l10n.common_edit,
+                onPressed: () => context.push(AppRoutes.editGoalPath(goal.id)),
               ),
+              // H6 fix: goal delete button
+              IconButton(
+                icon: const Icon(AppIcons.delete),
+                tooltip: context.l10n.common_delete,
+                onPressed: () => _confirmDeleteGoal(context, ref, goal.id),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _GoalHeader(goal: goal),
+                const SizedBox(height: AppSizes.lg),
 
-            const SizedBox(height: AppSizes.lg),
+                if (!goal.isCompleted)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.screenHPadding,
+                    ),
+                    child: AppButton(
+                      label: context.l10n.goal_detail_add_savings,
+                      icon: AppIcons.add,
+                      onPressed: () => _showAddContribution(context, ref, goal),
+                    ),
+                  ),
 
-            // Keywords
-            Builder(
-              builder: (_) {
-                // R5-C4 fix: guard against corrupted JSON
-                List<String> kws;
-                try {
-                  kws = (jsonDecode(goal.keywords) as List).cast<String>();
-                } catch (_) {
-                  kws = [];
-                }
-                if (kws.isEmpty) return const SizedBox.shrink();
-                return Padding(
+                const SizedBox(height: AppSizes.lg),
+
+                // Keywords
+                Builder(
+                  builder: (_) {
+                    // R5-C4 fix: guard against corrupted JSON
+                    List<String> kws;
+                    try {
+                      kws = (jsonDecode(goal.keywords) as List).cast<String>();
+                    } catch (_) {
+                      kws = [];
+                    }
+                    if (kws.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.screenHPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.goal_keywords,
+                            style: context.textStyles.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: AppSizes.sm),
+                          Wrap(
+                            spacing: AppSizes.sm,
+                            runSpacing: AppSizes.xs,
+                            children: kws
+                                .map(
+                                  (kw) => Chip(
+                                    label: Text(kw),
+                                    avatar: const Icon(
+                                      AppIcons.tag,
+                                      size: AppSizes.iconXxs2,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                          const SizedBox(height: AppSizes.lg),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.l10n.goal_keywords,
-                        style: context.textStyles.titleSmall
-                            ?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-                      Wrap(
-                        spacing: AppSizes.sm,
-                        runSpacing: AppSizes.xs,
-                        children: kws
-                            .map(
-                              (kw) => Chip(
-                                label: Text(kw),
-                                avatar: const Icon(
-                                  AppIcons.tag,
-                                  size: AppSizes.iconXxs2,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      const SizedBox(height: AppSizes.lg),
-                    ],
+                  child: Text(
+                    context.l10n.goal_saved_label,
+                    style: context.textStyles.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                );
-              },
-            ),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: Text(
-                context.l10n.goal_saved_label,
-                style: context.textStyles.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ),
-            const SizedBox(height: AppSizes.xs),
-
-            contributionsAsync.when(
-              data: (contributions) {
-                if (contributions.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(AppSizes.xl),
-                    child: EmptyState(
-                      title: context.l10n.goal_detail_no_savings,
-                      subtitle: context.l10n.goal_detail_no_savings_sub,
-                    ),
-                  );
-                }
-                return Column(
-                  children: contributions.map((c) {
-                    return ListTile(
-                      leading: const CircleAvatar(
-                        child: Icon(AppIcons.goals, size: AppSizes.iconXs),
-                      ),
-                      title: Text(MoneyFormatter.format(c.amount)),
-                      subtitle: Text(
-                        '${DateFormat.yMd(context.languageCode).format(c.date)}'
-                        '${c.note != null ? " · ${c.note}" : ""}',
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          AppIcons.delete,
-                          size: AppSizes.iconSm,
-                        ),
-                        // M11 fix: add confirmation dialog
-                        onPressed: () async {
-                          final confirmed = await ConfirmDialog.confirmDelete(
-                            context,
-                            title: context.l10n.common_delete,
-                            message: context.l10n.goal_delete_contribution_confirm,
-                          );
-                          if (confirmed) {
-                            // CR-19 fix: await the async delete
-                            await ref
-                                .read(goalRepositoryProvider)
-                                .deleteContribution(c.id);
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(AppSizes.xl),
-                  child: CircularProgressIndicator.adaptive(),
                 ),
-              ),
-              error: (_, __) => EmptyState(title: context.l10n.common_error_title),
+                const SizedBox(height: AppSizes.xs),
+
+                contributionsAsync.when(
+                  data: (contributions) {
+                    if (contributions.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.all(AppSizes.xl),
+                        child: EmptyState(
+                          title: context.l10n.goal_detail_no_savings,
+                          subtitle: context.l10n.goal_detail_no_savings_sub,
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: contributions.map((c) {
+                        return ListTile(
+                          leading: const CircleAvatar(
+                            child: Icon(AppIcons.goals, size: AppSizes.iconXs),
+                          ),
+                          title: Text(MoneyFormatter.format(c.amount)),
+                          subtitle: Text(
+                            '${DateFormat.yMd(context.languageCode).format(c.date)}'
+                            '${c.note != null ? " · ${c.note}" : ""}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              AppIcons.delete,
+                              size: AppSizes.iconSm,
+                            ),
+                            // M11 fix: add confirmation dialog
+                            onPressed: () async {
+                              final confirmed =
+                                  await ConfirmDialog.confirmDelete(
+                                context,
+                                title: context.l10n.common_delete,
+                                message: context
+                                    .l10n.goal_delete_contribution_confirm,
+                              );
+                              if (confirmed) {
+                                // CR-19 fix: await the async delete
+                                await ref
+                                    .read(goalRepositoryProvider)
+                                    .deleteContribution(c.id);
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSizes.xl),
+                      child: CircularProgressIndicator.adaptive(),
+                    ),
+                  ),
+                  error: (_, __) =>
+                      EmptyState(title: context.l10n.common_error_title),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
         );
       },
     );
@@ -236,7 +240,10 @@ class GoalDetailScreen extends ConsumerWidget {
     SavingsGoalEntity goal,
   ) {
     int amountPiastres = 0;
+    int? selectedWalletId;
     final noteController = TextEditingController();
+    final wallets = ref.read(walletsProvider).valueOrNull ?? [];
+    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
 
     showModalBottomSheet<void>(
       context: context,
@@ -248,83 +255,127 @@ class GoalDetailScreen extends ConsumerWidget {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(AppSizes.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: AppSizes.sm),
-                    width: AppSizes.dragHandleWidth,
-                    height: AppSizes.dragHandleHeight,
-                    decoration: BoxDecoration(
-                      color: ctx.colors.outlineVariant,
-                      borderRadius: BorderRadius.circular(AppSizes.dragHandleHeight / 2),
-                    ),
+            child: StatefulBuilder(
+              builder: (ctx, setSheetState) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const DragHandle(),
+                  Text(
+                    context.l10n.goal_detail_add_savings,
+                    style: ctx.textStyles.titleMedium,
                   ),
-                ),
-                Text(
-                  context.l10n.goal_detail_add_savings,
-                  style: ctx.textStyles.titleMedium,
-                ),
-                const SizedBox(height: AppSizes.md),
-                AmountInput(
-                  onAmountChanged: (p) => amountPiastres = p,
-                ),
-                const SizedBox(height: AppSizes.md),
-                AppTextField(
-                  label: context.l10n.goal_contribution_note,
-                  controller: noteController,
-                ),
-                const SizedBox(height: AppSizes.md),
-                AppButton(
-                  label: context.l10n.common_save,
-                  icon: AppIcons.check,
-                  onPressed: () async {
-                    if (amountPiastres <= 0) return;
-                    // H6 fix: pre-validate contribution doesn't exceed remaining
-                    final remaining = goal.targetAmount - goal.currentAmount;
-                    if (remaining <= 0) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(ctx.l10n.goal_already_funded),
+                  const SizedBox(height: AppSizes.md),
+                  AmountInput(
+                    onAmountChanged: (p) => amountPiastres = p,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+
+                  // Wallet picker — deduct from selected account
+                  if (nonSystem.isNotEmpty) ...[
+                    Text(
+                      context.l10n.goal_contribution_from_wallet,
+                      style: ctx.textStyles.labelLarge?.copyWith(
+                        color: ctx.colors.outline,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.xs),
+                    Wrap(
+                      spacing: AppSizes.sm,
+                      runSpacing: AppSizes.xs,
+                      children: [
+                        // "No deduction" option
+                        ChoiceChip(
+                          label: Text(context.l10n.common_none),
+                          selected: selectedWalletId == null,
+                          onSelected: (_) =>
+                              setSheetState(() => selectedWalletId = null),
+                          showCheckmark: false,
                         ),
-                      );
-                      return;
-                    }
-                    if (amountPiastres > remaining) {
-                      ScaffoldMessenger.of(ctx).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
+                        ...nonSystem.map(
+                          (w) => ChoiceChip(
+                            label: Text(w.name),
+                            avatar: Icon(
+                              AppIcons.walletType(w.type),
+                              size: AppSizes.iconXs,
+                            ),
+                            selected: selectedWalletId == w.id,
+                            onSelected: (_) =>
+                                setSheetState(() => selectedWalletId = w.id),
+                            showCheckmark: false,
                           ),
                         ),
-                      );
-                      return;
-                    }
-                    try {
-                      await ref
-                          .read(goalRepositoryProvider)
-                          .addContribution(
+                      ],
+                    ),
+                    const SizedBox(height: AppSizes.md),
+                  ],
+
+                  AppTextField(
+                    label: context.l10n.goal_contribution_note,
+                    controller: noteController,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  AppButton(
+                    label: context.l10n.common_save,
+                    icon: AppIcons.check,
+                    onPressed: () async {
+                      if (amountPiastres <= 0) return;
+                      // H6 fix: pre-validate contribution doesn't exceed remaining
+                      final remaining = goal.targetAmount - goal.currentAmount;
+                      if (remaining <= 0) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(ctx.l10n.goal_already_funded),
+                          ),
+                        );
+                        return;
+                      }
+                      if (amountPiastres > remaining) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      try {
+                        final repo = ref.read(goalRepositoryProvider);
+                        final note = noteController.text.trim().isEmpty
+                            ? null
+                            : noteController.text.trim();
+                        if (selectedWalletId != null) {
+                          await repo.addContributionWithDeduction(
                             goalId: goal.id,
                             amount: amountPiastres,
                             date: DateTime.now(),
-                            note: noteController.text.trim().isEmpty
-                                ? null
-                                : noteController.text.trim(),
+                            walletId: selectedWalletId!,
+                            note: note,
                           );
-                      HapticFeedback.mediumImpact();
-                      if (ctx.mounted) ctx.pop();
-                    } catch (e) {
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          SnackBar(content: Text(ctx.l10n.common_error_generic)),
-                        );
+                        } else {
+                          await repo.addContribution(
+                            goalId: goal.id,
+                            amount: amountPiastres,
+                            date: DateTime.now(),
+                            note: note,
+                          );
+                        }
+                        HapticFeedback.mediumImpact();
+                        if (ctx.mounted) ctx.pop();
+                      } catch (e) {
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text(ctx.l10n.common_error_generic),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                ),
-              ],
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -374,7 +425,8 @@ class _GoalHeader extends StatelessWidget {
               GlassCard(
                 tier: GlassTier.inset,
                 padding: EdgeInsets.zero,
-                borderRadius: BorderRadius.circular(AppSizes.progressRingInner / 2),
+                borderRadius:
+                    BorderRadius.circular(AppSizes.progressRingInner / 2),
                 tintColor: color.withValues(alpha: AppSizes.opacityLight2),
                 child: SizedBox(
                   width: AppSizes.progressRingInner,
@@ -388,9 +440,9 @@ class _GoalHeader extends StatelessWidget {
           Text(
             MoneyFormatter.formatPercent(pct),
             style: context.textStyles.headlineMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: AppSizes.xs),
           Row(
@@ -453,15 +505,15 @@ class _Stat extends StatelessWidget {
         Text(
           value,
           style: context.textStyles.titleSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-              ),
+            color: color,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         Text(
           label,
           style: context.textStyles.bodySmall?.copyWith(
-                color: context.colors.outline,
-              ),
+            color: context.colors.outline,
+          ),
         ),
       ],
     );

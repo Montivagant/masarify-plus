@@ -43,16 +43,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     super.dispose();
   }
 
-  /// Map wallet type string to its Phosphor icon.
-  static IconData _typeIcon(String type) => switch (type) {
-        'physical_cash' => AppIcons.physicalCash,
-        'bank' => AppIcons.bank,
-        'mobile_wallet' => AppIcons.phone,
-        'credit_card' => AppIcons.creditCard,
-        'prepaid_card' => AppIcons.prepaidCard,
-        'investment' => AppIcons.investmentAccount,
-        _ => AppIcons.wallet,
-      };
+  // Wallet type → icon resolved via AppIcons.walletType() (single source).
 
   @override
   Widget build(BuildContext context) {
@@ -105,99 +96,103 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
 
     return Column(
       children: [
-        Stack(
-          children: [
-            SizedBox(
-              height: AppSizes.carouselHeight,
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: pageCount,
-                onPageChanged: (index) {
-                  // Don't update selection when swiping to the "Add Account" card.
-                  if (index < pageCount - 1) {
-                    ref.read(selectedAccountIndexProvider.notifier).state =
-                        index;
-                  }
-                },
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    // Page 0: Total balance across all accounts (hero variant).
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.xs,
-                        vertical: AppSizes.xs,
-                      ),
-                      child: BalanceCard(
-                        accountName: context.l10n.dashboard_all_accounts,
-                        totalPiastres: totalBalance,
-                        monthlyIncomePiastres: totalIncome,
-                        monthlyExpensePiastres: totalExpense,
-                        hidden: hidden,
-                        inGoalsPiastres: inGoals,
-                        cashPiastres: systemWallet?.balance ?? 0,
-                      ),
-                    );
-                  }
-
-                  // Last page: "Add Account" card.
-                  if (index == pageCount - 1) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.xs,
-                        vertical: AppSizes.xs,
-                      ),
-                      child: _AddAccountCard(
-                        onTap: () => context.push(AppRoutes.walletAdd),
-                      ),
-                    );
-                  }
-
-                  // Pages 1-N: Individual account cards (account variant).
-                  if (index - 1 >= userWallets.length) {
-                    return const SizedBox.shrink();
-                  }
-                  final wallet = userWallets[index - 1];
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.xs,
-                      vertical: AppSizes.xs,
-                    ),
-                    child: GestureDetector(
-                      onLongPress: () =>
-                          context.push(AppRoutes.editWalletPath(wallet.id)),
-                      child: BalanceCard(
-                        variant: BalanceCardVariant.account,
-                        accountName: wallet.name,
-                        totalPiastres: wallet.balance,
-                        currencyCode: wallet.currencyCode,
-                        hidden: hidden,
-                        walletTypeIcon: _typeIcon(wallet.type),
-                        walletColorHex: wallet.colorHex,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Global eye icon for hide/show balances
-            PositionedDirectional(
-              top: AppSizes.sm,
-              end: AppSizes.md,
-              child: IconButton(
+        // Eye icon row — above the carousel for consistent visibility.
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.screenHPadding,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
                 tooltip: hidden
                     ? context.l10n.balance_show
                     : context.l10n.balance_hide,
                 icon: Icon(
                   hidden ? AppIcons.eyeOff : AppIcons.eye,
-                  color: cs.onPrimary.withValues(alpha: AppSizes.opacityStrong),
+                  color: cs.onSurface.withValues(alpha: AppSizes.opacityMedium),
                   size: AppSizes.iconSm,
                 ),
                 onPressed: () =>
                     ref.read(hideBalancesProvider.notifier).toggle(),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+        SizedBox(
+          height: AppSizes.carouselHeight,
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: pageCount,
+            onPageChanged: (index) {
+              // Don't update selection when swiping to the "Add Account" card.
+              if (index < pageCount - 1) {
+                ref.read(selectedAccountIndexProvider.notifier).state = index;
+              }
+            },
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                // Page 0: Total balance across all accounts (hero variant).
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.xs,
+                    vertical: AppSizes.xs,
+                  ),
+                  child: BalanceCard(
+                    accountName: context.l10n.dashboard_all_accounts,
+                    totalPiastres: totalBalance,
+                    monthlyIncomePiastres: totalIncome,
+                    monthlyExpensePiastres: totalExpense,
+                    hidden: hidden,
+                    inGoalsPiastres: inGoals,
+                    cashPiastres: systemWallet?.balance ?? 0,
+                  ),
+                );
+              }
+
+              // Last page: "Add Account" card.
+              if (index == pageCount - 1) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.xs,
+                    vertical: AppSizes.xs,
+                  ),
+                  child: _AddAccountCard(
+                    onTap: () => context.push(AppRoutes.walletAdd),
+                  ),
+                );
+              }
+
+              // Pages 1-N: Individual account cards (account variant).
+              if (index - 1 >= userWallets.length) {
+                return const SizedBox.shrink();
+              }
+              final wallet = userWallets[index - 1];
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.xs,
+                  vertical: AppSizes.xs,
+                ),
+                child: Semantics(
+                  onLongPressHint: context.l10n.common_edit,
+                  child: GestureDetector(
+                    onLongPress: () =>
+                        context.push(AppRoutes.editWalletPath(wallet.id)),
+                    child: BalanceCard(
+                      variant: BalanceCardVariant.account,
+                      accountName: wallet.name,
+                      totalPiastres: wallet.balance,
+                      currencyCode: wallet.currencyCode,
+                      hidden: hidden,
+                      walletTypeIcon: AppIcons.walletType(wallet.type),
+                      walletColorHex: wallet.colorHex,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
 
         // Page indicator dots + quick add button.
@@ -227,21 +222,26 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
                   );
                 }),
                 // WS6: Quick add "+" button next to dots.
-                const SizedBox(width: AppSizes.sm),
-                GestureDetector(
-                  onTap: () => context.push(AppRoutes.walletAdd),
-                  child: Container(
-                    width: AppSizes.iconSm,
-                    height: AppSizes.iconSm,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: context.colors.primary
-                          .withValues(alpha: AppSizes.opacityLight),
-                    ),
-                    child: Icon(
-                      AppIcons.add,
-                      size: AppSizes.iconXxs,
-                      color: context.colors.primary,
+                const SizedBox(width: AppSizes.xs),
+                SizedBox(
+                  width: AppSizes.minTapTarget,
+                  height: AppSizes.minTapTarget,
+                  child: IconButton(
+                    onPressed: () => context.push(AppRoutes.walletAdd),
+                    tooltip: context.l10n.wallet_add_title,
+                    icon: Container(
+                      width: AppSizes.iconSm,
+                      height: AppSizes.iconSm,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: context.colors.primary
+                            .withValues(alpha: AppSizes.opacityLight),
+                      ),
+                      child: Icon(
+                        AppIcons.add,
+                        size: AppSizes.iconXxs,
+                        color: context.colors.primary,
+                      ),
                     ),
                   ),
                 ),

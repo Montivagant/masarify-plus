@@ -65,7 +65,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       try {
         final prefs = await ref.read(preferencesFutureProvider.future);
         if (mounted) setState(() => _lastBackupDate = prefs.lastBackupDate);
-      } catch (_) {}
+      } catch (_) {} // Best-effort cleanup — failure is non-critical.
     }
   }
 
@@ -132,7 +132,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       // Clean up temp file
       try {
         if (file.existsSync()) file.deleteSync();
-      } catch (_) {}
+      } catch (_) {} // Best-effort cleanup — failure is non-critical.
 
       if (!mounted) return;
       setState(() => _lastBackupDate = now);
@@ -217,7 +217,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
           if (tempDir != null && tempDir.existsSync()) {
             tempDir.deleteSync(recursive: true);
           }
-        } catch (_) {}
+        } catch (_) {} // Best-effort cleanup — failure is non-critical.
       }
     } catch (e) {
       if (mounted) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/constants/brand_registry.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../cards/transaction_card.dart';
@@ -56,15 +57,17 @@ class TransactionListSection extends StatelessWidget {
               Text(
                 dateLabel,
                 style: context.textStyles.labelLarge?.copyWith(
-                      color: context.colors.outline,
-                    ),
+                  color: context.colors.outline,
+                ),
               ),
               if (onSeeAll != null)
                 TextButton.icon(
                   onPressed: onSeeAll,
                   label: Text(context.l10n.common_all),
                   icon: Icon(
-                    context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+                    context.isRtl
+                        ? AppIcons.chevronLeft
+                        : AppIcons.chevronRight,
                     size: AppSizes.iconXs,
                   ),
                   iconAlignment: IconAlignment.end,
@@ -83,9 +86,14 @@ class TransactionListSection extends StatelessWidget {
             categoryIcon: cat.icon,
             categoryColor: cat.color,
             categoryName: cat.name,
-            onTap: onTransactionTap != null ? () => onTransactionTap!(tx) : null,
-            onDelete: onTransactionDelete != null ? () => onTransactionDelete!(tx) : null,
-            onEdit: onTransactionEdit != null ? () => onTransactionEdit!(tx) : null,
+            brandInfo: BrandRegistry.match(tx.title),
+            onTap:
+                onTransactionTap != null ? () => onTransactionTap!(tx) : null,
+            onDelete: onTransactionDelete != null
+                ? () => onTransactionDelete!(tx)
+                : null,
+            onEdit:
+                onTransactionEdit != null ? () => onTransactionEdit!(tx) : null,
           );
         }),
       ],

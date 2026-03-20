@@ -13,9 +13,10 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 ///
 /// When [filterWalletId] is non-null, sums are scoped to that account.
 class MonthSummaryZone extends ConsumerWidget {
-  const MonthSummaryZone({super.key, this.filterWalletId});
+  const MonthSummaryZone({super.key, this.filterWalletId, this.hidden = false});
 
   final int? filterWalletId;
+  final bool hidden;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,10 +31,12 @@ class MonthSummaryZone extends ConsumerWidget {
         ref.watch(transactionsByMonthProvider(lastMonthKey)).valueOrNull ?? [];
 
     final wid = filterWalletId;
-    final filteredThis =
-        wid != null ? thisMonthTxs.where((t) => t.walletId == wid) : thisMonthTxs;
-    final filteredLast =
-        wid != null ? lastMonthTxs.where((t) => t.walletId == wid) : lastMonthTxs;
+    final filteredThis = wid != null
+        ? thisMonthTxs.where((t) => t.walletId == wid)
+        : thisMonthTxs;
+    final filteredLast = wid != null
+        ? lastMonthTxs.where((t) => t.walletId == wid)
+        : lastMonthTxs;
 
     int thisIncome = 0, thisExpense = 0;
     for (final t in filteredThis) {
@@ -88,6 +91,7 @@ class MonthSummaryZone extends ConsumerWidget {
                     label: context.l10n.dashboard_income,
                     amount: thisIncome,
                     color: context.appTheme.incomeColor,
+                    hidden: hidden,
                   ),
                 ),
                 Expanded(
@@ -95,6 +99,7 @@ class MonthSummaryZone extends ConsumerWidget {
                     label: context.l10n.dashboard_expense,
                     amount: thisExpense,
                     color: context.appTheme.expenseColor,
+                    hidden: hidden,
                   ),
                 ),
                 Expanded(
@@ -105,6 +110,7 @@ class MonthSummaryZone extends ConsumerWidget {
                         ? context.appTheme.incomeColor
                         : context.appTheme.expenseColor,
                     prefix: isPositive ? '+' : '-',
+                    hidden: hidden,
                   ),
                 ),
               ],
@@ -122,12 +128,14 @@ class _SummaryItem extends StatelessWidget {
     required this.amount,
     required this.color,
     this.prefix = '',
+    this.hidden = false,
   });
 
   final String label;
   final int amount;
   final Color color;
   final String prefix;
+  final bool hidden;
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +150,9 @@ class _SummaryItem extends StatelessWidget {
         ),
         const SizedBox(height: AppSizes.xxs),
         Text(
-          '$prefix${MoneyFormatter.formatCompact(amount)}',
+          hidden
+              ? '\u2022\u2022\u2022\u2022'
+              : '$prefix${MoneyFormatter.formatCompact(amount)}',
           style: context.textStyles.bodyMedium?.copyWith(
             color: color,
             fontWeight: FontWeight.w700,

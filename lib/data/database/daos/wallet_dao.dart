@@ -49,6 +49,11 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
           'The Physical Cash system wallet cannot be archived',
         );
       }
+      if (wallet != null && wallet.isDefaultAccount) {
+        throw ArgumentError(
+          'The Default account cannot be archived',
+        );
+      }
       return (update(wallets)..where((w) => w.id.equals(id)))
           .write(const WalletsCompanion(isArchived: Value(true)))
           .then((count) => count > 0);
@@ -62,6 +67,15 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
 
   Stream<Wallet?> watchSystemWallet() =>
       (select(wallets)..where((w) => w.isSystemWallet.equals(true)))
+          .watchSingleOrNull();
+
+  /// The mandatory default bank account (fallback for transaction assignment).
+  Future<Wallet?> getDefaultAccount() =>
+      (select(wallets)..where((w) => w.isDefaultAccount.equals(true)))
+          .getSingleOrNull();
+
+  Stream<Wallet?> watchDefaultAccount() =>
+      (select(wallets)..where((w) => w.isDefaultAccount.equals(true)))
           .watchSingleOrNull();
 
   /// M3 fix: check if a wallet with the given name already exists.
