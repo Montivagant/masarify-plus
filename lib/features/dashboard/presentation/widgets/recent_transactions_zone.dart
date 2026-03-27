@@ -8,6 +8,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/transaction_grouper.dart';
+import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
@@ -26,7 +27,10 @@ class RecentTransactionsZone extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final recentTxs = ref.watch(recentTransactionsProvider);
+    // Use unified activity providers that merge transactions + transfers.
+    final recentTxs = filterWalletId != null
+        ? ref.watch(activityByWalletProvider(filterWalletId!))
+        : ref.watch(recentActivityProvider);
     final categories = ref.watch(categoriesProvider);
 
     ResolvedCategory resolveCat(int catId) => resolveCategory(
@@ -38,10 +42,7 @@ class RecentTransactionsZone extends ConsumerWidget {
 
     return recentTxs.when(
       data: (txList) {
-        final filtered = filterWalletId != null
-            ? txList.where((tx) => tx.walletId == filterWalletId)
-            : txList;
-        final recent = filtered.take(5).toList();
+        final recent = txList.take(5).toList();
         if (recent.isEmpty) {
           return EmptyState(
             title: context.l10n.dashboard_no_transactions,
@@ -106,7 +107,15 @@ class RecentTransactionsZone extends ConsumerWidget {
             EmptyState(title: context.l10n.dashboard_failed_transactions),
             const SizedBox(height: AppSizes.sm),
             TextButton.icon(
-              onPressed: () => ref.invalidate(recentTransactionsProvider),
+              onPressed: () {
+                if (filterWalletId != null) {
+                  ref.invalidate(
+                    activityByWalletProvider(filterWalletId!),
+                  );
+                } else {
+                  ref.invalidate(recentActivityProvider);
+                }
+              },
               icon: const Icon(AppIcons.refresh, size: AppSizes.iconSm),
               label: Text(context.l10n.common_retry),
             ),

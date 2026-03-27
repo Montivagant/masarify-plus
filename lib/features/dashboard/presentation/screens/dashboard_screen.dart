@@ -6,6 +6,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
@@ -55,10 +56,13 @@ class DashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(totalBalanceProvider);
-          ref.invalidate(recentTransactionsProvider);
+          ref.invalidate(recentActivityProvider);
           ref.invalidate(transactionsByMonthProvider(monthKey));
           ref.invalidate(budgetsByMonthProvider(monthKey));
-          await ref.read(recentTransactionsProvider.future);
+          if (selectedWalletId != null) {
+            ref.invalidate(activityByWalletProvider(selectedWalletId!));
+          }
+          await ref.read(recentActivityProvider.future);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
