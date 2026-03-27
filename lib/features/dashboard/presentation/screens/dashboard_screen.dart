@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
@@ -84,48 +85,50 @@ class DashboardScreen extends ConsumerWidget {
           }
           await ref.read(recentActivityProvider.future);
         },
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // ── Offline banner ────────────────────────────────────────
-            if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
+        child: SlidableAutoCloseBehavior(
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Offline banner ────────────────────────────────────────
+              if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
 
-            // ── Quick start tip card (conditional) ────────────────────
-            const SliverToBoxAdapter(child: QuickStartTipCard()),
+              // ── Quick start tip card (conditional) ────────────────────
+              const SliverToBoxAdapter(child: QuickStartTipCard()),
 
-            // ── Balance header or Search header ───────────────────────
-            if (!filter.isSearchActive)
-              const SliverToBoxAdapter(child: BalanceHeader()),
-            if (filter.isSearchActive)
-              SliverToBoxAdapter(
-                child: SearchHeader(resultCount: resultCount),
+              // ── Balance header or Search header ───────────────────────
+              if (!filter.isSearchActive)
+                const SliverToBoxAdapter(child: BalanceHeader()),
+              if (filter.isSearchActive)
+                SliverToBoxAdapter(
+                  child: SearchHeader(resultCount: resultCount),
+                ),
+
+              // ── Insight cards zone (scroll away, hidden during search)
+              if (!filter.isSearchActive)
+                const SliverToBoxAdapter(child: InsightCardsZone()),
+
+              // ── Pinned filter bar (D-09) ──────────────────────────────
+              const SliverPersistentHeader(
+                pinned: true,
+                delegate: FilterBarDelegate(child: FilterBar()),
               ),
 
-            // ── Insight cards zone (scroll away, hidden during search)
-            if (!filter.isSearchActive)
-              const SliverToBoxAdapter(child: InsightCardsZone()),
+              // ── Filter badge (D-14 — both account + type active) ─────
+              const SliverToBoxAdapter(child: FilterBadge()),
 
-            // ── Pinned filter bar (D-09) ──────────────────────────────
-            const SliverPersistentHeader(
-              pinned: true,
-              delegate: FilterBarDelegate(child: FilterBar()),
-            ),
+              // ── Transaction list with date grouping (D-13) ───────────
+              TransactionSliverList(
+                onTap: (tx) => _onTransactionTap(context, tx),
+                onEdit: (tx) => _editTransaction(context, ref, tx),
+                onDelete: (tx) => _deleteTransaction(context, ref, tx),
+              ),
 
-            // ── Filter badge (D-14 — both account + type active) ─────
-            const SliverToBoxAdapter(child: FilterBadge()),
-
-            // ── Transaction list with date grouping (D-13) ───────────
-            TransactionSliverList(
-              onTap: (tx) => _onTransactionTap(context, tx),
-              onEdit: (tx) => _editTransaction(context, ref, tx),
-              onDelete: (tx) => _deleteTransaction(context, ref, tx),
-            ),
-
-            // ── Bottom padding for nav bar clearance ──────────────────
-            const SliverPadding(
-              padding: EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-            ),
-          ],
+              // ── Bottom padding for nav bar clearance ──────────────────
+              const SliverPadding(
+                padding: EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+              ),
+            ],
+          ),
         ),
       ),
     );
