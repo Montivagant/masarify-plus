@@ -2643,4 +2643,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
   }
+
+  @override
+  String get voice_confirm_amount_missing =>
+      'Amount not detected — please enter';
+
+  @override
+  String get voice_confirm_select_category => 'Select category';
+
+  @override
+  String get voice_confirm_select_account => 'Select account';
+
+  @override
+  String get voice_confirm_from_account => 'From';
+
+  @override
+  String get voice_confirm_to_account => 'To';
+
+  @override
+  String get voice_confirm_add_notes => 'Add notes...';
+
+  @override
+  String get voice_confirm_subscription_suggest =>
+      'Add to Subscriptions & Bills?';
+
+  @override
+  String get voice_confirm_save_next => 'Save & Next';
+
+  @override
+  String voice_confirm_draft_count(int current, int total) {
+    return '$current of $total';
+  }
+
+  @override
+  String get voice_confirm_all_saved => 'All transactions saved!';
 }

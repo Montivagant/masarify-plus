@@ -5006,6 +5006,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create \'\'{name}\'\' instead?'**
   String voice_create_wallet_instead(String name);
+
+  /// No description provided for @voice_confirm_amount_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount not detected — please enter'**
+  String get voice_confirm_amount_missing;
+
+  /// No description provided for @voice_confirm_select_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Select category'**
+  String get voice_confirm_select_category;
+
+  /// No description provided for @voice_confirm_select_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Select account'**
+  String get voice_confirm_select_account;
+
+  /// No description provided for @voice_confirm_from_account.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get voice_confirm_from_account;
+
+  /// No description provided for @voice_confirm_to_account.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get voice_confirm_to_account;
+
+  /// No description provided for @voice_confirm_add_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Add notes...'**
+  String get voice_confirm_add_notes;
+
+  /// No description provided for @voice_confirm_subscription_suggest.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Subscriptions & Bills?'**
+  String get voice_confirm_subscription_suggest;
+
+  /// No description provided for @voice_confirm_save_next.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Next'**
+  String get voice_confirm_save_next;
+
+  /// No description provided for @voice_confirm_draft_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {total}'**
+  String voice_confirm_draft_count(int current, int total);
+
+  /// No description provided for @voice_confirm_all_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions saved!'**
+  String get voice_confirm_all_saved;
 }
 
 class _AppLocalizationsDelegate
