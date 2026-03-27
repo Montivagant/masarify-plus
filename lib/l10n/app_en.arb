@@ -208,7 +208,6 @@
   "settings_clear_data": "Clear All Data",
   "settings_clear_data_confirm": "Type DELETE to confirm",
   "settings_voice_input": "Voice Input",
-  "settings_sms_parser": "SMS Parser",
   "settings_language_changed": "Language changed",
 
   "backup_title": "Backup & Export",
@@ -334,8 +333,6 @@
   "parser_duplicate_exists": "Similar transaction already exists. Create anyway?",
   "parser_auto_resolved": "{count} parsed transaction(s) matched and auto-resolved",
   "@parser_auto_resolved": {"placeholders": {"count": {"type": "int"}}},
-  "settings_smart_detection": "Smart Detection",
-  "settings_smart_detection_subtitle": "Auto-detect transactions from SMS messages",
   "settings_ai_models": "AI & Models",
   "dashboard_pending_review": "{count} transaction(s) to review",
   "@dashboard_pending_review": {"placeholders": {"count": {"type": "int"}}},
@@ -669,10 +666,6 @@
 
   "quick_add_title": "Quick Add",
   "quick_add_voice": "Voice Input",
-
-  "settings_sms_parser_subtitle": "Scan SMS inbox for bank transaction messages",
-  "permission_sms_title": "SMS Access",
-  "permission_sms_body": "Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap 'Enrich' on any parsed transaction to use AI for category and merchant detection.",
 
   "fab_expense": "Expense",
   "fab_income": "Income",

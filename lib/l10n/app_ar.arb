@@ -203,7 +203,6 @@
   "settings_clear_data": "مسح جميع البيانات",
   "settings_clear_data_confirm": "اكتب حذف للتأكيد",
   "settings_voice_input": "الإدخال الصوتي",
-  "settings_sms_parser": "تحليل الرسائل",
   "settings_language_changed": "تم تغيير اللغة",
 
   "backup_title": "النسخ الاحتياطي والتصدير",
@@ -328,8 +327,6 @@
   "parser_duplicate_exists": "معاملة مشابهة موجودة بالفعل. هل تريد الإنشاء؟",
   "parser_auto_resolved": "تمت مطابقة {count} معاملة تلقائياً",
   "@parser_auto_resolved": {"placeholders": {"count": {"type": "int"}}},
-  "settings_smart_detection": "الكشف الذكي",
-  "settings_smart_detection_subtitle": "اكتشاف المعاملات تلقائياً من رسائل SMS",
   "settings_ai_models": "الذكاء الاصطناعي والنماذج",
   "dashboard_pending_review": "{count} معاملة للمراجعة",
   "@dashboard_pending_review": {"placeholders": {"count": {"type": "int"}}},
@@ -663,10 +660,6 @@
 
   "quick_add_title": "إضافة سريعة",
   "quick_add_voice": "إدخال صوتي",
-
-  "settings_sms_parser_subtitle": "فحص الرسائل النصية لاكتشاف معاملات البنك",
-  "permission_sms_title": "صلاحية الرسائل",
-  "permission_sms_body": "يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على 'إثراء' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.",
 
   "fab_expense": "مصروف",
   "fab_income": "دخل",

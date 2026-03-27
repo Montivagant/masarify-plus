@@ -579,9 +579,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_voice_input => 'الإدخال الصوتي';
 
   @override
-  String get settings_sms_parser => 'تحليل الرسائل';
-
-  @override
   String get settings_language_changed => 'تم تغيير اللغة';
 
   @override
@@ -922,13 +919,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String parser_auto_resolved(int count) {
     return 'تمت مطابقة $count معاملة تلقائياً';
   }
-
-  @override
-  String get settings_smart_detection => 'الكشف الذكي';
-
-  @override
-  String get settings_smart_detection_subtitle =>
-      'اكتشاف المعاملات تلقائياً من رسائل SMS';
 
   @override
   String get settings_ai_models => 'الذكاء الاصطناعي والنماذج';
@@ -1856,17 +1846,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get quick_add_voice => 'إدخال صوتي';
-
-  @override
-  String get settings_sms_parser_subtitle =>
-      'فحص الرسائل النصية لاكتشاف معاملات البنك';
-
-  @override
-  String get permission_sms_title => 'صلاحية الرسائل';
-
-  @override
-  String get permission_sms_body =>
-      'يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على \'إثراء\' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.';
 
   @override
   String get fab_expense => 'مصروف';

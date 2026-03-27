@@ -581,9 +581,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_voice_input => 'Voice Input';
 
   @override
-  String get settings_sms_parser => 'SMS Parser';
-
-  @override
   String get settings_language_changed => 'Language changed';
 
   @override
@@ -924,13 +921,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String parser_auto_resolved(int count) {
     return '$count parsed transaction(s) matched and auto-resolved';
   }
-
-  @override
-  String get settings_smart_detection => 'Smart Detection';
-
-  @override
-  String get settings_smart_detection_subtitle =>
-      'Auto-detect transactions from SMS messages';
 
   @override
   String get settings_ai_models => 'AI & Models';
@@ -1873,17 +1863,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quick_add_voice => 'Voice Input';
-
-  @override
-  String get settings_sms_parser_subtitle =>
-      'Scan SMS inbox for bank transaction messages';
-
-  @override
-  String get permission_sms_title => 'SMS Access';
-
-  @override
-  String get permission_sms_body =>
-      'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.';
 
   @override
   String get fab_expense => 'Expense';
