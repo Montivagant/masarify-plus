@@ -15,8 +15,10 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 
 /// Swipeable account carousel: page 0 = total balance, pages 1-N = accounts.
 ///
-/// Updates [selectedAccountIndexProvider] on page change, which cascades
+/// Updates [selectedAccountIdProvider] on page change, which cascades
 /// filtering to the rest of the dashboard.
+///
+/// NOTE: This widget is being replaced by BalanceHeader in Phase 03 Plan 01 Task 2.
 class AccountCarousel extends ConsumerStatefulWidget {
   const AccountCarousel({super.key});
 
@@ -30,10 +32,9 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
   @override
   void initState() {
     super.initState();
-    final initialPage = ref.read(selectedAccountIndexProvider);
+    // Start on page 0 (total balance) — index-based page tracking is legacy.
     _pageController = PageController(
       viewportFraction: AppSizes.carouselViewportFraction,
-      initialPage: initialPage,
     );
   }
 
@@ -50,7 +51,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     final walletsAsync = ref.watch(walletsProvider);
     final totalBalanceAsync = ref.watch(totalBalanceProvider);
     final hidden = ref.watch(hideBalancesProvider);
-    final selectedIndex = ref.watch(selectedAccountIndexProvider);
+    final selectedId = ref.watch(selectedAccountIdProvider);
     final inGoals = ref.watch(totalInGoalsProvider);
     final systemWalletAsync = ref.watch(systemWalletProvider);
 
@@ -67,6 +68,12 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     // Filter out the system wallet from per-account pages.
     final userWallets = allWallets.where((w) => !w.isSystemWallet).toList();
 
+    // Derive index from selectedId for backward compatibility.
+    final selectedIndex = selectedId == null
+        ? 0
+        : (userWallets.indexWhere((w) => w.id == selectedId) + 1)
+            .clamp(0, userWallets.length);
+
     // +1 for total balance, +1 for "Add Account" card at the end.
     final pageCount = 1 + userWallets.length + 1;
 
@@ -75,7 +82,7 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
     if (selectedIndex >= pageCount) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        ref.read(selectedAccountIndexProvider.notifier).state = 0;
+        ref.read(selectedAccountIdProvider.notifier).state = null;
         if (_pageController.hasClients) {
           _pageController.jumpToPage(0);
         }
@@ -127,7 +134,8 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
             onPageChanged: (index) {
               // Don't update selection when swiping to the "Add Account" card.
               if (index < pageCount - 1) {
-                ref.read(selectedAccountIndexProvider.notifier).state = index;
+                ref.read(selectedAccountIdProvider.notifier).state =
+                    index == 0 ? null : userWallets[index - 1].id;
               }
             },
             itemBuilder: (context, index) {
