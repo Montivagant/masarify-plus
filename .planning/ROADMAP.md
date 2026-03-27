@@ -20,7 +20,7 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 |---|-------|------|-------------|-------|
 | 1 | Compliance & Billing Foundation | Eliminate every Play Store rejection trigger and verify the billing stack works | 7 | 3/3 Complete (2026-03-27) |
 | 2 | Verification Sweep | Prove every P5 feature works; fix what is broken | 23 | 4/4 Complete (2026-03-27) |
-| 3 | Home Screen Overhaul | Build the hero screen that users screenshot and share | 10 | 3 |
+| 3 | Home Screen Overhaul | Build the hero screen that users screenshot and share | 10 | 3/3 Planned (2026-03-27) |
 | 4 | AI, Voice & Subscriptions Polish | Make the differentiator features seamless end-to-end | 10 | 3 |
 | 5 | Monetization & Onboarding | Wire revenue, enforce free tier, polish first-run | 6 | 4 |
 | 6 | Performance & Device Optimization | Hit 2s cold start and 60fps scroll on Egypt's mid-range devices | 5 | 3 |
@@ -83,11 +83,9 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 
 **Plans:**
 
-1. **Home Screen Redesign & Tab Merge** — Redesign `lib/features/dashboard/presentation/screens/dashboard_screen.dart`: replace bulky hero cards with a modern, sleek balance area. Make the "All Accounts" summary card visually distinct (different shape, color treatment, or icon) from individual account cards in `lib/features/dashboard/presentation/widgets/account_carousel.dart` (HOME-01, HOME-02). Eliminate all phantom whitespace — audit every zone widget in `lib/features/dashboard/presentation/widgets/` for conditional blank space (HOME-05). Remove the Transactions tab from `lib/shared/widgets/navigation/app_nav_bar.dart` and `lib/core/constants/app_navigation.dart`; merge all transaction list, filter, and search functionality into the home screen. Update `lib/app/router/app_router.dart` to remove the transactions tab route. (HOME-06) Verify the upcoming bills insight card in `lib/features/dashboard/presentation/widgets/insight_cards_zone.dart` correctly surfaces when a subscription is due within 7 days (HOME-07).
-
-2. **Transaction Controls & Swipe Actions** — Add filter and search actions to the home screen transaction list: implement a search bar and Expense/Income/Transfer/All quick filter chips above the transaction list (HOME-03, HOME-04). Implement swipe-to-edit and swipe-to-delete on all transaction types (regular transactions and transfers) in `lib/shared/widgets/lists/transaction_list_section.dart` and `lib/shared/widgets/cards/transaction_card.dart`, with 2-step confirmation dialogs (TXN-01). Add a description/notes/memo field to `lib/features/transactions/presentation/screens/add_transaction_screen.dart` if not already present (TXN-06).
-
-3. **Review/Confirm Screen Revamp** — Full UX/UI redesign of `lib/features/voice_input/presentation/screens/voice_confirm_screen.dart` for clarity: ensure amount signs (+/-) are clearly displayed, category and account are prominent, date is visible, and the layout works cleanly in Arabic RTL with no overflow. This screen is the gateway for all voice and AI-created transactions — it must inspire confidence that the parsed data is correct (TXN-07).
+- [ ] 03-01-PLAN.md — Provider infrastructure, balance header with account chips, filter bar, and CustomScrollView dashboard shell (HOME-01, HOME-02, HOME-04, HOME-05, HOME-06, HOME-07)
+- [ ] 03-02-PLAN.md — Transaction SliverList with date grouping, search/sort/filter-badge, swipe-to-edit/delete, notes field verification (HOME-03, TXN-01, TXN-06)
+- [ ] 03-03-PLAN.md — VoiceConfirmScreen full UX/UI revamp with glassmorphic form, multi-draft support, RTL-safe transfer display (TXN-07)
 
 **Success criteria:**
 1. Home screen renders with zero blank/whitespace zones in both Light and Dark themes, in both English LTR and Arabic RTL.
