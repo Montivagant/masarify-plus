@@ -2691,6 +2691,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_dismiss => 'Dismiss';
 
   @override
+  String get common_transfer => 'Transfer';
+
+  @override
   String insight_budget_risk_title(String category) {
     return '$category budget at risk';
   }
