@@ -11,6 +11,7 @@ import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -123,9 +124,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     final to = _toWalletId;
     if (from == null || to == null || _amountPiastres <= 0) return;
     if (from == to) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.transfer_different_wallets)),
-      );
+      SnackHelper.showError(context, context.l10n.transfer_different_wallets);
       return;
     }
     // M6 fix: warn (but don't block) if source wallet has insufficient funds
@@ -166,17 +165,13 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       HapticFeedback.heavyImpact();
       if (!mounted) return;
       // L7 fix: show success feedback
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.transfer_success)),
-      );
+      SnackHelper.showSuccess(context, context.l10n.transfer_success);
       context.pop();
     } catch (_) {
       // M1 fix: show error feedback instead of silently stopping spinner
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 

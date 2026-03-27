@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -391,39 +392,32 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
       // Check for goal keyword match and prompt with SnackBar.
       final match = _matchGoalWithName(title, note);
       if (match != null) {
-        final messenger = ScaffoldMessenger.of(context);
         final l10n = context.l10n;
-        messenger.showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.only(
-              bottom: AppSizes.snackbarBottomMargin,
-              left: AppSizes.md,
-              right: AppSizes.md,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-            ),
-            duration: AppDurations.snackbarLong,
-            content: Text(l10n.goal_link_prompt(match.goalName)),
-            action: SnackBarAction(
-              label: l10n.goal_link_action,
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                try {
-                  final tx = await repo.getById(txId);
-                  if (tx != null) {
-                    await repo.update(tx.copyWith(goalId: match.goalId));
-                  }
-                } catch (_) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.common_error_generic),
-                    ),
-                  );
+        // Pre-build error SnackBar while context is still valid
+        // (onPressed fires after pop, so context is defunct).
+        final errorSnack = SnackHelper.buildSnackBar(
+          message: l10n.common_error_generic,
+          icon: AppIcons.errorCircle,
+          color: context.appTheme.expenseColor,
+          onColor: AppColors.white,
+        );
+        final messenger = ScaffoldMessenger.of(context);
+        SnackHelper.showInfoAndReturn(
+          context,
+          l10n.goal_link_prompt(match.goalName),
+          duration: AppDurations.snackbarLong,
+          action: SnackBarAction(
+            label: l10n.goal_link_action,
+            onPressed: () async {
+              try {
+                final tx = await repo.getById(txId);
+                if (tx != null) {
+                  await repo.update(tx.copyWith(goalId: match.goalId));
                 }
-              },
-            ),
+              } catch (_) {
+                messenger.showSnackBar(errorSnack);
+              }
+            },
           ),
         );
       }

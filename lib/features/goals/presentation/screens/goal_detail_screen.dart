@@ -21,6 +21,7 @@ import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -323,20 +324,16 @@ class GoalDetailScreen extends ConsumerWidget {
                       // H6 fix: pre-validate contribution doesn't exceed remaining
                       final remaining = goal.targetAmount - goal.currentAmount;
                       if (remaining <= 0) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          SnackBar(
-                            content: Text(ctx.l10n.goal_already_funded),
-                          ),
+                        SnackHelper.showError(
+                          ctx,
+                          ctx.l10n.goal_already_funded,
                         );
                         return;
                       }
                       if (amountPiastres > remaining) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
-                            ),
-                          ),
+                        SnackHelper.showError(
+                          ctx,
+                          '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
                         );
                         return;
                       }
@@ -365,10 +362,9 @@ class GoalDetailScreen extends ConsumerWidget {
                         if (ctx.mounted) ctx.pop();
                       } catch (e) {
                         if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(
-                              content: Text(ctx.l10n.common_error_generic),
-                            ),
+                          SnackHelper.showError(
+                            ctx,
+                            ctx.l10n.common_error_generic,
                           );
                         }
                       }

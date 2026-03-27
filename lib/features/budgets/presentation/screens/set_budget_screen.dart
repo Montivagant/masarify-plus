@@ -186,9 +186,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
       // M1 fix: show error feedback instead of silently stopping spinner
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 

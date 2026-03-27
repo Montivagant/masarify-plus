@@ -10,6 +10,7 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -169,9 +170,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
       // M1 fix: show error feedback instead of silently stopping spinner
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 
