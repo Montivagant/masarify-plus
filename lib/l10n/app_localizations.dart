@@ -5006,6 +5006,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create \'\'{name}\'\' instead?'**
   String voice_create_wallet_instead(String name);
+
+  /// No description provided for @chat_subscription_suggest.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks like \"{title}\" could be a subscription. Add to Subscriptions & Bills?'**
+  String chat_subscription_suggest(String title);
 }
 
 class _AppLocalizationsDelegate

@@ -2623,4 +2623,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'إنشاء \'\'$name\'\' بدلاً من ذلك؟';
   }
+
+  @override
+  String chat_subscription_suggest(String title) {
+    return 'يبدو أن \"$title\" قد يكون اشتراكاً. أضفه إلى الاشتراكات والفواتير؟';
+  }
 }

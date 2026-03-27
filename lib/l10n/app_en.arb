@@ -1018,5 +1018,12 @@
     "placeholders": {
       "name": {"type": "String"}
     }
+  },
+
+  "chat_subscription_suggest": "Looks like \"{title}\" could be a subscription. Add to Subscriptions & Bills?",
+  "@chat_subscription_suggest": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
   }
 }

@@ -998,5 +998,12 @@
     "placeholders": {
       "name": {"type": "String"}
     }
+  },
+
+  "chat_subscription_suggest": "يبدو أن \"{title}\" قد يكون اشتراكاً. أضفه إلى الاشتراكات والفواتير؟",
+  "@chat_subscription_suggest": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
   }
 }

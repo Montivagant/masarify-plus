@@ -2643,4 +2643,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
   }
+
+  @override
+  String chat_subscription_suggest(String title) {
+    return 'Looks like \"$title\" could be a subscription. Add to Subscriptions & Bills?';
+  }
 }
