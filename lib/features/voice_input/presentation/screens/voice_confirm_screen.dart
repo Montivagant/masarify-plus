@@ -319,6 +319,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   onCreateWalletFromHint: draft.unmatchedHint != null
                       ? () => _createWalletFromHint(draft)
                       : null,
+                  onCreateToWalletFromHint: draft.unmatchedToHint != null
+                      ? () => _createToWalletFromHint(draft)
+                      : null,
                   onAddAsRecurring:
                       draft.showRecurringSuggestion && !draft.recurringAdded
                           ? () => _addAsRecurring(draft)
@@ -664,6 +667,34 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     }
   }
 
+  /// Create the destination wallet from an unmatched hint (for transfers).
+  Future<void> _createToWalletFromHint(_EditableDraft draft) async {
+    final duplicateMsg = context.l10n.wallet_name_duplicate;
+    final genericMsg = context.l10n.common_error_generic;
+    final hintName = draft.unmatchedToHint!;
+    try {
+      final newId = await ref.read(walletRepositoryProvider).create(
+            name: hintName,
+            type: 'bank',
+            initialBalance: 0,
+          );
+      if (mounted) {
+        setState(() {
+          for (final d in _editableDrafts) {
+            if (d.unmatchedToHint == hintName) {
+              d.toWalletId = newId;
+              d.unmatchedToHint = null;
+            }
+          }
+        });
+      }
+    } on ArgumentError {
+      if (mounted) SnackHelper.showError(context, duplicateMsg);
+    } catch (_) {
+      if (mounted) SnackHelper.showError(context, genericMsg);
+    }
+  }
+
   /// Create a recurring rule directly on-tap (no navigation).
   Future<void> _addAsRecurring(_EditableDraft draft) async {
     if (draft.walletId == null || draft.categoryId == null) return;
@@ -733,6 +764,12 @@ class _EditableDraft {
   /// Enables inline "Create '{hint}' instead?" option on the draft card.
   String? unmatchedHint;
 
+  /// Set when the destination wallet hint (for transfers) had no match.
+  String? unmatchedToHint;
+
+  /// Destination wallet ID (for transfers).
+  int? toWalletId;
+
   /// Whether this draft looks like a recurring subscription.
   bool showRecurringSuggestion = false;
 
@@ -760,6 +797,7 @@ class _DraftCard extends StatelessWidget {
     required this.onCategoryTap,
     required this.onWalletTap,
     this.onCreateWalletFromHint,
+    this.onCreateToWalletFromHint,
     this.onAddAsRecurring,
     this.recurringAdded = false,
   });
@@ -777,6 +815,7 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onWalletTap;
   final VoidCallback? onCreateWalletFromHint;
+  final VoidCallback? onCreateToWalletFromHint;
   final VoidCallback? onAddAsRecurring;
   final bool recurringAdded;
 
@@ -972,7 +1011,7 @@ class _DraftCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // ── Inline "Create instead?" for unmatched hints ──
+                  // ── Inline "Create instead?" for unmatched source hint ──
                   if (draft.unmatchedHint != null)
                     Padding(
                       padding:
@@ -988,6 +1027,29 @@ class _DraftCard extends StatelessWidget {
                         child: Text(
                           context.l10n.voice_create_wallet_instead(
                             draft.unmatchedHint!,
+                          ),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: cs.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // ── Inline "Create instead?" for unmatched destination hint ──
+                  if (draft.unmatchedToHint != null)
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.only(start: AppSizes.sm),
+                      child: TextButton(
+                        onPressed: onCreateToWalletFromHint,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.sm,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: Text(
+                          context.l10n.voice_create_wallet_instead(
+                            draft.unmatchedToHint!,
                           ),
                           style: context.textStyles.bodySmall?.copyWith(
                             color: cs.primary,
