@@ -5024,6 +5024,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Amount not detected — please enter the amount'**
   String get voice_amount_missing;
+
+  /// No description provided for @home_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get home_filter_all;
+
+  /// No description provided for @home_filter_expenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get home_filter_expenses;
+
+  /// No description provided for @home_filter_income.
+  ///
+  /// In en, this message translates to:
+  /// **'Income'**
+  String get home_filter_income;
+
+  /// No description provided for @home_filter_transfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers'**
+  String get home_filter_transfers;
+
+  /// No description provided for @home_sort_date_newest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get home_sort_date_newest;
+
+  /// No description provided for @home_sort_date_oldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get home_sort_date_oldest;
+
+  /// No description provided for @home_sort_amount_high.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest amount'**
+  String get home_sort_amount_high;
+
+  /// No description provided for @home_sort_amount_low.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest amount'**
+  String get home_sort_amount_low;
+
+  /// No description provided for @home_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search transactions...'**
+  String get home_search_hint;
+
+  /// No description provided for @home_search_results.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} results'**
+  String home_search_results(int count);
+
+  /// No description provided for @home_net_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get home_net_label;
 }
 
 class _AppLocalizationsDelegate

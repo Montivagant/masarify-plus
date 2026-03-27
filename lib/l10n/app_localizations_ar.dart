@@ -2632,4 +2632,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_amount_missing => 'لم يتم تحديد المبلغ — يرجى إدخال المبلغ';
+
+  @override
+  String get home_filter_all => 'الكل';
+
+  @override
+  String get home_filter_expenses => 'المصروفات';
+
+  @override
+  String get home_filter_income => 'الدخل';
+
+  @override
+  String get home_filter_transfers => 'التحويلات';
+
+  @override
+  String get home_sort_date_newest => 'الأحدث أولاً';
+
+  @override
+  String get home_sort_date_oldest => 'الأقدم أولاً';
+
+  @override
+  String get home_sort_amount_high => 'الأعلى مبلغاً';
+
+  @override
+  String get home_sort_amount_low => 'الأقل مبلغاً';
+
+  @override
+  String get home_search_hint => 'بحث في المعاملات...';
+
+  @override
+  String home_search_results(int count) {
+    return '$count نتيجة';
+  }
+
+  @override
+  String get home_net_label => 'الصافي';
 }

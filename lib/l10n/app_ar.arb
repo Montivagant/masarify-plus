@@ -1002,5 +1002,21 @@
 
   "voice_add_as_recurring": "إضافة للاشتراكات والفواتير؟",
   "voice_recurring_added": "تمت الإضافة للاشتراكات والفواتير",
-  "voice_amount_missing": "لم يتم تحديد المبلغ \u2014 يرجى إدخال المبلغ"
+  "voice_amount_missing": "لم يتم تحديد المبلغ \u2014 يرجى إدخال المبلغ",
+  "home_filter_all": "الكل",
+  "home_filter_expenses": "المصروفات",
+  "home_filter_income": "الدخل",
+  "home_filter_transfers": "التحويلات",
+  "home_sort_date_newest": "الأحدث أولاً",
+  "home_sort_date_oldest": "الأقدم أولاً",
+  "home_sort_amount_high": "الأعلى مبلغاً",
+  "home_sort_amount_low": "الأقل مبلغاً",
+  "home_search_hint": "بحث في المعاملات...",
+  "home_search_results": "{count} نتيجة",
+  "@home_search_results": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "home_net_label": "الصافي"
 }

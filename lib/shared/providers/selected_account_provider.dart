@@ -1,15 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'wallet_provider.dart';
-
-/// Index in the carousel: 0 = total (all accounts), 1+ = specific account.
-final selectedAccountIndexProvider = StateProvider<int>((ref) => 0);
-
-/// Derived: null = show all, int = specific wallet ID.
-final selectedAccountIdProvider = Provider<int?>((ref) {
-  final index = ref.watch(selectedAccountIndexProvider);
-  if (index == 0) return null;
-  final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-  if (index - 1 < wallets.length) return wallets[index - 1].id;
-  return null;
-});
+/// null = all accounts, int = specific wallet ID.
+///
+/// Replaces the previous index-based `selectedAccountIndexProvider` with
+/// direct wallet-ID selection. Account chips and the balance header set
+/// this directly instead of using carousel page indices.
+final selectedAccountIdProvider = StateProvider<int?>((ref) => null);

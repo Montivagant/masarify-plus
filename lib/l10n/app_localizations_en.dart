@@ -2653,4 +2653,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get voice_amount_missing =>
       'Amount not detected — please enter the amount';
+
+  @override
+  String get home_filter_all => 'All';
+
+  @override
+  String get home_filter_expenses => 'Expenses';
+
+  @override
+  String get home_filter_income => 'Income';
+
+  @override
+  String get home_filter_transfers => 'Transfers';
+
+  @override
+  String get home_sort_date_newest => 'Newest first';
+
+  @override
+  String get home_sort_date_oldest => 'Oldest first';
+
+  @override
+  String get home_sort_amount_high => 'Highest amount';
+
+  @override
+  String get home_sort_amount_low => 'Lowest amount';
+
+  @override
+  String get home_search_hint => 'Search transactions...';
+
+  @override
+  String home_search_results(int count) {
+    return '$count results';
+  }
+
+  @override
+  String get home_net_label => 'Net';
 }
