@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -59,10 +60,30 @@ class MessageBubble extends StatelessWidget {
                       ? cs.primary.withValues(alpha: AppSizes.opacityLight)
                       : cs.surfaceContainerHighest
                           .withValues(alpha: AppSizes.opacityLight4),
-                  child: Text(
-                    message.content,
-                    style: context.textStyles.bodyMedium,
-                  ),
+                  child: _isUser
+                      ? Text(
+                          message.content,
+                          style: context.textStyles.bodyMedium,
+                        )
+                      : MarkdownBody(
+                          data: message.content,
+                          selectable: true,
+                          styleSheet: MarkdownStyleSheet(
+                            p: context.textStyles.bodyMedium,
+                            h1: context.textStyles.titleMedium,
+                            h2: context.textStyles.titleSmall,
+                            h3: context.textStyles.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            a: context.textStyles.bodyMedium?.copyWith(
+                              color: cs.primary,
+                            ),
+                            strong: context.textStyles.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            listBullet: context.textStyles.bodyMedium,
+                          ),
+                        ),
                 ),
               ),
             ],
