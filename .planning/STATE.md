@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-03-27T20:55:02.821Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-27T21:10:03Z"
 progress:
   total_phases: 7
   completed_phases: 2
@@ -85,8 +85,9 @@ Phase 1 → Phase 2 → Phase 3 → Phase 5 → Phase 6 → Phase 7
 
 - [Phase 03]: Used SliverToBoxAdapter for balance header instead of SliverAppBar to avoid dynamic expandedHeight and BackdropFilter issues
 - [Phase 03]: Direct wallet-ID selection (StateProvider<int?>) replaces index-based carousel selection
-- [Phase 03]: Used context.isRtl instead of Directionality.of(context) to avoid intl package TextDirection shadowing
-- [Phase 03]: Inline keyword subscription detection (no uncommitted SubscriptionDetector dependency)
+- [Phase 03]: Flat _ListItem union type for interleaving date headers and transaction cards in SliverList
+- [Phase 03]: Transfer deletion extracts original ID via syntheticId ~/ 2 from TransferAdapter convention
+- [Phase 03]: SlidableAutoCloseBehavior wraps CustomScrollView for proper group close behavior
 
 ## Known Issues
 
@@ -94,8 +95,8 @@ None -- all pre-existing analyzer errors resolved (env.dart stub + SubscriptionR
 
 ## Session Continuity
 
-**Last session:** 2026-03-27T20:09:00Z
-**Stopped at:** Completed 03-03-PLAN.md
+**Last session:** 2026-03-27T21:10:03Z
+**Stopped at:** Completed 03-02-PLAN.md
 **Resume file:** None
 
 ---

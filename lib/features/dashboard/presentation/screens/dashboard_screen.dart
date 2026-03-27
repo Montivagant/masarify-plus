@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
+import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/balance_header.dart';
+import '../widgets/filter_badge.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/filter_bar_delegate.dart';
 import '../widgets/insight_cards_zone.dart';
 import '../widgets/quick_start_tip_card.dart';
+import '../widgets/search_header.dart';
+import '../widgets/transaction_sliver_list.dart';
 
 /// Dashboard -- CustomScrollView + Slivers shell (Phase 03 overhaul).
 ///
@@ -28,10 +36,11 @@ import '../widgets/quick_start_tip_card.dart';
 /// Layout order:
 /// 1. Offline banner (conditional)
 /// 2. Quick start tip card (conditional)
-/// 3. Balance header with account chips
-/// 4. Insight cards zone (scroll away)
+/// 3. Balance header with account chips (or Search header when searching)
+/// 4. Insight cards zone (scroll away, hidden during search)
 /// 5. Pinned filter bar
-/// 6. Transaction list placeholder (Plan 02)
+/// 6. Filter badge (when both account + type filters active)
+/// 7. Transaction SliverList with date grouping and swipe actions
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -41,6 +50,12 @@ class DashboardScreen extends ConsumerWidget {
     final monthKey = (now.year, now.month);
     final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
     final filter = ref.watch(homeFilterProvider);
+    final selectedWalletId = ref.watch(selectedAccountIdProvider);
+
+    // Result count for search header.
+    final resultCount = filter.isSearchActive && filter.searchQuery.isNotEmpty
+        ? ref.watch(filteredActivityProvider).valueOrNull?.length
+        : null;
 
     return Scaffold(
       appBar: AppAppBar(
@@ -70,51 +85,165 @@ class DashboardScreen extends ConsumerWidget {
           }
           await ref.read(recentActivityProvider.future);
         },
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // ── Offline banner ────────────────────────────────────────
-            if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
+        child: SlidableAutoCloseBehavior(
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Offline banner ────────────────────────────────────────
+              if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
 
-            // ── Quick start tip card (conditional) ────────────────────
-            const SliverToBoxAdapter(child: QuickStartTipCard()),
+              // ── Quick start tip card (conditional) ────────────────────
+              const SliverToBoxAdapter(child: QuickStartTipCard()),
 
-            // ── Balance header with account chips (D-01 to D-05) ──────
-            const SliverToBoxAdapter(child: BalanceHeader()),
-
-            // ── Insight cards zone (scroll away, D-07) ────────────────
-            if (!filter.isSearchActive)
-              const SliverToBoxAdapter(child: InsightCardsZone()),
-
-            // ── Pinned filter bar (D-09) ──────────────────────────────
-            const SliverPersistentHeader(
-              pinned: true,
-              delegate: FilterBarDelegate(child: FilterBar()),
-            ),
-
-            // ── Transaction list placeholder (Plan 02) ────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSizes.xl),
-                child: Center(
-                  child: Text(
-                    context.l10n.dashboard_recent_transactions,
-                    style: context.textStyles.bodyMedium?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                    ),
-                  ),
+              // ── Balance header or Search header ───────────────────────
+              if (!filter.isSearchActive)
+                const SliverToBoxAdapter(child: BalanceHeader()),
+              if (filter.isSearchActive)
+                SliverToBoxAdapter(
+                  child: SearchHeader(resultCount: resultCount),
                 ),
-              ),
-            ),
 
-            // ── Bottom padding for nav bar clearance ──────────────────
-            const SliverPadding(
-              padding: EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-            ),
-          ],
+              // ── Insight cards zone (scroll away, hidden during search)
+              if (!filter.isSearchActive)
+                const SliverToBoxAdapter(child: InsightCardsZone()),
+
+              // ── Pinned filter bar (D-09) ──────────────────────────────
+              const SliverPersistentHeader(
+                pinned: true,
+                delegate: FilterBarDelegate(child: FilterBar()),
+              ),
+
+              // ── Filter badge (D-14 — both account + type active) ─────
+              const SliverToBoxAdapter(child: FilterBadge()),
+
+              // ── Transaction list with date grouping (D-13) ───────────
+              TransactionSliverList(
+                onTap: (tx) => _onTransactionTap(context, tx),
+                onEdit: (tx) => _editTransaction(context, ref, tx),
+                onDelete: (tx) => _deleteTransaction(context, ref, tx),
+              ),
+
+              // ── Bottom padding for nav bar clearance ──────────────────
+              const SliverPadding(
+                padding: EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  // ── Transaction actions ──────────────────────────────────────────────────
+
+  void _onTransactionTap(BuildContext context, TransactionEntity tx) {
+    // Only real transactions have detail screens (positive IDs).
+    if (tx.id > 0) {
+      context.push(AppRoutes.transactionDetailPath(tx.id));
+    }
+  }
+
+  void _editTransaction(
+    BuildContext context,
+    WidgetRef ref,
+    TransactionEntity tx,
+  ) {
+    if (tx.id < 0) {
+      // Synthetic transfer entries cannot be edited.
+      SnackHelper.showInfo(
+        context,
+        context.l10n.transfer_cannot_edit,
+      );
+      return;
+    }
+    context.push('/transactions/${tx.id}/edit');
+  }
+
+  void _deleteTransaction(
+    BuildContext context,
+    WidgetRef ref,
+    TransactionEntity tx,
+  ) {
+    if (tx.id < 0) {
+      // Transfer entry — 2-step confirmation (D-17).
+      _confirmTransferDelete(context, ref, tx);
+    } else {
+      // Regular transaction — single-step confirmation.
+      _confirmRegularDelete(context, ref, tx);
+    }
+  }
+
+  void _confirmRegularDelete(
+    BuildContext context,
+    WidgetRef ref,
+    TransactionEntity tx,
+  ) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.transaction_delete_confirm_title),
+        content: Text(ctx.l10n.transaction_delete_confirm_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.l10n.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              ctx.l10n.common_delete,
+              style: TextStyle(color: ctx.colors.error),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed == true && context.mounted) {
+        await ref.read(transactionRepositoryProvider).delete(tx.id);
+        if (context.mounted) {
+          SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
+        }
+      }
+    });
+  }
+
+  void _confirmTransferDelete(
+    BuildContext context,
+    WidgetRef ref,
+    TransactionEntity tx,
+  ) {
+    // Extract original transfer ID from synthetic negative ID.
+    // fromEntry.id = -(transfer.id * 2), toEntry.id = -(transfer.id * 2 + 1)
+    final syntheticId = tx.id.abs();
+    final originalTransferId = syntheticId ~/ 2;
+
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l10n.transfer_delete_confirm_title),
+        content: Text(ctx.l10n.transfer_delete_confirm_body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(ctx.l10n.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              ctx.l10n.common_delete,
+              style: TextStyle(color: ctx.colors.error),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed == true && context.mounted) {
+        await ref.read(transferRepositoryProvider).delete(originalTransferId);
+        if (context.mounted) {
+          SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
+        }
+      }
+    });
   }
 }
 
