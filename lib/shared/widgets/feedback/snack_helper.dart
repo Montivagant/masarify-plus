@@ -87,14 +87,17 @@ abstract final class SnackHelper {
       ..showSnackBar(
         SnackBar(
           content: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: onColor, size: AppSizes.iconMd),
+              Icon(icon, color: onColor, size: AppSizes.iconSm),
               const SizedBox(width: AppSizes.sm),
               Flexible(
                 child: Text(
                   message,
-                  style: context.textStyles.bodyMedium?.copyWith(
+                  style: TextStyle(
                     color: onColor,
+                    fontSize: AppSizes.snackTextSize,
+                    fontWeight: FontWeight.w500,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -105,12 +108,20 @@ abstract final class SnackHelper {
           backgroundColor: color,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            borderRadius: BorderRadius.circular(AppSizes.snackBorderRadius),
           ),
-          margin: const EdgeInsets.symmetric(
+          padding: const EdgeInsets.symmetric(
             horizontal: AppSizes.md,
-          ).copyWith(bottom: AppSizes.snackbarBottomMargin),
+            vertical: AppSizes.snackVerticalPadding,
+          ),
+          margin: const EdgeInsets.only(
+            left: AppSizes.snackHorizontalMargin,
+            right: AppSizes.snackHorizontalMargin,
+            bottom: AppSizes.snackbarBottomMargin,
+          ),
+          elevation: AppSizes.snackElevation,
           duration: duration,
+          dismissDirection: DismissDirection.horizontal,
           action: action,
         ),
       );

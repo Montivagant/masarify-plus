@@ -114,6 +114,13 @@ abstract final class AppSizes {
   static const double snackbarBottomMargin =
       bottomNavHeight + fabVerticalOffset + md;
 
+  // ── SnackBar / Toast ──────────────────────────────────────────────────
+  static const double snackTextSize = 13.0;
+  static const double snackBorderRadius = 12.0;
+  static const double snackVerticalPadding = 10.0;
+  static const double snackHorizontalMargin = 24.0;
+  static const double snackElevation = 4.0;
+
   // ── Brand icon ──────────────────────────────────────────────────────
   static const double brandIconFontLarge = 11;
   static const double brandIconFontSmall = 8;
