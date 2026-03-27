@@ -579,55 +579,92 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: AppSizes.sheetInitialSize,
-        minChildSize: AppSizes.sheetMinSize,
-        maxChildSize: AppSizes.sheetMaxSize,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            const DragHandle(),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppSizes.md,
-                0,
-                AppSizes.md,
-                AppSizes.sm,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  context.l10n.transaction_category_picker,
-                  style: ctx.textStyles.titleMedium,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: controller,
-                itemCount: typeCats.length,
-                itemBuilder: (_, i) {
-                  final cat = typeCats[i];
-                  final color = ColorUtils.fromHex(cat.colorHex);
-                  return ListTile(
-                    leading: Icon(
-                      CategoryIconMapper.fromName(cat.iconName),
-                      size: AppSizes.iconMd,
-                      color: color,
+      builder: (ctx) {
+        var filtered = typeCats;
+        return DraggableScrollableSheet(
+          initialChildSize: AppSizes.sheetInitialSize,
+          minChildSize: AppSizes.sheetMinSize,
+          maxChildSize: AppSizes.sheetMaxSize,
+          expand: false,
+          builder: (_, controller) => StatefulBuilder(
+            builder: (ctx2, setSheetState) => Column(
+              children: [
+                const DragHandle(),
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    AppSizes.md,
+                    0,
+                    AppSizes.md,
+                    AppSizes.sm,
+                  ),
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      context.l10n.transaction_category_picker,
+                      style: ctx.textStyles.titleMedium,
                     ),
-                    title: Text(cat.displayName(context.languageCode)),
-                    selected: cat.id == draft.categoryId,
-                    onTap: () {
-                      setState(() => draft.categoryId = cat.id);
-                      ctx.pop();
+                  ),
+                ),
+                // ── Search bar ───────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.md,
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: context.l10n.category_search_hint,
+                      prefixIcon:
+                          const Icon(AppIcons.search, size: AppSizes.iconSm),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: AppSizes.sm,
+                      ),
+                    ),
+                    onChanged: (query) {
+                      final q = query.trim().toLowerCase();
+                      setSheetState(() {
+                        if (q.isEmpty) {
+                          filtered = typeCats;
+                        } else {
+                          filtered = typeCats.where((c) {
+                            return c.name.toLowerCase().contains(q) ||
+                                c.nameAr.contains(q) ||
+                                c.iconName.toLowerCase().contains(q);
+                          }).toList();
+                        }
+                      });
                     },
-                  );
-                },
-              ),
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xs),
+                Expanded(
+                  child: ListView.builder(
+                    controller: controller,
+                    itemCount: filtered.length,
+                    itemBuilder: (_, i) {
+                      final cat = filtered[i];
+                      final color = ColorUtils.fromHex(cat.colorHex);
+                      return ListTile(
+                        leading: Icon(
+                          CategoryIconMapper.fromName(cat.iconName),
+                          size: AppSizes.iconMd,
+                          color: color,
+                        ),
+                        title: Text(cat.displayName(context.languageCode)),
+                        selected: cat.id == draft.categoryId,
+                        onTap: () {
+                          setState(() => draft.categoryId = cat.id);
+                          ctx.pop();
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
