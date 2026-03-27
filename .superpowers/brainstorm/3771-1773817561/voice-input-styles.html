@@ -1,0 +1,134 @@
+<h2>Voice Input Recording Animation</h2>
+<p class="subtitle">Current: basic AvatarGlow pulse. Which upgrade direction?</p>
+
+<style>
+  @keyframes pulse-ring {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.15); opacity: 0; }
+    100% { transform: scale(0.9); opacity: 0; }
+  }
+  @keyframes wave-bar {
+    0%, 100% { height: 8px; }
+    50% { height: 32px; }
+  }
+  @keyframes orb-float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    25% { transform: translateY(-8px) scale(1.05); }
+    50% { transform: translateY(-4px) scale(0.98); }
+    75% { transform: translateY(-12px) scale(1.02); }
+  }
+  @keyframes ripple-expand {
+    0% { transform: scale(0.8); opacity: 0.4; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+  @keyframes particle-orbit {
+    0% { transform: rotate(0deg) translateX(50px) rotate(0deg); opacity: 0.8; }
+    50% { opacity: 0.3; }
+    100% { transform: rotate(360deg) translateX(50px) rotate(-360deg); opacity: 0.8; }
+  }
+</style>
+
+<div class="cards">
+  <!-- Option A: Concentric Ripple Rings -->
+  <div class="card" data-choice="ripple-rings" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(160deg, #f0faf5, #f5f0fa); border-radius: 12px; padding: 24px; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Phone frame -->
+        <div style="width: 170px; background: rgba(255,255,255,0.8); border-radius: 20px; padding: 16px; border: 1px solid rgba(61,163,122,0.15); box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+          <div style="text-align: center; font-size: 11px; color: #666; margin-bottom: 16px;">Listening...</div>
+          <!-- Mic with ripple rings -->
+          <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 12px;">
+            <!-- Ripple rings -->
+            <div style="position: absolute; inset: -20px; border: 2px solid rgba(61,163,122,0.3); border-radius: 50%; animation: ripple-expand 2s ease-out infinite;"></div>
+            <div style="position: absolute; inset: -20px; border: 2px solid rgba(61,163,122,0.3); border-radius: 50%; animation: ripple-expand 2s ease-out 0.5s infinite;"></div>
+            <div style="position: absolute; inset: -20px; border: 2px solid rgba(61,163,122,0.3); border-radius: 50%; animation: ripple-expand 2s ease-out 1s infinite;"></div>
+            <!-- Mic button -->
+            <div style="width: 80px; height: 80px; background: #3DA37A; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 4px 20px rgba(61,163,122,0.4);">🎤</div>
+          </div>
+          <!-- Timer -->
+          <div style="text-align: center; font-size: 18px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; margin-bottom: 8px;">00:03</div>
+          <!-- Done button -->
+          <div style="background: rgba(61,163,122,0.1); color: #3DA37A; padding: 8px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600;">Done</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Concentric Ripple Rings</h3>
+      <p>Expanding circular ripples emanate from mic button. Google Assistant / Siri style. Calm, professional. Uses CustomPainter in Flutter.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Sound Wave Bars -->
+  <div class="card" data-choice="sound-waves" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(160deg, #f0faf5, #f5f0fa); border-radius: 12px; padding: 24px; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Phone frame -->
+        <div style="width: 170px; background: rgba(255,255,255,0.8); border-radius: 20px; padding: 16px; border: 1px solid rgba(61,163,122,0.15); box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+          <div style="text-align: center; font-size: 11px; color: #666; margin-bottom: 16px;">Listening...</div>
+          <!-- Mic with wave bars -->
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <!-- Mic button -->
+            <div style="width: 64px; height: 64px; background: #3DA37A; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 4px 20px rgba(61,163,122,0.4);">🎤</div>
+            <!-- Wave bars -->
+            <div style="display: flex; align-items: center; gap: 3px; height: 36px;">
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0s; height: 12px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.1s; height: 24px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.2s; height: 32px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.3s; height: 20px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.4s; height: 28px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.6); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.5s; height: 16px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.6); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.6s; height: 10px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.4); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.7s; height: 20px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.4); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.8s; height: 14px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.6); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.3s; height: 26px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.2s; height: 30px;"></div>
+              <div style="width: 3px; background: #3DA37A; border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.15s; height: 18px;"></div>
+              <div style="width: 3px; background: rgba(61,163,122,0.6); border-radius: 2px; animation: wave-bar 0.8s ease-in-out infinite; animation-delay: 0.5s; height: 8px;"></div>
+            </div>
+          </div>
+          <!-- Timer -->
+          <div style="text-align: center; font-size: 18px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; margin-bottom: 8px;">00:03</div>
+          <div style="background: rgba(61,163,122,0.1); color: #3DA37A; padding: 8px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600;">Done</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Sound Wave Bars</h3>
+      <p>Equalizer-style bars respond to audio input amplitude. ElevenLabs / Spotify style. Dynamic, techy feel. Can reflect real audio levels.</p>
+    </div>
+  </div>
+
+  <!-- Option C: Floating Orb -->
+  <div class="card" data-choice="floating-orb" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(160deg, #f0faf5, #f5f0fa); border-radius: 12px; padding: 24px; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <!-- Phone frame -->
+        <div style="width: 170px; background: rgba(255,255,255,0.8); border-radius: 20px; padding: 16px; border: 1px solid rgba(61,163,122,0.15); box-shadow: 0 4px 24px rgba(0,0,0,0.06);">
+          <div style="text-align: center; font-size: 11px; color: #666; margin-bottom: 16px;">Listening...</div>
+          <!-- Floating orb with particles -->
+          <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 12px;">
+            <!-- Orbiting particles -->
+            <div style="position: absolute; inset: 0; animation: particle-orbit 3s linear infinite;">
+              <div style="width: 6px; height: 6px; background: #3DA37A; border-radius: 50; opacity: 0.6;"></div>
+            </div>
+            <div style="position: absolute; inset: 0; animation: particle-orbit 4s linear infinite reverse;">
+              <div style="width: 4px; height: 4px; background: #7B68AE; border-radius: 50%; opacity: 0.5;"></div>
+            </div>
+            <div style="position: absolute; inset: 0; animation: particle-orbit 2.5s linear infinite;">
+              <div style="width: 5px; height: 5px; background: rgba(61,163,122,0.4); border-radius: 50%;"></div>
+            </div>
+            <!-- Main orb -->
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; background: linear-gradient(135deg, #3DA37A, #7B68AE); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; box-shadow: 0 0 40px rgba(61,163,122,0.3), 0 0 80px rgba(123,104,174,0.15); animation: orb-float 3s ease-in-out infinite;">🎤</div>
+          </div>
+          <!-- Timer -->
+          <div style="text-align: center; font-size: 18px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; margin-bottom: 8px;">00:03</div>
+          <div style="background: rgba(61,163,122,0.1); color: #3DA37A; padding: 8px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 600;">Done</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Floating Orb + Particles</h3>
+      <p>AI-inspired floating orb with gradient glow and orbiting particles. ChatGPT / Gemini style. Futuristic, premium. Lottie animation ideal.</p>
+    </div>
+  </div>
+</div>

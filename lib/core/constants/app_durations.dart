@@ -80,6 +80,10 @@ abstract final class AppDurations {
   // Chat
   static const Duration typingIndicator = Duration(milliseconds: 400);
 
+  // Category suggestion debounce (for title→category lookup)
+  static const Duration categorySuggestionDebounce =
+      Duration(milliseconds: 400);
+
   // Date pickers
   static const Duration datePickerMaxOffset = Duration(days: 365 * 5);
 }

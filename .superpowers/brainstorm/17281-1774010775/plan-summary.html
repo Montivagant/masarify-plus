@@ -1,0 +1,102 @@
+<h2>P5 Polish & Monetize — Implementation Plan</h2>
+<p class="subtitle">7 steps, ordered by dependency and impact. Full spec committed to docs/superpowers/specs/</p>
+
+<div class="section">
+  <h3>Implementation Sequence</h3>
+
+  <div style="display: flex; flex-direction: column; gap: 12px;">
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(196,56,74,0.06); border-radius: 12px; border-left: 4px solid #C4384A;">
+      <div style="min-width: 36px; height: 36px; background: #C4384A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Remove Notification Parser</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">Delete 3 files, edit 8 files, remove dependency + manifest permissions. Clean slate before adding new code.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(45,122,79,0.06); border-radius: 12px; border-left: 4px solid #2D7A4F;">
+      <div style="min-width: 36px; height: 36px; background: #2D7A4F; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Fix FAB/SnackBar Toast Bug</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">SnackBar pushes FAB mid-screen. Fix with floating behavior + margins. Quick win.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(61,163,122,0.06); border-radius: 12px; border-left: 4px solid #3DA37A;">
+      <div style="min-width: 36px; height: 36px; background: #3DA37A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Streamline Expense Logging</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">Auto-focus keyboard, smart category pre-selection (learning patterns + time-of-day), collapse optional fields. 7 taps to 2-3.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(61,163,122,0.06); border-radius: 12px; border-left: 4px solid #3DA37A;">
+      <div style="min-width: 36px; height: 36px; background: #3DA37A; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Brand/Merchant Icon System</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">Local bundle of 50-100 Egyptian brand icons (Vodafone, Netflix, Careem...). Merchant name to icon mapping. Premium feature.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(107,91,149,0.06); border-radius: 12px; border-left: 4px solid #6B5B95;">
+      <div style="min-width: 36px; height: 36px; background: #6B5B95; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">5</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Onboarding Redesign</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">3 Lottie-animated slides showing features in action + 1-tap account type picker. Under 45 seconds to dashboard.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(107,91,149,0.06); border-radius: 12px; border-left: 4px solid #6B5B95;">
+      <div style="min-width: 36px; height: 36px; background: #6B5B95; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">6</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Dashboard Cards + Contextual Nudges</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">Smart insight cards (max 2) + one-time feature nudges. Anti-fatigue: cooldowns, dismiss=permanent, no overlap. No streaks.</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 16px; background: rgba(46,125,209,0.06); border-radius: 12px; border-left: 4px solid #2E7DD1;">
+      <div style="min-width: 36px; height: 36px; background: #2E7DD1; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">7</div>
+      <div>
+        <h4 style="margin: 0 0 4px 0;">Monetization (RevenueCat)</h4>
+        <p style="margin: 0; color: #888; font-size: 14px;">Subscription-only (no ads). Free: unlimited txns + voice + SMS. Pro: 59-79 EGP/mo. AI insights, advanced analytics, brand icons, backup, export, chat.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>Monetization Summary</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">Free Tier (Forever)</div>
+      <div class="mockup-body" style="font-size: 13px; line-height: 1.8; padding: 16px;">
+        <div>Unlimited transactions (all methods)</div>
+        <div>Unlimited categories & wallets</div>
+        <div>2 budgets + 1 goal</div>
+        <div>Basic monthly summary</div>
+        <div>PIN / biometric security</div>
+        <div>Local JSON backup</div>
+        <div style="color: #3DA37A; font-weight: bold; margin-top: 8px;">No ads anywhere</div>
+      </div>
+    </div>
+    <div class="mockup">
+      <div class="mockup-header">Masarify Pro</div>
+      <div class="mockup-body" style="font-size: 13px; line-height: 1.8; padding: 16px;">
+        <div>Everything in Free +</div>
+        <div>Unlimited budgets & goals</div>
+        <div>AI Insight dashboard cards</div>
+        <div>Advanced analytics & trends</div>
+        <div>Brand/merchant icons</div>
+        <div>Cloud backup (Google Drive)</div>
+        <div>CSV / PDF export</div>
+        <div>AI Chat assistant</div>
+        <div style="margin-top: 8px;">
+          <span style="background: #3DA37A; color: white; padding: 4px 12px; border-radius: 8px; font-weight: bold;">59-79 EGP/mo</span>
+          <span style="background: #2E7DD1; color: white; padding: 4px 12px; border-radius: 8px; font-weight: bold; margin-left: 8px;">499-699 EGP/yr</span>
+        </div>
+        <div style="color: #888; font-size: 11px; margin-top: 4px;">14-day free trial, no credit card</div>
+      </div>
+    </div>
+  </div>
+</div>

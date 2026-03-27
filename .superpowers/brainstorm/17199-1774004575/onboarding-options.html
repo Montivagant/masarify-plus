@@ -1,0 +1,72 @@
+<h2>Onboarding Redesign: How Should New Users Start?</h2>
+<p class="subtitle">Goal: Get users to their first transaction in under 60 seconds. No demo dashboard.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>"Skip to Action" — Minimal Onboarding</h3>
+      <p><strong>Flow:</strong> Welcome screen (2 sec auto-advance) → Language picker → Dashboard immediately</p>
+      <p>Auto-creates default wallet (Cash) + default categories. No wallet setup step. User starts logging right away. Settings like currency and wallet name can be changed later in Settings.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Fastest to first transaction (~15 sec)</li>
+          <li>Zero friction — nothing to configure</li>
+          <li>Matches how Duolingo/TikTok onboard (instant gratification)</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Users may not understand what the app does</li>
+          <li>Default "Cash" wallet might confuse bank users</li>
+          <li>No "wow" moment — just drops into empty dashboard</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>"Quick Setup + Coach Marks" — Guided but Fast</h3>
+      <p><strong>Flow:</strong> Welcome (language picker built-in) → "What's your main account?" (Bank/Cash/Mobile Wallet — single tap) → Dashboard with coach marks highlighting FAB, voice, and quick add</p>
+      <p>2 screens max. The "main account" question replaces the full wallet form — just pick a type, we name it and set balance to 0. Coach marks (tooltips) appear on first visit to teach key features.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Fast (~30 sec) but gives users a choice</li>
+          <li>Coach marks teach features organically</li>
+          <li>Wallet type selection feels personal</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Coach marks can annoy power users</li>
+          <li>Still an "empty" dashboard on first load</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>"Value Preview + Quick Setup" — Show Then Do</h3>
+      <p><strong>Flow:</strong> Welcome (language) → 3-slide value preview (animated: "Track in 2 taps" / "Voice: just say it" / "SMS auto-detect") → "What's your main account?" → Dashboard</p>
+      <p>The 3 slides are full-bleed animations (not text cards). Each shows the actual app feature in action — a mini demo that takes 5 seconds per slide. Auto-advances with skip button.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Users understand value before starting</li>
+          <li>Animations create "wow" moment</li>
+          <li>Still fast (~45 sec total)</li>
+          <li>Skip button for returning/impatient users</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Animations need design/Lottie work</li>
+          <li>3 slides is borderline — could feel like current onboarding</li>
+          <li>Users may skip and miss the value pitch</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1.5rem; background: rgba(61,163,122,0.08); border-radius: 12px; border-left: 4px solid #3DA37A;">
+  <h3 style="margin-top:0;">💡 Recommendation: Option B</h3>
+  <p>Option B hits the sweet spot — fast setup + organic feature teaching via coach marks. It avoids the "another onboarding carousel" problem (Option C) while giving more context than a raw drop-in (Option A). Coach marks can be dismissed and never shown again.</p>
+</div>
