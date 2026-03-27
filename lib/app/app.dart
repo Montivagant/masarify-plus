@@ -7,6 +7,7 @@ import '../core/services/app_lock_service.dart';
 import '../core/utils/money_formatter.dart';
 import '../l10n/app_localizations.dart';
 import '../shared/providers/preferences_provider.dart';
+import '../shared/providers/subscription_provider.dart';
 import '../shared/providers/theme_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -22,6 +23,7 @@ class MasarifyApp extends ConsumerStatefulWidget {
 class _MasarifyAppState extends ConsumerState<MasarifyApp>
     with WidgetsBindingObserver {
   DateTime? _pausedAt;
+  DateTime? _lastRestoreAt;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
       _pausedAt = DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
       _checkAutoLock();
+      _silentRestore();
     }
   }
 
@@ -61,6 +64,19 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
       AppLockService.instance.lock();
       appRouter.go(AppRoutes.pinEntry);
     }
+  }
+
+  void _silentRestore() {
+    // Throttle: at most once per hour to avoid Google Play rate limits.
+    final now = DateTime.now();
+    if (_lastRestoreAt != null &&
+        now.difference(_lastRestoreAt!).inMinutes < 60) {
+      return;
+    }
+    _lastRestoreAt = now;
+    final service = ref.read(subscriptionServiceProvider);
+    // Fire and forget — errors are silently ignored.
+    service.restorePurchases().catchError((_) {});
   }
 
   @override
