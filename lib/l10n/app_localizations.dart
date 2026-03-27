@@ -2120,6 +2120,36 @@ abstract class AppLocalizations {
   /// **'Tap to unlock'**
   String get paywall_unlock_cta;
 
+  /// No description provided for @paywall_pricing_terms.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day free trial • Cancel anytime'**
+  String get paywall_pricing_terms;
+
+  /// No description provided for @subscription_manage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get subscription_manage;
+
+  /// No description provided for @settings_pro_status.
+  ///
+  /// In en, this message translates to:
+  /// **'Masarify Pro'**
+  String get settings_pro_status;
+
+  /// No description provided for @settings_pro_trial_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Trial: {days} days left'**
+  String settings_pro_trial_days(int days);
+
+  /// No description provided for @settings_pro_free.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Plan'**
+  String get settings_pro_free;
+
   /// No description provided for @common_ok.
   ///
   /// In en, this message translates to:
