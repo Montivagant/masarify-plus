@@ -137,7 +137,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
       final hasPro = ref.read(hasProAccessProvider);
       if (!hasPro) {
         final goals = ref.read(activeGoalsProvider).valueOrNull;
-        if (goals != null && goals.length >= 1) {
+        if (goals != null && goals.isNotEmpty) {
           context.push(AppRoutes.paywall);
           return;
         }
