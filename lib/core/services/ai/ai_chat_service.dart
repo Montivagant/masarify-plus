@@ -148,6 +148,7 @@ class AiChatService {
         dateStr: dateStr,
         timeStr: timeStr,
         dayName: dayNameAr,
+        now: now,
       );
     }
 
@@ -204,7 +205,7 @@ class AiChatService {
         'create_transfer: {"action":"create_transfer","amount":1000,"from_wallet":"CIB","to_wallet":"NBE","note":"opt","date":"$dateStr"}\n'
         'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"$dateStr"}\n'
         '\n'
-        'TRANSFER DETECTION: When user mentions moving money between accounts (حولت, سديت, نقلت, transferred), use create_transfer. NEVER split a transfer into two transactions.\n'
+        'TRANSFER DETECTION: When user mentions moving money between accounts, use create_transfer. Keywords: transferred, transfer, moved, sent, paid off, settled, cleared, from X to Y, حولت, سديت, نقلت, دفعت على, سددت, حولت من...لـ, نقلت فلوس, دفعت من X عشان Y, بعت فلوس. NEVER split a transfer into two transactions.\n'
         'One action/response. Valid JSON with double quotes inside ```json fences. Never assume amounts.\n';
   }
 
@@ -226,6 +227,7 @@ class AiChatService {
     required String dateStr,
     required String timeStr,
     required String dayName,
+    required DateTime now,
   }) {
     return '⚡ LANGUAGE RULE (HIGHEST PRIORITY): You MUST respond in Arabic. Every word of your reply must be in Arabic.\n'
         'EXCEPTION: If user writes in Franco-Arab/Arabezi (Arabic in Latin letters, e.g. "3ayz", "7aga", "el", "kda", "ana"), ALWAYS respond in Arabic.\n'
@@ -274,13 +276,13 @@ class AiChatService {
         '\n'
         'create_transaction: {"action":"create_transaction","title":"X","amount":150,"type":"expense","category":"Food","date":"$dateStr","note":"opt"}\n'
         'create_goal: {"action":"create_goal","name":"X","target_amount":5000,"deadline":"2026-12-31"}\n'
-        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":${DateTime.now().month},"year":${DateTime.now().year}}\n'
+        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":${now.month},"year":${now.year}}\n'
         'create_recurring: {"action":"create_recurring","title":"X","amount":200,"frequency":"monthly","category":"Bills","type":"expense"}\n'
         'create_wallet: {"action":"create_wallet","name":"CIB","type":"bank","initial_balance":5000}\n'
         'create_transfer: {"action":"create_transfer","amount":1000,"from_wallet":"CIB","to_wallet":"NBE","note":"opt","date":"$dateStr"}\n'
         'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"$dateStr"}\n'
         '\n'
-        'كشف التحويلات: عند ذكر نقل فلوس بين حسابات (حولت, سديت, نقلت, transferred), استخدم create_transfer. لا تقسم التحويل إلى معاملتين أبداً.\n'
+        'كشف التحويلات: عند ذكر نقل فلوس بين حسابات، استخدم create_transfer. كلمات: حولت, سديت, نقلت, سددت, دفعت على, حولت من...لـ, نقلت فلوس, بعت فلوس, دفعت من X عشان Y, transferred, transfer, moved, settled, paid off, from X to Y. لا تقسم التحويل إلى معاملتين أبداً.\n'
         'إجراء واحد لكل رد. JSON صالح بعلامات اقتباس مزدوجة داخل ```json أسوار. لا تفترض المبالغ أبداً.\n';
   }
 
