@@ -24,7 +24,7 @@ class AppNavDest {
 }
 
 /// 4-tab navigation configuration with center FAB.
-/// Tabs: Home | Recurring | [FAB] | Analytics | Planning
+/// Tabs: Home | Subscriptions | [FAB] | Analytics | Planning
 /// Budget & Goals moved to Hub (users check weekly, not daily).
 /// Settings is accessed via gear icon in AppBar — NOT a tab.
 abstract final class AppNavigation {
