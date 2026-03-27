@@ -23,6 +23,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/guards/pro_feature_guard.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/action_card.dart';
 import '../widgets/message_bubble.dart';
@@ -265,193 +266,196 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messagesAsync = ref.watch(chatMessagesProvider);
     final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
 
-    return Scaffold(
-      appBar: AppAppBar(
-        title: context.l10n.chat_title,
-        actions: [
-          AppIconButton(
-            icon: AppIcons.delete,
-            onPressed: _clearChat,
-            tooltip: context.l10n.chat_clear,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Offline banner.
-          if (!isOnline)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-                vertical: AppSizes.sm,
-              ),
-              color: context.appTheme.expenseColor
-                  .withValues(alpha: AppSizes.opacityLight),
-              child: Text(
-                context.l10n.chat_offline,
-                style: context.textStyles.labelSmall?.copyWith(
-                  color: context.appTheme.expenseColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
+    return ProFeatureGuard(
+      featureName: context.l10n.paywall_feature_chat,
+      child: Scaffold(
+        appBar: AppAppBar(
+          title: context.l10n.chat_title,
+          actions: [
+            AppIconButton(
+              icon: AppIcons.delete,
+              onPressed: _clearChat,
+              tooltip: context.l10n.chat_clear,
             ),
-
-          // Messages list.
-          Expanded(
-            child: messagesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => Center(
-                child: Text(context.l10n.chat_error_generic),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Offline banner.
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                  vertical: AppSizes.sm,
+                ),
+                color: context.appTheme.expenseColor
+                    .withValues(alpha: AppSizes.opacityLight),
+                child: Text(
+                  context.l10n.chat_offline,
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.appTheme.expenseColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              data: (messages) {
-                final itemCount = messages.length + (_isSending ? 1 : 0);
-                if (itemCount == 0) {
-                  return Center(
-                    child: Text(
-                      context.l10n.chat_input_hint,
-                      style: context.textStyles.bodyMedium?.copyWith(
-                        color: context.colors.onSurface.withValues(
-                          alpha: AppSizes.opacityLight4,
+
+            // Messages list.
+            Expanded(
+              child: messagesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Center(
+                  child: Text(context.l10n.chat_error_generic),
+                ),
+                data: (messages) {
+                  final itemCount = messages.length + (_isSending ? 1 : 0);
+                  if (itemCount == 0) {
+                    return Center(
+                      child: Text(
+                        context.l10n.chat_input_hint,
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          color: context.colors.onSurface.withValues(
+                            alpha: AppSizes.opacityLight4,
+                          ),
                         ),
                       ),
+                    );
+                  }
+                  return ListView.builder(
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.screenHPadding,
+                      vertical: AppSizes.sm,
                     ),
-                  );
-                }
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.screenHPadding,
-                    vertical: AppSizes.sm,
-                  ),
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
-                    // Index 0 = bottom of reversed list.
-                    if (_isSending && index == 0) {
-                      return const Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            bottom: AppSizes.sm,
-                          ),
-                          child: TypingIndicator(),
-                        ),
-                      );
-                    }
-                    final msgIndex = _isSending
-                        ? messages.length - index
-                        : messages.length - 1 - index;
-                    final msg = messages[msgIndex];
-
-                    // For assistant messages, parse for action JSON.
-                    if (msg.role == 'assistant') {
-                      final parsed = ChatResponseParser.parse(msg.content);
-                      if (parsed.action != null) {
-                        final status =
-                            _actionStates[msg.id] ?? ChatActionStatus.pending;
-                        final textMsg = ChatMessageEntity(
-                          id: msg.id,
-                          role: msg.role,
-                          content: parsed.textContent,
-                          tokenCount: msg.tokenCount,
-                          createdAt: msg.createdAt,
-                        );
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (parsed.textContent.isNotEmpty)
-                              MessageBubble(message: textMsg),
-                            ActionCard(
-                              action: parsed.action!,
-                              status: status,
-                              onConfirm: status == ChatActionStatus.pending ||
-                                      status == ChatActionStatus.failed
-                                  ? () => _onConfirmAction(
-                                        msg.id,
-                                        parsed.action!,
-                                        parsed.textContent,
-                                      )
-                                  : null,
-                              onCancel: status == ChatActionStatus.pending
-                                  ? () => _onCancelAction(
-                                        msg.id,
-                                        parsed.textContent,
-                                      )
-                                  : null,
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      // Index 0 = bottom of reversed list.
+                      if (_isSending && index == 0) {
+                        return const Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSizes.sm,
                             ),
-                          ],
+                            child: TypingIndicator(),
+                          ),
                         );
                       }
-                    }
-                    // After JSON stripping, content may be empty — skip.
-                    if (msg.content.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return MessageBubble(message: msg);
-                  },
-                );
-              },
-            ),
-          ),
+                      final msgIndex = _isSending
+                          ? messages.length - index
+                          : messages.length - 1 - index;
+                      final msg = messages[msgIndex];
 
-          // Input bar.
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: context.colors.outlineVariant
-                      .withValues(alpha: AppSizes.opacityLight4),
-                ),
+                      // For assistant messages, parse for action JSON.
+                      if (msg.role == 'assistant') {
+                        final parsed = ChatResponseParser.parse(msg.content);
+                        if (parsed.action != null) {
+                          final status =
+                              _actionStates[msg.id] ?? ChatActionStatus.pending;
+                          final textMsg = ChatMessageEntity(
+                            id: msg.id,
+                            role: msg.role,
+                            content: parsed.textContent,
+                            tokenCount: msg.tokenCount,
+                            createdAt: msg.createdAt,
+                          );
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (parsed.textContent.isNotEmpty)
+                                MessageBubble(message: textMsg),
+                              ActionCard(
+                                action: parsed.action!,
+                                status: status,
+                                onConfirm: status == ChatActionStatus.pending ||
+                                        status == ChatActionStatus.failed
+                                    ? () => _onConfirmAction(
+                                          msg.id,
+                                          parsed.action!,
+                                          parsed.textContent,
+                                        )
+                                    : null,
+                                onCancel: status == ChatActionStatus.pending
+                                    ? () => _onCancelAction(
+                                          msg.id,
+                                          parsed.textContent,
+                                        )
+                                    : null,
+                              ),
+                            ],
+                          );
+                        }
+                      }
+                      // After JSON stripping, content may be empty — skip.
+                      if (msg.content.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return MessageBubble(message: msg);
+                    },
+                  );
+                },
               ),
-              color: context.colors.surface,
             ),
-            padding: EdgeInsetsDirectional.only(
-              start: AppSizes.screenHPadding,
-              end: AppSizes.xs,
-              top: AppSizes.sm,
-              bottom: AppSizes.sm + MediaQuery.paddingOf(context).bottom,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    enabled: isOnline && !_isSending,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(),
-                    minLines: 1,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.chat_input_hint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppSizes.borderRadiusLg,
-                        ),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: context.colors.onSurface.withValues(
-                        alpha: AppSizes.opacityXLight2,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.md,
-                        vertical: AppSizes.sm,
-                      ),
-                    ),
-                    style: context.textStyles.bodyMedium,
+
+            // Input bar.
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: context.colors.outlineVariant
+                        .withValues(alpha: AppSizes.opacityLight4),
                   ),
                 ),
-                const SizedBox(width: AppSizes.xs),
-                AppIconButton(
-                  icon: AppIcons.send,
-                  onPressed: isOnline && !_isSending ? _send : null,
-                  tooltip: context.l10n.chat_input_hint,
-                  color: context.colors.primary,
-                ),
-              ],
+                color: context.colors.surface,
+              ),
+              padding: EdgeInsetsDirectional.only(
+                start: AppSizes.screenHPadding,
+                end: AppSizes.xs,
+                top: AppSizes.sm,
+                bottom: AppSizes.sm + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      enabled: isOnline && !_isSending,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.chat_input_hint,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.borderRadiusLg,
+                          ),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: context.colors.onSurface.withValues(
+                          alpha: AppSizes.opacityXLight2,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.md,
+                          vertical: AppSizes.sm,
+                        ),
+                      ),
+                      style: context.textStyles.bodyMedium,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  AppIconButton(
+                    icon: AppIcons.send,
+                    onPressed: isOnline && !_isSending ? _send : null,
+                    tooltip: context.l10n.chat_input_hint,
+                    color: context.colors.primary,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
