@@ -17,6 +17,7 @@ import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/cards/budget_progress_card.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
@@ -87,6 +88,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
   @override
   Widget build(BuildContext context) {
     final budgetsAsync = ref.watch(budgetsByMonthProvider((_year, _month)));
+    final hasPro = ref.watch(hasProAccessProvider);
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     // Last month's savings keyed by category name for subtitle display.
     final savings = ref.watch(budgetSavingsProvider);
@@ -101,12 +103,22 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
         showBack: false,
         actions: [
           IconButton(
-            icon: const Icon(AppIcons.add),
-            tooltip: context.l10n.budget_set,
-            onPressed: () => context.push(
-              AppRoutes.budgetSet,
-              extra: {'year': _year, 'month': _month},
+            icon: Icon(
+              !hasPro && (budgetsAsync.valueOrNull?.length ?? 0) >= 2
+                  ? AppIcons.lock
+                  : AppIcons.add,
             ),
+            tooltip: context.l10n.budget_set,
+            onPressed: () {
+              if (!hasPro && (budgetsAsync.valueOrNull?.length ?? 0) >= 2) {
+                context.push(AppRoutes.paywall);
+              } else {
+                context.push(
+                  AppRoutes.budgetSet,
+                  extra: {'year': _year, 'month': _month},
+                );
+              }
+            },
           ),
         ],
       ),

@@ -2150,6 +2150,18 @@ abstract class AppLocalizations {
   /// **'Free Plan'**
   String get settings_pro_free;
 
+  /// No description provided for @budget_limit_reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Free plan allows 2 budgets. Upgrade to Pro for unlimited.'**
+  String get budget_limit_reached;
+
+  /// No description provided for @goal_limit_reached.
+  ///
+  /// In en, this message translates to:
+  /// **'Free plan allows 1 savings goal. Upgrade to Pro for unlimited.'**
+  String get goal_limit_reached;
+
   /// No description provided for @common_ok.
   ///
   /// In en, this message translates to:

@@ -392,6 +392,8 @@
   "settings_pro_trial_days": "Trial: {days} days left",
   "@settings_pro_trial_days": {"placeholders": {"days": {"type": "int"}}},
   "settings_pro_free": "Free Plan",
+  "budget_limit_reached": "Free plan allows 2 budgets. Upgrade to Pro for unlimited.",
+  "goal_limit_reached": "Free plan allows 1 savings goal. Upgrade to Pro for unlimited.",
 
   "common_ok": "OK",
   "common_error_title": "An error occurred",

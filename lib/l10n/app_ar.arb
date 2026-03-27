@@ -386,6 +386,8 @@
   "settings_pro_trial_days": "تجربة: باقي {days} أيام",
   "@settings_pro_trial_days": {"placeholders": {"days": {"type": "int"}}},
   "settings_pro_free": "الباقة المجانية",
+  "budget_limit_reached": "الباقة المجانية تسمح بميزانيتين فقط. اشترك في برو لميزانيات بلا حدود.",
+  "goal_limit_reached": "الباقة المجانية تسمح بهدف واحد فقط. اشترك في برو لأهداف بلا حدود.",
 
   "common_ok": "حسناً",
   "common_error_title": "حدث خطأ",

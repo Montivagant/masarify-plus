@@ -1085,6 +1085,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_pro_free => 'Free Plan';
 
   @override
+  String get budget_limit_reached =>
+      'Free plan allows 2 budgets. Upgrade to Pro for unlimited.';
+
+  @override
+  String get goal_limit_reached =>
+      'Free plan allows 1 savings goal. Upgrade to Pro for unlimited.';
+
+  @override
   String get common_ok => 'OK';
 
   @override

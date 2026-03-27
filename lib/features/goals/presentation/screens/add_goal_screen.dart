@@ -8,12 +8,15 @@ import 'package:intl/intl.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../domain/entities/savings_goal_entity.dart';
+import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
@@ -127,6 +130,19 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
       }
       // Edit mode: target stays as-is (line 140 handles this)
     }
+
+    // Free tier: max 1 active goal.
+    if (widget.editId == null) {
+      final hasPro = ref.read(hasProAccessProvider);
+      if (!hasPro) {
+        final goals = ref.read(activeGoalsProvider).valueOrNull;
+        if (goals != null && goals.isNotEmpty) {
+          context.push(AppRoutes.paywall);
+          return;
+        }
+      }
+    }
+
     setState(() {
       _nameError = null;
       _loading = true;

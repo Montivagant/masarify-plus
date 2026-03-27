@@ -23,55 +23,22 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
-import '../../../../shared/widgets/feedback/snack_helper.dart';
+import '../../../../shared/widgets/guards/pro_feature_guard.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/action_card.dart';
 import '../widgets/message_bubble.dart';
-import '../widgets/subscription_suggest_card.dart';
 import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key, this.recapMode = false});
-
-  /// When true, auto-sends a recap priming message on first load.
-  final bool recapMode;
+  const ChatScreen({super.key});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-/// Subscription suggestion data for interactive card rendering.
-class _SubscriptionSuggestion {
-  const _SubscriptionSuggestion({
-    required this.title,
-    required this.categoryName,
-  });
-
-  final String title;
-  final String categoryName;
-}
-
-/// Common subscription keywords for detecting recurring patterns.
-const _subscriptionKeywords = [
-  'netflix', 'spotify', 'youtube', 'disney', 'hulu', 'hbo',
-  'apple music', 'amazon prime', 'deezer', 'anghami', 'shahid',
-  'osn', 'crunchyroll', 'gym', 'internet', 'vodafone', 'orange',
-  'etisalat', 'we', 'instapay', 'adobe', 'microsoft', 'google one',
-  'icloud', 'dropbox', 'notion', 'figma', 'canva', 'chatgpt',
-  'openai', 'copilot', 'github', 'slack',
-  // Arabic equivalents
-  'نتفلكس', 'سبوتيفاي', 'يوتيوب', 'أنغامي', 'شاهد',
-  'فودافون', 'أورنج', 'اتصالات', 'وي', 'جيم', 'إنترنت',
-];
-
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   bool _isSending = false;
-
-  /// Guards against duplicate recap priming across widget rebuilds.
-  /// Static so it persists even if the widget is rebuilt within the same
-  /// app session (e.g. provider invalidation triggers new State instance).
-  static bool _recapSentThisSession = false;
 
   /// In-memory action status for the current session. On confirm or cancel,
   /// the message content is stripped of its JSON block in the DB (via
@@ -79,27 +46,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// across restarts. The status enum itself is not stored in the DB.
   final Map<int, ChatActionStatus> _actionStates = {};
   final Set<int> _executingActions = {};
-
-  /// Subscription suggestion shown as an interactive card after a confirmed
-  /// transaction that matches known subscription keywords.
-  _SubscriptionSuggestion? _pendingSubscriptionSuggestion;
-
-  @override
-  void initState() {
-    super.initState();
-    // If opened from the daily recap notification, auto-send the priming message.
-    // Uses a static flag to prevent duplicate sends across widget rebuilds.
-    if (widget.recapMode && !_recapSentThisSession) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        final isOnline = ref.read(isOnlineProvider).valueOrNull ?? false;
-        if (!isOnline) return; // Let user see offline banner instead
-        _recapSentThisSession = true;
-        _controller.text = context.l10n.recap_prime_message;
-        _send();
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -206,7 +152,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       setState(() {
         _actionStates.clear();
         _executingActions.clear();
-        _pendingSubscriptionSuggestion = null;
       });
       await ref.read(chatMessageRepositoryProvider).deleteAll();
     }
@@ -231,10 +176,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
       if (mounted) {
         setState(() => _executingActions.remove(messageId));
-        SnackHelper.showError(
-          context,
-          errorGeneric,
-          duration: AppDurations.snackbarShort,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorGeneric),
+            duration: AppDurations.snackbarShort,
+          ),
         );
       }
       return;
@@ -251,35 +197,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       noActiveWallet: l10n.chat_action_no_active_wallet,
       budgetExists: l10n.chat_action_budget_exists,
       walletExists: l10n.chat_action_wallet_exists,
-      walletNotFound: l10n.chat_action_wallet_not_found,
-      transferSameWallet: l10n.chat_action_transfer_same_wallet,
       txNotFound: l10n.chat_action_tx_not_found,
       goalCreated: l10n.chat_action_goal_created,
       txRecorded: l10n.chat_action_tx_recorded,
       budgetCreated: l10n.chat_action_budget_created,
       recurringCreated: l10n.chat_action_recurring_created,
       walletCreated: l10n.chat_action_wallet_created,
-      transferCreated: l10n.chat_action_transfer_created,
       txDeleted: l10n.chat_action_tx_deleted,
     );
 
     try {
       final selectedWalletId = ref.read(selectedAccountIdProvider);
-      final result = await executor.execute(
+      final successMsg = await executor.execute(
         action,
         categories: categories,
         wallets: wallets,
         messages: messages,
         selectedWalletId: selectedWalletId,
       );
-
-      // Append subscription suggestion if detected.
-      var followUpContent = result.message;
-      if (result.subscriptionSuggestion != null) {
-        followUpContent +=
-            '\n\n${l10n.chat_subscription_suggest(result.subscriptionSuggestion!.title)}';
-      }
-
       // Atomic: strip JSON + insert success message in one transaction so a
       // crash between them cannot leave inconsistent state. Done before
       // mounted check so the DB write completes even if the widget unmounts.
@@ -288,24 +223,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         messageId: messageId,
         strippedContent: strippedText,
         strippedTokenCount: newTokens,
-        followUpContent: followUpContent,
+        followUpContent: successMsg,
       );
       if (!mounted) return;
-      setState(() {
-        _actionStates[messageId] = ChatActionStatus.confirmed;
-        // Check if the confirmed transaction looks like a subscription.
-        if (action is CreateTransactionAction) {
-          final titleLc = action.title.toLowerCase();
-          final isSubscription =
-              _subscriptionKeywords.any((kw) => titleLc.contains(kw));
-          if (isSubscription) {
-            _pendingSubscriptionSuggestion = _SubscriptionSuggestion(
-              title: action.title,
-              categoryName: action.categoryName,
-            );
-          }
-        }
-      });
+      setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
     } catch (e) {
       final errorMsg = e is ArgumentError ? e.message.toString() : errorGeneric;
       await repo.insert(
@@ -345,208 +266,196 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final messagesAsync = ref.watch(chatMessagesProvider);
     final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;
 
-    return Scaffold(
-      appBar: AppAppBar(
-        title: context.l10n.chat_title,
-        actions: [
-          AppIconButton(
-            icon: AppIcons.delete,
-            onPressed: _clearChat,
-            tooltip: context.l10n.chat_clear,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Offline banner.
-          if (!isOnline)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-                vertical: AppSizes.sm,
-              ),
-              color: context.appTheme.expenseColor
-                  .withValues(alpha: AppSizes.opacityLight),
-              child: Text(
-                context.l10n.chat_offline,
-                style: context.textStyles.labelSmall?.copyWith(
-                  color: context.appTheme.expenseColor,
-                ),
-                textAlign: TextAlign.center,
-              ),
+    return ProFeatureGuard(
+      featureName: context.l10n.paywall_feature_chat,
+      child: Scaffold(
+        appBar: AppAppBar(
+          title: context.l10n.chat_title,
+          actions: [
+            AppIconButton(
+              icon: AppIcons.delete,
+              onPressed: _clearChat,
+              tooltip: context.l10n.chat_clear,
             ),
-
-          // Messages list.
-          Expanded(
-            child: messagesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => Center(
-                child: Text(context.l10n.chat_error_generic),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Offline banner.
+            if (!isOnline)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                  vertical: AppSizes.sm,
+                ),
+                color: context.appTheme.expenseColor
+                    .withValues(alpha: AppSizes.opacityLight),
+                child: Text(
+                  context.l10n.chat_offline,
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.appTheme.expenseColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              data: (messages) {
-                final hasSuggestion = _pendingSubscriptionSuggestion != null;
-                final itemCount = messages.length +
-                    (_isSending ? 1 : 0) +
-                    (hasSuggestion ? 1 : 0);
-                if (itemCount == 0) {
-                  return Center(
-                    child: Text(
-                      context.l10n.chat_input_hint,
-                      style: context.textStyles.bodyMedium?.copyWith(
-                        color: context.colors.onSurface.withValues(
-                          alpha: AppSizes.opacityLight4,
+
+            // Messages list.
+            Expanded(
+              child: messagesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => Center(
+                  child: Text(context.l10n.chat_error_generic),
+                ),
+                data: (messages) {
+                  final itemCount = messages.length + (_isSending ? 1 : 0);
+                  if (itemCount == 0) {
+                    return Center(
+                      child: Text(
+                        context.l10n.chat_input_hint,
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          color: context.colors.onSurface.withValues(
+                            alpha: AppSizes.opacityLight4,
+                          ),
                         ),
                       ),
+                    );
+                  }
+                  return ListView.builder(
+                    reverse: true,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.screenHPadding,
+                      vertical: AppSizes.sm,
                     ),
-                  );
-                }
-                return ListView.builder(
-                  reverse: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.screenHPadding,
-                    vertical: AppSizes.sm,
-                  ),
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
-                    // Slot 0 (bottom): typing indicator when sending.
-                    if (_isSending && index == 0) {
-                      return const Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            bottom: AppSizes.sm,
-                          ),
-                          child: TypingIndicator(),
-                        ),
-                      );
-                    }
-                    // Subscription suggestion card sits just above
-                    // the typing indicator (or at slot 0 when idle).
-                    final suggestionSlot = _isSending ? 1 : 0;
-                    if (hasSuggestion && index == suggestionSlot) {
-                      return SubscriptionSuggestCard(
-                        title: _pendingSubscriptionSuggestion!.title,
-                        categoryName:
-                            _pendingSubscriptionSuggestion!.categoryName,
-                      );
-                    }
-                    // Offset past virtual slots to get real message.
-                    final virtualSlots =
-                        (_isSending ? 1 : 0) + (hasSuggestion ? 1 : 0);
-                    final msgIndex =
-                        messages.length - 1 - (index - virtualSlots);
-                    final msg = messages[msgIndex];
-
-                    // For assistant messages, parse for action JSON.
-                    if (msg.role == 'assistant') {
-                      final parsed = ChatResponseParser.parse(msg.content);
-                      if (parsed.action != null) {
-                        final status =
-                            _actionStates[msg.id] ?? ChatActionStatus.pending;
-                        final textMsg = ChatMessageEntity(
-                          id: msg.id,
-                          role: msg.role,
-                          content: parsed.textContent,
-                          tokenCount: msg.tokenCount,
-                          createdAt: msg.createdAt,
-                        );
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (parsed.textContent.isNotEmpty)
-                              MessageBubble(message: textMsg),
-                            ActionCard(
-                              action: parsed.action!,
-                              status: status,
-                              onConfirm: status == ChatActionStatus.pending ||
-                                      status == ChatActionStatus.failed
-                                  ? () => _onConfirmAction(
-                                        msg.id,
-                                        parsed.action!,
-                                        parsed.textContent,
-                                      )
-                                  : null,
-                              onCancel: status == ChatActionStatus.pending
-                                  ? () => _onCancelAction(
-                                        msg.id,
-                                        parsed.textContent,
-                                      )
-                                  : null,
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      // Index 0 = bottom of reversed list.
+                      if (_isSending && index == 0) {
+                        return const Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSizes.sm,
                             ),
-                          ],
+                            child: TypingIndicator(),
+                          ),
                         );
                       }
-                    }
-                    // After JSON stripping, content may be empty — skip.
-                    if (msg.content.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return MessageBubble(message: msg);
-                  },
-                );
-              },
-            ),
-          ),
+                      final msgIndex = _isSending
+                          ? messages.length - index
+                          : messages.length - 1 - index;
+                      final msg = messages[msgIndex];
 
-          // Input bar.
-          Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(
-                  color: context.colors.outlineVariant
-                      .withValues(alpha: AppSizes.opacityLight4),
-                ),
+                      // For assistant messages, parse for action JSON.
+                      if (msg.role == 'assistant') {
+                        final parsed = ChatResponseParser.parse(msg.content);
+                        if (parsed.action != null) {
+                          final status =
+                              _actionStates[msg.id] ?? ChatActionStatus.pending;
+                          final textMsg = ChatMessageEntity(
+                            id: msg.id,
+                            role: msg.role,
+                            content: parsed.textContent,
+                            tokenCount: msg.tokenCount,
+                            createdAt: msg.createdAt,
+                          );
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (parsed.textContent.isNotEmpty)
+                                MessageBubble(message: textMsg),
+                              ActionCard(
+                                action: parsed.action!,
+                                status: status,
+                                onConfirm: status == ChatActionStatus.pending ||
+                                        status == ChatActionStatus.failed
+                                    ? () => _onConfirmAction(
+                                          msg.id,
+                                          parsed.action!,
+                                          parsed.textContent,
+                                        )
+                                    : null,
+                                onCancel: status == ChatActionStatus.pending
+                                    ? () => _onCancelAction(
+                                          msg.id,
+                                          parsed.textContent,
+                                        )
+                                    : null,
+                              ),
+                            ],
+                          );
+                        }
+                      }
+                      // After JSON stripping, content may be empty — skip.
+                      if (msg.content.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return MessageBubble(message: msg);
+                    },
+                  );
+                },
               ),
-              color: context.colors.surface,
             ),
-            padding: EdgeInsetsDirectional.only(
-              start: AppSizes.screenHPadding,
-              end: AppSizes.xs,
-              top: AppSizes.sm,
-              bottom: AppSizes.sm + MediaQuery.paddingOf(context).bottom,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    enabled: isOnline && !_isSending,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _send(),
-                    minLines: 1,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: context.l10n.chat_input_hint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppSizes.borderRadiusLg,
-                        ),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: context.colors.onSurface.withValues(
-                        alpha: AppSizes.opacityXLight2,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.md,
-                        vertical: AppSizes.sm,
-                      ),
-                    ),
-                    style: context.textStyles.bodyMedium,
+
+            // Input bar.
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: context.colors.outlineVariant
+                        .withValues(alpha: AppSizes.opacityLight4),
                   ),
                 ),
-                const SizedBox(width: AppSizes.xs),
-                AppIconButton(
-                  icon: AppIcons.send,
-                  onPressed: isOnline && !_isSending ? _send : null,
-                  tooltip: context.l10n.chat_input_hint,
-                  color: context.colors.primary,
-                ),
-              ],
+                color: context.colors.surface,
+              ),
+              padding: EdgeInsetsDirectional.only(
+                start: AppSizes.screenHPadding,
+                end: AppSizes.xs,
+                top: AppSizes.sm,
+                bottom: AppSizes.sm + MediaQuery.paddingOf(context).bottom,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      enabled: isOnline && !_isSending,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: context.l10n.chat_input_hint,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.borderRadiusLg,
+                          ),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: context.colors.onSurface.withValues(
+                          alpha: AppSizes.opacityXLight2,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.md,
+                          vertical: AppSizes.sm,
+                        ),
+                      ),
+                      style: context.textStyles.bodyMedium,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  AppIconButton(
+                    icon: AppIcons.send,
+                    onPressed: isOnline && !_isSending ? _send : null,
+                    tooltip: context.l10n.chat_input_hint,
+                    color: context.colors.primary,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

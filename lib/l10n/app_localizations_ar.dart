@@ -1081,6 +1081,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_pro_free => 'الباقة المجانية';
 
   @override
+  String get budget_limit_reached =>
+      'الباقة المجانية تسمح بميزانيتين فقط. اشترك في برو لميزانيات بلا حدود.';
+
+  @override
+  String get goal_limit_reached =>
+      'الباقة المجانية تسمح بهدف واحد فقط. اشترك في برو لأهداف بلا حدود.';
+
+  @override
   String get common_ok => 'حسناً';
 
   @override
