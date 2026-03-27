@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
+import 'core/services/bill_reminder_service.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/glass_config_service.dart';
 import 'core/services/notification_service.dart';
@@ -81,6 +82,9 @@ Future<void> main() async {
   if (Platform.isAndroid && PreferencesService(prefs).isSmsParserEnabled) {
     unawaited(_scanSmsInBackground(container));
   }
+
+  // Schedule bill reminder notifications (fire-and-forget, non-blocking).
+  unawaited(_scheduleBillReminders(container, prefs));
 }
 
 /// Scan SMS inbox for financial messages (local regex parsing only).
@@ -90,5 +94,30 @@ Future<void> _scanSmsInBackground(ProviderContainer container) async {
   final count = await SmsParserService(smsDao).scanInbox();
   if (count > 0) {
     container.invalidate(pendingParsedTransactionsProvider);
+  }
+}
+
+/// Schedule bill reminder notifications for upcoming bills.
+/// Non-critical — silently ignores errors on startup.
+Future<void> _scheduleBillReminders(
+  ProviderContainer container,
+  SharedPreferences prefs,
+) async {
+  try {
+    final prefsService = PreferencesService(prefs);
+    final recurringRepo = container.read(recurringRuleRepositoryProvider);
+    final allRules = await recurringRepo.getAll();
+
+    // Filter to active, unpaid rules with nextDueDate within 7 days.
+    final now = DateTime.now();
+    final cutoff = now.add(const Duration(days: 7));
+    final upcoming = allRules.where((r) {
+      if (!r.isActive || r.isPaid) return false;
+      return r.nextDueDate.isAfter(now) && r.nextDueDate.isBefore(cutoff);
+    }).toList();
+
+    await BillReminderService.scheduleUpcoming(upcoming, prefsService);
+  } catch (_) {
+    // Non-critical — silently ignore errors on startup.
   }
 }
