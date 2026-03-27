@@ -51,7 +51,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_recent_transactions => 'الأخيرة';
 
   @override
-  String get dashboard_transactions_title => 'المعاملات';
+  String get dashboard_see_all => 'الكل';
 
   @override
   String get dashboard_quick_add_expense => '+ مصروف';
@@ -189,12 +189,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_initial_balance => 'الرصيد الابتدائي';
 
   @override
-  String get wallet_starting_balance => 'الرصيد الافتتاحي';
-
-  @override
-  String get wallet_starting_balance_hint => 'أدخل الرصيد الافتتاحي (اختياري)';
-
-  @override
   String get wallet_delete_warning => 'لا يمكن حذف حساب به معاملات';
 
   @override
@@ -310,10 +304,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recurring_add => 'إضافة اشتراك';
+  String get recurring_add => 'إضافة متكرر';
 
   @override
-  String get recurring_edit => 'تعديل الاشتراك';
+  String get recurring_edit => 'تعديل التكرار';
 
   @override
   String get recurring_frequency_daily => 'يومي';
@@ -334,7 +328,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_next_due => 'الموعد القادم';
 
   @override
-  String get recurring_and_bills_title => 'الاشتراكات والفواتير';
+  String get recurring_and_bills_title => 'المتكررة والفواتير';
 
   @override
   String get recurring_overdue => 'متأخرة';
@@ -464,7 +458,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_calendar => 'التقويم';
 
   @override
-  String get hub_recurring => 'الاشتراكات';
+  String get hub_recurring => 'المعاملات المتكررة';
 
   @override
   String get hub_settings => 'الإعدادات';
@@ -583,6 +577,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_voice_input => 'الإدخال الصوتي';
+
+  @override
+  String get settings_sms_parser => 'تحليل الرسائل';
 
   @override
   String get settings_language_changed => 'تم تغيير اللغة';
@@ -726,9 +723,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get common_next => 'التالي';
-
-  @override
-  String get common_continue_label => 'متابعة';
 
   @override
   String get common_skip => 'تخطي';
@@ -930,26 +924,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_smart_detection => 'الكشف الذكي';
+
+  @override
+  String get settings_smart_detection_subtitle =>
+      'اكتشاف المعاملات تلقائياً من رسائل SMS';
+
+  @override
   String get settings_ai_models => 'الذكاء الاصطناعي والنماذج';
-
-  @override
-  String get settings_daily_recap => 'ملخص المصاريف اليومي';
-
-  @override
-  String get settings_daily_recap_subtitle =>
-      'الذكاء الاصطناعي بيسألك عن مصاريف يومك';
-
-  @override
-  String get settings_recap_time => 'وقت الملخص';
-
-  @override
-  String get recap_notification_title => 'إزاي كانت مصاريفك النهارده؟';
-
-  @override
-  String get recap_notification_body => 'اضغط وقولي — هسجلها ليك';
-
-  @override
-  String get recap_prime_message => 'عايز أسجل مصاريف النهارده';
 
   @override
   String dashboard_pending_review(int count) {
@@ -1117,26 +1099,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String transaction_deleted_message(String title) {
     return 'تم حذف \"$title\"';
-  }
-
-  @override
-  String get transfer_delete_title => 'حذف التحويل';
-
-  @override
-  String get transfer_delete_confirm =>
-      'سيتم حذف التحويل وعكس تغييرات الرصيد. هل أنت متأكد؟';
-
-  @override
-  String get transfer_deleted_message => 'تم حذف التحويل';
-
-  @override
-  String transfer_to_account(String name) {
-    return 'تحويل إلى $name';
-  }
-
-  @override
-  String transfer_from_account(String name) {
-    return 'مستلم من $name';
   }
 
   @override
@@ -1490,9 +1452,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_pin_subtitle => 'حماية التطبيق برمز PIN';
 
   @override
-  String get settings_pin_hint => '••••••';
-
-  @override
   String get settings_biometric_subtitle => 'المصادقة البيومترية';
 
   @override
@@ -1716,7 +1675,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_total => 'إجمالي';
 
   @override
-  String get recurring_active => 'الاشتراكات النشطة';
+  String get recurring_active => 'المتكررة النشطة';
 
   @override
   String get recurring_paused => 'متوقفة';
@@ -1740,24 +1699,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_end_date_required => 'تاريخ الانتهاء';
 
   @override
-  String get recurring_empty_title => 'لا توجد اشتراكات';
+  String get recurring_empty_title => 'لا توجد قواعد متكررة';
 
   @override
-  String get recurring_empty_sub => 'أضف اشتراكاتك لتوفير الوقت';
+  String get recurring_empty_sub => 'أضف معاملاتك المتكررة لتوفير الوقت';
 
   @override
-  String get recurring_delete_title => 'حذف الاشتراك';
+  String get recurring_delete_title => 'حذف المتكرر';
 
   @override
-  String get recurring_delete_confirm => 'هل أنت متأكد من حذف هذا الاشتراك؟';
+  String get recurring_delete_confirm =>
+      'هل أنت متأكد من حذف هذه المعاملة المتكررة؟';
 
   @override
   String get recurring_confirm_activate =>
-      'تفعيل هذا الاشتراك؟ سيتم إنشاء معاملات تلقائياً.';
+      'تفعيل هذه المعاملة المتكررة؟ سيتم إنشاء معاملات تلقائياً.';
 
   @override
   String get recurring_confirm_pause =>
-      'إيقاف هذا الاشتراك؟ لن يتم إنشاء معاملات جديدة حتى إعادة التفعيل.';
+      'إيقاف هذه المعاملة المتكررة؟ لن يتم إنشاء معاملات جديدة حتى إعادة التفعيل.';
 
   @override
   String get recurring_title_label => 'العنوان';
@@ -1769,7 +1729,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_type_label => 'نوع المعاملة';
 
   @override
-  String get recurring_saved => 'تم حفظ الاشتراك';
+  String get recurring_saved => 'تم حفظ المعاملة المتكررة';
 
   @override
   String get calendar_no_transactions_day => 'لا توجد معاملات في هذا اليوم';
@@ -1898,6 +1858,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quick_add_voice => 'إدخال صوتي';
 
   @override
+  String get settings_sms_parser_subtitle =>
+      'فحص الرسائل النصية لاكتشاف معاملات البنك';
+
+  @override
+  String get permission_sms_title => 'صلاحية الرسائل';
+
+  @override
+  String get permission_sms_body =>
+      'يمكن لمصاريفي فحص رسائلك النصية لاكتشاف معاملات البنك. يتم تحليل الرسائل محلياً على جهازك. يمكنك اختيارياً الضغط على \'إثراء\' لأي معاملة مكتشفة لاستخدام الذكاء الاصطناعي لتحديد الفئة والتاجر.';
+
+  @override
   String get fab_expense => 'مصروف';
 
   @override
@@ -1912,38 +1883,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get wallet_archive_balance_warning =>
       'هذا الحساب لا يزال يحتوي على رصيد. سيتم استبعاد الرصيد من إجماليك بعد الأرشفة.';
-
-  @override
-  String get wallet_archive_title => 'أرشفة الحساب؟';
-
-  @override
-  String get wallet_archive_info =>
-      'عند أرشفة هذا الحساب:\n\n• سيختفي من الشاشة الرئيسية\n• ستختفي معاملاته من القوائم والتحليلات\n• سيُستبعد رصيده من الإجماليات\n• الذكاء الاصطناعي لن يراه أو يشير إليه\n\nيمكنك إلغاء الأرشفة لاحقاً من شاشة الحسابات.';
-
-  @override
-  String wallet_archive_confirm(String name) {
-    return 'هل تريد أرشفة $name؟';
-  }
-
-  @override
-  String wallet_unarchive_confirm(String name) {
-    return 'استعادة $name للحسابات النشطة؟';
-  }
-
-  @override
-  String get wallet_archived_section => 'مؤرشف';
-
-  @override
-  String get wallet_archive_action => 'أرشفة';
-
-  @override
-  String get wallet_unarchive_action => 'إلغاء الأرشفة';
-
-  @override
-  String get wallet_manage_title => 'إدارة الحسابات';
-
-  @override
-  String get wallet_cannot_archive_default => 'لا يمكن أرشفة الحساب الافتراضي.';
 
   @override
   String get notif_prefs_title => 'إعدادات الإشعارات';
@@ -1965,7 +1904,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notif_budget_exceeded_sub => 'إشعار عند استنفاد الميزانية بالكامل';
 
   @override
-  String get notif_section_bills => 'الفواتير والاشتراكات';
+  String get notif_section_bills => 'الفواتير والمتكررات';
 
   @override
   String get notif_bill_reminder => 'تذكير الفواتير';
@@ -1975,10 +1914,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تذكير بالفواتير القادمة قبل موعد الاستحقاق';
 
   @override
-  String get notif_recurring_reminder => 'تذكير الاشتراكات';
+  String get notif_recurring_reminder => 'المعاملات المتكررة';
 
   @override
-  String get notif_recurring_reminder_sub => 'إشعار عند استحقاق الاشتراكات';
+  String get notif_recurring_reminder_sub =>
+      'إشعار عند استحقاق المعاملات المتكررة';
 
   @override
   String get notif_section_goals => 'الأهداف';
@@ -2113,12 +2053,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String insight_recurring_detected(String title) {
-    return 'شهري: $title — أضف كاشتراك؟';
+    return 'شهري: $title — أضف كمتكرر؟';
   }
 
   @override
   String insight_weekly_detected(String title) {
-    return 'أسبوعي: $title — أضف كاشتراك؟';
+    return 'أسبوعي: $title — أضف كمتكرر؟';
   }
 
   @override
@@ -2141,7 +2081,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_section_goals_budgets => 'الميزانيات والأهداف';
 
   @override
-  String get hub_section_recurring => 'الاشتراكات والفواتير';
+  String get hub_section_recurring => 'المتكرر والفواتير';
 
   @override
   String get nav_planning => 'التخطيط';
@@ -2167,13 +2107,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_action_budget_title => 'إنشاء ميزانية';
 
   @override
-  String get chat_action_recurring_title => 'إنشاء اشتراك';
+  String get chat_action_recurring_title => 'إنشاء متكرر';
 
   @override
   String get chat_action_wallet_title => 'إنشاء حساب';
-
-  @override
-  String get chat_action_transfer_title => 'تحويل بين الحسابات';
 
   @override
   String get chat_action_delete_title => 'حذف معاملة';
@@ -2185,7 +2122,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chat_recurring_created(String title) {
-    return 'تم إنشاء اشتراك \"$title\"';
+    return 'تم إنشاء قاعدة متكررة \"$title\"';
   }
 
   @override
@@ -2499,7 +2436,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String chat_action_recurring_created(
       String title, String frequency, String amount) {
-    return 'تم إنشاء اشتراك \"$title\" ($frequency) بمبلغ $amount!';
+    return 'تم إنشاء \"$frequency\" متكرر \"$title\" بمبلغ $amount!';
   }
 
   @override
@@ -2511,34 +2448,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String chat_action_tx_deleted(String title, String amount) {
     return 'تم حذف معاملة \"$title\" بمبلغ $amount!';
   }
-
-  @override
-  String chat_action_transfer_created(String amount, String from, String to) {
-    return 'تم تحويل $amount من $from لـ $to';
-  }
-
-  @override
-  String chat_action_wallet_not_found(String name) {
-    return 'الحساب \"$name\" مش موجود';
-  }
-
-  @override
-  String get chat_action_transfer_same_wallet =>
-      'حساب المصدر والوجهة لازم يكونوا مختلفين';
-
-  @override
-  String chat_subscription_suggest(String title) {
-    return 'يبدو أن هذه معاملة متكررة. هل تريد إضافة \"$title\" كاشتراك؟ قل نعم!';
-  }
-
-  @override
-  String get voice_transfer_from => 'من';
-
-  @override
-  String get voice_transfer_to => 'إلى';
-
-  @override
-  String get voice_transfer_select_wallets => 'اختر الحسابين للتحويل';
 
   @override
   String get onboarding_default_account_note =>
@@ -2588,11 +2497,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'اتكلم بشكل طبيعي. الذكاء الاصطناعي\nيفهم مصاريفك بأي لغة.';
 
   @override
-  String get onboarding_slide3_title => 'مستشار مالي ذكي';
+  String get onboarding_slide3_title => 'كشف SMS تلقائي';
 
   @override
   String get onboarding_slide3_body =>
-      'اسأل أي حاجة عن مصاريفك.\nاحصل على رؤى فورية بالذكاء الاصطناعي.';
+      'رسائل البنك تتحول لمعاملات\nتلقائياً. من غير ما تكتب حاجة.';
 
   @override
   String get onboarding_demo_amount => '١٥٠٫٠٠ جنيه';
@@ -2605,12 +2514,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_demo_voice_text => '\"غدا ١٥٠ جنيه\"';
-
-  @override
-  String get onboarding_demo_chat_user => 'صرفت كام الأسبوع ده؟';
-
-  @override
-  String get onboarding_demo_chat_ai => 'صرفت ١٬٢٥٠ جنيه — ٤٠٪ على الأكل.';
 
   @override
   String get onboarding_demo_sms_sender => 'بنك CIB';
@@ -2653,20 +2556,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_default_mobile_name => 'محفظة الموبايل';
 
   @override
-  String get onboarding_starting_balance_title => 'كم رصيدك الحالي؟';
-
-  @override
-  String get onboarding_starting_balance_body =>
-      'أدخل المبلغ اللي معاك دلوقتي.\nتقدر تغيّره بعدين.';
-
-  @override
-  String get onboarding_starting_balance_set => 'حدد الرصيد وابدأ';
-
-  @override
   String get common_dismiss => 'إخفاء';
-
-  @override
-  String get common_transfer => 'تحويل';
 
   @override
   String insight_budget_risk_title(String category) {
@@ -2690,16 +2580,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String insight_recurring_title(String title) {
-    return 'اشتراك: $title';
+    return 'متكرر: $title';
   }
 
   @override
   String insight_recurring_body(String amount, String frequency) {
     return '$amount $frequency — عايز تتابعها؟';
   }
-
-  @override
-  String get insight_recurring_add => 'أضف كاشتراك';
 
   @override
   String insight_suggest_title(String category) {
@@ -2709,14 +2596,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String insight_suggest_body(String amount) {
     return 'بتصرف في المتوسط $amount/شهر على التصنيف ده';
-  }
-
-  @override
-  String get insight_upcoming_bills_title => 'فواتير قريبة';
-
-  @override
-  String insight_upcoming_bills_body(int count) {
-    return '$count فاتورة مستحقة خلال ٧ أيام';
   }
 
   @override
@@ -2741,12 +2620,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_edit_title_hint => 'تعديل العنوان...';
 
   @override
-  String get voice_transaction_title_label => 'العنوان';
-
-  @override
-  String get voice_transaction_description_label => 'الوصف';
-
-  @override
   String voice_create_wallet_instead(String name) {
     return 'إنشاء \'\'$name\'\' بدلاً من ذلك؟';
   }
@@ -2755,18 +2628,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_add_as_recurring => 'إضافة للاشتراكات والفواتير؟';
 
   @override
-  String get category_search_hint => 'بحث في الأقسام...';
+  String get voice_recurring_added => 'تمت الإضافة للاشتراكات والفواتير';
 
   @override
-  String get insight_budget_savings_title => 'وفرت من ميزانيتك';
-
-  @override
-  String insight_budget_savings_body(String amount, String category) {
-    return 'وفرت $amount من $category الشهر اللي فات';
-  }
-
-  @override
-  String budget_saved_last_month(String amount) {
-    return 'وفرت $amount الشهر اللي فات';
-  }
+  String get voice_amount_missing => 'لم يتم تحديد المبلغ — يرجى إدخال المبلغ';
 }

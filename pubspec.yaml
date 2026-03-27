@@ -26,6 +26,7 @@ dependencies:
   go_router: ^14.3.0
 
   # ── UI & Animations ──────────────────────────────────────────────────────────
+  flutter_markdown: ^0.7.4+3
   flutter_animate: ^4.5.0
   flutter_markdown: ^0.7.4+3
   shimmer: ^3.0.0

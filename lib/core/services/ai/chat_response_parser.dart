@@ -29,92 +29,70 @@ class ChatResponseParser {
   );
 
   /// Bare JSON with an "action" key (fallback for models that omit fences).
-  /// Handles one level of nested objects (e.g. {"action":"x","data":{"k":"v"}}).
   static final _bareJsonRegex = RegExp(
-    r'(\{\s*"action"\s*:\s*"[^"]+?"(?:[^{}]|\{[^{}]*\})*\})',
+    r'(\{[^{}]*"action"\s*:\s*"[^"]+?"[^{}]*\})',
   );
 
   /// Parse [rawContent] into text + optional action.
   static ParsedChatResponse parse(String rawContent) {
     // Try fenced JSON first.
     var match = _fencedJsonRegex.firstMatch(rawContent);
-    String? jsonStr;
-    String? matchedText; // the full matched text to strip
-
+    RegExp? matchedPattern;
     if (match != null) {
-      jsonStr = match.group(1)!;
-      matchedText = match.group(0)!;
+      matchedPattern = _fencedJsonRegex;
     } else {
-      // Fallback: bare JSON regex.
+      // Fallback: bare JSON with "action" key.
       match = _bareJsonRegex.firstMatch(rawContent);
-      if (match != null) {
-        jsonStr = match.group(1)!;
-        matchedText = match.group(0)!;
-      } else {
-        // Last resort: balanced brace extraction.
-        jsonStr = _extractBalancedJson(rawContent);
-        matchedText = jsonStr;
-      }
+      if (match != null) matchedPattern = _bareJsonRegex;
     }
 
-    if (jsonStr == null) {
-      return ParsedChatResponse(textContent: rawContent);
+    if (match == null || matchedPattern == null) {
+      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
 
+    final jsonStr = match.group(1)!;
     try {
       final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
       final action = ChatAction.fromJson(decoded);
       if (action == null) {
-        // JSON found but unrecognized action — strip JSON, return text only.
-        return ParsedChatResponse(
-          textContent: _stripBlock(rawContent, matchedText!),
-        );
+        return ParsedChatResponse(textContent: rawContent);
       }
+
+      // Strip the matched JSON block from the text.
+      final textContent = rawContent
+          .replaceFirst(matchedPattern, '')
+          .replaceAll(RegExp(r'\n{3,}'), '\n\n') // collapse excessive newlines
+          .trim();
+
       return ParsedChatResponse(
-        textContent: _stripBlock(rawContent, matchedText!),
+        textContent: _maybeSanitize(textContent),
         action: action,
       );
     } catch (_) {
-      // Malformed JSON — strip the JSON-like block so it doesn't show raw.
-      if (matchedText != null) {
-        return ParsedChatResponse(
-          textContent: _stripBlock(rawContent, matchedText),
-        );
-      }
-      return ParsedChatResponse(textContent: rawContent);
+      // Malformed JSON — treat entire response as plain text.
+      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
   }
 
-  /// Strip a matched block from the source and clean up whitespace.
-  static String _stripBlock(String source, String block) {
-    return source
-        .replaceFirst(block, '')
-        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-        .trim();
+  /// Apply safety-net only if text still contains JSON indicators.
+  static String _maybeSanitize(String text) {
+    if (text.contains('"action"') || text.contains('"type":')) {
+      return _sanitizeRemainingJson(text);
+    }
+    return text;
   }
 
-  /// Fallback: extract balanced JSON containing "action" by counting braces.
-  static String? _extractBalancedJson(String content) {
-    final actionIdx = content.indexOf('"action"');
-    if (actionIdx < 0) return null;
-
-    // Scan backward to find the opening brace.
-    var start = -1;
-    for (var i = actionIdx - 1; i >= 0; i--) {
-      if (content[i] == '{') {
-        start = i;
-        break;
-      }
-    }
-    if (start < 0) return null;
-
-    // Count braces forward to find balanced end.
-    var depth = 0;
-    for (var i = start; i < content.length; i++) {
-      if (content[i] == '{') depth++;
-      if (content[i] == '}') depth--;
-      if (depth == 0) return content.substring(start, i + 1);
-    }
-    return null; // unbalanced
+  /// Final safety net: strip any remaining action-JSON fragments that
+  /// slipped past the 2-layer parser (e.g., split across stream chunks,
+  /// nested in unrecognized markdown, or malformed responses).
+  static String _sanitizeRemainingJson(String text) {
+    // Strip any bare {...} block containing "action" key.
+    var cleaned = text.replaceAll(
+      RegExp(r'\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}'),
+      '',
+    );
+    // Clean up leftover whitespace.
+    cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+    return cleaned.isEmpty ? text : cleaned;
   }
 }

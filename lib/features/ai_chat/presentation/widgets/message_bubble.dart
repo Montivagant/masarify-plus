@@ -69,30 +69,19 @@ class MessageBubble extends StatelessWidget {
                           data: message.content,
                           selectable: true,
                           styleSheet: MarkdownStyleSheet(
-                            p: context.textStyles.bodyMedium!,
-                            strong: context.textStyles.bodyMedium!.copyWith(
-                              fontWeight: FontWeight.w700,
+                            p: context.textStyles.bodyMedium,
+                            h1: context.textStyles.titleMedium,
+                            h2: context.textStyles.titleSmall,
+                            h3: context.textStyles.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
-                            em: context.textStyles.bodyMedium!.copyWith(
-                              fontStyle: FontStyle.italic,
-                            ),
-                            h1: context.textStyles.titleLarge!,
-                            h2: context.textStyles.titleMedium!,
-                            h3: context.textStyles.titleSmall!,
-                            listBullet: context.textStyles.bodyMedium!,
-                            code: context.textStyles.bodySmall!.copyWith(
-                              fontFamily: 'monospace',
-                            ),
-                            codeblockDecoration: BoxDecoration(
-                              color: cs.surfaceContainerHighest
-                                  .withValues(alpha: AppSizes.opacityLight2),
-                              borderRadius: BorderRadius.circular(
-                                AppSizes.borderRadiusSm,
-                              ),
-                            ),
-                            a: context.textStyles.bodyMedium!.copyWith(
+                            a: context.textStyles.bodyMedium?.copyWith(
                               color: cs.primary,
                             ),
+                            strong: context.textStyles.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            listBullet: context.textStyles.bodyMedium,
                           ),
                         ),
                 ),
