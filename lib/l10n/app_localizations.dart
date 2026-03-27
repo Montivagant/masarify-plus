@@ -4911,6 +4911,12 @@ abstract class AppLocalizations {
   /// **'Dismiss'**
   String get common_dismiss;
 
+  /// No description provided for @common_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get common_transfer;
+
   /// No description provided for @insight_budget_risk_title.
   ///
   /// In en, this message translates to:

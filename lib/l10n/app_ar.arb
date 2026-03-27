@@ -966,6 +966,7 @@
   "onboarding_default_mobile_name": "محفظة الموبايل",
 
   "common_dismiss": "إخفاء",
+  "common_transfer": "تحويل",
 
   "insight_budget_risk_title": "ميزانية {category} في خطر",
   "@insight_budget_risk_title": {"placeholders": {"category": {"type": "String"}}},

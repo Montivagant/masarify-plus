@@ -986,6 +986,7 @@
   "onboarding_default_mobile_name": "Mobile Wallet",
 
   "common_dismiss": "Dismiss",
+  "common_transfer": "Transfer",
 
   "insight_budget_risk_title": "{category} budget at risk",
   "@insight_budget_risk_title": {"placeholders": {"category": {"type": "String"}}},

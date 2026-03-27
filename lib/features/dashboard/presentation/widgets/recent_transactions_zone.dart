@@ -10,7 +10,7 @@ import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/transaction_grouper.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
-import '../../../../shared/providers/transaction_provider.dart';
+import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
@@ -32,6 +32,7 @@ class RecentTransactionsZone extends ConsumerWidget {
         ? ref.watch(activityByWalletProvider(filterWalletId!))
         : ref.watch(recentActivityProvider);
     final categories = ref.watch(categoriesProvider);
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
 
     ResolvedCategory resolveCat(int catId) => resolveCategory(
           categoryId: catId,
@@ -89,6 +90,15 @@ class RecentTransactionsZone extends ConsumerWidget {
                 dateLabel: e.key,
                 transactions: e.value,
                 categoryResolver: resolveCat,
+                walletInfoResolver: (walletId) {
+                  final wallet =
+                      wallets.where((w) => w.id == walletId).firstOrNull;
+                  if (wallet == null) return null;
+                  return (
+                    icon: AppIcons.walletType(wallet.type),
+                    name: wallet.name,
+                  );
+                },
                 onTransactionTap: (tx) =>
                     context.push(AppRoutes.transactionDetailPath(tx.id)),
               ),

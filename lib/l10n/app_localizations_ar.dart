@@ -2559,6 +2559,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_dismiss => 'إخفاء';
 
   @override
+  String get common_transfer => 'تحويل';
+
+  @override
   String insight_budget_risk_title(String category) {
     return 'ميزانية $category في خطر';
   }

@@ -7,6 +7,7 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/brand_registry.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
+import '../../../domain/adapters/transfer_adapter.dart';
 import '../../../domain/entities/transaction_entity.dart';
 
 /// Single transaction row for TransactionListSection and Dashboard.
@@ -16,6 +17,9 @@ import '../../../domain/entities/transaction_entity.dart';
 ///
 /// When [brandInfo] is provided, a brand icon (colored circle with initial)
 /// is shown instead of the category icon.
+///
+/// When [transferCounterpartIcon] is provided (for transfer entries), it
+/// replaces the category icon to show the counterpart wallet type.
 ///
 /// When [onDelete] or [onEdit] are provided, the card becomes swipeable
 /// via flutter_slidable (left-swipe to delete, right-swipe to edit).
@@ -27,6 +31,7 @@ class TransactionCard extends StatelessWidget {
     required this.categoryColor,
     required this.categoryName,
     this.brandInfo,
+    this.transferCounterpartIcon,
     this.onTap,
     this.onDelete,
     this.onEdit,
@@ -37,13 +42,16 @@ class TransactionCard extends StatelessWidget {
   final Color categoryColor;
   final String categoryName;
   final BrandInfo? brandInfo;
+
+  /// Counterpart wallet icon for transfer entries (e.g., bank or mobile wallet).
+  final IconData? transferCounterpartIcon;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
 
   String get _amountPrefix => switch (transaction.type) {
         'income' => '+',
-        'transfer' => '',
+        'transfer' => isTransferSender(transaction.tags) ? '\u2212' : '+',
         _ => '\u2212',
       };
 
@@ -67,7 +75,7 @@ class TransactionCard extends StatelessWidget {
 
     final card = _CardContent(
       transaction: transaction,
-      categoryIcon: categoryIcon,
+      categoryIcon: transferCounterpartIcon ?? categoryIcon,
       categoryColor: categoryColor,
       categoryName: categoryName,
       brandInfo: brandInfo,
@@ -168,42 +176,44 @@ class _CardContent extends StatelessWidget {
                 color: categoryColor,
               ),
             const SizedBox(width: AppSizes.md),
-            // Title + category
+            // Category (primary, bold) + title (secondary, muted)
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.title,
+                    categoryName,
                     style: context.textStyles.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSizes.xxs),
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          categoryName,
-                          style: context.textStyles.bodySmall?.copyWith(
+                  if (transaction.title.isNotEmpty) ...[
+                    const SizedBox(height: AppSizes.xxs),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            transaction.title,
+                            style: context.textStyles.bodySmall?.copyWith(
+                              color: context.colors.outline,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (sourceIcon != null) ...[
+                          const SizedBox(width: AppSizes.xs),
+                          Icon(
+                            sourceIcon!,
+                            size: AppSizes.iconXxs,
                             color: context.colors.outline,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (sourceIcon != null) ...[
-                        const SizedBox(width: AppSizes.xs),
-                        Icon(
-                          sourceIcon!,
-                          size: AppSizes.iconXxs,
-                          color: context.colors.outline,
-                        ),
+                        ],
                       ],
-                    ],
-                  ),
+                    ),
+                  ],
                 ],
               ),
             ),
