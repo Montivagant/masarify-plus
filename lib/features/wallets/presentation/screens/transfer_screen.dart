@@ -46,9 +46,12 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
   Future<void> _initWallets() async {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted || wallets.isEmpty) return;
+    final active =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+    if (active.isEmpty) return;
     setState(() {
-      _fromWalletId = wallets.first.id;
-      _toWalletId = wallets.length > 1 ? wallets[1].id : null;
+      _fromWalletId = active.first.id;
+      _toWalletId = active.length > 1 ? active[1].id : null;
     });
   }
 

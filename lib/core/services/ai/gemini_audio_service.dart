@@ -186,6 +186,7 @@ class GeminiAudioService {
 
       final type = (tx['type'] as String?) ?? 'expense';
       var categoryIcon = tx['category_icon'] as String?;
+      final title = tx['title'] as String?;
       final note = tx['note'] as String?;
       final dateOffset = (tx['date_offset'] as int?) ?? 0;
       // LLMs sometimes return literal "null" instead of JSON null
@@ -194,9 +195,16 @@ class GeminiAudioService {
           (walletHint.toLowerCase() == 'null' || walletHint.trim().isEmpty)) {
         walletHint = null;
       }
+      var toWalletHint = tx['to_wallet_hint'] as String?;
+      if (toWalletHint != null &&
+          (toWalletHint.toLowerCase() == 'null' ||
+              toWalletHint.trim().isEmpty)) {
+        toWalletHint = null;
+      }
 
       // Validate category_icon against type-filtered categories.
-      if (categoryIcon != null && categories.isNotEmpty) {
+      // Transfers have no category — skip validation.
+      if (categoryIcon != null && type != 'transfer' && categories.isNotEmpty) {
         final validIcons = categories
             .where((c) => c.type == type || c.type == 'both')
             .map((c) => c.iconName)
@@ -205,6 +213,8 @@ class GeminiAudioService {
           categoryIcon = null;
         }
       }
+      // Ensure transfers have no category icon.
+      if (type == 'transfer') categoryIcon = null;
 
       drafts.add(
         VoiceTransactionDraft(
@@ -212,6 +222,8 @@ class GeminiAudioService {
           amountPiastres: amountPiastres,
           categoryHint: categoryIcon,
           walletHint: walletHint,
+          toWalletHint: toWalletHint,
+          title: title,
           note: note,
           type: type,
           dateOffset: dateOffset,
@@ -306,6 +318,10 @@ TYPE DETECTION:
 - "income": اتقبضت, راتب, مرتب, salary, income, received, earned
 - "cash_withdrawal": سحبت, سحب, ATM, صراف, سحبت من الصراف, withdrew, withdrawal, cash out
 - "cash_deposit": أودعت, إيداع, حطيت فلوس, deposited, deposit, cash deposit, put money
+- "transfer": حولت, حولتلهم, سديت, سددت, نقلت, حطيت في, تحويل, transferred, moved, sent to, settle
+  Key signal: TWO wallet/account names mentioned (source and destination).
+  For transfer, set BOTH wallet_hint (source account) AND to_wallet_hint (destination account).
+  category_icon should be null for transfers.
 For cash_withdrawal/cash_deposit, wallet_hint should be the bank account name mentioned.
 
 AVAILABLE CATEGORIES:
@@ -318,21 +334,30 @@ USER'S WALLET/ACCOUNT NAMES:
 {{WALLETS_JSON}}
 
 12. If the user mentions a wallet/account name (e.g. "from CIB", "cash", "my bank"), set wallet_hint to that name exactly as spoken
+13. When the user mentions a brand or merchant name, use the ENGLISH brand name in the note field for brand icon matching. Common Egyptian brands: Vodafone, Uber, Careem, CIB, NBE, Fawry, Carrefour, McDonald's, KFC, Netflix, Starbucks, Amazon, Noon, Talabat.
 
 RESPONSE SCHEMA:
 {
   "transactions": [
     {
       "amount_egp": <number>,
-      "type": "expense" | "income" | "cash_withdrawal" | "cash_deposit",
+      "type": "expense" | "income" | "cash_withdrawal" | "cash_deposit" | "transfer",
       "category_icon": "<iconName from categories list>",
-      "note": "<short description>",
+      "title": "<short 2-4 word title>",
+      "note": "<full descriptive text>",
       "date_offset": <integer, 0=today, -1=yesterday>,
       "confidence": <0.0-1.0>,
       "goal_match": "<goal name or null>",
-      "wallet_hint": "<wallet name mentioned or null>"
+      "wallet_hint": "<wallet name mentioned or null>",
+      "to_wallet_hint": "<destination wallet name — ONLY for type=transfer, null otherwise>"
     }
   ]
 }
+
+14. For type "transfer", both wallet_hint and to_wallet_hint MUST be set. category_icon should be null.
+    When user mentions paying from one bank to settle debt in another, that's a transfer.
+15. Always generate a SHORT title (2-4 words, like "KFC Meal", "Grocery Shopping", "Uber Ride", "وجبة كنتاكي", "مشوار اوبر").
+    Put the title in the "title" field. Use the "note" field for the full descriptive text.
+    Title should be in the same language the user spoke.
 ''';
 }

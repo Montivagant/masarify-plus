@@ -59,6 +59,11 @@ class ActionCard extends StatelessWidget {
           context.l10n.chat_action_wallet_title,
           cs.primary,
         ),
+      CreateTransferAction() => (
+          AppIcons.transfer,
+          context.l10n.chat_action_transfer_title,
+          theme.transferColor,
+        ),
       DeleteTransactionAction() => (
           AppIcons.delete,
           context.l10n.chat_action_delete_title,
@@ -132,21 +137,24 @@ class ActionCard extends StatelessWidget {
       ) =>
         [
           _DetailLine(
-              label: context.l10n.transaction_title_label,
-              value: name,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_title_label,
+            value: name,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.goal_target_label,
-              value: MoneyFormatter.format(targetAmountPiastres),
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.goal_target_label,
+            value: MoneyFormatter.format(targetAmountPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           if (deadline != null)
             _DetailLine(
-                label: context.l10n.goal_deadline,
-                value: _formatDeadline(context, deadline),
-                labelStyle: labelS,
-                valueStyle: valueStyle,),
+              label: context.l10n.goal_deadline,
+              value: _formatDeadline(context, deadline),
+              labelStyle: labelS,
+              valueStyle: valueStyle,
+            ),
         ],
       CreateTransactionAction(
         :final title,
@@ -157,42 +165,48 @@ class ActionCard extends StatelessWidget {
       ) =>
         [
           _DetailLine(
-              label: context.l10n.transaction_title_label,
-              value: title,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
             label: context.l10n.common_amount,
             value: MoneyFormatter.format(amountPiastres),
             labelStyle: labelS,
             valueStyle: valueStyle?.copyWith(
-                color: type == 'income'
-                    ? context.appTheme.incomeColor
-                    : context.appTheme.expenseColor,),
+              color: type == 'income'
+                  ? context.appTheme.incomeColor
+                  : context.appTheme.expenseColor,
+            ),
           ),
           _DetailLine(
-              label: context.l10n.transaction_category,
-              value: categoryName,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_category,
+            value: categoryName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           if (date != null)
             _DetailLine(
-                label: context.l10n.transaction_date,
-                value: _formatDate(context, date),
-                labelStyle: labelS,
-                valueStyle: valueStyle,),
+              label: context.l10n.transaction_date,
+              value: _formatDate(context, date),
+              labelStyle: labelS,
+              valueStyle: valueStyle,
+            ),
         ],
       CreateBudgetAction(:final categoryName, :final limitPiastres) => [
           _DetailLine(
-              label: context.l10n.transaction_category,
-              value: categoryName,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_category,
+            value: categoryName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.budget_limit,
-              value: MoneyFormatter.format(limitPiastres),
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.budget_limit,
+            value: MoneyFormatter.format(limitPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
         ],
       CreateRecurringAction(
         :final title,
@@ -202,25 +216,29 @@ class ActionCard extends StatelessWidget {
       ) =>
         [
           _DetailLine(
-              label: context.l10n.transaction_title_label,
-              value: title,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.common_amount,
-              value: MoneyFormatter.format(amountPiastres),
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.common_amount,
+            value: MoneyFormatter.format(amountPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.recurring_frequency_label,
-              value: frequency,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.recurring_frequency_label,
+            value: frequency,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.transaction_category,
-              value: categoryName,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_category,
+            value: categoryName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
         ],
       CreateWalletAction(
         :final name,
@@ -229,20 +247,50 @@ class ActionCard extends StatelessWidget {
       ) =>
         [
           _DetailLine(
-              label: context.l10n.wallet_name_label,
-              value: name,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.wallet_name_label,
+            value: name,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.wallet_type_label,
-              value: type,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.wallet_type_label,
+            value: type,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
-              label: context.l10n.wallet_initial_balance,
-              value: MoneyFormatter.format(initialBalancePiastres),
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.wallet_initial_balance,
+            value: MoneyFormatter.format(initialBalancePiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+        ],
+      CreateTransferAction(
+        :final amountPiastres,
+        :final fromWalletName,
+        :final toWalletName,
+      ) =>
+        [
+          _DetailLine(
+            label: context.l10n.voice_transfer_from,
+            value: fromWalletName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          _DetailLine(
+            label: context.l10n.voice_transfer_to,
+            value: toWalletName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          _DetailLine(
+            label: context.l10n.common_amount,
+            value: MoneyFormatter.format(amountPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle?.copyWith(
+              color: context.appTheme.transferColor,
+            ),
+          ),
         ],
       DeleteTransactionAction(
         :final title,
@@ -251,10 +299,11 @@ class ActionCard extends StatelessWidget {
       ) =>
         [
           _DetailLine(
-              label: context.l10n.transaction_title_label,
-              value: title,
-              labelStyle: labelS,
-              valueStyle: valueStyle,),
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
           _DetailLine(
             label: context.l10n.common_amount,
             value: MoneyFormatter.format(amountPiastres),
@@ -264,10 +313,11 @@ class ActionCard extends StatelessWidget {
           ),
           if (date != null)
             _DetailLine(
-                label: context.l10n.transaction_date,
-                value: _formatDate(context, date),
-                labelStyle: labelS,
-                valueStyle: valueStyle,),
+              label: context.l10n.transaction_date,
+              value: _formatDate(context, date),
+              labelStyle: labelS,
+              valueStyle: valueStyle,
+            ),
         ],
     };
   }
@@ -278,8 +328,11 @@ class ActionCard extends StatelessWidget {
     return switch (status) {
       ChatActionStatus.confirmed => Row(
           children: [
-            Icon(AppIcons.check,
-                size: AppSizes.iconSm, color: context.appTheme.incomeColor,),
+            Icon(
+              AppIcons.check,
+              size: AppSizes.iconSm,
+              color: context.appTheme.incomeColor,
+            ),
             const SizedBox(width: AppSizes.xs),
             Text(
               context.l10n.chat_action_confirmed,
@@ -298,8 +351,11 @@ class ActionCard extends StatelessWidget {
         ),
       ChatActionStatus.failed => Row(
           children: [
-            Icon(AppIcons.warning,
-                size: AppSizes.iconXs, color: context.appTheme.expenseColor,),
+            Icon(
+              AppIcons.warning,
+              size: AppSizes.iconXs,
+              color: context.appTheme.expenseColor,
+            ),
             const SizedBox(width: AppSizes.xs),
             Expanded(
               child: Text(

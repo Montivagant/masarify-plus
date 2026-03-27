@@ -38,7 +38,6 @@ class SetBudgetScreen extends ConsumerStatefulWidget {
 class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
   int? _categoryId;
   int _limitPiastres = 0;
-  bool _rollover = false;
   late int _year;
   late int _month;
   bool _loading = false;
@@ -60,7 +59,6 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
     setState(() {
       _categoryId = budget.categoryId;
       _limitPiastres = budget.limitAmount;
-      _rollover = budget.rollover;
     });
   }
 
@@ -126,10 +124,6 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
         final existing =
             budgets.where((b) => b.id == widget.editId).firstOrNull;
         if (existing != null) {
-          // If rollover was just enabled, reset rolloverAmount so
-          // the repository's create/update logic recomputes from previous month.
-          var rolloverAmt = existing.rolloverAmount;
-          if (_rollover && !existing.rollover) rolloverAmt = 0;
           await repo.update(
             BudgetEntity(
               id: existing.id,
@@ -137,8 +131,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               month: existing.month,
               year: existing.year,
               limitAmount: _limitPiastres,
-              rollover: _rollover,
-              rolloverAmount: rolloverAmt,
+              rollover: false,
+              rolloverAmount: 0,
             ),
           );
         }
@@ -157,8 +151,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               month: existing.month,
               year: existing.year,
               limitAmount: _limitPiastres,
-              rollover: _rollover,
-              rolloverAmount: existing.rolloverAmount,
+              rollover: false,
+              rolloverAmount: 0,
             ),
           );
         } else {
@@ -167,7 +161,6 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             month: _month,
             year: _year,
             limitAmount: _limitPiastres,
-            rollover: _rollover,
           );
         }
       }
@@ -289,18 +282,6 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             AmountInput(
               initialPiastres: _limitPiastres,
               onAmountChanged: (p) => setState(() => _limitPiastres = p),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Rollover toggle
-            GlassCard(
-              child: SwitchListTile(
-                title: Text(context.l10n.budget_rollover_title),
-                subtitle: Text(context.l10n.budget_rollover),
-                value: _rollover,
-                onChanged: (v) => setState(() => _rollover = v),
-                secondary: const Icon(AppIcons.recurring),
-              ),
             ),
           ],
         ),

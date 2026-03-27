@@ -10,7 +10,6 @@ import 'daos/goal_dao.dart';
 import 'daos/parsed_event_group_dao.dart';
 import 'daos/recurring_rule_dao.dart';
 import 'daos/sms_parser_log_dao.dart';
-import 'daos/subscription_record_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'daos/transfer_dao.dart';
 import 'daos/wallet_dao.dart';
@@ -24,7 +23,6 @@ import 'tables/parsed_event_groups_table.dart';
 import 'tables/recurring_rules_table.dart';
 import 'tables/savings_goals_table.dart';
 import 'tables/sms_parser_logs_table.dart';
-import 'tables/subscription_records_table.dart';
 import 'tables/transactions_table.dart';
 import 'tables/transfers_table.dart';
 import 'tables/wallets_table.dart';
@@ -46,7 +44,6 @@ part 'app_database.g.dart';
     CategoryMappings,
     ChatMessages,
     ParsedEventGroups,
-    SubscriptionRecords,
   ],
   daos: [
     WalletDao,
@@ -61,14 +58,13 @@ part 'app_database.g.dart';
     CategoryMappingDao,
     ChatMessageDao,
     ParsedEventGroupDao,
-    SubscriptionRecordDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -266,9 +262,6 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(wallets, wallets.sortOrder);
             // Initialize sortOrder to match existing id ordering.
             await customStatement('UPDATE wallets SET sort_order = id');
-          }
-          if (from < 14) {
-            await m.createTable(subscriptionRecords);
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();

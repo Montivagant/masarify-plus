@@ -12,6 +12,7 @@ import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/balance_card.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import 'account_manage_sheet.dart';
 
 /// Swipeable account carousel: page 0 = total balance, pages 1-N = accounts.
 ///
@@ -92,163 +93,155 @@ class _AccountCarouselState extends ConsumerState<AccountCarousel> {
         totalExpense += t.amount;
       }
     }
-    final cs = context.colors;
-
-    return Column(
-      children: [
-        // Eye icon row — above the carousel for consistent visibility.
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.screenHPadding,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                tooltip: hidden
-                    ? context.l10n.balance_show
-                    : context.l10n.balance_hide,
-                icon: Icon(
-                  hidden ? AppIcons.eyeOff : AppIcons.eye,
-                  color: cs.onSurface.withValues(alpha: AppSizes.opacityMedium),
-                  size: AppSizes.iconSm,
-                ),
-                onPressed: () =>
-                    ref.read(hideBalancesProvider.notifier).toggle(),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: AppSizes.carouselHeight,
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: pageCount,
-            onPageChanged: (index) {
-              // Don't update selection when swiping to the "Add Account" card.
-              if (index < pageCount - 1) {
-                ref.read(selectedAccountIndexProvider.notifier).state = index;
-              }
-            },
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                // Page 0: Total balance across all accounts (hero variant).
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.xs,
-                    vertical: AppSizes.xs,
-                  ),
-                  child: BalanceCard(
-                    accountName: context.l10n.dashboard_all_accounts,
-                    totalPiastres: totalBalance,
-                    monthlyIncomePiastres: totalIncome,
-                    monthlyExpensePiastres: totalExpense,
-                    hidden: hidden,
-                    inGoalsPiastres: inGoals,
-                    cashPiastres: systemWallet?.balance ?? 0,
-                  ),
-                );
-              }
-
-              // Last page: "Add Account" card.
-              if (index == pageCount - 1) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.xs,
-                    vertical: AppSizes.xs,
-                  ),
-                  child: _AddAccountCard(
-                    onTap: () => context.push(AppRoutes.walletAdd),
-                  ),
-                );
-              }
-
-              // Pages 1-N: Individual account cards (account variant).
-              if (index - 1 >= userWallets.length) {
-                return const SizedBox.shrink();
-              }
-              final wallet = userWallets[index - 1];
-
-              return Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.xs,
-                  vertical: AppSizes.xs,
-                ),
-                child: Semantics(
-                  onLongPressHint: context.l10n.common_edit,
-                  child: GestureDetector(
-                    onLongPress: () =>
-                        context.push(AppRoutes.editWalletPath(wallet.id)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSizes.sectionGap),
+      child: Column(
+        children: [
+          SizedBox(
+            height: AppSizes.carouselHeight,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: pageCount,
+              onPageChanged: (index) {
+                // Don't update selection when swiping to the "Add Account" card.
+                if (index < pageCount - 1) {
+                  ref.read(selectedAccountIndexProvider.notifier).state = index;
+                }
+              },
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  // Page 0: Total balance across all accounts (hero variant).
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.xs,
+                      vertical: AppSizes.xs,
+                    ),
                     child: BalanceCard(
-                      variant: BalanceCardVariant.account,
-                      accountName: wallet.name,
-                      totalPiastres: wallet.balance,
-                      currencyCode: wallet.currencyCode,
+                      accountName: context.l10n.dashboard_all_accounts,
+                      totalPiastres: totalBalance,
+                      monthlyIncomePiastres: totalIncome,
+                      monthlyExpensePiastres: totalExpense,
                       hidden: hidden,
-                      walletTypeIcon: AppIcons.walletType(wallet.type),
-                      walletColorHex: wallet.colorHex,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
-        // Page indicator dots + quick add button.
-        // Dots exclude the "Add Account" card (last page) — the "+" button
-        // replaces its dot, avoiding visual confusion when swiping to it.
-        if (pageCount > 1)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSizes.xs),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ...List.generate(pageCount - 1, (i) {
-                  final isActive = i == safeIndex;
-                  return Container(
-                    width: AppSizes.indicatorDotSize,
-                    height: AppSizes.indicatorDotSize,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.indicatorDotGap,
-                    ),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isActive
-                          ? context.colors.primary
-                          : context.colors.outline
-                              .withValues(alpha: AppSizes.opacityLight4),
+                      inGoalsPiastres: inGoals,
+                      cashPiastres: systemWallet?.balance ?? 0,
                     ),
                   );
-                }),
-                // WS6: Quick add "+" button next to dots.
-                const SizedBox(width: AppSizes.xs),
-                SizedBox(
-                  width: AppSizes.minTapTarget,
-                  height: AppSizes.minTapTarget,
-                  child: IconButton(
-                    onPressed: () => context.push(AppRoutes.walletAdd),
-                    tooltip: context.l10n.wallet_add_title,
-                    icon: Container(
-                      width: AppSizes.iconSm,
-                      height: AppSizes.iconSm,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: context.colors.primary
-                            .withValues(alpha: AppSizes.opacityLight),
-                      ),
-                      child: Icon(
-                        AppIcons.add,
-                        size: AppSizes.iconXxs,
-                        color: context.colors.primary,
+                }
+
+                // Last page: "Add Account" card.
+                if (index == pageCount - 1) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.xs,
+                      vertical: AppSizes.xs,
+                    ),
+                    child: _AddAccountCard(
+                      onTap: () => context.push(AppRoutes.walletAdd),
+                    ),
+                  );
+                }
+
+                // Pages 1-N: Individual account cards (account variant).
+                if (index - 1 >= userWallets.length) {
+                  return const SizedBox.shrink();
+                }
+                final wallet = userWallets[index - 1];
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.xs,
+                    vertical: AppSizes.xs,
+                  ),
+                  child: Semantics(
+                    onLongPressHint: context.l10n.common_edit,
+                    child: GestureDetector(
+                      onLongPress: () =>
+                          context.push(AppRoutes.editWalletPath(wallet.id)),
+                      child: BalanceCard(
+                        variant: BalanceCardVariant.account,
+                        accountName: wallet.name,
+                        totalPiastres: wallet.balance,
+                        currencyCode: wallet.currencyCode,
+                        hidden: hidden,
+                        walletTypeIcon: AppIcons.walletType(wallet.type),
+                        walletColorHex: wallet.colorHex,
                       ),
                     ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
-      ],
+
+          // Page indicator dots + quick add button.
+          // Dots exclude the "Add Account" card (last page) — the "+" button
+          // replaces its dot, avoiding visual confusion when swiping to it.
+          if (pageCount > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSizes.xs),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ...List.generate(pageCount - 1, (i) {
+                    final isActive = i == safeIndex;
+                    return Container(
+                      width: AppSizes.indicatorDotSize,
+                      height: AppSizes.indicatorDotSize,
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.indicatorDotGap,
+                      ),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isActive
+                            ? context.colors.primary
+                            : context.colors.outline
+                                .withValues(alpha: AppSizes.opacityLight4),
+                      ),
+                    );
+                  }),
+                  // WS6: Quick add "+" button next to dots.
+                  const SizedBox(width: AppSizes.xs),
+                  SizedBox(
+                    width: AppSizes.minTapTarget,
+                    height: AppSizes.minTapTarget,
+                    child: IconButton(
+                      onPressed: () => context.push(AppRoutes.walletAdd),
+                      tooltip: context.l10n.wallet_add_title,
+                      icon: Container(
+                        width: AppSizes.iconSm,
+                        height: AppSizes.iconSm,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: context.colors.primary
+                              .withValues(alpha: AppSizes.opacityLight),
+                        ),
+                        child: Icon(
+                          AppIcons.add,
+                          size: AppSizes.iconXxs,
+                          color: context.colors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Manage accounts button — opens reorder sheet.
+                  SizedBox(
+                    width: AppSizes.minTapTarget,
+                    height: AppSizes.minTapTarget,
+                    child: IconButton(
+                      onPressed: () => AccountManageSheet.show(context),
+                      tooltip: context.l10n.wallet_manage_title,
+                      icon: Icon(
+                        AppIcons.sliders,
+                        size: AppSizes.iconXs,
+                        color: context.colors.outline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

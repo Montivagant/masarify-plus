@@ -9,7 +9,6 @@ abstract final class AppRoutes {
 
   // ── Main shell ────────────────────────────────────────────────────────
   static const String dashboard = '/';
-  static const String transactions = '/transactions';
   static const String transactionAdd = '/transactions/add';
   static const String transactionEdit = '/transactions/:id/edit';
   static const String transactionDetail = '/transactions/:id';

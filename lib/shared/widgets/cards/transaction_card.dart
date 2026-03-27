@@ -27,6 +27,9 @@ class TransactionCard extends StatelessWidget {
     required this.categoryColor,
     required this.categoryName,
     this.brandInfo,
+    this.walletName,
+    this.transferCounterpartIcon,
+    this.transferDisplayName,
     this.onTap,
     this.onDelete,
     this.onEdit,
@@ -37,6 +40,14 @@ class TransactionCard extends StatelessWidget {
   final Color categoryColor;
   final String categoryName;
   final BrandInfo? brandInfo;
+  final String? walletName;
+
+  /// For transfers: icon of the counterpart wallet (bank, cash, e-wallet).
+  final IconData? transferCounterpartIcon;
+
+  /// For transfers: perspective-aware label ("Transfer to X" / "Received from X").
+  final String? transferDisplayName;
+
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
@@ -67,10 +78,12 @@ class TransactionCard extends StatelessWidget {
 
     final card = _CardContent(
       transaction: transaction,
-      categoryIcon: categoryIcon,
-      categoryColor: categoryColor,
-      categoryName: categoryName,
-      brandInfo: brandInfo,
+      categoryIcon: transferCounterpartIcon ?? categoryIcon,
+      categoryColor:
+          transferCounterpartIcon != null ? amountColor : categoryColor,
+      categoryName: transferDisplayName ?? categoryName,
+      brandInfo: transferCounterpartIcon != null ? null : brandInfo,
+      walletName: walletName,
       amountColor: amountColor,
       amountPrefix: _amountPrefix,
       sourceIcon: _sourceIcon,
@@ -127,6 +140,7 @@ class _CardContent extends StatelessWidget {
     required this.categoryColor,
     required this.categoryName,
     this.brandInfo,
+    this.walletName,
     required this.amountColor,
     required this.amountPrefix,
     required this.sourceIcon,
@@ -138,6 +152,7 @@ class _CardContent extends StatelessWidget {
   final Color categoryColor;
   final String categoryName;
   final BrandInfo? brandInfo;
+  final String? walletName;
   final Color amountColor;
   final String amountPrefix;
   final IconData? sourceIcon;
@@ -174,7 +189,7 @@ class _CardContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.title,
+                    categoryName,
                     style: context.textStyles.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -186,7 +201,7 @@ class _CardContent extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          categoryName,
+                          transaction.title,
                           style: context.textStyles.bodySmall?.copyWith(
                             color: context.colors.outline,
                           ),
@@ -200,6 +215,27 @@ class _CardContent extends StatelessWidget {
                           sourceIcon!,
                           size: AppSizes.iconXxs,
                           color: context.colors.outline,
+                        ),
+                      ],
+                      if (walletName != null) ...[
+                        const SizedBox(width: AppSizes.xs),
+                        Text(
+                          '\u2022',
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.colors.outline,
+                          ),
+                        ),
+                        const SizedBox(width: AppSizes.xs),
+                        Flexible(
+                          flex: 0,
+                          child: Text(
+                            walletName!,
+                            style: context.textStyles.labelSmall?.copyWith(
+                              color: context.colors.outline,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ],

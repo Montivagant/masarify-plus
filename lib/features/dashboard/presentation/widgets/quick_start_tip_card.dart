@@ -32,9 +32,11 @@ class _QuickStartTipCardState extends ConsumerState<QuickStartTipCard> {
     final l10n = context.l10n;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.screenHPadding,
-        vertical: AppSizes.sm,
+      padding: const EdgeInsets.only(
+        left: AppSizes.screenHPadding,
+        right: AppSizes.screenHPadding,
+        top: AppSizes.xs,
+        bottom: AppSizes.sectionGap,
       ),
       child: Dismissible(
         key: const ValueKey('quick_start_tip'),
@@ -50,33 +52,22 @@ class _QuickStartTipCardState extends ConsumerState<QuickStartTipCard> {
               children: [
                 Icon(
                   AppIcons.quickStart,
-                  size: AppSizes.iconLg,
+                  size: AppSizes.iconMd,
                   color: cs.primary,
                 ),
-                const SizedBox(width: AppSizes.md),
+                const SizedBox(width: AppSizes.sm),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.quick_start_tip_title,
-                        style: context.textStyles.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.primary,
-                        ),
-                      ),
-                      const SizedBox(height: AppSizes.xs),
-                      Text(
-                        l10n.quick_start_tip_subtitle,
-                        style: context.textStyles.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    l10n.quick_start_tip_title,
+                    style: context.textStyles.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.primary,
+                    ),
                   ),
                 ),
                 Icon(
                   context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+                  size: AppSizes.iconSm,
                   color: cs.primary,
                 ),
               ],

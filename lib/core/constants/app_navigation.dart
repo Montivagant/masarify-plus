@@ -24,7 +24,7 @@ class AppNavDest {
 }
 
 /// 4-tab navigation configuration with center FAB.
-/// Tabs: Home | Transactions | [FAB] | Analytics | More
+/// Tabs: Home | Recurring | [FAB] | Analytics | Planning
 /// Budget & Goals moved to Hub (users check weekly, not daily).
 /// Settings is accessed via gear icon in AppBar — NOT a tab.
 abstract final class AppNavigation {
@@ -37,11 +37,11 @@ abstract final class AppNavigation {
       route: AppRoutes.dashboard,
     ),
     AppNavDest(
-      labelAr: 'المعاملات',
-      labelEn: 'Transactions',
-      icon: AppIcons.transactionsOutlined,
-      activeIcon: AppIcons.transactions,
-      route: AppRoutes.transactions,
+      labelAr: 'الاشتراكات',
+      labelEn: 'Subscriptions',
+      icon: AppIcons.recurringOutlined,
+      activeIcon: AppIcons.recurring,
+      route: AppRoutes.recurring,
     ),
     AppNavDest(
       labelAr: 'التحليلات',

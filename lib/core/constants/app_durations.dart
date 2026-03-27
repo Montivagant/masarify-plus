@@ -25,6 +25,7 @@ abstract final class AppDurations {
   static const Duration snackbarLong = Duration(seconds: 5);
 
   // Timeouts
+  static const Duration dnsLookupTimeout = Duration(seconds: 3);
   static const Duration geocodeTimeout = Duration(seconds: 5);
   static const Duration locationTimeout = Duration(seconds: 10);
   static const Duration aiHttpTimeout = Duration(seconds: 30);
@@ -53,6 +54,7 @@ abstract final class AppDurations {
   static const Duration onboardingPulse = Duration(milliseconds: 1500);
 
   // Voice
+  static const Duration voiceRecordingTick = Duration(seconds: 1);
   static const Duration voiceBarUpdate = Duration(milliseconds: 50);
   static const Duration voiceShimmer = Duration(milliseconds: 1500);
 
@@ -66,6 +68,10 @@ abstract final class AppDurations {
 
   // Temp file cleanup
   static const Duration tempFileCleanupDelay = Duration(seconds: 2);
+
+  // Category suggestion debounce
+  static const Duration categorySuggestionDebounce =
+      Duration(milliseconds: 500);
 
   // Smart defaults
   static const Duration quickAddLookback = Duration(days: 90);

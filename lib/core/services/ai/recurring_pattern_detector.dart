@@ -12,6 +12,7 @@ class DetectedPattern {
     required this.frequency,
     required this.confidence,
     required this.nextExpectedDate,
+    this.type = 'expense', // Patterns are detected from expenses only
   });
 
   final int categoryId;
@@ -20,6 +21,7 @@ class DetectedPattern {
   final String frequency; // 'weekly' or 'monthly'
   final double confidence; // 0.0 – 1.0
   final DateTime nextExpectedDate;
+  final String type;
 }
 
 /// Detects repeated transactions that look like recurring expenses.

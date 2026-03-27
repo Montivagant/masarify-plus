@@ -10,6 +10,7 @@ abstract final class WalletResolver {
   static int? resolve(String sender, List<WalletEntity> wallets) {
     final senderLower = sender.toLowerCase();
     for (final wallet in wallets) {
+      if (wallet.isArchived) continue;
       for (final pattern in wallet.linkedSenders) {
         if (senderLower.contains(pattern.toLowerCase())) {
           return wallet.id;

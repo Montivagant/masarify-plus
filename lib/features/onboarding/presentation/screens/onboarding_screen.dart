@@ -10,13 +10,15 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
+import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../widgets/onboarding_pages.dart';
 
 /// 5-page onboarding flow:
 ///   Page 0 — Welcome hero (app value prop + language toggle)
 ///   Pages 1-3 — Value preview slides (animated feature demos)
-///   Page 4 — Account type picker (single tap → dashboard)
+///   Page 4 — Starting balance (optional, skip → 0)
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -28,6 +30,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   bool _loading = false;
   int _currentIndex = 0;
+
+  /// Starting balance in piastres — set on Page 4 (optional, defaults to 0).
+  int _startingBalancePiastres = 0;
 
   static const _pageCount = 5;
 
@@ -64,9 +69,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  void _skipToAccountPicker() {
+  void _skipToStartingBalance() {
     _pageController.animateToPage(
-      _pageCount - 1, // Last page = account picker
+      _pageCount - 1, // Starting balance = last page
       duration: AppDurations.pageTransition,
       curve: Curves.easeInOut,
     );
@@ -75,8 +80,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   /// Calculates per-page parallax offset.
   double _offsetForPage(int pageIndex) => _currentPage - pageIndex;
 
-  /// Called from account type picker — creates wallets and navigates.
-  Future<void> _finishWithType(String walletType) async {
+  /// Creates default bank account with optional starting balance and
+  /// navigates to dashboard.
+  Future<void> _finish() async {
     setState(() => _loading = true);
     try {
       final walletRepo = ref.read(walletRepositoryProvider);
@@ -87,21 +93,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         localizedName: context.l10n.wallet_type_physical_cash,
       );
 
-      // Create the user's chosen account type with a default name.
-      if (walletType != 'physical_cash') {
-        if (!mounted) return;
-        final defaultName = switch (walletType) {
-          'bank' => context.l10n.onboarding_default_bank_name,
-          'mobile_wallet' => context.l10n.onboarding_default_mobile_name,
-          _ => context.l10n.onboarding_default_wallet_name,
-        };
-        await walletRepo.create(
-          name: defaultName,
-          type: walletType,
-          initialBalance: 0,
-          isDefaultAccount: true,
-        );
-      }
+      // Create a default bank account with the optional starting balance.
+      if (!mounted) return;
+      await walletRepo.create(
+        name: context.l10n.onboarding_default_bank_name,
+        type: 'bank',
+        initialBalance: _startingBalancePiastres.clamp(0, (1 << 31) - 1),
+        isDefaultAccount: true,
+      );
 
       // Mark onboarding complete.
       final prefs = await ref.read(preferencesFutureProvider.future);
@@ -129,7 +128,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final cs = context.colors;
 
-    // Show skip button on slides 1-3 (value preview), not on welcome or picker.
+    // Show skip button on slides 1-3 (value preview), not on welcome or balance.
     final showSkip = _currentIndex >= 1 && _currentIndex <= 3;
 
     return PopScope(
@@ -158,7 +157,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       start: AppSizes.screenHPadding,
                     ),
                     child: TextButton(
-                      onPressed: _skipToAccountPicker,
+                      onPressed: _skipToStartingBalance,
                       child: Text(
                         context.l10n.common_skip,
                         style: context.textStyles.bodyMedium?.copyWith(
@@ -200,20 +199,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       demoWidget: const VoiceDemo(),
                       pageOffset: _offsetForPage(2),
                     ),
-                    // Page 3: SMS auto-detect
+                    // Page 3: AI Financial Advisor
                     ValuePreviewSlide(
-                      icon: AppIcons.sms,
-                      iconColor: cs.tertiary,
+                      icon: AppIcons.ai,
+                      iconColor: cs.primary,
                       title: context.l10n.onboarding_slide3_title,
                       subtitle: context.l10n.onboarding_slide3_body,
-                      demoWidget: const SmsDemo(),
+                      demoWidget: const ChatDemo(),
                       pageOffset: _offsetForPage(3),
                     ),
-                    // Page 4: Account type picker
-                    AccountTypePicker(
-                      onTypeSelected: _loading ? (_) {} : _finishWithType,
-                      loading: _loading,
+                    // Page 4: Starting balance (optional)
+                    _StartingBalancePage(
                       pageOffset: _offsetForPage(4),
+                      loading: _loading,
+                      onAmountChanged: (piastres) =>
+                          _startingBalancePiastres = piastres,
+                      onFinish: _finish,
+                      onSkip: () {
+                        _startingBalancePiastres = 0;
+                        _finish();
+                      },
                     ),
                   ],
                 ),
@@ -301,6 +306,104 @@ class _SuccessOverlayState extends State<_SuccessOverlay> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Page 4: Starting Balance ─────────────────────────────────────────────────
+
+class _StartingBalancePage extends StatelessWidget {
+  const _StartingBalancePage({
+    required this.pageOffset,
+    required this.loading,
+    required this.onAmountChanged,
+    required this.onFinish,
+    required this.onSkip,
+  });
+
+  final double pageOffset;
+  final bool loading;
+  final ValueChanged<int> onAmountChanged;
+  final VoidCallback onFinish;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+      child: Column(
+        children: [
+          const Spacer(),
+          // ── Icon ───────────────────────────────────────────────────────
+          Transform.translate(
+            offset: Offset(pageOffset * AppSizes.onboardingParallaxOffset, 0),
+            child: Container(
+              width: AppSizes.onboardingIcon,
+              height: AppSizes.onboardingIcon,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: AppSizes.opacityLight),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                AppIcons.wallet,
+                size: AppSizes.iconXl2,
+                color: cs.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.xl),
+          // ── Title ──────────────────────────────────────────────────────
+          Text(
+            context.l10n.onboarding_starting_balance_title,
+            style: context.textStyles.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSizes.sm),
+          Text(
+            context.l10n.onboarding_starting_balance_body,
+            style: context.textStyles.bodyMedium?.copyWith(
+              color: cs.outline,
+              height: AppSizes.lineHeightNormal,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSizes.xl),
+          // ── Amount input ───────────────────────────────────────────────
+          AmountInput(
+            onAmountChanged: onAmountChanged,
+            autofocus: false,
+          ),
+          const Spacer(flex: 2),
+          // ── Buttons ────────────────────────────────────────────────────
+          if (loading)
+            const Padding(
+              padding: EdgeInsets.all(AppSizes.xl),
+              child: CircularProgressIndicator.adaptive(),
+            )
+          else ...[
+            AppButton(
+              label: context.l10n.onboarding_starting_balance_set,
+              onPressed: onFinish,
+              icon: AppIcons.check,
+            ),
+            const SizedBox(height: AppSizes.sm),
+            TextButton(
+              onPressed: onSkip,
+              child: Text(
+                context.l10n.common_skip,
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: cs.outline,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSizes.xl),
+        ],
       ),
     );
   }

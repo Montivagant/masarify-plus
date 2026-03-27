@@ -27,8 +27,9 @@ final _insightDismissVersionProvider = StateProvider<int>((_) => 0);
 /// Card priority (highest first):
 /// 1. Budget at risk (spending > 80% of limit)
 /// 2. Over-budget prediction (pace predicts overspend)
-/// 3. Recurring pattern detected
-/// 4. Budget suggestion (unbudgeted high-spend category)
+/// 3. Upcoming bills (due within 7 days)
+/// 4. Recurring pattern detected
+/// 5. Budget suggestion (unbudgeted high-spend category)
 class InsightCardsZone extends ConsumerWidget {
   const InsightCardsZone({super.key});
 
@@ -90,7 +91,27 @@ class InsightCardsZone extends ConsumerWidget {
       );
     }
 
-    // ── Priority 3: Recurring pattern detected ────────────────────────
+    // ── Priority 3: Upcoming bills (due within 7 days) ────────────────
+    final upcomingBills = ref.watch(upcomingBillsProvider);
+    if (upcomingBills.isNotEmpty) {
+      final key =
+          'upcoming_bills_${DateTime.now().toIso8601String().substring(0, 10)}';
+      if (!nudge.isCardDismissed(key)) {
+        cards.add(
+          _InsightData(
+            key: key,
+            icon: AppIcons.bill,
+            color: context.appTheme.transferColor,
+            title: context.l10n.insight_upcoming_bills_title,
+            subtitle:
+                context.l10n.insight_upcoming_bills_body(upcomingBills.length),
+            route: AppRoutes.recurring,
+          ),
+        );
+      }
+    }
+
+    // ── Priority 4: Recurring pattern detected ────────────────────────
     final patterns = ref.watch(detectedPatternsProvider);
     for (final p in patterns.take(1)) {
       final key = 'recurring_${p.categoryId}_${p.amount}';
@@ -105,12 +126,13 @@ class InsightCardsZone extends ConsumerWidget {
             MoneyFormatter.format(p.amount),
             p.frequency,
           ),
-          route: AppRoutes.recurring,
+          route: AppRoutes.recurringAdd,
+          extra: p,
         ),
       );
     }
 
-    // ── Priority 4: Budget suggestion ─────────────────────────────────
+    // ── Priority 5: Budget suggestion ─────────────────────────────────
     final suggestions = ref.watch(budgetSuggestionsProvider);
     for (final s in suggestions.take(1)) {
       final key = 'suggest_budget_${s.categoryId}';
@@ -131,13 +153,37 @@ class InsightCardsZone extends ConsumerWidget {
       );
     }
 
+    // ── Priority 6: Budget savings (came under budget last month) ────
+    final savings = ref.watch(budgetSavingsProvider);
+    if (savings.isNotEmpty) {
+      final top = savings.first;
+      final key = 'budget_saving_${top.month}_${top.year}';
+      if (!nudge.isCardDismissed(key)) {
+        cards.add(
+          _InsightData(
+            key: key,
+            icon: AppIcons.savingsTransfer,
+            color: context.appTheme.incomeColor,
+            title: context.l10n.insight_budget_savings_title,
+            subtitle: context.l10n.insight_budget_savings_body(
+              MoneyFormatter.format(top.savedAmount),
+              top.displayName(context.languageCode),
+            ),
+            route: AppRoutes.budgets,
+          ),
+        );
+      }
+    }
+
     // Take max 2 cards.
     final visible = cards.take(NudgeService.maxCardsVisible).toList();
     if (visible.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.screenHPadding,
+      padding: const EdgeInsets.only(
+        left: AppSizes.screenHPadding,
+        right: AppSizes.screenHPadding,
+        bottom: AppSizes.sectionGap,
       ),
       child: Column(
         children: visible
@@ -147,7 +193,7 @@ class InsightCardsZone extends ConsumerWidget {
                 child: _InsightCard(
                   data: data,
                   onDismiss: () => _dismiss(ref, data.key),
-                  onTap: () => context.push(data.route),
+                  onTap: () => context.push(data.route, extra: data.extra),
                 ),
               ),
             )
@@ -173,6 +219,7 @@ class _InsightData {
     required this.title,
     required this.subtitle,
     required this.route,
+    this.extra,
   });
 
   final String key;
@@ -181,6 +228,7 @@ class _InsightData {
   final String title;
   final String subtitle;
   final String route;
+  final Object? extra;
 }
 
 // ── Card widget ─────────────────────────────────────────────────────────────

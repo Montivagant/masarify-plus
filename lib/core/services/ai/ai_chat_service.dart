@@ -17,6 +17,7 @@ class FinancialContext {
     required this.topCategories,
     required this.userLocale,
     required this.categoryList,
+    required this.currentDate,
     this.walletList = const [],
     this.unbudgetedHighSpend = const [],
     this.savingsRate = 0,
@@ -34,6 +35,9 @@ class FinancialContext {
 
   /// 'en' or 'ar' — explicit locale for AI language selection.
   final String userLocale;
+
+  /// Current date/time for date-aware prompts.
+  final DateTime currentDate;
 
   /// Available categories for action matching, e.g. 'Food (طعام)|expense'.
   final List<String> categoryList;
@@ -69,25 +73,83 @@ class AiChatService {
     final balance = MoneyFormatter.formatCompact(ctx.totalBalance);
     final income = MoneyFormatter.formatCompact(ctx.monthlyIncome);
     final expense = MoneyFormatter.formatCompact(ctx.monthlyExpense);
+    final isAr = ctx.userLocale == 'ar';
+
     final budgets = ctx.budgetStatus.isEmpty
-        ? 'No active budgets'
+        ? (isAr ? 'لا توجد ميزانيات نشطة' : 'No active budgets')
         : ctx.budgetStatus.join(', ');
-    final goals =
-        ctx.goalStatus.isEmpty ? 'No active goals' : ctx.goalStatus.join(', ');
+    final goals = ctx.goalStatus.isEmpty
+        ? (isAr ? 'لا توجد أهداف نشطة' : 'No active goals')
+        : ctx.goalStatus.join(', ');
     final cats = ctx.topCategories.isEmpty
-        ? 'No spending data yet'
+        ? (isAr ? 'لا توجد بيانات إنفاق بعد' : 'No spending data yet')
         : ctx.topCategories.join(', ');
-    final langName = ctx.userLocale == 'ar' ? 'Arabic' : 'English';
+    final langName = isAr ? 'Arabic' : 'English';
     final categoryNames =
         ctx.categoryList.isEmpty ? 'None' : ctx.categoryList.join(', ');
     final unbudgeted = ctx.unbudgetedHighSpend.isEmpty
         ? ''
-        : '\n- Unbudgeted high-spend: ${ctx.unbudgetedHighSpend.join(', ')}';
-    final savingsInfo =
-        ctx.monthlyIncome > 0 ? '\n- Savings rate: ${ctx.savingsRate}%' : '';
-    final walletNames =
-        ctx.walletList.isEmpty ? 'No accounts' : ctx.walletList.join(', ');
+        : isAr
+            ? '\n- إنفاق عالي بدون ميزانية: ${ctx.unbudgetedHighSpend.join(', ')}'
+            : '\n- Unbudgeted high-spend: ${ctx.unbudgetedHighSpend.join(', ')}';
+    final savingsInfo = ctx.monthlyIncome > 0
+        ? isAr
+            ? '\n- نسبة الادخار: ${ctx.savingsRate}%'
+            : '\n- Savings rate: ${ctx.savingsRate}%'
+        : '';
+    final walletNames = ctx.walletList.isEmpty
+        ? (isAr ? 'لا توجد حسابات' : 'No accounts')
+        : ctx.walletList.join(', ');
     final walletCount = ctx.walletList.length;
+
+    // Date context for AI — prevents hallucinated dates from free models.
+    final now = ctx.currentDate;
+    const dayNamesEn = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const dayNamesAr = [
+      'الاثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد',
+    ];
+    final dateStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final dayNameEn = dayNamesEn[now.weekday - 1];
+    final dayNameAr = dayNamesAr[now.weekday - 1];
+
+    if (isAr) {
+      return _buildArabicPrompt(
+        balance: balance,
+        income: income,
+        expense: expense,
+        savingsInfo: savingsInfo,
+        walletCount: walletCount,
+        walletNames: walletNames,
+        budgets: budgets,
+        activeBudgetCount: ctx.activeBudgetCount,
+        goals: goals,
+        activeGoalCount: ctx.activeGoalCount,
+        cats: cats,
+        recurringCount: ctx.recurringCount,
+        unbudgeted: unbudgeted,
+        categoryNames: categoryNames,
+        dateStr: dateStr,
+        timeStr: timeStr,
+        dayName: dayNameAr,
+      );
+    }
 
     return '⚡ LANGUAGE RULE (HIGHEST PRIORITY): You MUST respond in $langName. Every word of your reply must be in $langName.\n'
         'EXCEPTION: If user writes in Franco-Arab/Arabezi (Arabic in Latin letters, e.g. "3ayz", "7aga", "el", "kda", "ana"), ALWAYS respond in Arabic.\n'
@@ -102,6 +164,10 @@ class AiChatService {
         '- Goals (${ctx.activeGoalCount}): $goals\n'
         '- Top spending: $cats\n'
         '- Recurring rules: ${ctx.recurringCount}$unbudgeted\n'
+        '\n'
+        'CURRENT DATE & TIME: $dateStr $timeStr ($dayNameEn)\n'
+        'Use this as reference for all dates. "yesterday" = day before $dateStr, "last Friday" = most recent Friday before $dateStr.\n'
+        'When no date is specified, ALWAYS use "$dateStr" as the default date.\n'
         '\n'
         'ADVISOR BEHAVIOR:\n'
         '1. IDENTIFY GAPS: No budgets + has income? Suggest creating budgets. Savings rate < 20%? Warn.\n'
@@ -124,17 +190,98 @@ class AiChatService {
         'NEVER ask "what\'s your budget?" or "how much did you spend?" — you KNOW. '
         'Reference specific numbers from the snapshot. Answer data questions directly.\n'
         '\n'
+        'TEXT FORMAT: Use **bold** for key numbers, bullet lists for comparisons. Keep responses concise.\n'
+        '\n'
         'ACTIONS (one JSON block per response, amounts in EGP):\n'
+        'IMPORTANT: Always wrap your action JSON inside ```json ... ``` fences. Never output bare JSON.\n'
         'Categories: $categoryNames\n'
         '\n'
-        'create_transaction: {"action":"create_transaction","title":"X","amount":150,"type":"expense","category":"Food","date":"2026-03-09","note":"opt"}\n'
+        'create_transaction: {"action":"create_transaction","title":"X","amount":150,"type":"expense","category":"Food","date":"$dateStr","note":"opt"}\n'
         'create_goal: {"action":"create_goal","name":"X","target_amount":5000,"deadline":"2026-12-31"}\n'
-        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":3,"year":2026}\n'
+        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":${now.month},"year":${now.year}}\n'
         'create_recurring: {"action":"create_recurring","title":"X","amount":200,"frequency":"monthly","category":"Bills","type":"expense"}\n'
         'create_wallet: {"action":"create_wallet","name":"CIB","type":"bank","initial_balance":5000}\n'
-        'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"2026-03-09"}\n'
+        'create_transfer: {"action":"create_transfer","amount":1000,"from_wallet":"CIB","to_wallet":"NBE","note":"opt","date":"$dateStr"}\n'
+        'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"$dateStr"}\n'
         '\n'
-        'One action/response. Valid JSON with double quotes. Never assume amounts.\n';
+        'TRANSFER DETECTION: When user mentions moving money between accounts (حولت, سديت, نقلت, transferred), use create_transfer. NEVER split a transfer into two transactions.\n'
+        'One action/response. Valid JSON with double quotes inside ```json fences. Never assume amounts.\n';
+  }
+
+  String _buildArabicPrompt({
+    required String balance,
+    required String income,
+    required String expense,
+    required String savingsInfo,
+    required int walletCount,
+    required String walletNames,
+    required String budgets,
+    required int activeBudgetCount,
+    required String goals,
+    required int activeGoalCount,
+    required String cats,
+    required int recurringCount,
+    required String unbudgeted,
+    required String categoryNames,
+    required String dateStr,
+    required String timeStr,
+    required String dayName,
+  }) {
+    return '⚡ LANGUAGE RULE (HIGHEST PRIORITY): You MUST respond in Arabic. Every word of your reply must be in Arabic.\n'
+        'EXCEPTION: If user writes in Franco-Arab/Arabezi (Arabic in Latin letters, e.g. "3ayz", "7aga", "el", "kda", "ana"), ALWAYS respond in Arabic.\n'
+        '\n'
+        'أنت مصاريفي، مستشار مالي ذكي ومفيد لمستخدم مصري.\n'
+        'استخدم البيانات المتوفرة فقط. كن مفيداً ودقيقاً.\n'
+        '\n'
+        'لقطة مالية:\n'
+        '- الرصيد: $balance | الدخل: $income | المصروفات: $expense$savingsInfo\n'
+        '- الحسابات ($walletCount): $walletNames\n'
+        '- الميزانيات ($activeBudgetCount): $budgets\n'
+        '- الأهداف ($activeGoalCount): $goals\n'
+        '- أعلى مصروفات: $cats\n'
+        '- القواعد المتكررة: $recurringCount$unbudgeted\n'
+        '\n'
+        'التاريخ والوقت الحالي: $dateStr $timeStr ($dayName)\n'
+        'استخدم هذا كمرجع لكل التواريخ. "امبارح" = اليوم السابق لـ $dateStr، "الجمعة اللي فاتت" = آخر جمعة قبل $dateStr.\n'
+        'عند عدم تحديد تاريخ، استخدم دائماً "$dateStr" كتاريخ افتراضي.\n'
+        '\n'
+        'سلوك المستشار:\n'
+        '1. حدد الفجوات: لا توجد ميزانيات + يوجد دخل؟ اقترح إنشاء ميزانيات. نسبة الادخار أقل من 20%؟ حذّر.\n'
+        '2. نبّه للمشاكل: الميزانية أكبر من الدخل الشهري؟ حذّر. موعد الهدف انتهى؟ نبّه. الميزانية تجاوزت 80%؟ أنذر.\n'
+        '3. اقترح: بعد إنشاء معاملة، اقترح ميزانية إذا الفئة بدون ميزانية والإنفاق أكثر من 500 جنيه/شهر.\n'
+        '4. **استنتج عند الوضوح، اسأل عند الغموض**:\n'
+        '   - المبلغ: مطلوب دائماً من المستخدم — لا تخمن أبداً.\n'
+        '   - الفئة: استنتج من الكلمات (مثل "اوبر"→مواصلات، "كنتاكي"→طعام). استخدم قائمة الفئات. اسأل فقط إذا كان غامضاً.\n'
+        '   - الحساب: إذا يوجد حساب واحد فقط، استخدمه تلقائياً. إذا يوجد أكثر، استنتج من الاسم. اسأل فقط إذا كان غامضاً.\n'
+        '   - النوع: الافتراضي "مصروف" إلا إذا ذكر المستخدم دخل/راتب/استلام.\n'
+        '   - التاريخ: الافتراضي اليوم إلا إذا حدد المستخدم ("امبارح"، "الجمعة اللي فاتت"، تاريخ معين).\n'
+        '   - الشهر/السنة: الافتراضي الشهر الحالي للميزانيات إلا إذا حُدد.\n'
+        '   - التكرار: الافتراضي "شهري" للقواعد المتكررة إلا إذا حُدد.\n'
+        '   - لا تفترض المبلغ أبداً. أكد الإجراء الكامل قبل إنشاء JSON.\n'
+        '5. **ناقش قبل الإنشاء**: إذا طلب المستخدم نصيحة أو مساعدة في التخطيط أو أسئلة عامة، '
+        'تحاور واقترح خيارات — لا تنشئ JSON فوراً. '
+        'أنشئ إجراءات فقط عندما يطلب المستخدم إجراءً محدداً بتفاصيل كافية.\n'
+        '6. مدرك للسياق: ارجع للبيانات الفعلية. "ميزانية الطعام وصلت 85% و باقي 10 أيام."\n'
+        '7. **استخدم بياناتك**: لديك بالفعل حسابات وفئات وميزانيات وأهداف وإنفاق المستخدم. '
+        'لا تسأل "ميزانيتك كام؟" أو "صرفت كام؟" — أنت تعرف. '
+        'ارجع لأرقام محددة من اللقطة المالية. أجب عن أسئلة البيانات مباشرة.\n'
+        '\n'
+        'التنسيق: استخدم **عريض** للأرقام المهمة، قوائم للمقارنات. اجعل الردود مختصرة.\n'
+        '\n'
+        'الإجراءات (JSON واحد لكل رد، المبالغ بالجنيه المصري):\n'
+        'مهم: لف JSON الإجراء دائماً في ```json ... ``` أسوار. لا تخرج JSON بدون أسوار.\n'
+        'Categories: $categoryNames\n'
+        '\n'
+        'create_transaction: {"action":"create_transaction","title":"X","amount":150,"type":"expense","category":"Food","date":"$dateStr","note":"opt"}\n'
+        'create_goal: {"action":"create_goal","name":"X","target_amount":5000,"deadline":"2026-12-31"}\n'
+        'create_budget: {"action":"create_budget","category":"Food","limit":3000,"month":${DateTime.now().month},"year":${DateTime.now().year}}\n'
+        'create_recurring: {"action":"create_recurring","title":"X","amount":200,"frequency":"monthly","category":"Bills","type":"expense"}\n'
+        'create_wallet: {"action":"create_wallet","name":"CIB","type":"bank","initial_balance":5000}\n'
+        'create_transfer: {"action":"create_transfer","amount":1000,"from_wallet":"CIB","to_wallet":"NBE","note":"opt","date":"$dateStr"}\n'
+        'delete_transaction: {"action":"delete_transaction","title":"X","amount":250,"date":"$dateStr"}\n'
+        '\n'
+        'كشف التحويلات: عند ذكر نقل فلوس بين حسابات (حولت, سديت, نقلت, transferred), استخدم create_transfer. لا تقسم التحويل إلى معاملتين أبداً.\n'
+        'إجراء واحد لكل رد. JSON صالح بعلامات اقتباس مزدوجة داخل ```json أسوار. لا تفترض المبالغ أبداً.\n';
   }
 
   List<ChatMessageEntity> _trimHistory(List<ChatMessageEntity> allMessages) {

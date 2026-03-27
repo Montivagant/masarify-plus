@@ -38,10 +38,17 @@ abstract final class BrandRegistry {
   /// All registered brands, ordered by specificity (more specific first).
   static const List<BrandInfo> brands = [
     // ── Egyptian Telecom ──────────────────────────────────────────────
+    // Vodafone Cash MUST be before Vodafone (more specific match first).
+    BrandInfo(
+      name: 'Vodafone Cash',
+      color: Color(0xFFE60000),
+      keywords: ['vodafone cash', 'فودافون كاش'],
+      initial: 'VC',
+    ),
     BrandInfo(
       name: 'Vodafone',
       color: Color(0xFFE60000),
-      keywords: ['vodafone', 'فودافون'],
+      keywords: ['vodafone', 'فودافون', 'ڤودافون'],
     ),
     BrandInfo(
       name: 'Orange',
@@ -65,13 +72,21 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'CIB',
       color: Color(0xFF003DA5),
-      keywords: ['cib', 'تجاري الدولي'],
+      keywords: ['cib', 'سي اي بي', 'السي اي بي', 'تجاري الدولي'],
       initial: 'CIB',
     ),
     BrandInfo(
       name: 'NBE',
       color: Color(0xFF004B87),
-      keywords: ['nbe', 'الأهلي', 'ahly', 'national bank'],
+      keywords: [
+        'nbe',
+        'الأهلي',
+        'الاهلي',
+        'ahly',
+        'national bank',
+        'ان بي اي',
+        'البنك الاهلي',
+      ],
       initial: 'NBE',
     ),
     BrandInfo(
@@ -83,13 +98,13 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'QNB',
       color: Color(0xFF8B0029),
-      keywords: ['qnb', 'قطر الوطني'],
+      keywords: ['qnb', 'قطر الوطني', 'كيو ان بي'],
       initial: 'QNB',
     ),
     BrandInfo(
       name: 'HSBC',
       color: Color(0xFFDB0011),
-      keywords: ['hsbc'],
+      keywords: ['hsbc', 'اتش اس بي سي'],
       initial: 'HSBC',
     ),
 
@@ -107,12 +122,30 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'ValU',
       color: Color(0xFF6C63FF),
-      keywords: ['valu', 'ڤاليو'],
+      keywords: ['valu', 'ڤاليو', 'فاليو'],
     ),
     BrandInfo(
       name: 'Telda',
       color: Color(0xFF00C853),
-      keywords: ['telda', 'تلدا'],
+      keywords: ['telda', 'تلدا', 'تيلدا'],
+    ),
+    BrandInfo(
+      name: 'MNT-Halan',
+      color: Color(0xFF1E3A5F),
+      keywords: ['mnt', 'halan', 'هالان'],
+      initial: 'MH',
+    ),
+    BrandInfo(
+      name: 'Shahry',
+      color: Color(0xFF6C63FF),
+      keywords: ['shahry', 'شهري'],
+      initial: 'Sh',
+    ),
+    BrandInfo(
+      name: 'Sympl',
+      color: Color(0xFFFF6B35),
+      keywords: ['sympl', 'سيمبل'],
+      initial: 'Sy',
     ),
 
     // ── Ride-hailing & Delivery ─────────────────────────────────────
@@ -126,7 +159,7 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'Uber',
       color: Color(0xFF000000),
-      keywords: ['uber'],
+      keywords: ['uber', 'اوبر'],
     ),
     BrandInfo(
       name: 'Careem',
@@ -136,7 +169,13 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'InDriver',
       color: Color(0xFF3EB549),
-      keywords: ['indriver'],
+      keywords: ['indriver', 'ان درايفر'],
+    ),
+    BrandInfo(
+      name: 'Swvl',
+      color: Color(0xFF34D399),
+      keywords: ['swvl', 'سويفل'],
+      initial: 'Sw',
     ),
     BrandInfo(
       name: 'Talabat',
@@ -175,12 +214,18 @@ abstract final class BrandRegistry {
       color: Color(0xFF00BFA5),
       keywords: ['instashop'],
     ),
+    BrandInfo(
+      name: 'B.Tech',
+      color: Color(0xFF004B93),
+      keywords: ['b.tech', 'btech', 'بي تك'],
+      initial: 'BT',
+    ),
 
     // ── Streaming & Entertainment ───────────────────────────────────
     BrandInfo(
       name: 'Netflix',
       color: Color(0xFFE50914),
-      keywords: ['netflix', 'نتفلكس'],
+      keywords: ['netflix', 'نتفلكس', 'نتفليكس'],
     ),
     BrandInfo(
       name: 'Spotify',
@@ -224,18 +269,30 @@ abstract final class BrandRegistry {
     BrandInfo(
       name: 'KFC',
       color: Color(0xFFF40027),
-      keywords: ['kfc', 'كنتاكي'],
+      keywords: ['kfc', 'كنتاكي', 'كي اف سي'],
       initial: 'KFC',
     ),
     BrandInfo(
       name: 'Costa Coffee',
       color: Color(0xFF6F263D),
       keywords: ['costa', 'كوستا'],
+      initial: 'CC',
     ),
     BrandInfo(
       name: 'Hardees',
       color: Color(0xFFE1251B),
       keywords: ['hardees', 'هارديز'],
+    ),
+    BrandInfo(
+      name: "Mo'men",
+      color: Color(0xFFD4AF37),
+      keywords: ["mo'men", 'momen', 'مؤمن'],
+      initial: 'Mo',
+    ),
+    BrandInfo(
+      name: 'Gad',
+      color: Color(0xFF8B0000),
+      keywords: ['gad', 'جاد'],
     ),
 
     // ── Shopping ────────────────────────────────────────────────────
@@ -264,6 +321,14 @@ abstract final class BrandRegistry {
       name: 'Zara',
       color: Color(0xFF000000),
       keywords: ['zara', 'زارا'],
+    ),
+
+    // ── Travel & Airlines ──────────────────────────────────────────
+    BrandInfo(
+      name: 'EgyptAir',
+      color: Color(0xFF00205B),
+      keywords: ['egyptair', 'مصر للطيران'],
+      initial: 'EA',
     ),
 
     // ── Utilities & Services ─────────────────────────────────────────

@@ -25,6 +25,8 @@ sealed class ChatAction {
         return _parseRecurring(json);
       case 'create_wallet':
         return _parseWallet(json);
+      case 'create_transfer':
+        return _parseTransfer(json);
       case 'delete_transaction':
         return _parseDeleteTransaction(json);
       default:
@@ -140,6 +142,30 @@ sealed class ChatAction {
       name: name,
       type: type,
       initialBalancePiastres: balancePiastres,
+    );
+  }
+
+  static CreateTransferAction? _parseTransfer(Map<String, dynamic> json) {
+    final rawAmount = json['amount'];
+    final from = json['from_wallet'] as String?;
+    final to = json['to_wallet'] as String?;
+    if (rawAmount == null ||
+        from == null ||
+        from.isEmpty ||
+        to == null ||
+        to.isEmpty) {
+      return null;
+    }
+
+    final piastres = (_toDouble(rawAmount) * 100).round();
+    if (piastres <= 0 || piastres > _kMaxPiastres) return null;
+
+    return CreateTransferAction(
+      amountPiastres: piastres,
+      fromWalletName: from,
+      toWalletName: to,
+      note: json['note'] as String?,
+      date: json['date'] as String?,
     );
   }
 
@@ -308,6 +334,35 @@ class CreateWalletAction extends ChatAction {
         'name': name,
         'type': type,
         'initial_balance': initialBalancePiastres / 100,
+      };
+}
+
+/// Action to create an inter-account transfer.
+class CreateTransferAction extends ChatAction {
+  const CreateTransferAction({
+    required this.amountPiastres,
+    required this.fromWalletName,
+    required this.toWalletName,
+    this.note,
+    this.date,
+  });
+
+  /// Amount in integer piastres (100 EGP = 10000).
+  final int amountPiastres;
+
+  final String fromWalletName;
+  final String toWalletName;
+  final String? note;
+  final String? date;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'create_transfer',
+        'amount': amountPiastres / 100,
+        'from_wallet': fromWalletName,
+        'to_wallet': toWalletName,
+        if (note != null) 'note': note,
+        if (date != null) 'date': date,
       };
 }
 

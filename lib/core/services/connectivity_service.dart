@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import '../constants/app_durations.dart';
+
 /// Exposes network connectivity state as a stream and one-shot check.
 ///
 /// Used by AI features (voice parsing, SMS enrichment) to avoid HTTP
@@ -13,8 +15,7 @@ class ConnectivityService {
 
   /// Emits `true` when at least one non-[ConnectivityResult.none] result
   /// is present, `false` when all results are [ConnectivityResult.none].
-  Stream<bool> get onlineStream =>
-      _connectivity.onConnectivityChanged.map(
+  Stream<bool> get onlineStream => _connectivity.onConnectivityChanged.map(
         (results) => results.any((r) => r != ConnectivityResult.none),
       );
 
@@ -30,7 +31,7 @@ class ConnectivityService {
     // Verify actual internet access via DNS lookup.
     try {
       final result = await InternetAddress.lookup('openrouter.ai')
-          .timeout(const Duration(seconds: 3));
+          .timeout(AppDurations.dnsLookupTimeout);
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException catch (_) {
       dev.log('DNS lookup failed — WiFi but no internet', name: 'Connectivity');

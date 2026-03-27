@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -14,11 +15,11 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
-/// Planning tab — focused hub for Accounts, Budgets & Goals, Recurring & Bills,
-/// and AI Assistant.
+/// Planning tab — focused hub for Accounts, Budgets & Goals, and AI Assistant.
 ///
 /// Previously the "More/Hub" tab which was a dumping ground with 9 items.
 /// Categories, Backup, and Parser Review moved to Settings.
+/// Subscriptions & Bills promoted to its own bottom-nav tab.
 class HubScreen extends ConsumerWidget {
   const HubScreen({super.key});
 
@@ -59,21 +60,22 @@ class HubScreen extends ConsumerWidget {
               AppIcons.category,
               AppRoutes.categories,
             ),
-            Builder(
-              builder: (context) {
-                final pendingCount =
-                    ref.watch(pendingCountProvider).valueOrNull ?? 0;
-                return _tile(
-                  context,
-                  context.l10n.auto_detected_transactions,
-                  AppIcons.inbox,
-                  AppRoutes.parserReview,
-                  subtitle: pendingCount > 0
-                      ? context.l10n.sms_new_found(pendingCount)
-                      : null,
-                );
-              },
-            ),
+            if (AppConfig.kSmsEnabled)
+              Builder(
+                builder: (context) {
+                  final pendingCount =
+                      ref.watch(pendingCountProvider).valueOrNull ?? 0;
+                  return _tile(
+                    context,
+                    context.l10n.auto_detected_transactions,
+                    AppIcons.inbox,
+                    AppRoutes.parserReview,
+                    subtitle: pendingCount > 0
+                        ? context.l10n.sms_new_found(pendingCount)
+                        : null,
+                  );
+                },
+              ),
           ]),
 
           // ── Budgets & Goals ────────────────────────────────────────
@@ -95,16 +97,6 @@ class HubScreen extends ConsumerWidget {
               subtitle: activeGoalCount > 0
                   ? '$activeGoalCount ${context.l10n.hub_in_progress}'
                   : null,
-            ),
-          ]),
-
-          // ── Recurring & Bills ──────────────────────────────────────
-          _section(context, context.l10n.hub_section_recurring, [
-            _tile(
-              context,
-              context.l10n.recurring_and_bills_title,
-              AppIcons.recurring,
-              AppRoutes.recurring,
             ),
           ]),
 

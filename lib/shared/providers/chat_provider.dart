@@ -89,10 +89,15 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     topCategories.add('$name: $formatted');
   }
 
-  // Category list for AI action matching (name + nameAr + type)
+  // Category list for AI action matching (name + nameAr + type).
+  // When locale is Arabic, put Arabic name first for better AI context.
   final categoryList = categories
       .where((c) => !c.isArchived)
-      .map((c) => '${c.name} (${c.nameAr})|${c.type}')
+      .map(
+        (c) => lang == 'ar'
+            ? '${c.nameAr} (${c.name})|${c.type}'
+            : '${c.name} (${c.nameAr})|${c.type}',
+      )
       .toList();
 
   // Unbudgeted categories with significant spending (>500 EGP = 50000 piastres).
@@ -133,6 +138,7 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
     goalStatus: goalStatus,
     topCategories: topCategories,
     userLocale: lang,
+    currentDate: now,
     categoryList: categoryList,
     walletList: walletList,
     unbudgetedHighSpend: unbudgetedHighSpend,
@@ -152,5 +158,6 @@ final chatActionExecutorProvider = Provider<ChatActionExecutor>((ref) {
     budgetRepo: ref.watch(budgetRepositoryProvider),
     recurringRepo: ref.watch(recurringRuleRepositoryProvider),
     walletRepo: ref.watch(walletRepositoryProvider),
+    transferRepo: ref.watch(transferRepositoryProvider),
   );
 });

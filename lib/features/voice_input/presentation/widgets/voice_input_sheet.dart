@@ -118,7 +118,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       if (!mounted) return;
 
       _recordingSeconds = 0;
-      _durationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _durationTimer = Timer.periodic(AppDurations.voiceRecordingTick, (timer) {
         if (!mounted) {
           timer.cancel();
           return;

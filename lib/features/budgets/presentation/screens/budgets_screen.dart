@@ -13,6 +13,7 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/month_name_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/money_formatter.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -87,6 +88,12 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
   Widget build(BuildContext context) {
     final budgetsAsync = ref.watch(budgetsByMonthProvider((_year, _month)));
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    // Last month's savings keyed by category name for subtitle display.
+    final savings = ref.watch(budgetSavingsProvider);
+    final savingsByCatName = {
+      for (final s in savings)
+        s.displayName(context.languageCode): s.savedAmount,
+    };
 
     return Scaffold(
       appBar: AppAppBar(
@@ -124,8 +131,7 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                     ),
                   );
                 }
-                final totalLimit =
-                    budgets.fold(0, (s, b) => s + b.effectiveLimit);
+                final totalLimit = budgets.fold(0, (s, b) => s + b.limitAmount);
                 final totalSpent = budgets.fold(0, (s, b) => s + b.spentAmount);
 
                 // E4: Staggered entry animation for budget cards.
@@ -171,18 +177,28 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                             padding: const EdgeInsets.symmetric(
                               vertical: AppSizes.xs,
                             ),
-                            child: BudgetProgressCard(
-                              categoryName:
-                                  cat.displayName(context.languageCode),
-                              categoryIcon:
-                                  CategoryIconMapper.fromName(cat.iconName),
-                              limitPiastres: budget.effectiveLimit,
-                              spentPiastres: budget.spentAmount,
-                              onTap: () => context.push(
-                                '/budgets/${budget.id}/edit',
-                                extra: {'year': _year, 'month': _month},
-                              ),
-                            ),
+                            child: () {
+                              final catName =
+                                  cat.displayName(context.languageCode);
+                              final lastMonthSaved = savingsByCatName[catName];
+                              return BudgetProgressCard(
+                                categoryName: catName,
+                                categoryIcon:
+                                    CategoryIconMapper.fromName(cat.iconName),
+                                limitPiastres: budget.limitAmount,
+                                spentPiastres: budget.spentAmount,
+                                subtitle: lastMonthSaved != null &&
+                                        lastMonthSaved > 0
+                                    ? context.l10n.budget_saved_last_month(
+                                        MoneyFormatter.format(lastMonthSaved),
+                                      )
+                                    : null,
+                                onTap: () => context.push(
+                                  '/budgets/${budget.id}/edit',
+                                  extra: {'year': _year, 'month': _month},
+                                ),
+                              );
+                            }(),
                           ),
                         );
                         if (reduceMotion) return card;

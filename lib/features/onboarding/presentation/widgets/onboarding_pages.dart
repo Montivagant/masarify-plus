@@ -496,6 +496,133 @@ class SmsDemo extends StatelessWidget {
   }
 }
 
+// ── Slide 3 Demo: "AI Financial Advisor" ─────────────────────────────────────
+
+class ChatDemo extends StatelessWidget {
+  const ChatDemo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final noMotion = context.reduceMotion;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // AI brain icon with pulse ring
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: AppSizes.onboardingIcon,
+                height: AppSizes.onboardingIcon,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: AppSizes.opacitySubtle),
+                  shape: BoxShape.circle,
+                ),
+              )
+                  .animate(
+                    target: noMotion ? 0 : 1,
+                    onPlay: (c) => c.repeat(reverse: true),
+                  )
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1.2, 1.2),
+                    duration: AppDurations.onboardingPulse,
+                    curve: Curves.easeInOut,
+                  ),
+              Container(
+                width: AppSizes.iconXl3,
+                height: AppSizes.iconXl3,
+                decoration: BoxDecoration(
+                  color: cs.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  AppIcons.ai,
+                  color: cs.onPrimary,
+                  size: AppSizes.iconLg,
+                ),
+              )
+                  .animate(target: noMotion ? 0 : 1)
+                  .scale(
+                    begin: const Offset(0.5, 0.5),
+                    duration: AppDurations.progressAnim,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(),
+            ],
+          ),
+          const SizedBox(height: AppSizes.lg),
+          // Mock user chat bubble
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: GlassCard(
+              tintColor:
+                  cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.sm,
+              ),
+              child: Text(
+                context.l10n.onboarding_demo_chat_user,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay1)
+              .slideX(
+                begin: context.isRtl ? -0.3 : 0.3,
+                end: 0,
+                curve: Curves.easeOut,
+              ),
+          const SizedBox(height: AppSizes.sm),
+          // Mock AI response bubble
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: GlassCard(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.sm,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    AppIcons.ai,
+                    color: cs.primary,
+                    size: AppSizes.iconSm,
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Flexible(
+                    child: Text(
+                      context.l10n.onboarding_demo_chat_ai,
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate(target: noMotion ? 0 : 1)
+              .fadeIn(delay: AppDurations.onboardingDemoDelay3)
+              .slideX(
+                begin: context.isRtl ? 0.3 : -0.3,
+                end: 0,
+                curve: Curves.easeOut,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Page 4: Account Type Picker ──────────────────────────────────────────────
 
 class AccountTypePicker extends StatelessWidget {

@@ -47,7 +47,8 @@ abstract final class AppIcons {
   static const IconData wallet = PhosphorIconsFill.wallet;
   static const IconData budget = PhosphorIconsFill.chartBar;
   static const IconData bill = PhosphorIconsFill.receipt;
-  static const IconData recurring = PhosphorIconsRegular.repeat;
+  static const IconData recurring = PhosphorIconsFill.repeat;
+  static const IconData recurringOutlined = PhosphorIconsRegular.repeat;
   static const IconData category = PhosphorIconsFill.gridFour;
   static const IconData calendar = PhosphorIconsRegular.calendarBlank;
   static const IconData sms = PhosphorIconsFill.chatText;
@@ -105,9 +106,26 @@ abstract final class AppIcons {
   static const IconData investment = PhosphorIconsBold.trendUp;
   static const IconData otherExpense = PhosphorIconsRegular.dotsThreeOutline;
   static const IconData otherIncome = PhosphorIconsRegular.dotsThreeOutline;
+  static const IconData installments = PhosphorIconsFill.creditCard;
+  static const IconData insurance = PhosphorIconsFill.shield;
+  static const IconData fuel = PhosphorIconsFill.gasPump;
+  static const IconData maintenance = PhosphorIconsFill.wrench;
+  static const IconData kidsFamily = PhosphorIconsFill.baby;
+  static const IconData pets = PhosphorIconsFill.pawPrint;
+  static const IconData coffee = PhosphorIconsFill.coffee;
+  static const IconData homeSupplies = PhosphorIconsFill.broom;
+  static const IconData charity = PhosphorIconsFill.handHeart;
+  static const IconData bankFees = PhosphorIconsFill.bank;
+  static const IconData delivery = PhosphorIconsFill.truck;
+  static const IconData savingsTransfer = PhosphorIconsFill.piggyBank;
   static const IconData ai = PhosphorIconsFill.sparkle;
   static const IconData quickStart = PhosphorIconsFill.rocketLaunch;
   static const IconData send = PhosphorIconsFill.paperPlaneRight;
+  static const IconData archive = PhosphorIconsRegular.archive;
+  static const IconData unarchive = PhosphorIconsRegular.arrowCounterClockwise;
+  static const IconData moreVert = PhosphorIconsRegular.dotsThreeVertical;
+  static const IconData dragHandle = PhosphorIconsRegular.dotsSixVertical;
+  static const IconData sliders = PhosphorIconsBold.sliders;
 
   // ── Trend indicators ───────────────────────────────────────────────────
   static const IconData trendingUp = PhosphorIconsBold.trendUp;

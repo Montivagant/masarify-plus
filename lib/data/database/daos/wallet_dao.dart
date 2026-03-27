@@ -9,12 +9,13 @@ part 'wallet_dao.g.dart';
 class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
   WalletDao(super.db);
 
-  /// All non-archived wallets — system wallet first, then by displayOrder.
+  /// All non-archived wallets — system wallet first, then by sortOrder, id.
   Stream<List<Wallet>> watchAll() => (select(wallets)
         ..where((w) => w.isArchived.not())
         ..orderBy([
           (w) => OrderingTerm.desc(w.isSystemWallet),
-          (w) => OrderingTerm.asc(w.displayOrder),
+          (w) => OrderingTerm.asc(w.sortOrder),
+          (w) => OrderingTerm.asc(w.id),
         ]))
       .watch();
 
@@ -22,7 +23,8 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
         ..where((w) => w.isArchived.not())
         ..orderBy([
           (w) => OrderingTerm.desc(w.isSystemWallet),
-          (w) => OrderingTerm.asc(w.displayOrder),
+          (w) => OrderingTerm.asc(w.sortOrder),
+          (w) => OrderingTerm.asc(w.id),
         ]))
       .get();
 
@@ -77,6 +79,33 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
   Stream<Wallet?> watchDefaultAccount() =>
       (select(wallets)..where((w) => w.isDefaultAccount.equals(true)))
           .watchSingleOrNull();
+
+  /// Unarchive a wallet (set isArchived = false).
+  Future<bool> unarchive(int id) async {
+    return (update(wallets)..where((w) => w.id.equals(id)))
+        .write(const WalletsCompanion(isArchived: Value(false)))
+        .then((count) => count > 0);
+  }
+
+  /// All wallets INCLUDING archived — for the Wallets management screen.
+  Stream<List<Wallet>> watchAllIncludingArchived() => (select(wallets)
+        ..orderBy([
+          (w) => OrderingTerm.desc(w.isSystemWallet),
+          (w) => OrderingTerm.asc(w.isArchived),
+          (w) => OrderingTerm.asc(w.sortOrder),
+          (w) => OrderingTerm.asc(w.id),
+        ]))
+      .watch();
+
+  /// All wallets INCLUDING archived — one-shot Future variant.
+  Future<List<Wallet>> getAllIncludingArchived() => (select(wallets)
+        ..orderBy([
+          (w) => OrderingTerm.desc(w.isSystemWallet),
+          (w) => OrderingTerm.asc(w.isArchived),
+          (w) => OrderingTerm.asc(w.sortOrder),
+          (w) => OrderingTerm.asc(w.id),
+        ]))
+      .get();
 
   /// M3 fix: check if a wallet with the given name already exists.
   Future<bool> existsByName(String name, {int? excludeId}) async {
@@ -134,6 +163,19 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
       },
     ).getSingle();
     return result.read<int>('has_refs') == 1;
+  }
+
+  /// Batch-update sort orders for carousel drag-and-drop reordering.
+  Future<void> updateSortOrders(List<({int id, int sortOrder})> updates) async {
+    await batch((b) {
+      for (final u in updates) {
+        b.update(
+          wallets,
+          WalletsCompanion(sortOrder: Value(u.sortOrder)),
+          where: (w) => w.id.equals(u.id),
+        );
+      }
+    });
   }
 
   /// H4 fix: reactive stream of total balance across all non-archived,

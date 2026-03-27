@@ -27,6 +27,12 @@ abstract interface class IWalletRepository {
 
   Future<bool> archive(int id);
 
+  /// Unarchive a wallet (set isArchived = false).
+  Future<bool> unarchive(int id);
+
+  /// All wallets INCLUDING archived — for the Wallets management screen.
+  Stream<List<WalletEntity>> watchAllIncludingArchived();
+
   /// Check if a wallet with [name] already exists (optionally excluding [excludeId]).
   Future<bool> existsByName(String name, {int? excludeId});
 
@@ -60,6 +66,12 @@ abstract interface class IWalletRepository {
 
   /// Reactive stream of the default account.
   Stream<WalletEntity?> watchDefaultAccount();
+
+  /// Batch-update sort orders for carousel drag-and-drop reordering.
+  Future<void> updateSortOrders(List<({int id, int sortOrder})> updates);
+
+  /// All wallets INCLUDING archived — one-shot Future variant.
+  Future<List<WalletEntity>> getAllIncludingArchived();
 
   /// Ensure a default bank account exists. Returns its id.
   /// [localizedName] overrides the default English name for l10n support.

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
@@ -70,6 +71,23 @@ class _NotificationPreferencesScreenState
     });
     final prefs = await ref.read(preferencesFutureProvider.future);
     await prefs.setDailyReminderTime(picked.hour, picked.minute);
+    if (_dailyReminder) {
+      await _scheduleRecap(picked.hour, picked.minute);
+    }
+  }
+
+  Future<void> _scheduleRecap(int hour, int minute) async {
+    // Cache l10n before potential async gap (context may become invalid).
+    final title = context.l10n.recap_notification_title;
+    final body = context.l10n.recap_notification_body;
+    await NotificationService.scheduleDaily(
+      id: NotificationService.recapNotificationId,
+      title: title,
+      body: body,
+      hour: hour,
+      minute: minute,
+      payload: 'recap',
+    );
   }
 
   Future<void> _setQuietHour({required bool isStart}) async {
@@ -113,8 +131,7 @@ class _NotificationPreferencesScreenState
             value: _budgetWarning,
             onChanged: (v) async {
               setState(() => _budgetWarning = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyBudgetWarning(v);
             },
@@ -125,8 +142,7 @@ class _NotificationPreferencesScreenState
             value: _budgetExceeded,
             onChanged: (v) async {
               setState(() => _budgetExceeded = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyBudgetExceeded(v);
             },
@@ -142,8 +158,7 @@ class _NotificationPreferencesScreenState
             value: _billReminder,
             onChanged: (v) async {
               setState(() => _billReminder = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyBillReminder(v);
             },
@@ -154,8 +169,7 @@ class _NotificationPreferencesScreenState
             value: _recurringReminder,
             onChanged: (v) async {
               setState(() => _recurringReminder = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyRecurring(v);
             },
@@ -171,8 +185,7 @@ class _NotificationPreferencesScreenState
             value: _goalMilestone,
             onChanged: (v) async {
               setState(() => _goalMilestone = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyGoalMilestone(v);
             },
@@ -180,29 +193,35 @@ class _NotificationPreferencesScreenState
 
           const Divider(height: 1),
 
-          // ── Daily Reminder ────────────────────────────────────
-          _SectionTitle(title: l10n.notif_section_daily),
+          // ── Daily Spending Recap ───────────────────────────────
+          _SectionTitle(title: l10n.settings_daily_recap),
           SwitchListTile(
             title: Text(l10n.notif_daily_reminder),
-            subtitle: Text(l10n.notif_daily_reminder_sub),
+            subtitle: Text(l10n.settings_daily_recap_subtitle),
             value: _dailyReminder,
             onChanged: (v) async {
               setState(() => _dailyReminder = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setNotifyDailyReminder(v);
+              if (v) {
+                await _scheduleRecap(_dailyHour, _dailyMinute);
+              } else {
+                await NotificationService.cancelScheduled(
+                  NotificationService.recapNotificationId,
+                );
+              }
             },
           ),
           if (_dailyReminder)
             ListTile(
-              title: Text(l10n.notif_daily_reminder_time),
+              title: Text(l10n.settings_recap_time),
               trailing: Text(
                 _formatTime(_dailyHour, _dailyMinute),
                 style: context.textStyles.bodyLarge?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onTap: _setDailyReminderTime,
             ),
@@ -217,8 +236,7 @@ class _NotificationPreferencesScreenState
             value: _quietHours,
             onChanged: (v) async {
               setState(() => _quietHours = v);
-              final prefs =
-                  await ref.read(preferencesFutureProvider.future);
+              final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
               await prefs.setQuietHoursEnabled(v);
             },
@@ -229,9 +247,9 @@ class _NotificationPreferencesScreenState
               trailing: Text(
                 _formatTime(_quietStart, 0),
                 style: context.textStyles.bodyLarge?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onTap: () => _setQuietHour(isStart: true),
             ),
@@ -240,9 +258,9 @@ class _NotificationPreferencesScreenState
               trailing: Text(
                 _formatTime(_quietEnd, 0),
                 style: context.textStyles.bodyLarge?.copyWith(
-                      color: cs.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onTap: () => _setQuietHour(isStart: false),
             ),
@@ -269,9 +287,9 @@ class _SectionTitle extends StatelessWidget {
       child: Text(
         title,
         style: context.textStyles.titleSmall?.copyWith(
-              color: context.colors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: context.colors.primary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

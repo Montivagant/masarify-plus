@@ -18,7 +18,7 @@ import 'speed_dial_fab.dart';
 
 /// M3 [NavigationBar] wrapped in a floating rounded container with shadow.
 ///
-/// Uses a 5-destination layout: [Home] [Transactions] [spacer] [Analytics] [More].
+/// Uses a 5-destination layout: [Home] [Recurring] [spacer] [Analytics] [Planning].
 /// The center spacer reserves space for the `centerDocked` FAB.
 /// Tab selection is mapped between the 4-tab logical index (0–3) and
 /// the 5-destination visual index (0, 1, _, 3, 4).

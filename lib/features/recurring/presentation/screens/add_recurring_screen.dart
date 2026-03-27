@@ -8,6 +8,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/frequency_label_extension.dart';
+import '../../../../core/services/ai/recurring_pattern_detector.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
@@ -24,9 +25,10 @@ import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Add / Edit recurring transaction rule or one-time bill.
 class AddRecurringScreen extends ConsumerStatefulWidget {
-  const AddRecurringScreen({super.key, this.editId});
+  const AddRecurringScreen({super.key, this.editId, this.detectedPattern});
 
   final int? editId;
+  final DetectedPattern? detectedPattern;
 
   @override
   ConsumerState<AddRecurringScreen> createState() => _AddRecurringScreenState();
@@ -63,6 +65,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     super.initState();
     if (widget.editId != null) {
       _loadRule();
+    } else if (widget.detectedPattern != null) {
+      _prefillFromPattern(widget.detectedPattern!);
     } else {
       _initWallet();
     }
@@ -78,6 +82,32 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted || wallets.isEmpty) return;
     setState(() => _walletId = wallets.first.id);
+  }
+
+  Future<void> _prefillFromPattern(DetectedPattern pattern) async {
+    _titleController.text = pattern.title;
+    _amountPiastres = pattern.amount;
+    _frequency = pattern.frequency;
+    _type = pattern.type;
+    _startDate = pattern.nextExpectedDate;
+
+    // Validate category still exists before setting it.
+    final cats = ref.read(categoriesProvider).valueOrNull ?? [];
+    final cat = cats.where((c) => c.id == pattern.categoryId).firstOrNull;
+    if (cat != null && (cat.type == pattern.type || cat.type == 'both')) {
+      _categoryId = pattern.categoryId;
+    }
+
+    // Select default account (non-archived).
+    final wallets = await ref.read(walletRepositoryProvider).getAll();
+    if (!mounted || wallets.isEmpty) return;
+    final active = wallets.where((w) => !w.isArchived).toList();
+    if (active.isEmpty) return;
+    final defaultWallet = active.firstWhere(
+      (w) => w.isDefaultAccount,
+      orElse: () => active.first,
+    );
+    setState(() => _walletId = defaultWallet.id);
   }
 
   Future<void> _loadRule() async {

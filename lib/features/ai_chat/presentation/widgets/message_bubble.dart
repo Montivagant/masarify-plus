@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -59,10 +60,41 @@ class MessageBubble extends StatelessWidget {
                       ? cs.primary.withValues(alpha: AppSizes.opacityLight)
                       : cs.surfaceContainerHighest
                           .withValues(alpha: AppSizes.opacityLight4),
-                  child: Text(
-                    message.content,
-                    style: context.textStyles.bodyMedium,
-                  ),
+                  child: _isUser
+                      ? Text(
+                          message.content,
+                          style: context.textStyles.bodyMedium,
+                        )
+                      : MarkdownBody(
+                          data: message.content,
+                          selectable: true,
+                          styleSheet: MarkdownStyleSheet(
+                            p: context.textStyles.bodyMedium!,
+                            strong: context.textStyles.bodyMedium!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                            em: context.textStyles.bodyMedium!.copyWith(
+                              fontStyle: FontStyle.italic,
+                            ),
+                            h1: context.textStyles.titleLarge!,
+                            h2: context.textStyles.titleMedium!,
+                            h3: context.textStyles.titleSmall!,
+                            listBullet: context.textStyles.bodyMedium!,
+                            code: context.textStyles.bodySmall!.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                            codeblockDecoration: BoxDecoration(
+                              color: cs.surfaceContainerHighest
+                                  .withValues(alpha: AppSizes.opacityLight2),
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.borderRadiusSm,
+                              ),
+                            ),
+                            a: context.textStyles.bodyMedium!.copyWith(
+                              color: cs.primary,
+                            ),
+                          ),
+                        ),
                 ),
               ),
             ],

@@ -4,10 +4,30 @@ import '../../../domain/repositories/i_budget_repository.dart';
 import '../../../domain/repositories/i_goal_repository.dart';
 import '../../../domain/repositories/i_recurring_rule_repository.dart';
 import '../../../domain/repositories/i_transaction_repository.dart';
+import '../../../domain/repositories/i_transfer_repository.dart';
 import '../../../domain/repositories/i_wallet_repository.dart';
 import '../../utils/money_formatter.dart';
+import '../../utils/subscription_detector.dart';
+import '../../utils/wallet_matcher.dart';
 import 'chat_action.dart';
 import 'chat_action_messages.dart';
+
+/// Result of a chat action execution.
+class ExecutionResult {
+  const ExecutionResult(this.message, {this.subscriptionSuggestion});
+  final String message;
+  final SubscriptionSuggestion? subscriptionSuggestion;
+}
+
+/// Returned when a created transaction looks like a recurring subscription.
+class SubscriptionSuggestion {
+  const SubscriptionSuggestion({
+    required this.title,
+    required this.categoryName,
+  });
+  final String title;
+  final String categoryName;
+}
 
 /// Default color for AI-created goals (matches AppColors.defaultColorHex).
 const _kDefaultGoalColorHex = '#1A6B5E';
@@ -25,22 +45,26 @@ class ChatActionExecutor {
     required IBudgetRepository budgetRepo,
     required IRecurringRuleRepository recurringRepo,
     required IWalletRepository walletRepo,
+    required ITransferRepository transferRepo,
   })  : _goalRepo = goalRepo,
         _txRepo = txRepo,
         _budgetRepo = budgetRepo,
         _recurringRepo = recurringRepo,
-        _walletRepo = walletRepo;
+        _walletRepo = walletRepo,
+        _transferRepo = transferRepo;
 
   final IGoalRepository _goalRepo;
   final ITransactionRepository _txRepo;
   final IBudgetRepository _budgetRepo;
   final IRecurringRuleRepository _recurringRepo;
   final IWalletRepository _walletRepo;
+  final ITransferRepository _transferRepo;
 
-  /// Execute [action] and return a success message string.
+  /// Execute [action] and return an [ExecutionResult] with the success message
+  /// and optional subscription suggestion.
   ///
   /// Throws [ArgumentError] if validation fails (with a user-friendly message).
-  Future<String> execute(
+  Future<ExecutionResult> execute(
     ChatAction action, {
     required List<CategoryEntity> categories,
     required List<WalletEntity> wallets,
@@ -65,11 +89,12 @@ class ChatActionExecutor {
           selectedWalletId,
         ),
       CreateWalletAction() => _executeWallet(action, messages),
+      CreateTransferAction() => _executeTransfer(action, wallets, messages),
       DeleteTransactionAction() => _executeDeleteTransaction(action, messages),
     };
   }
 
-  Future<String> _executeGoal(
+  Future<ExecutionResult> _executeGoal(
     CreateGoalAction action,
     ChatActionMessages m,
   ) async {
@@ -91,10 +116,10 @@ class ChatActionExecutor {
     );
 
     final formatted = MoneyFormatter.format(action.targetAmountPiastres);
-    return m.goalCreated(action.name, formatted);
+    return ExecutionResult(m.goalCreated(action.name, formatted));
   }
 
-  Future<String> _executeTransaction(
+  Future<ExecutionResult> _executeTransaction(
     CreateTransactionAction action,
     List<CategoryEntity> categories,
     List<WalletEntity> wallets,
@@ -134,11 +159,29 @@ class ChatActionExecutor {
       source: 'ai_chat',
     );
 
+    // Detect subscription-like transactions for follow-up suggestion.
+    SubscriptionSuggestion? suggestion;
+    if (action.type == 'expense') {
+      final isSubscription = SubscriptionDetector.isSubscriptionLike(
+        categoryName: matched.name,
+        transactionText: action.title,
+      );
+      if (isSubscription) {
+        suggestion = SubscriptionSuggestion(
+          title: action.title,
+          categoryName: matched.name,
+        );
+      }
+    }
+
     final formatted = MoneyFormatter.format(action.amountPiastres);
-    return m.txRecorded(action.title, formatted);
+    return ExecutionResult(
+      m.txRecorded(action.title, formatted),
+      subscriptionSuggestion: suggestion,
+    );
   }
 
-  Future<String> _executeBudget(
+  Future<ExecutionResult> _executeBudget(
     CreateBudgetAction action,
     List<CategoryEntity> categories,
     ChatActionMessages m,
@@ -176,10 +219,10 @@ class ChatActionExecutor {
     );
 
     final formatted = MoneyFormatter.format(action.limitPiastres);
-    return m.budgetCreated(formatted, matched.name);
+    return ExecutionResult(m.budgetCreated(formatted, matched.name));
   }
 
-  Future<String> _executeRecurring(
+  Future<ExecutionResult> _executeRecurring(
     CreateRecurringAction action,
     List<CategoryEntity> categories,
     List<WalletEntity> wallets,
@@ -213,10 +256,12 @@ class ChatActionExecutor {
     );
 
     final formatted = MoneyFormatter.format(action.amountPiastres);
-    return m.recurringCreated(action.title, action.frequency, formatted);
+    return ExecutionResult(
+      m.recurringCreated(action.title, action.frequency, formatted),
+    );
   }
 
-  Future<String> _executeWallet(
+  Future<ExecutionResult> _executeWallet(
     CreateWalletAction action,
     ChatActionMessages m,
   ) async {
@@ -244,10 +289,10 @@ class ChatActionExecutor {
     );
 
     final formatted = MoneyFormatter.format(action.initialBalancePiastres);
-    return m.walletCreated(action.name, formatted);
+    return ExecutionResult(m.walletCreated(action.name, formatted));
   }
 
-  Future<String> _executeDeleteTransaction(
+  Future<ExecutionResult> _executeDeleteTransaction(
     DeleteTransactionAction action,
     ChatActionMessages m,
   ) async {
@@ -282,7 +327,58 @@ class ChatActionExecutor {
     await _txRepo.delete(target.id);
 
     final formatted = MoneyFormatter.format(action.amountPiastres);
-    return m.txDeleted(target.title, formatted);
+    return ExecutionResult(m.txDeleted(target.title, formatted));
+  }
+
+  Future<ExecutionResult> _executeTransfer(
+    CreateTransferAction action,
+    List<WalletEntity> wallets,
+    ChatActionMessages m,
+  ) async {
+    if (action.amountPiastres <= 0) {
+      throw ArgumentError(m.invalidAmount);
+    }
+
+    final activeWallets = wallets.where((w) => !w.isArchived).toList();
+    if (activeWallets.isEmpty) {
+      throw ArgumentError(m.noActiveWallet);
+    }
+
+    // Resolve from-wallet using WalletMatcher.
+    final fromWallet =
+        WalletMatcher.match(action.fromWalletName, activeWallets);
+    if (fromWallet == null) {
+      throw ArgumentError(m.walletNotFound(action.fromWalletName));
+    }
+
+    // Resolve to-wallet using WalletMatcher.
+    final toWallet = WalletMatcher.match(action.toWalletName, activeWallets);
+    if (toWallet == null) {
+      throw ArgumentError(m.walletNotFound(action.toWalletName));
+    }
+
+    // Ensure from != to.
+    if (fromWallet.id == toWallet.id) {
+      throw ArgumentError(m.transferSameWallet);
+    }
+
+    // Date parsing.
+    final date = action.date != null
+        ? DateTime.tryParse(action.date!) ?? DateTime.now()
+        : DateTime.now();
+
+    await _transferRepo.create(
+      fromWalletId: fromWallet.id,
+      toWalletId: toWallet.id,
+      amount: action.amountPiastres,
+      note: action.note,
+      transferDate: date,
+    );
+
+    final formatted = MoneyFormatter.format(action.amountPiastres);
+    return ExecutionResult(
+      m.transferCreated(formatted, fromWallet.name, toWallet.name),
+    );
   }
 
   // ── Shared helpers ──────────────────────────────────────────────────────

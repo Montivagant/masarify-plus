@@ -14,6 +14,7 @@ class WalletEntity {
     this.linkedSenders = const [],
     this.isSystemWallet = false,
     this.isDefaultAccount = false,
+    this.sortOrder = 0,
   });
 
   final int id;
@@ -42,6 +43,9 @@ class WalletEntity {
   /// True for the mandatory default bank account (fallback for transaction assignment).
   final bool isDefaultAccount;
 
+  /// Custom sort order for carousel drag-and-drop reordering.
+  final int sortOrder;
+
   bool get isPhysicalCash => isSystemWallet;
 
   WalletEntity copyWith({
@@ -58,6 +62,7 @@ class WalletEntity {
     List<String>? linkedSenders,
     bool? isSystemWallet,
     bool? isDefaultAccount,
+    int? sortOrder,
   }) =>
       WalletEntity(
         id: id ?? this.id,
@@ -73,6 +78,7 @@ class WalletEntity {
         linkedSenders: linkedSenders ?? this.linkedSenders,
         isSystemWallet: isSystemWallet ?? this.isSystemWallet,
         isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
+        sortOrder: sortOrder ?? this.sortOrder,
       );
 
   @override

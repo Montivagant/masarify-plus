@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -296,67 +297,78 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
             ),
             const SizedBox(height: AppSizes.lg),
 
-            // Linked SMS Senders
-            Text(
-              context.l10n.wallet_linked_senders_label,
-              style: context.textStyles.labelLarge?.copyWith(
-                color: cs.outline,
+            // Linked SMS Senders (hidden when kSmsEnabled=false)
+            if (AppConfig.kSmsEnabled) ...[
+              Text(
+                context.l10n.wallet_linked_senders_label,
+                style: context.textStyles.labelLarge?.copyWith(
+                  color: cs.outline,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSizes.xs),
-            Text(
-              context.l10n.wallet_linked_senders_subtitle,
-              style: context.textStyles.bodySmall?.copyWith(
-                color: cs.outline,
+              const SizedBox(height: AppSizes.xs),
+              Text(
+                context.l10n.wallet_linked_senders_subtitle,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            Wrap(
-              spacing: AppSizes.sm,
-              runSpacing: AppSizes.sm,
-              children: [
-                ..._linkedSenders.map(
-                  (s) => InputChip(
-                    label: Text(s),
-                    onDeleted: () => setState(
-                      () => _linkedSenders.remove(s),
+              const SizedBox(height: AppSizes.sm),
+              Wrap(
+                spacing: AppSizes.sm,
+                runSpacing: AppSizes.sm,
+                children: [
+                  ..._linkedSenders.map(
+                    (s) => InputChip(
+                      label: Text(s),
+                      onDeleted: () => setState(
+                        () => _linkedSenders.remove(s),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            if (_linkedSenders.isNotEmpty) const SizedBox(height: AppSizes.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: AppTextField(
-                    label: '',
-                    controller: _senderController,
-                    hint: context.l10n.wallet_linked_senders_hint,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _addSender(),
+                ],
+              ),
+              if (_linkedSenders.isNotEmpty)
+                const SizedBox(height: AppSizes.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextField(
+                      label: '',
+                      controller: _senderController,
+                      hint: context.l10n.wallet_linked_senders_hint,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _addSender(),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSizes.sm),
-                IconButton.filled(
-                  onPressed: _addSender,
-                  icon: const Icon(AppIcons.add),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSizes.xl),
+                  const SizedBox(width: AppSizes.sm),
+                  IconButton.filled(
+                    onPressed: _addSender,
+                    icon: const Icon(AppIcons.add),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSizes.xl),
+            ],
 
-            // Opening balance (add mode only)
+            // Starting balance (add mode only)
             if (!isEdit) ...[
               Text(
-                context.l10n.wallet_initial_balance,
+                context.l10n.wallet_starting_balance,
                 style: context.textStyles.labelLarge?.copyWith(
+                  color: cs.outline,
+                ),
+              ),
+              const SizedBox(height: AppSizes.xs),
+              Text(
+                context.l10n.wallet_starting_balance_hint,
+                style: context.textStyles.bodySmall?.copyWith(
                   color: cs.outline,
                 ),
               ),
               const SizedBox(height: AppSizes.sm),
               AmountInput(
                 onAmountChanged: (p) => setState(() => _balancePiastres = p),
+                autofocus: false,
               ),
             ],
           ],

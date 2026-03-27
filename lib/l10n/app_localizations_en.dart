@@ -51,7 +51,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_recent_transactions => 'Recent';
 
   @override
-  String get dashboard_see_all => 'See All';
+  String get dashboard_transactions_title => 'Transactions';
 
   @override
   String get dashboard_quick_add_expense => '+ Expense';
@@ -190,6 +190,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_initial_balance => 'Initial Balance';
 
   @override
+  String get wallet_starting_balance => 'Starting Balance';
+
+  @override
+  String get wallet_starting_balance_hint =>
+      'Enter starting balance (optional)';
+
+  @override
   String get wallet_delete_warning =>
       'Cannot delete account with existing transactions';
 
@@ -307,10 +314,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recurring_add => 'Add Recurring';
+  String get recurring_add => 'Add Subscription';
 
   @override
-  String get recurring_edit => 'Edit Recurring';
+  String get recurring_edit => 'Edit Subscription';
 
   @override
   String get recurring_frequency_daily => 'Daily';
@@ -331,7 +338,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_next_due => 'Next due';
 
   @override
-  String get recurring_and_bills_title => 'Recurring & Bills';
+  String get recurring_and_bills_title => 'Subscriptions & Bills';
 
   @override
   String get recurring_overdue => 'Overdue';
@@ -461,7 +468,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_calendar => 'Calendar';
 
   @override
-  String get hub_recurring => 'Recurring';
+  String get hub_recurring => 'Subscriptions';
 
   @override
   String get hub_settings => 'Settings';
@@ -724,6 +731,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_next => 'Next';
 
   @override
+  String get common_continue_label => 'Continue';
+
+  @override
   String get common_skip => 'Skip';
 
   @override
@@ -926,6 +936,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_ai_models => 'AI & Models';
 
   @override
+  String get settings_daily_recap => 'Daily Spending Recap';
+
+  @override
+  String get settings_daily_recap_subtitle =>
+      'AI asks about your day\'s spending';
+
+  @override
+  String get settings_recap_time => 'Recap time';
+
+  @override
+  String get recap_notification_title => 'How was your spending today?';
+
+  @override
+  String get recap_notification_body => 'Tap to tell me — I\'ll log it for you';
+
+  @override
+  String get recap_prime_message => 'I want to log my spending for today';
+
+  @override
   String dashboard_pending_review(int count) {
     return '$count transaction(s) to review';
   }
@@ -1094,6 +1123,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String transaction_deleted_message(String title) {
     return 'Deleted \"$title\"';
+  }
+
+  @override
+  String get transfer_delete_title => 'Delete Transfer';
+
+  @override
+  String get transfer_delete_confirm =>
+      'This will delete the transfer and reverse the balance changes. Are you sure?';
+
+  @override
+  String get transfer_deleted_message => 'Transfer deleted';
+
+  @override
+  String transfer_to_account(String name) {
+    return 'Transfer to $name';
+  }
+
+  @override
+  String transfer_from_account(String name) {
+    return 'Received from $name';
   }
 
   @override
@@ -1457,6 +1506,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_pin_subtitle => 'Protect the app with a PIN code';
 
   @override
+  String get settings_pin_hint => '••••••';
+
+  @override
   String get settings_biometric_subtitle => 'Biometric authentication';
 
   @override
@@ -1681,7 +1733,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_total => 'Total';
 
   @override
-  String get recurring_active => 'Active Recurring';
+  String get recurring_active => 'Active Subscriptions';
 
   @override
   String get recurring_paused => 'Paused';
@@ -1705,26 +1757,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_end_date_required => 'End Date';
 
   @override
-  String get recurring_empty_title => 'No Recurring Rules';
+  String get recurring_empty_title => 'No Subscriptions';
 
   @override
-  String get recurring_empty_sub =>
-      'Set up recurring transactions to save time';
+  String get recurring_empty_sub => 'Set up subscriptions to save time';
 
   @override
-  String get recurring_delete_title => 'Delete Recurring';
+  String get recurring_delete_title => 'Delete Subscription';
 
   @override
   String get recurring_delete_confirm =>
-      'Are you sure you want to delete this recurring transaction?';
+      'Are you sure you want to delete this subscription?';
 
   @override
   String get recurring_confirm_activate =>
-      'Activate this recurring transaction? It will start creating transactions automatically.';
+      'Activate this subscription? It will start creating transactions automatically.';
 
   @override
   String get recurring_confirm_pause =>
-      'Pause this recurring transaction? No new transactions will be created until reactivated.';
+      'Pause this subscription? No new transactions will be created until reactivated.';
 
   @override
   String get recurring_title_label => 'Title';
@@ -1736,7 +1787,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_type_label => 'Transaction Type';
 
   @override
-  String get recurring_saved => 'Recurring transaction saved';
+  String get recurring_saved => 'Subscription saved';
 
   @override
   String get calendar_no_transactions_day => 'No transactions on this day';
@@ -1881,6 +1932,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account still has a remaining balance. The balance will be excluded from your totals after archiving.';
 
   @override
+  String get wallet_archive_title => 'Archive Account?';
+
+  @override
+  String get wallet_archive_info =>
+      'When you archive this account:\n\n• It will be hidden from the home screen\n• Its transactions will be hidden from lists and analytics\n• Its balance will be excluded from your totals\n• AI will not see or reference this account\n\nYou can unarchive it later from the Accounts screen.';
+
+  @override
+  String wallet_archive_confirm(String name) {
+    return 'Are you sure you want to archive $name?';
+  }
+
+  @override
+  String wallet_unarchive_confirm(String name) {
+    return 'Restore $name to active accounts?';
+  }
+
+  @override
+  String get wallet_archived_section => 'Archived';
+
+  @override
+  String get wallet_archive_action => 'Archive';
+
+  @override
+  String get wallet_unarchive_action => 'Unarchive';
+
+  @override
+  String get wallet_manage_title => 'Manage Accounts';
+
+  @override
+  String get wallet_cannot_archive_default =>
+      'The default account cannot be archived.';
+
+  @override
   String get notif_prefs_title => 'Notification Settings';
 
   @override
@@ -1900,7 +1984,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif_budget_exceeded_sub => 'Notify when a budget is fully spent';
 
   @override
-  String get notif_section_bills => 'Bills & Recurring';
+  String get notif_section_bills => 'Bills & Subscriptions';
 
   @override
   String get notif_bill_reminder => 'Bill Reminders';
@@ -1910,11 +1994,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remind about upcoming bills before due date';
 
   @override
-  String get notif_recurring_reminder => 'Recurring Transactions';
+  String get notif_recurring_reminder => 'Subscription Reminders';
 
   @override
   String get notif_recurring_reminder_sub =>
-      'Notify when recurring transactions are due';
+      'Notify when subscriptions are due';
 
   @override
   String get notif_section_goals => 'Goals';
@@ -2051,12 +2135,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insight_recurring_detected(String title) {
-    return 'Monthly: $title — add as recurring?';
+    return 'Monthly: $title — add as subscription?';
   }
 
   @override
   String insight_weekly_detected(String title) {
-    return 'Weekly: $title — add as recurring?';
+    return 'Weekly: $title — add as subscription?';
   }
 
   @override
@@ -2079,7 +2163,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_section_goals_budgets => 'Budgets & Goals';
 
   @override
-  String get hub_section_recurring => 'Recurring & Bills';
+  String get hub_section_recurring => 'Subscriptions & Bills';
 
   @override
   String get nav_planning => 'Planning';
@@ -2105,10 +2189,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_action_budget_title => 'Create Budget';
 
   @override
-  String get chat_action_recurring_title => 'Create Recurring';
+  String get chat_action_recurring_title => 'Create Subscription';
 
   @override
   String get chat_action_wallet_title => 'Create Account';
+
+  @override
+  String get chat_action_transfer_title => 'Transfer Between Accounts';
 
   @override
   String get chat_action_delete_title => 'Delete Transaction';
@@ -2120,7 +2207,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chat_recurring_created(String title) {
-    return 'Recurring rule \"$title\" created';
+    return 'Subscription \"$title\" created';
   }
 
   @override
@@ -2434,7 +2521,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chat_action_recurring_created(
       String title, String frequency, String amount) {
-    return 'Recurring \"$title\" ($frequency) of $amount created!';
+    return 'Subscription \"$title\" ($frequency) of $amount created!';
   }
 
   @override
@@ -2446,6 +2533,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String chat_action_tx_deleted(String title, String amount) {
     return 'Transaction \"$title\" of $amount deleted!';
   }
+
+  @override
+  String chat_action_transfer_created(String amount, String from, String to) {
+    return 'Transferred $amount from $from to $to';
+  }
+
+  @override
+  String chat_action_wallet_not_found(String name) {
+    return 'Account \"$name\" not found';
+  }
+
+  @override
+  String get chat_action_transfer_same_wallet =>
+      'Source and destination accounts must be different';
+
+  @override
+  String chat_subscription_suggest(String title) {
+    return 'This looks like a recurring payment. Would you like me to add \"$title\" as a subscription? Just say yes!';
+  }
+
+  @override
+  String get voice_transfer_from => 'From';
+
+  @override
+  String get voice_transfer_to => 'To';
+
+  @override
+  String get voice_transfer_select_wallets =>
+      'Select both accounts for this transfer';
 
   @override
   String get onboarding_default_account_note =>
@@ -2496,11 +2612,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Speak naturally. AI understands\nyour expenses in any language.';
 
   @override
-  String get onboarding_slide3_title => 'SMS Auto-Detect';
+  String get onboarding_slide3_title => 'AI Financial Advisor';
 
   @override
   String get onboarding_slide3_body =>
-      'Bank SMS messages become transactions\nautomatically. No typing needed.';
+      'Ask anything about your finances.\nGet instant insights, powered by AI.';
 
   @override
   String get onboarding_demo_amount => 'EGP 150.00';
@@ -2513,6 +2629,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_demo_voice_text => '\"Lunch 150 pounds\"';
+
+  @override
+  String get onboarding_demo_chat_user => 'How much did I spend this week?';
+
+  @override
+  String get onboarding_demo_chat_ai => 'You spent EGP 1,250 — 40% on food.';
 
   @override
   String get onboarding_demo_sms_sender => 'CIB Bank';
@@ -2555,6 +2677,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_default_mobile_name => 'Mobile Wallet';
 
   @override
+  String get onboarding_starting_balance_title =>
+      'What\'s Your Starting Balance?';
+
+  @override
+  String get onboarding_starting_balance_body =>
+      'Enter how much you have right now.\nYou can always change it later.';
+
+  @override
+  String get onboarding_starting_balance_set => 'Set Balance & Start';
+
+  @override
   String get common_dismiss => 'Dismiss';
 
   @override
@@ -2579,13 +2712,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insight_recurring_title(String title) {
-    return 'Recurring: $title';
+    return 'Subscription: $title';
   }
 
   @override
   String insight_recurring_body(String amount, String frequency) {
     return '$amount $frequency — want to track it?';
   }
+
+  @override
+  String get insight_recurring_add => 'Add as subscription';
 
   @override
   String insight_suggest_title(String category) {
@@ -2595,6 +2731,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String insight_suggest_body(String amount) {
     return 'You spend avg $amount/month on this category';
+  }
+
+  @override
+  String get insight_upcoming_bills_title => 'Bills Due Soon';
+
+  @override
+  String insight_upcoming_bills_body(int count) {
+    return '$count bill(s) due in the next 7 days';
   }
 
   @override
@@ -2619,7 +2763,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_edit_title_hint => 'Refine title...';
 
   @override
+  String get voice_transaction_title_label => 'Title';
+
+  @override
+  String get voice_transaction_description_label => 'Description';
+
+  @override
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
+  }
+
+  @override
+  String get voice_add_as_recurring => 'Add to Subscriptions & Bills?';
+
+  @override
+  String get category_search_hint => 'Search categories...';
+
+  @override
+  String get insight_budget_savings_title => 'Budget Savings';
+
+  @override
+  String insight_budget_savings_body(String amount, String category) {
+    return 'Saved $amount from $category last month';
+  }
+
+  @override
+  String budget_saved_last_month(String amount) {
+    return 'Saved $amount last month';
   }
 }

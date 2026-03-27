@@ -1,12 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/ai/budget_savings_service.dart';
 import '../../core/services/ai/budget_suggestion_service.dart';
 import '../../core/services/ai/categorization_learning_service.dart';
 import '../../core/services/ai/recurring_pattern_detector.dart';
 import '../../core/services/ai/spending_predictor.dart';
 import '../../data/database/daos/category_mapping_dao.dart';
+import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import 'budget_provider.dart';
+import 'category_provider.dart';
 import 'database_provider.dart';
 import 'recurring_rule_provider.dart';
 import 'transaction_provider.dart';
@@ -23,6 +26,39 @@ final categorizationLearningServiceProvider =
     ref.watch(categoryMappingDaoProvider),
   ),
 );
+
+// ── Upcoming Bills (due within 7 days) ────────────────────────────────
+
+final upcomingBillsProvider = Provider<List<RecurringRuleEntity>>((ref) {
+  final rules = ref.watch(recurringRulesProvider).valueOrNull ?? [];
+  if (rules.isEmpty) return [];
+
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final horizon = today.add(const Duration(days: 7));
+
+  return rules.where((r) {
+    // Include unpaid bills (frequency == 'once') due within 7 days
+    if (r.isBill && !r.isPaid) {
+      final dueDay = DateTime(
+        r.nextDueDate.year,
+        r.nextDueDate.month,
+        r.nextDueDate.day,
+      );
+      return !dueDay.isBefore(today) && !dueDay.isAfter(horizon);
+    }
+    // Include active recurring rules due within 7 days
+    if (!r.isBill && r.isActive) {
+      final dueDay = DateTime(
+        r.nextDueDate.year,
+        r.nextDueDate.month,
+        r.nextDueDate.day,
+      );
+      return !dueDay.isBefore(today) && !dueDay.isAfter(horizon);
+    }
+    return false;
+  }).toList();
+});
 
 // ── Recurring Pattern Detection ────────────────────────────────────────
 
@@ -77,8 +113,7 @@ final spendingPredictionsProvider = Provider<List<SpendingPrediction>>((ref) {
 
   final currentTxs =
       ref.watch(transactionsByMonthProvider(monthKey)).valueOrNull ?? [];
-  final budgets =
-      ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
+  final budgets = ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
 
   if (currentTxs.isEmpty || budgets.isEmpty) return [];
 
@@ -114,8 +149,7 @@ final budgetSuggestionsProvider = Provider<List<BudgetSuggestion>>((ref) {
   final now = DateTime.now();
   final monthKey = (now.year, now.month);
 
-  final budgets =
-      ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
+  final budgets = ref.watch(budgetsByMonthProvider(monthKey)).valueOrNull ?? [];
 
   // Gather last 3 months for average.
   final historicalTxs = <TransactionEntity>[];
@@ -136,4 +170,23 @@ final budgetSuggestionsProvider = Provider<List<BudgetSuggestion>>((ref) {
     budgets: budgets,
     historicalTxs: historicalTxs,
   );
+});
+
+// ── Budget Savings (last month) ─────────────────────────────────────
+
+final budgetSavingsProvider = Provider<List<BudgetSaving>>((ref) {
+  final now = DateTime.now();
+  final prevMonth = now.month == 1 ? 12 : now.month - 1;
+  final prevYear = now.month == 1 ? now.year - 1 : now.year;
+
+  final budgets =
+      ref.watch(budgetsByMonthProvider((prevYear, prevMonth))).valueOrNull ??
+          [];
+
+  if (budgets.isEmpty) return [];
+
+  final cats = ref.watch(categoriesProvider).valueOrNull ?? [];
+  final catMap = {for (final c in cats) c.id: c};
+
+  return const BudgetSavingsService().computeLastMonthSavings(budgets, catMap);
 });

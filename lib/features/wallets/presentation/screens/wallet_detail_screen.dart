@@ -11,13 +11,15 @@ import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/transaction_grouper.dart';
+import '../../../../domain/adapters/transfer_adapter.dart';
+import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
-import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -30,15 +32,26 @@ class WalletDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final walletAsync = ref.watch(walletByIdProvider(id));
-    final txAsync = ref.watch(transactionsByWalletProvider(id));
+    final txAsync = ref.watch(activityByWalletProvider(id));
     final categories = ref.watch(categoriesProvider);
+    final allWallets = ref.watch(walletsProvider).valueOrNull ?? [];
+    final walletMap = {for (final w in allWallets) w.id: w};
 
-    ResolvedCategory resolveCat(int catId) => resolveCategory(
-          categoryId: catId,
-          categories: categories.valueOrNull ?? [],
-          fallbackColor: context.colors.outline,
-          languageCode: context.languageCode,
+    ResolvedCategory resolveCat(int catId) {
+      if (catId == 0) {
+        return (
+          icon: AppIcons.transfer,
+          color: context.appTheme.transferColor,
+          name: context.l10n.transaction_type_transfer,
         );
+      }
+      return resolveCategory(
+        categoryId: catId,
+        categories: categories.valueOrNull ?? [],
+        fallbackColor: context.colors.outline,
+        languageCode: context.languageCode,
+      );
+    }
 
     return walletAsync.when(
       data: (wallet) {
@@ -58,17 +71,21 @@ class WalletDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(AppIcons.edit),
                 tooltip: context.l10n.common_edit,
-                onPressed: () => context.push(AppRoutes.editWalletPath(wallet.id)),
+                onPressed: () =>
+                    context.push(AppRoutes.editWalletPath(wallet.id)),
               ),
-              IconButton(
-                icon: const Icon(AppIcons.delete),
-                tooltip: context.l10n.common_delete,
-                onPressed: () => _confirmDelete(context, ref, wallet.id),
-              ),
+              // 2B: Hide delete button for default and system accounts.
+              if (!wallet.isDefaultAccount && !wallet.isSystemWallet)
+                IconButton(
+                  icon: const Icon(AppIcons.delete),
+                  tooltip: context.l10n.common_delete,
+                  onPressed: () => _confirmDelete(context, ref, wallet.id),
+                ),
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -82,21 +99,25 @@ class WalletDetailScreen extends ConsumerWidget {
                     width: double.infinity,
                     child: Column(
                       children: [
-                        Icon(AppIcons.wallet, color: color, size: AppSizes.iconLg),
+                        Icon(
+                          AppIcons.wallet,
+                          color: color,
+                          size: AppSizes.iconLg,
+                        ),
                         const SizedBox(height: AppSizes.sm),
                         Text(
                           MoneyFormatter.format(wallet.balance),
                           style: context.textStyles.headlineLarge?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: color,
-                              ),
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
                         ),
                         const SizedBox(height: AppSizes.xs),
                         Text(
                           context.l10n.wallet_current_balance,
                           style: context.textStyles.bodySmall?.copyWith(
-                                color: context.colors.outline,
-                              ),
+                            color: context.colors.outline,
+                          ),
                         ),
                       ],
                     ),
@@ -105,7 +126,9 @@ class WalletDetailScreen extends ConsumerWidget {
 
                 // Transfer shortcut
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.screenHPadding,
+                  ),
                   child: OutlinedButton.icon(
                     onPressed: () => context.push(AppRoutes.transfer),
                     icon: const Icon(AppIcons.transfer, size: AppSizes.iconSm),
@@ -116,12 +139,14 @@ class WalletDetailScreen extends ConsumerWidget {
 
                 // Transactions for this wallet
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.screenHPadding,
+                  ),
                   child: Text(
                     context.l10n.wallet_transactions_header,
                     style: context.textStyles.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSizes.xs),
@@ -145,8 +170,96 @@ class WalletDetailScreen extends ConsumerWidget {
                               dateLabel: e.key,
                               transactions: e.value,
                               categoryResolver: resolveCat,
-                              onTransactionTap: (tx) =>
-                                  context.push(AppRoutes.transactionDetailPath(tx.id)),
+                              walletInfoResolver: (walletId) {
+                                final w = walletMap[walletId];
+                                if (w == null) return null;
+                                return (
+                                  icon: AppIcons.walletType(w.type),
+                                  name: w.name,
+                                );
+                              },
+                              onTransactionTap: (tx) {
+                                if (tx.id < 0) return;
+                                context.push(
+                                  AppRoutes.transactionDetailPath(tx.id),
+                                );
+                              },
+                              onTransactionDelete: (tx) async {
+                                if (tx.id < 0) {
+                                  final transferId = transferIdFromTxId(tx.id);
+                                  final confirmed =
+                                      await ConfirmDialog.confirmDelete(
+                                    context,
+                                    title: context.l10n.transfer_delete_title,
+                                    message:
+                                        context.l10n.transfer_delete_confirm,
+                                  );
+                                  if (!confirmed || !context.mounted) {
+                                    return;
+                                  }
+                                  try {
+                                    await ref
+                                        .read(transferRepositoryProvider)
+                                        .delete(transferId);
+                                  } catch (_) {
+                                    if (context.mounted) {
+                                      SnackHelper.showError(
+                                        context,
+                                        context.l10n.common_error_generic,
+                                      );
+                                    }
+                                    return;
+                                  }
+                                  if (context.mounted) {
+                                    HapticFeedback.mediumImpact();
+                                    SnackHelper.showSuccess(
+                                      context,
+                                      context.l10n.transfer_deleted_message,
+                                    );
+                                  }
+                                } else {
+                                  final confirmed =
+                                      await ConfirmDialog.confirmDelete(
+                                    context,
+                                    title:
+                                        context.l10n.transaction_delete_title,
+                                    message:
+                                        context.l10n.transaction_delete_confirm,
+                                  );
+                                  if (!confirmed || !context.mounted) {
+                                    return;
+                                  }
+                                  try {
+                                    await ref
+                                        .read(transactionRepositoryProvider)
+                                        .delete(tx.id);
+                                  } catch (_) {
+                                    if (context.mounted) {
+                                      SnackHelper.showError(
+                                        context,
+                                        context.l10n.common_error_generic,
+                                      );
+                                    }
+                                    return;
+                                  }
+                                  if (context.mounted) {
+                                    HapticFeedback.mediumImpact();
+                                    SnackHelper.showSuccess(
+                                      context,
+                                      context.l10n.transaction_deleted_message(
+                                        tx.title,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              onTransactionEdit: (tx) {
+                                if (tx.id < 0) {
+                                  context.push(AppRoutes.transfer);
+                                } else {
+                                  context.push('/transactions/${tx.id}/edit');
+                                }
+                              },
                             ),
                           )
                           .toList(),
@@ -156,7 +269,8 @@ class WalletDetailScreen extends ConsumerWidget {
                     padding: EdgeInsets.all(AppSizes.screenHPadding),
                     child: ShimmerList(itemCount: 5),
                   ),
-                  error: (_, __) => EmptyState(title: context.l10n.common_error_title),
+                  error: (_, __) =>
+                      EmptyState(title: context.l10n.common_error_title),
                 ),
               ],
             ),
@@ -215,5 +329,4 @@ class WalletDetailScreen extends ConsumerWidget {
       if (context.mounted) context.pop();
     }
   }
-
 }

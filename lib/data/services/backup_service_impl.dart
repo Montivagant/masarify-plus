@@ -21,7 +21,7 @@ class BackupServiceImpl implements BackupService {
 
   // Hardcoded to avoid creating a throwaway AppDatabase() instance (leaked connection).
   // Must be kept in sync with AppDatabase.schemaVersion.
-  static const int _schemaVersion = 11;
+  static const int _schemaVersion = 13;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 

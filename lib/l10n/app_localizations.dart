@@ -182,11 +182,11 @@ abstract class AppLocalizations {
   /// **'Recent'**
   String get dashboard_recent_transactions;
 
-  /// No description provided for @dashboard_see_all.
+  /// No description provided for @dashboard_transactions_title.
   ///
   /// In en, this message translates to:
-  /// **'See All'**
-  String get dashboard_see_all;
+  /// **'Transactions'**
+  String get dashboard_transactions_title;
 
   /// No description provided for @dashboard_quick_add_expense.
   ///
@@ -458,6 +458,18 @@ abstract class AppLocalizations {
   /// **'Initial Balance'**
   String get wallet_initial_balance;
 
+  /// No description provided for @wallet_starting_balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting Balance'**
+  String get wallet_starting_balance;
+
+  /// No description provided for @wallet_starting_balance_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter starting balance (optional)'**
+  String get wallet_starting_balance_hint;
+
   /// No description provided for @wallet_delete_warning.
   ///
   /// In en, this message translates to:
@@ -677,13 +689,13 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_add.
   ///
   /// In en, this message translates to:
-  /// **'Add Recurring'**
+  /// **'Add Subscription'**
   String get recurring_add;
 
   /// No description provided for @recurring_edit.
   ///
   /// In en, this message translates to:
-  /// **'Edit Recurring'**
+  /// **'Edit Subscription'**
   String get recurring_edit;
 
   /// No description provided for @recurring_frequency_daily.
@@ -725,7 +737,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_and_bills_title.
   ///
   /// In en, this message translates to:
-  /// **'Recurring & Bills'**
+  /// **'Subscriptions & Bills'**
   String get recurring_and_bills_title;
 
   /// No description provided for @recurring_overdue.
@@ -983,7 +995,7 @@ abstract class AppLocalizations {
   /// No description provided for @hub_recurring.
   ///
   /// In en, this message translates to:
-  /// **'Recurring'**
+  /// **'Subscriptions'**
   String get hub_recurring;
 
   /// No description provided for @hub_settings.
@@ -1490,6 +1502,12 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get common_next;
 
+  /// No description provided for @common_continue_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get common_continue_label;
+
   /// No description provided for @common_skip.
   ///
   /// In en, this message translates to:
@@ -1868,6 +1886,42 @@ abstract class AppLocalizations {
   /// **'AI & Models'**
   String get settings_ai_models;
 
+  /// No description provided for @settings_daily_recap.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Spending Recap'**
+  String get settings_daily_recap;
+
+  /// No description provided for @settings_daily_recap_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI asks about your day\'s spending'**
+  String get settings_daily_recap_subtitle;
+
+  /// No description provided for @settings_recap_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Recap time'**
+  String get settings_recap_time;
+
+  /// No description provided for @recap_notification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your spending today?'**
+  String get recap_notification_title;
+
+  /// No description provided for @recap_notification_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to tell me — I\'ll log it for you'**
+  String get recap_notification_body;
+
+  /// No description provided for @recap_prime_message.
+  ///
+  /// In en, this message translates to:
+  /// **'I want to log my spending for today'**
+  String get recap_prime_message;
+
   /// No description provided for @dashboard_pending_review.
   ///
   /// In en, this message translates to:
@@ -2173,6 +2227,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted \"{title}\"'**
   String transaction_deleted_message(String title);
+
+  /// No description provided for @transfer_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Transfer'**
+  String get transfer_delete_title;
+
+  /// No description provided for @transfer_delete_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete the transfer and reverse the balance changes. Are you sure?'**
+  String get transfer_delete_confirm;
+
+  /// No description provided for @transfer_deleted_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer deleted'**
+  String get transfer_deleted_message;
+
+  /// No description provided for @transfer_to_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to {name}'**
+  String transfer_to_account(String name);
+
+  /// No description provided for @transfer_from_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Received from {name}'**
+  String transfer_from_account(String name);
 
   /// No description provided for @transaction_source_label.
   ///
@@ -2852,6 +2936,12 @@ abstract class AppLocalizations {
   /// **'Protect the app with a PIN code'**
   String get settings_pin_subtitle;
 
+  /// No description provided for @settings_pin_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'••••••'**
+  String get settings_pin_hint;
+
   /// No description provided for @settings_biometric_subtitle.
   ///
   /// In en, this message translates to:
@@ -3287,7 +3377,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_active.
   ///
   /// In en, this message translates to:
-  /// **'Active Recurring'**
+  /// **'Active Subscriptions'**
   String get recurring_active;
 
   /// No description provided for @recurring_paused.
@@ -3335,37 +3425,37 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'No Recurring Rules'**
+  /// **'No Subscriptions'**
   String get recurring_empty_title;
 
   /// No description provided for @recurring_empty_sub.
   ///
   /// In en, this message translates to:
-  /// **'Set up recurring transactions to save time'**
+  /// **'Set up subscriptions to save time'**
   String get recurring_empty_sub;
 
   /// No description provided for @recurring_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete Recurring'**
+  /// **'Delete Subscription'**
   String get recurring_delete_title;
 
   /// No description provided for @recurring_delete_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete this recurring transaction?'**
+  /// **'Are you sure you want to delete this subscription?'**
   String get recurring_delete_confirm;
 
   /// No description provided for @recurring_confirm_activate.
   ///
   /// In en, this message translates to:
-  /// **'Activate this recurring transaction? It will start creating transactions automatically.'**
+  /// **'Activate this subscription? It will start creating transactions automatically.'**
   String get recurring_confirm_activate;
 
   /// No description provided for @recurring_confirm_pause.
   ///
   /// In en, this message translates to:
-  /// **'Pause this recurring transaction? No new transactions will be created until reactivated.'**
+  /// **'Pause this subscription? No new transactions will be created until reactivated.'**
   String get recurring_confirm_pause;
 
   /// No description provided for @recurring_title_label.
@@ -3389,7 +3479,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_saved.
   ///
   /// In en, this message translates to:
-  /// **'Recurring transaction saved'**
+  /// **'Subscription saved'**
   String get recurring_saved;
 
   /// No description provided for @calendar_no_transactions_day.
@@ -3662,6 +3752,60 @@ abstract class AppLocalizations {
   /// **'This account still has a remaining balance. The balance will be excluded from your totals after archiving.'**
   String get wallet_archive_balance_warning;
 
+  /// No description provided for @wallet_archive_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Account?'**
+  String get wallet_archive_title;
+
+  /// No description provided for @wallet_archive_info.
+  ///
+  /// In en, this message translates to:
+  /// **'When you archive this account:\n\n• It will be hidden from the home screen\n• Its transactions will be hidden from lists and analytics\n• Its balance will be excluded from your totals\n• AI will not see or reference this account\n\nYou can unarchive it later from the Accounts screen.'**
+  String get wallet_archive_info;
+
+  /// No description provided for @wallet_archive_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to archive {name}?'**
+  String wallet_archive_confirm(String name);
+
+  /// No description provided for @wallet_unarchive_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore {name} to active accounts?'**
+  String wallet_unarchive_confirm(String name);
+
+  /// No description provided for @wallet_archived_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get wallet_archived_section;
+
+  /// No description provided for @wallet_archive_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get wallet_archive_action;
+
+  /// No description provided for @wallet_unarchive_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get wallet_unarchive_action;
+
+  /// No description provided for @wallet_manage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Accounts'**
+  String get wallet_manage_title;
+
+  /// No description provided for @wallet_cannot_archive_default.
+  ///
+  /// In en, this message translates to:
+  /// **'The default account cannot be archived.'**
+  String get wallet_cannot_archive_default;
+
   /// No description provided for @notif_prefs_title.
   ///
   /// In en, this message translates to:
@@ -3701,7 +3845,7 @@ abstract class AppLocalizations {
   /// No description provided for @notif_section_bills.
   ///
   /// In en, this message translates to:
-  /// **'Bills & Recurring'**
+  /// **'Bills & Subscriptions'**
   String get notif_section_bills;
 
   /// No description provided for @notif_bill_reminder.
@@ -3719,13 +3863,13 @@ abstract class AppLocalizations {
   /// No description provided for @notif_recurring_reminder.
   ///
   /// In en, this message translates to:
-  /// **'Recurring Transactions'**
+  /// **'Subscription Reminders'**
   String get notif_recurring_reminder;
 
   /// No description provided for @notif_recurring_reminder_sub.
   ///
   /// In en, this message translates to:
-  /// **'Notify when recurring transactions are due'**
+  /// **'Notify when subscriptions are due'**
   String get notif_recurring_reminder_sub;
 
   /// No description provided for @notif_section_goals.
@@ -3977,13 +4121,13 @@ abstract class AppLocalizations {
   /// No description provided for @insight_recurring_detected.
   ///
   /// In en, this message translates to:
-  /// **'Monthly: {title} — add as recurring?'**
+  /// **'Monthly: {title} — add as subscription?'**
   String insight_recurring_detected(String title);
 
   /// No description provided for @insight_weekly_detected.
   ///
   /// In en, this message translates to:
-  /// **'Weekly: {title} — add as recurring?'**
+  /// **'Weekly: {title} — add as subscription?'**
   String insight_weekly_detected(String title);
 
   /// No description provided for @insight_over_budget_prediction.
@@ -4019,7 +4163,7 @@ abstract class AppLocalizations {
   /// No description provided for @hub_section_recurring.
   ///
   /// In en, this message translates to:
-  /// **'Recurring & Bills'**
+  /// **'Subscriptions & Bills'**
   String get hub_section_recurring;
 
   /// No description provided for @nav_planning.
@@ -4067,7 +4211,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_action_recurring_title.
   ///
   /// In en, this message translates to:
-  /// **'Create Recurring'**
+  /// **'Create Subscription'**
   String get chat_action_recurring_title;
 
   /// No description provided for @chat_action_wallet_title.
@@ -4075,6 +4219,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create Account'**
   String get chat_action_wallet_title;
+
+  /// No description provided for @chat_action_transfer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Between Accounts'**
+  String get chat_action_transfer_title;
 
   /// No description provided for @chat_action_delete_title.
   ///
@@ -4091,7 +4241,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_recurring_created.
   ///
   /// In en, this message translates to:
-  /// **'Recurring rule \"{title}\" created'**
+  /// **'Subscription \"{title}\" created'**
   String chat_recurring_created(String title);
 
   /// No description provided for @chat_wallet_created.
@@ -4655,7 +4805,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_action_recurring_created.
   ///
   /// In en, this message translates to:
-  /// **'Recurring \"{title}\" ({frequency}) of {amount} created!'**
+  /// **'Subscription \"{title}\" ({frequency}) of {amount} created!'**
   String chat_action_recurring_created(
       String title, String frequency, String amount);
 
@@ -4670,6 +4820,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction \"{title}\" of {amount} deleted!'**
   String chat_action_tx_deleted(String title, String amount);
+
+  /// No description provided for @chat_action_transfer_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred {amount} from {from} to {to}'**
+  String chat_action_transfer_created(String amount, String from, String to);
+
+  /// No description provided for @chat_action_wallet_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" not found'**
+  String chat_action_wallet_not_found(String name);
+
+  /// No description provided for @chat_action_transfer_same_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and destination accounts must be different'**
+  String get chat_action_transfer_same_wallet;
+
+  /// No description provided for @chat_subscription_suggest.
+  ///
+  /// In en, this message translates to:
+  /// **'This looks like a recurring payment. Would you like me to add \"{title}\" as a subscription? Just say yes!'**
+  String chat_subscription_suggest(String title);
+
+  /// No description provided for @voice_transfer_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get voice_transfer_from;
+
+  /// No description provided for @voice_transfer_to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get voice_transfer_to;
+
+  /// No description provided for @voice_transfer_select_wallets.
+  ///
+  /// In en, this message translates to:
+  /// **'Select both accounts for this transfer'**
+  String get voice_transfer_select_wallets;
 
   /// No description provided for @onboarding_default_account_note.
   ///
@@ -4758,13 +4950,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_slide3_title.
   ///
   /// In en, this message translates to:
-  /// **'SMS Auto-Detect'**
+  /// **'AI Financial Advisor'**
   String get onboarding_slide3_title;
 
   /// No description provided for @onboarding_slide3_body.
   ///
   /// In en, this message translates to:
-  /// **'Bank SMS messages become transactions\nautomatically. No typing needed.'**
+  /// **'Ask anything about your finances.\nGet instant insights, powered by AI.'**
   String get onboarding_slide3_body;
 
   /// No description provided for @onboarding_demo_amount.
@@ -4790,6 +4982,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'\"Lunch 150 pounds\"'**
   String get onboarding_demo_voice_text;
+
+  /// No description provided for @onboarding_demo_chat_user.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did I spend this week?'**
+  String get onboarding_demo_chat_user;
+
+  /// No description provided for @onboarding_demo_chat_ai.
+  ///
+  /// In en, this message translates to:
+  /// **'You spent EGP 1,250 — 40% on food.'**
+  String get onboarding_demo_chat_ai;
 
   /// No description provided for @onboarding_demo_sms_sender.
   ///
@@ -4869,6 +5073,24 @@ abstract class AppLocalizations {
   /// **'Mobile Wallet'**
   String get onboarding_default_mobile_name;
 
+  /// No description provided for @onboarding_starting_balance_title.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s Your Starting Balance?'**
+  String get onboarding_starting_balance_title;
+
+  /// No description provided for @onboarding_starting_balance_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter how much you have right now.\nYou can always change it later.'**
+  String get onboarding_starting_balance_body;
+
+  /// No description provided for @onboarding_starting_balance_set.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Balance & Start'**
+  String get onboarding_starting_balance_set;
+
   /// No description provided for @common_dismiss.
   ///
   /// In en, this message translates to:
@@ -4902,7 +5124,7 @@ abstract class AppLocalizations {
   /// No description provided for @insight_recurring_title.
   ///
   /// In en, this message translates to:
-  /// **'Recurring: {title}'**
+  /// **'Subscription: {title}'**
   String insight_recurring_title(String title);
 
   /// No description provided for @insight_recurring_body.
@@ -4910,6 +5132,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} {frequency} — want to track it?'**
   String insight_recurring_body(String amount, String frequency);
+
+  /// No description provided for @insight_recurring_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add as subscription'**
+  String get insight_recurring_add;
 
   /// No description provided for @insight_suggest_title.
   ///
@@ -4922,6 +5150,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You spend avg {amount}/month on this category'**
   String insight_suggest_body(String amount);
+
+  /// No description provided for @insight_upcoming_bills_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bills Due Soon'**
+  String get insight_upcoming_bills_title;
+
+  /// No description provided for @insight_upcoming_bills_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bill(s) due in the next 7 days'**
+  String insight_upcoming_bills_body(int count);
 
   /// No description provided for @cash_in_hand.
   ///
@@ -4965,11 +5205,53 @@ abstract class AppLocalizations {
   /// **'Refine title...'**
   String get voice_edit_title_hint;
 
+  /// No description provided for @voice_transaction_title_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get voice_transaction_title_label;
+
+  /// No description provided for @voice_transaction_description_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get voice_transaction_description_label;
+
   /// No description provided for @voice_create_wallet_instead.
   ///
   /// In en, this message translates to:
   /// **'Create \'\'{name}\'\' instead?'**
   String voice_create_wallet_instead(String name);
+
+  /// Suggestion button on voice confirm screen for subscription-like transactions
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Subscriptions & Bills?'**
+  String get voice_add_as_recurring;
+
+  /// No description provided for @category_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories...'**
+  String get category_search_hint;
+
+  /// No description provided for @insight_budget_savings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Savings'**
+  String get insight_budget_savings_title;
+
+  /// No description provided for @insight_budget_savings_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} from {category} last month'**
+  String insight_budget_savings_body(String amount, String category);
+
+  /// No description provided for @budget_saved_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} last month'**
+  String budget_saved_last_month(String amount);
 }
 
 class _AppLocalizationsDelegate

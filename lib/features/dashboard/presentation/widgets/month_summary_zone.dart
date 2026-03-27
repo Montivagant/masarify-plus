@@ -59,8 +59,10 @@ class MonthSummaryZone extends ConsumerWidget {
         : 0;
 
     return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSizes.screenHPadding,
+      padding: const EdgeInsetsDirectional.only(
+        start: AppSizes.screenHPadding,
+        end: AppSizes.screenHPadding,
+        bottom: AppSizes.sectionGap,
       ),
       child: GlassCard(
         child: Column(

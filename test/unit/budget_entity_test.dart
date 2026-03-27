@@ -23,13 +23,13 @@ void main() {
     }
 
     group('effectiveLimit', () {
-      test('effectiveLimit = limitAmount + rolloverAmount', () {
+      test('effectiveLimit equals limitAmount (rollover removed)', () {
         final budget = makeBudget(
           limitAmount: 100000, // 1000 EGP
-          rolloverAmount: 20000, // 200 EGP
+          rolloverAmount: 20000, // ignored — rollover removed
         );
 
-        expect(budget.effectiveLimit, 120000); // 1200 EGP
+        expect(budget.effectiveLimit, 100000); // just limitAmount
       });
 
       test('effectiveLimit with zero rollover equals limitAmount', () {
@@ -41,13 +41,13 @@ void main() {
         expect(budget.effectiveLimit, 50000);
       });
 
-      test('effectiveLimit with large rollover', () {
+      test('effectiveLimit ignores rollover', () {
         final budget = makeBudget(
           limitAmount: 100000,
-          rolloverAmount: 500000,
+          rolloverAmount: 500000, // ignored
         );
 
-        expect(budget.effectiveLimit, 600000);
+        expect(budget.effectiveLimit, 100000);
       });
     });
 
@@ -109,16 +109,16 @@ void main() {
         expect(budget.progressFraction, 0.0);
       });
 
-      test('progressFraction accounts for rollover in effective limit', () {
+      test('progressFraction ignores rollover (rollover removed)', () {
         final budget = makeBudget(
           limitAmount: 100000, // 1000 EGP
-          rolloverAmount: 100000, // 1000 EGP rollover
+          rolloverAmount: 100000, // ignored
           spentAmount: 100000, // spent 1000 EGP
         );
 
-        // effectiveLimit = 200000, spent = 100000 → 50%
-        expect(budget.effectiveLimit, 200000);
-        expect(budget.progressFraction, 0.5);
+        // effectiveLimit = 100000 (rollover ignored), spent = 100000 → 100%
+        expect(budget.effectiveLimit, 100000);
+        expect(budget.progressFraction, 1.0);
       });
     });
 
@@ -144,10 +144,10 @@ void main() {
       test('effectiveLimit is int', () {
         final budget = makeBudget(
           limitAmount: 10050,
-          rolloverAmount: 3333,
+          rolloverAmount: 3333, // ignored
         );
         expect(budget.effectiveLimit, isA<int>());
-        expect(budget.effectiveLimit, 13383);
+        expect(budget.effectiveLimit, 10050);
       });
     });
 

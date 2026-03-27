@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/constants/app_durations.dart';
 import '../../core/constants/app_routes.dart';
+import '../../core/services/ai/recurring_pattern_detector.dart';
 import '../../core/services/app_lock_service.dart';
 import '../../core/utils/voice_transaction_parser.dart';
 import '../../features/ai_chat/presentation/screens/chat_screen.dart';
@@ -32,7 +34,6 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/sms_parser/presentation/screens/parser_review_screen.dart';
 import '../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../features/transactions/presentation/screens/transaction_detail_screen.dart';
-import '../../features/transactions/presentation/screens/transaction_list_screen.dart';
 import '../../features/voice_input/presentation/screens/voice_confirm_screen.dart';
 import '../../features/wallets/presentation/screens/add_wallet_screen.dart';
 import '../../features/wallets/presentation/screens/transfer_screen.dart';
@@ -267,14 +268,12 @@ final appRouter = GoRouter(
 
     // Recurring — static routes before parameterised ones
     GoRoute(
-      path: AppRoutes.recurring,
-      builder: (_, __) => const RecurringScreen(),
-    ),
-    GoRoute(
       path: AppRoutes.recurringAdd,
       pageBuilder: (_, state) => _slideUpPage(
         state: state,
-        child: const AddRecurringScreen(),
+        child: AddRecurringScreen(
+          detectedPattern: state.extra as DetectedPattern?,
+        ),
       ),
     ),
     GoRoute(
@@ -296,13 +295,16 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.parserReview,
+      redirect: (_, __) => AppConfig.kSmsEnabled ? null : AppRoutes.dashboard,
       builder: (_, __) => const ParserReviewScreen(),
     ),
     GoRoute(
       path: AppRoutes.chat,
       pageBuilder: (_, state) => _fadePage(
         state: state,
-        child: const ChatScreen(),
+        child: ChatScreen(
+          recapMode: state.uri.queryParameters['mode'] == 'recap',
+        ),
       ),
     ),
     // Reports
@@ -362,12 +364,12 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 1: Transactions
+        // Tab 1: Recurring & Bills
         StatefulShellBranch(
           routes: [
             GoRoute(
-              path: AppRoutes.transactions,
-              builder: (_, __) => const TransactionListScreen(),
+              path: AppRoutes.recurring,
+              builder: (_, __) => const RecurringScreen(),
             ),
           ],
         ),

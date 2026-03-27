@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' show NumberFormat;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -210,9 +211,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           obscureText: true,
           keyboardType: TextInputType.number,
           maxLength: 6,
-          decoration: const InputDecoration(
-            hintText: '••••••',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.l10n.settings_pin_hint,
+            border: const OutlineInputBorder(),
             isDense: true,
             counterText: '',
           ),

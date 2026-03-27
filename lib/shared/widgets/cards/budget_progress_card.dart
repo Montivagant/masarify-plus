@@ -18,6 +18,8 @@ class BudgetProgressCard extends StatelessWidget {
     required this.spentPiastres,
     this.onTap,
     this.currencyCode = 'EGP',
+    this.subtitle,
+    this.subtitleColor,
   });
 
   final String categoryName;
@@ -26,6 +28,12 @@ class BudgetProgressCard extends StatelessWidget {
   final int spentPiastres;
   final VoidCallback? onTap;
   final String currencyCode;
+
+  /// Optional subtitle shown below the progress bar stats.
+  final String? subtitle;
+
+  /// Color for the subtitle text; defaults to [AppThemeExtension.incomeColor].
+  final Color? subtitleColor;
 
   double get _fraction =>
       limitPiastres > 0 ? (spentPiastres / limitPiastres).clamp(0.0, 1.1) : 0;
@@ -63,11 +71,13 @@ class BudgetProgressCard extends StatelessWidget {
                 ),
               ),
               Text(
-                isOver ? context.l10n.budget_exceeded : MoneyFormatter.formatPercent(pct),
+                isOver
+                    ? context.l10n.budget_exceeded
+                    : MoneyFormatter.formatPercent(pct),
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: barColor,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: barColor,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -77,9 +87,8 @@ class BudgetProgressCard extends StatelessWidget {
               label: '$categoryName: ${MoneyFormatter.formatPercent(pct)}',
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: _fraction.clamp(0.0, 1.0)),
-                duration: context.reduceMotion
-                    ? Duration.zero
-                    : AppDurations.countUp,
+                duration:
+                    context.reduceMotion ? Duration.zero : AppDurations.countUp,
                 curve: Curves.easeOutCubic,
                 builder: (_, value, __) => ClipRRect(
                   borderRadius:
@@ -104,9 +113,9 @@ class BudgetProgressCard extends StatelessWidget {
                   currency: currencyCode,
                 ),
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: barColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: barColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 MoneyFormatter.formatCompact(
@@ -114,11 +123,23 @@ class BudgetProgressCard extends StatelessWidget {
                   currency: currencyCode,
                 ),
                 style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.outline,
-                    ),
+                  color: context.colors.outline,
+                ),
               ),
             ],
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: AppSizes.xs),
+            Text(
+              subtitle!,
+              style: context.textStyles.bodySmall?.copyWith(
+                color: subtitleColor ?? context.appTheme.incomeColor,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );

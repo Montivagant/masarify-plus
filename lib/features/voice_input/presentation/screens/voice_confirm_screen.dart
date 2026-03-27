@@ -8,18 +8,22 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/voice_dictionary.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/ai/recurring_pattern_detector.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/goal_keyword_matcher.dart';
+import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
-import '../../../../domain/entities/wallet_entity.dart';
+import '../../../../core/utils/wallet_matcher.dart';
 import '../../../../domain/repositories/i_transaction_repository.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
@@ -51,6 +55,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   @override
   void dispose() {
     for (final d in _editableDrafts) {
+      d.titleController.dispose();
       d.noteController.dispose();
     }
     super.dispose();
@@ -64,6 +69,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     final wallets = ref.read(walletsProvider).valueOrNull ?? [];
     final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+    final cashWallet = ref.read(systemWalletProvider).valueOrNull;
     // Default account from DB flag — fallback for all unmatched drafts.
     final defaultAccount =
         nonSystem.where((w) => w.isDefaultAccount).firstOrNull;
@@ -104,52 +110,59 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         }
       }
 
-      // Wallet hint matching: exact → contains → fuzzy → default.
-      // Every draft ALWAYS gets a walletId — never null, never blocking.
-      if (draft.walletHint != null && draft.walletHint!.isNotEmpty) {
-        final hintLower = draft.walletHint!.toLowerCase();
-        // 1. Exact case-insensitive match
-        final exactMatch =
-            wallets.where((w) => w.name.toLowerCase() == hintLower).firstOrNull;
-        if (exactMatch != null) {
-          draft.walletId = exactMatch.id;
-        } else {
-          // 2. Contains match — only auto-assign if exactly one match
-          final containsMatches = wallets
-              .where(
-                (w) =>
-                    w.name.toLowerCase().contains(hintLower) ||
-                    hintLower.contains(w.name.toLowerCase()),
-              )
-              .toList();
-          if (containsMatches.length == 1) {
-            draft.walletId = containsMatches.first.id;
+      // Transfer drafts: use WalletMatcher for both source and destination.
+      if (draft.isTransfer) {
+        if (draft.walletHint != null && draft.walletHint!.isNotEmpty) {
+          if (cashWallet != null &&
+              WalletMatcher.isCashWalletHint(draft.walletHint!)) {
+            draft.walletId = cashWallet.id;
           } else {
-            // 3. Fuzzy match (≥50% overlap) — auto-assign directly
-            final hintChars = draft.walletHint!.toLowerCase();
-            WalletEntity? closest;
-            int bestScore = 0;
-            for (final w in wallets) {
-              final score = _similarityScore(hintChars, w.name.toLowerCase());
-              final threshold =
-                  (hintChars.length * 0.5).ceil().clamp(3, hintChars.length);
-              if (score > bestScore && score >= threshold) {
-                bestScore = score;
-                closest = w;
-              }
-            }
-            if (closest != null) {
-              // 3b. Fuzzy match found — auto-assign directly (no suggestion)
-              draft.walletId = closest.id;
+            final match = WalletMatcher.match(draft.walletHint!, nonSystem);
+            if (match != null) {
+              draft.walletId = match.id;
             } else {
-              // 4. No match at all — assign to Default account + flag hint
+              draft.walletId = defaultAccountId;
+              draft.unmatchedHint = draft.walletHint;
+            }
+          }
+        }
+        if (draft.toWalletHint != null && draft.toWalletHint!.isNotEmpty) {
+          if (cashWallet != null &&
+              WalletMatcher.isCashWalletHint(draft.toWalletHint!)) {
+            draft.toWalletId = cashWallet.id;
+          } else {
+            final match = WalletMatcher.match(draft.toWalletHint!, nonSystem);
+            if (match != null) {
+              draft.toWalletId = match.id;
+            } else {
+              draft.unmatchedToHint = draft.toWalletHint;
+            }
+          }
+        }
+        // Ensure from != to.
+        if (draft.walletId != null && draft.walletId == draft.toWalletId) {
+          draft.toWalletId = null;
+        }
+      } else {
+        // Non-transfer: check cash keywords first, then WalletMatcher.
+        if (draft.walletHint != null && draft.walletHint!.isNotEmpty) {
+          if (cashWallet != null &&
+              WalletMatcher.isCashWalletHint(draft.walletHint!)) {
+            draft.walletId = cashWallet.id;
+          } else {
+            final match = WalletMatcher.match(draft.walletHint!, nonSystem);
+            if (match != null) {
+              draft.walletId = match.id;
+            } else {
               draft.walletId = defaultAccountId;
               draft.unmatchedHint = draft.walletHint;
             }
           }
         }
       }
-      draft.walletId ??= defaultAccountId;
+      // Prefer dashboard carousel selection, then DB default account.
+      final selectedId = ref.read(selectedAccountIdProvider);
+      draft.walletId ??= selectedId ?? defaultAccountId;
 
       // Goal inline suggestion: check rawText against active goal keywords.
       if (draft.matchedGoalName == null) {
@@ -167,6 +180,16 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             break;
           }
         }
+      }
+
+      // Subscription suggestion for expense-type drafts.
+      if (draft.type == 'expense' && draft.categoryId != null) {
+        final matchedCat =
+            categories.where((c) => c.id == draft.categoryId).firstOrNull;
+        draft.showRecurringSuggestion = SubscriptionDetector.isSubscriptionLike(
+          categoryName: matchedCat?.name,
+          transactionText: draft.rawText,
+        );
       }
     }
   }
@@ -236,6 +259,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
                 final wallet =
                     wallets.where((w) => w.id == draft.walletId).firstOrNull;
+                final toWallet = draft.isTransfer
+                    ? wallets.where((w) => w.id == draft.toWalletId).firstOrNull
+                    : null;
 
                 final card = _DraftCard(
                   draft: draft,
@@ -247,6 +273,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                       ? ColorUtils.fromHex(cat.colorHex)
                       : context.colors.outline,
                   walletName: wallet?.name,
+                  toWalletName: toWallet?.name,
                   isIncluded: draft.isIncluded,
                   matchedGoalName: draft.matchedGoalName,
                   onToggleIncluded: () {
@@ -257,7 +284,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   },
                   onTypeToggle: () {
                     if (draft.type == 'cash_withdrawal' ||
-                        draft.type == 'cash_deposit') {
+                        draft.type == 'cash_deposit' ||
+                        draft.isTransfer) {
                       return;
                     }
                     setState(() {
@@ -278,8 +306,31 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   },
                   onCategoryTap: () => _showCategoryPicker(context, draft),
                   onWalletTap: () => _showWalletPicker(context, draft),
+                  onToWalletTap: draft.isTransfer
+                      ? () => _showToWalletPicker(context, draft)
+                      : null,
                   onCreateWalletFromHint: draft.unmatchedHint != null
                       ? () => _createWalletFromHint(draft)
+                      : null,
+                  onAddAsRecurring: draft.showRecurringSuggestion
+                      ? () {
+                          context.push(
+                            AppRoutes.recurringAdd,
+                            extra: DetectedPattern(
+                              categoryId: draft.categoryId!,
+                              amount: draft.amountPiastres,
+                              title:
+                                  draft.titleController.text.trim().isNotEmpty
+                                      ? draft.titleController.text.trim()
+                                      : draft.rawText,
+                              frequency: 'monthly',
+                              confidence: 1.0,
+                              nextExpectedDate:
+                                  DateTime.now().add(const Duration(days: 30)),
+                              type: draft.type,
+                            ),
+                          );
+                        }
                       : null,
                 );
                 if (context.reduceMotion) return card;
@@ -332,14 +383,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   static bool _isCashType(String type) =>
       type == 'cash_withdrawal' || type == 'cash_deposit';
 
-  /// Simple character-overlap similarity score between two strings.
-  static int _similarityScore(String a, String b) {
-    int score = 0;
-    for (int i = 0; i < a.length; i++) {
-      if (b.contains(a[i])) score++;
-    }
-    return score;
-  }
+  /// Returns true if [type] is a transfer.
+  static bool _isTransferType(String type) => type == 'transfer';
 
   Future<void> _confirmAll(BuildContext ctx) async {
     // R5-I7 fix: prevent double-tap race condition
@@ -349,9 +394,13 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final included = _editableDrafts.where((d) => d.isIncluded).toList();
     if (included.isEmpty) return;
 
-    // Separate cash-type drafts from regular transaction drafts
+    // Separate cash-type, transfer, and regular transaction drafts
     final cashDrafts = included.where((d) => _isCashType(d.type)).toList();
-    final txDrafts = included.where((d) => !_isCashType(d.type)).toList();
+    final transferDrafts =
+        included.where((d) => _isTransferType(d.type)).toList();
+    final txDrafts = included
+        .where((d) => !_isCashType(d.type) && !_isTransferType(d.type))
+        .toList();
 
     // Validate all included drafts
     final total = included.length;
@@ -362,8 +411,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_amount_zero}');
         return;
       }
-      // Cash types don't need a category
-      if (draft.categoryId == null && !_isCashType(draft.type)) {
+      // Cash types and transfers don't need a category
+      if (draft.categoryId == null &&
+          !_isCashType(draft.type) &&
+          !_isTransferType(draft.type)) {
         SnackHelper.showError(
           ctx,
           '$prefix${ctx.l10n.error_category_required}',
@@ -373,6 +424,23 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (draft.walletId == null) {
         SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
         return;
+      }
+      // Transfers require both wallets
+      if (_isTransferType(draft.type)) {
+        if (draft.toWalletId == null) {
+          SnackHelper.showError(
+            ctx,
+            '$prefix${ctx.l10n.voice_transfer_select_wallets}',
+          );
+          return;
+        }
+        if (draft.walletId == draft.toWalletId) {
+          SnackHelper.showError(
+            ctx,
+            '$prefix${ctx.l10n.voice_transfer_select_wallets}',
+          );
+          return;
+        }
       }
     }
 
@@ -397,12 +465,19 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         final transferRepo = ref.read(transferRepositoryProvider);
         for (final draft in cashDrafts) {
           final bankWalletId = draft.walletId!;
+          final titleText = draft.titleController.text.trim();
+          final noteText = draft.noteController.text.trim();
+          final cashNote = titleText.isNotEmpty
+              ? titleText
+              : noteText.isNotEmpty
+                  ? noteText
+                  : draft.rawText;
           if (draft.type == 'cash_withdrawal') {
             await transferRepo.create(
               fromWalletId: bankWalletId,
               toWalletId: cashWallet.id,
               amount: draft.amountPiastres,
-              note: draft.note,
+              note: cashNote,
               transferDate: draft.transactionDate,
             );
           } else {
@@ -411,10 +486,30 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               fromWalletId: cashWallet.id,
               toWalletId: bankWalletId,
               amount: draft.amountPiastres,
-              note: draft.note,
+              note: cashNote,
               transferDate: draft.transactionDate,
             );
           }
+        }
+      }
+
+      // Save transfer drafts
+      if (transferDrafts.isNotEmpty) {
+        final transferRepo = ref.read(transferRepositoryProvider);
+        for (final draft in transferDrafts) {
+          final titleText = draft.titleController.text.trim();
+          final noteText = draft.noteController.text.trim();
+          await transferRepo.create(
+            fromWalletId: draft.walletId!,
+            toWalletId: draft.toWalletId!,
+            amount: draft.amountPiastres,
+            note: titleText.isNotEmpty
+                ? titleText
+                : noteText.isNotEmpty
+                    ? noteText
+                    : draft.rawText,
+            transferDate: draft.transactionDate,
+          );
         }
       }
 
@@ -429,13 +524,15 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   categoryId: draft.categoryId!,
                   amount: draft.amountPiastres,
                   type: draft.type,
-                  title: draft.noteController.text.trim().isNotEmpty
-                      ? draft.noteController.text.trim()
+                  title: draft.titleController.text.trim().isNotEmpty
+                      ? draft.titleController.text.trim()
                       : draft.rawText,
                   transactionDate: draft.transactionDate,
                   source: 'voice',
                   rawSourceText: draft.rawText,
-                  note: draft.note,
+                  note: draft.noteController.text.trim().isEmpty
+                      ? null
+                      : draft.noteController.text.trim(),
                   goalId: draft.goalId,
                 ),
               )
@@ -538,8 +635,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     BuildContext context,
     _EditableDraft draft,
   ) async {
+    // For cash_withdrawal/deposit, picker selects the bank — hide system Cash.
+    // For expense/income/transfer, Cash is a valid selection.
+    final isCash = _isCashType(draft.type);
     final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
-        .where((w) => !w.isSystemWallet)
+        .where((w) => !isCash || !w.isSystemWallet)
         .toList();
 
     await showModalBottomSheet<void>(
@@ -574,11 +674,78 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 itemBuilder: (_, i) {
                   final w = wallets[i];
                   return ListTile(
-                    leading: const Icon(AppIcons.wallet, size: AppSizes.iconMd),
+                    leading: Icon(
+                      AppIcons.walletType(w.type),
+                      size: AppSizes.iconMd,
+                    ),
                     title: Text(w.name),
                     selected: w.id == draft.walletId,
                     onTap: () {
                       setState(() => draft.walletId = w.id);
+                      ctx.pop();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showToWalletPicker(
+    BuildContext context,
+    _EditableDraft draft,
+  ) async {
+    final isCash = _isCashType(draft.type);
+    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
+        .where((w) => !isCash || !w.isSystemWallet)
+        .toList();
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetSmallInitialSize,
+        maxChildSize: AppSizes.sheetSmallMaxSize,
+        expand: false,
+        builder: (_, controller) => Column(
+          children: [
+            const DragHandle(),
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                AppSizes.md,
+                0,
+                AppSizes.md,
+                AppSizes.sm,
+              ),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  context.l10n.voice_transfer_to,
+                  style: ctx.textStyles.titleMedium,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: controller,
+                itemCount: wallets.length,
+                itemBuilder: (_, i) {
+                  final w = wallets[i];
+                  return ListTile(
+                    leading: Icon(
+                      AppIcons.walletType(w.type),
+                      size: AppSizes.iconMd,
+                    ),
+                    title: Text(w.name),
+                    selected: w.id == draft.toWalletId,
+                    onTap: () {
+                      setState(() {
+                        draft.toWalletId = w.id;
+                        draft.unmatchedToHint = null;
+                      });
                       ctx.pop();
                     },
                   );
@@ -630,39 +797,64 @@ class _EditableDraft {
     required this.amountPiastres,
     this.categoryHint,
     this.walletHint,
+    this.toWalletHint,
+    String? title,
     this.note,
     required this.type,
     required this.transactionDate,
-  }) : noteController = TextEditingController(text: note ?? rawText);
+  })  : titleController = TextEditingController(
+          text: title ?? _fallbackTitle(note ?? rawText),
+        ),
+        noteController = TextEditingController(text: note ?? rawText);
 
   factory _EditableDraft.from(VoiceTransactionDraft d) => _EditableDraft(
         rawText: d.rawText,
         amountPiastres: d.amountPiastres ?? 0,
         categoryHint: d.categoryHint,
         walletHint: d.walletHint,
+        toWalletHint: d.toWalletHint,
+        title: d.title,
         note: d.note,
         type: d.type,
         transactionDate: d.transactionDate,
       );
 
+  /// Generates a fallback title from the first 3-4 words of the note text.
+  static String _fallbackTitle(String text) {
+    final words = text.trim().split(RegExp(r'\s+'));
+    return words.take(4).join(' ');
+  }
+
   final String rawText;
   int amountPiastres;
   String? categoryHint;
   String? walletHint;
+  String? toWalletHint;
   String? note;
   int? categoryId;
   int? walletId;
+  int? toWalletId;
   int? goalId;
   String? matchedGoalName;
   String type;
   DateTime transactionDate;
   bool isIncluded = true;
+  bool showRecurringSuggestion = false;
 
   /// Set when wallet hint had no match — transaction defaulted to Default account.
   /// Enables inline "Create '{hint}' instead?" option on the draft card.
   String? unmatchedHint;
 
-  /// Editable title/note for refining the transaction description.
+  /// Set when to-wallet hint had no match (transfers only).
+  String? unmatchedToHint;
+
+  /// Whether this draft represents an inter-account transfer.
+  bool get isTransfer => type == 'transfer';
+
+  /// Editable short title (2-4 words, AI-generated or fallback).
+  final TextEditingController titleController;
+
+  /// Editable description/note for the full transaction text.
   final TextEditingController noteController;
 }
 
@@ -675,6 +867,7 @@ class _DraftCard extends StatelessWidget {
     required this.categoryIcon,
     required this.categoryColor,
     this.walletName,
+    this.toWalletName,
     required this.isIncluded,
     this.matchedGoalName,
     required this.onToggleIncluded,
@@ -682,7 +875,9 @@ class _DraftCard extends StatelessWidget {
     required this.onTypeToggle,
     required this.onCategoryTap,
     required this.onWalletTap,
+    this.onToWalletTap,
     this.onCreateWalletFromHint,
+    this.onAddAsRecurring,
   });
 
   final _EditableDraft draft;
@@ -690,6 +885,7 @@ class _DraftCard extends StatelessWidget {
   final IconData categoryIcon;
   final Color categoryColor;
   final String? walletName;
+  final String? toWalletName;
   final bool isIncluded;
   final String? matchedGoalName;
   final VoidCallback onToggleIncluded;
@@ -697,16 +893,22 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onTypeToggle;
   final VoidCallback onCategoryTap;
   final VoidCallback onWalletTap;
+  final VoidCallback? onToWalletTap;
   final VoidCallback? onCreateWalletFromHint;
+  final VoidCallback? onAddAsRecurring;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
     final isCash =
         draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
+    final isTransfer = draft.isTransfer;
     final typeColor = switch (draft.type) {
       'income' => context.appTheme.incomeColor,
-      'cash_withdrawal' || 'cash_deposit' => context.appTheme.transferColor,
+      'cash_withdrawal' ||
+      'cash_deposit' ||
+      'transfer' =>
+        context.appTheme.transferColor,
       _ => context.appTheme.expenseColor,
     };
 
@@ -748,13 +950,16 @@ class _DraftCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.sm),
 
-            // ── Editable title field ─────────────────────────────
+            // ── Editable title field (short, bold) ────────────────
             IgnorePointer(
               ignoring: !isIncluded,
               child: TextField(
-                controller: draft.noteController,
-                style: context.textStyles.bodySmall,
+                controller: draft.titleController,
+                style: context.textStyles.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
                 decoration: InputDecoration(
+                  labelText: context.l10n.voice_transaction_title_label,
                   hintText: context.l10n.voice_edit_title_hint,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
@@ -770,16 +975,42 @@ class _DraftCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSizes.sm),
 
+            // ── Editable description field (secondary) ────────────
+            IgnorePointer(
+              ignoring: !isIncluded,
+              child: TextField(
+                controller: draft.noteController,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
+                ),
+                decoration: InputDecoration(
+                  labelText: context.l10n.voice_transaction_description_label,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusSm),
+                  ),
+                ),
+                maxLines: 2,
+              ),
+            ),
+            const SizedBox(height: AppSizes.sm),
+
             // ── Type toggle + Category picker ──────────────────
             IgnorePointer(
               ignoring: !isIncluded,
               child: Row(
                 children: [
-                  // Type chip — not tappable for cash types
+                  // Type chip — not tappable for cash types or transfers
                   Opacity(
-                    opacity: isCash ? AppSizes.opacityMedium : 1.0,
+                    opacity:
+                        isCash || isTransfer ? AppSizes.opacityMedium : 1.0,
                     child: GestureDetector(
-                      onTap: isCash ? null : onTypeToggle,
+                      onTap: isCash || isTransfer ? null : onTypeToggle,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: AppSizes.md,
@@ -799,6 +1030,8 @@ class _DraftCard extends StatelessWidget {
                                 .l10n.transaction_type_cash_withdrawal_short,
                             'cash_deposit' =>
                               context.l10n.transaction_type_cash_deposit_short,
+                            'transfer' =>
+                              context.l10n.transaction_type_transfer,
                             _ => context.l10n.transaction_type_expense,
                           },
                           style: context.textStyles.bodySmall?.copyWith(
@@ -811,8 +1044,8 @@ class _DraftCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSizes.sm),
 
-                  // Category chip — hidden for cash types
-                  if (!isCash)
+                  // Category chip — hidden for cash types and transfers
+                  if (!isCash && !isTransfer)
                     GestureDetector(
                       onTap: onCategoryTap,
                       child: Container(
@@ -851,13 +1084,26 @@ class _DraftCard extends StatelessWidget {
               ),
             ),
 
-            // ── Wallet picker chip ──────────────────────────────
+            // ── Wallet picker chip(s) ──────────────────────────
             const SizedBox(height: AppSizes.sm),
             IgnorePointer(
               ignoring: !isIncluded,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // For transfers: show "From:" label before the wallet chip
+                  if (isTransfer)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        bottom: AppSizes.xs,
+                      ),
+                      child: Text(
+                        context.l10n.voice_transfer_from,
+                        style: context.textStyles.labelSmall?.copyWith(
+                          color: cs.outline,
+                        ),
+                      ),
+                    ),
                   GestureDetector(
                     onTap: onWalletTap,
                     child: Container(
@@ -914,6 +1160,69 @@ class _DraftCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                  // ── Transfer: "To" wallet picker ──────────────────
+                  if (isTransfer) ...[
+                    const SizedBox(height: AppSizes.sm),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                        bottom: AppSizes.xs,
+                      ),
+                      child: Text(
+                        context.l10n.voice_transfer_to,
+                        style: context.textStyles.labelSmall?.copyWith(
+                          color: cs.outline,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: onToWalletTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.md,
+                          vertical: AppSizes.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: typeColor.withValues(
+                            alpha: AppSizes.opacityLight2,
+                          ),
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.borderRadiusSm),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              AppIcons.wallet,
+                              size: AppSizes.iconXxs2,
+                              color: typeColor,
+                            ),
+                            const SizedBox(width: AppSizes.xs),
+                            Text(
+                              toWalletName ?? context.l10n.voice_select_wallet,
+                              style: context.textStyles.bodySmall?.copyWith(
+                                color: typeColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (draft.unmatchedToHint != null)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          start: AppSizes.sm,
+                        ),
+                        child: Text(
+                          context.l10n.chat_action_wallet_not_found(
+                            draft.unmatchedToHint!,
+                          ),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.appTheme.expenseColor,
+                          ),
+                        ),
+                      ),
+                  ],
                 ],
               ),
             ),
@@ -942,6 +1251,22 @@ class _DraftCard extends StatelessWidget {
                 ],
               ),
             ],
+
+            // ── Subscription suggestion ──────────────────────────
+            if (onAddAsRecurring != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSizes.sm),
+                child: TextButton.icon(
+                  onPressed: onAddAsRecurring,
+                  icon: const Icon(AppIcons.recurring, size: AppSizes.iconXs),
+                  label: Text(context.l10n.voice_add_as_recurring),
+                  style: TextButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: AppSizes.sm),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
 
             // ── Tappable amount editor ───────────────────────────
             const SizedBox(height: AppSizes.sm),

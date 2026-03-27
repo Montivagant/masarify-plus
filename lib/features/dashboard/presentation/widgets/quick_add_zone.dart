@@ -26,34 +26,35 @@ class QuickAddZone extends ConsumerWidget {
     final freqs = ref.watch(frequentTransactionsProvider);
     if (freqs.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: AppSizes.screenHPadding,
-          ),
-          child: Text(
-            context.l10n.dashboard_quick_add,
-            style: context.textStyles.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSizes.sectionGap),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: AppSizes.screenHPadding,
+            ),
+            child: Text(
+              context.l10n.dashboard_quick_add,
+              style: context.textStyles.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: AppSizes.sm),
-        Padding(
-          padding: const EdgeInsetsDirectional.symmetric(
-            horizontal: AppSizes.screenHPadding,
+          const SizedBox(height: AppSizes.sm),
+          Padding(
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: AppSizes.screenHPadding,
+            ),
+            child: Wrap(
+              spacing: AppSizes.sm,
+              runSpacing: AppSizes.xs,
+              children: freqs.map((f) => _QuickAddChip(freq: f)).toList(),
+            ),
           ),
-          child: Wrap(
-            spacing: AppSizes.sm,
-            runSpacing: AppSizes.xs,
-            children: freqs
-                .map((f) => _QuickAddChip(freq: f))
-                .toList(),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

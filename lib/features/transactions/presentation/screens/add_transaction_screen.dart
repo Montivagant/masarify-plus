@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
@@ -114,13 +116,62 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
   double? _latitude;
   double? _longitude;
   bool _detectingLocation = false;
+  Timer? _titleDebounce;
 
   // ── Computed ────────────────────────────────────────────────────────
   bool get _isCashType => _type == 'cash_withdrawal' || _type == 'cash_deposit';
 
+  // ── Title → category suggestion (debounced 500ms) ──────────────────
+
+  void _startTitleListener() {
+    _titleController.addListener(_onTitleChanged);
+  }
+
+  void _stopTitleListener() {
+    _titleDebounce?.cancel();
+    _titleController.removeListener(_onTitleChanged);
+  }
+
+  void _onTitleChanged() {
+    _titleDebounce?.cancel();
+    _titleDebounce = Timer(AppDurations.categorySuggestionDebounce, () {
+      _suggestCategoryFromTitle();
+    });
+  }
+
+  Future<void> _suggestCategoryFromTitle() async {
+    final text = _titleController.text.trim();
+    if (text.isEmpty || _isCashType) return;
+
+    final allCats = ref.read(categoriesProvider).valueOrNull ?? [];
+    final typeCats =
+        allCats.where((c) => c.type == _type || c.type == 'both').toList();
+    if (typeCats.isEmpty) return;
+
+    final service = ref.read(categorizationLearningServiceProvider);
+    final suggestion = await service.suggestFromText(text, typeCats);
+    if (!mounted) return;
+    if (suggestion != null && suggestion.id != _selectedCategoryId) {
+      setState(() => _selectedCategoryId = suggestion.id);
+    }
+  }
+
   // ── Init ────────────────────────────────────────────────────────────
 
   Future<void> _initWallet() async {
+    // Respect the dashboard carousel selection if set.
+    final selectedId = ref.read(selectedAccountIdProvider);
+    if (selectedId != null) {
+      final wallets = await ref.read(walletRepositoryProvider).getAll();
+      if (!mounted) return;
+      final match =
+          wallets.where((w) => w.id == selectedId && !w.isArchived).firstOrNull;
+      if (match != null) {
+        setState(() => _walletId = match.id);
+        return;
+      }
+    }
+
     final wallets = await ref.read(walletRepositoryProvider).getAll();
     if (!mounted) return;
     if (wallets.isEmpty) return;
@@ -534,6 +585,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     super.initState();
     _type = widget.initialType;
     _isEditMode = widget.editId != null;
+    _startTitleListener();
     if (_isEditMode) {
       _loadForEdit();
     } else {
@@ -543,6 +595,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   @override
   void dispose() {
+    _stopTitleListener();
     _noteController.dispose();
     _titleController.dispose();
     super.dispose();
@@ -947,11 +1000,13 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
   void initState() {
     super.initState();
     _type = widget.initialType;
+    _startTitleListener();
     _initWallet();
   }
 
   @override
   void dispose() {
+    _stopTitleListener();
     _noteController.dispose();
     _titleController.dispose();
     super.dispose();
@@ -1539,7 +1594,7 @@ class _QuickChip extends StatelessWidget {
 
 // ── Category picker bottom sheet ──────────────────────────────────────────
 
-class _CategoryPickerSheet extends StatelessWidget {
+class _CategoryPickerSheet extends StatefulWidget {
   const _CategoryPickerSheet({
     required this.categories,
     required this.selectedId,
@@ -1549,6 +1604,42 @@ class _CategoryPickerSheet extends StatelessWidget {
   final List<CategoryEntity> categories;
   final int? selectedId;
   final ValueChanged<int> onSelected;
+
+  @override
+  State<_CategoryPickerSheet> createState() => _CategoryPickerSheetState();
+}
+
+class _CategoryPickerSheetState extends State<_CategoryPickerSheet> {
+  final _searchController = TextEditingController();
+  List<CategoryEntity> _filtered = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = widget.categories;
+    _searchController.addListener(_onSearch);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearch() {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      setState(() => _filtered = widget.categories);
+      return;
+    }
+    setState(() {
+      _filtered = widget.categories.where((c) {
+        return c.name.toLowerCase().contains(query) ||
+            c.nameAr.contains(query) ||
+            c.iconName.toLowerCase().contains(query);
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1573,6 +1664,27 @@ class _CategoryPickerSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSizes.sm),
+          // ── Search bar ──────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: context.l10n.category_search_hint,
+                prefixIcon: const Icon(AppIcons.search, size: AppSizes.iconSm),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.md,
+                  vertical: AppSizes.sm,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusFull),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
           Expanded(
             child: GridView.builder(
               controller: scrollController,
@@ -1588,13 +1700,13 @@ class _CategoryPickerSheet extends StatelessWidget {
                 crossAxisSpacing: AppSizes.xs,
                 mainAxisSpacing: AppSizes.xs,
               ),
-              itemCount: categories.length,
+              itemCount: _filtered.length,
               itemBuilder: (_, i) {
-                final cat = categories[i];
+                final cat = _filtered[i];
                 final color = ColorUtils.fromHex(cat.colorHex);
-                final isSelected = cat.id == selectedId;
+                final isSelected = cat.id == widget.selectedId;
                 return GestureDetector(
-                  onTap: () => onSelected(cat.id),
+                  onTap: () => widget.onSelected(cat.id),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [

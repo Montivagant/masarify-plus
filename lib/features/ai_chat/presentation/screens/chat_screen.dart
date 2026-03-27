@@ -29,7 +29,10 @@ import '../widgets/message_bubble.dart';
 import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.recapMode = false});
+
+  /// When true, auto-sends a recap priming message on first load.
+  final bool recapMode;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -39,12 +42,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   bool _isSending = false;
 
+  /// Guards against duplicate recap priming across widget rebuilds.
+  /// Static so it persists even if the widget is rebuilt within the same
+  /// app session (e.g. provider invalidation triggers new State instance).
+  static bool _recapSentThisSession = false;
+
   /// In-memory action status for the current session. On confirm or cancel,
   /// the message content is stripped of its JSON block in the DB (via
   /// [ChatMessageDao.updateContent]), making the resolved state durable
   /// across restarts. The status enum itself is not stored in the DB.
   final Map<int, ChatActionStatus> _actionStates = {};
   final Set<int> _executingActions = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // If opened from the daily recap notification, auto-send the priming message.
+    // Uses a static flag to prevent duplicate sends across widget rebuilds.
+    if (widget.recapMode && !_recapSentThisSession) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final isOnline = ref.read(isOnlineProvider).valueOrNull ?? false;
+        if (!isOnline) return; // Let user see offline banner instead
+        _recapSentThisSession = true;
+        _controller.text = context.l10n.recap_prime_message;
+        _send();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -196,24 +221,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       noActiveWallet: l10n.chat_action_no_active_wallet,
       budgetExists: l10n.chat_action_budget_exists,
       walletExists: l10n.chat_action_wallet_exists,
+      walletNotFound: l10n.chat_action_wallet_not_found,
+      transferSameWallet: l10n.chat_action_transfer_same_wallet,
       txNotFound: l10n.chat_action_tx_not_found,
       goalCreated: l10n.chat_action_goal_created,
       txRecorded: l10n.chat_action_tx_recorded,
       budgetCreated: l10n.chat_action_budget_created,
       recurringCreated: l10n.chat_action_recurring_created,
       walletCreated: l10n.chat_action_wallet_created,
+      transferCreated: l10n.chat_action_transfer_created,
       txDeleted: l10n.chat_action_tx_deleted,
     );
 
     try {
       final selectedWalletId = ref.read(selectedAccountIdProvider);
-      final successMsg = await executor.execute(
+      final result = await executor.execute(
         action,
         categories: categories,
         wallets: wallets,
         messages: messages,
         selectedWalletId: selectedWalletId,
       );
+
+      // Append subscription suggestion if detected.
+      var followUpContent = result.message;
+      if (result.subscriptionSuggestion != null) {
+        followUpContent +=
+            '\n\n${l10n.chat_subscription_suggest(result.subscriptionSuggestion!.title)}';
+      }
+
       // Atomic: strip JSON + insert success message in one transaction so a
       // crash between them cannot leave inconsistent state. Done before
       // mounted check so the DB write completes even if the widget unmounts.
@@ -222,7 +258,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         messageId: messageId,
         strippedContent: strippedText,
         strippedTokenCount: newTokens,
-        followUpContent: successMsg,
+        followUpContent: followUpContent,
       );
       if (!mounted) return;
       setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);

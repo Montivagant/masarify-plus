@@ -36,7 +36,8 @@ class BudgetRepositoryImpl implements IBudgetRepository {
         // Filter out transactions from archived wallets for consistency
         // with getByMonth() which uses w.is_archived = 0 in SQL
         final archivedIds = {
-          for (final w in wallets) if (w.isArchived) w.id,
+          for (final w in wallets)
+            if (w.isArchived) w.id,
         };
         final spendByCat = <int, int>{};
         for (final tx in txns) {
@@ -96,32 +97,15 @@ class BudgetRepositoryImpl implements IBudgetRepository {
     if (limitAmount <= 0) {
       throw ArgumentError('Budget limit must be positive');
     }
-    // CR-1 fix: compute rollover from previous month if enabled
-    var effectiveRollover = rolloverAmount;
-    if (rollover && rolloverAmount == 0) {
-      final prevMonth = month == 1 ? 12 : month - 1;
-      final prevYear = month == 1 ? year - 1 : year;
-      final prev =
-          await _dao.getByCategoryAndMonth(categoryId, prevYear, prevMonth);
-      if (prev != null && prev.rollover) {
-        final prevSpent = await _txDao.sumByCategoryAndMonth(
-          categoryId,
-          prevYear,
-          prevMonth,
-        );
-        final prevLimit = prev.limitAmount + prev.rolloverAmount;
-        final unspent = prevLimit - prevSpent;
-        effectiveRollover = unspent > 0 ? unspent : 0;
-      }
-    }
+    // Rollover disabled — always store false/0 (DB column kept for compat).
     return _dao.insertBudget(
       BudgetsCompanion.insert(
         categoryId: categoryId,
         month: month,
         year: year,
         limitAmount: limitAmount,
-        rollover: Value(rollover),
-        rolloverAmount: Value(effectiveRollover),
+        rollover: const Value(false),
+        rolloverAmount: const Value(0),
       ),
     );
   }

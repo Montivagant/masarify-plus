@@ -22,8 +22,10 @@ class PendingReviewCard extends ConsumerWidget {
     final cs = context.colors;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.screenHPadding,
+      padding: const EdgeInsets.only(
+        left: AppSizes.screenHPadding,
+        right: AppSizes.screenHPadding,
+        bottom: AppSizes.sectionGap,
       ),
       child: GlassCard(
         tintColor:

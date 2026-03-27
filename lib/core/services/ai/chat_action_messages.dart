@@ -11,12 +11,15 @@ class ChatActionMessages {
     required this.noActiveWallet,
     required this.budgetExists,
     required this.walletExists,
+    required this.walletNotFound,
+    required this.transferSameWallet,
     required this.txNotFound,
     required this.goalCreated,
     required this.txRecorded,
     required this.budgetCreated,
     required this.recurringCreated,
     required this.walletCreated,
+    required this.transferCreated,
     required this.txDeleted,
   });
 
@@ -26,11 +29,13 @@ class ChatActionMessages {
   final String invalidBudgetLimit;
   final String noActiveWallet;
   final String walletExists;
+  final String transferSameWallet;
 
   // ── Errors (parameterized) ────────────────────────────────────────────
   final String Function(String name, String available) categoryNotFound;
   final String Function(String category) budgetExists;
   final String Function(String title) txNotFound;
+  final String Function(String name) walletNotFound;
 
   // ── Success (parameterized) ───────────────────────────────────────────
   final String Function(String name, String amount) goalCreated;
@@ -39,5 +44,6 @@ class ChatActionMessages {
   final String Function(String title, String frequency, String amount)
       recurringCreated;
   final String Function(String name, String amount) walletCreated;
+  final String Function(String amount, String from, String to) transferCreated;
   final String Function(String title, String amount) txDeleted;
 }

@@ -87,6 +87,19 @@ abstract final class VoiceDictionary {
     'put money',
   ];
 
+  /// Keywords that refer to the physical cash (system) wallet.
+  /// Used by [WalletMatcher.isCashWalletHint] for explicit cash detection.
+  static const List<String> cashWalletKeywords = [
+    'كاش',
+    'نقدي',
+    'نقود',
+    'نقد',
+    'كاش في اليد',
+    'كاش في ايدي',
+    'cash',
+    'cash in hand',
+  ];
+
   /// Time keyword → day offset from today.
   static const Map<String, int> timeKeywords = {
     'امبارح': -1,
@@ -185,6 +198,22 @@ abstract final class VoiceDictionary {
     'فريلانس': 'work', 'مشروع': 'work', 'شغل': 'work',
     'freelance': 'work', 'project': 'work',
   };
+
+  /// Transfer trigger keywords (Egyptian Arabic + English).
+  static const List<String> transferTriggers = [
+    'حولت',
+    'حولتلهم',
+    'سديت',
+    'سددت',
+    'نقلت',
+    'حطيت في',
+    'من حسابي',
+    'تحويل',
+    'transferred',
+    'moved',
+    'sent to',
+    'transfer',
+  ];
 
   /// Multi-transaction split conjunctions.
   static const List<String> splitKeywords = [

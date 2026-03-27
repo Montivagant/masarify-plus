@@ -105,7 +105,7 @@ abstract final class AppSizes {
   static const double colorSwatchBorder = 3.0;
 
   // ── Dashboard carousel ─────────────────────────────────────────────
-  static const double carouselHeight = 280;
+  static const double carouselHeight = 240;
   static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 

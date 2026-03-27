@@ -30,8 +30,8 @@ class BudgetEntity {
   /// Computed field: populated by BudgetRepository from Transactions stream.
   final int spentAmount;
 
-  /// Effective limit = limitAmount + rolloverAmount
-  int get effectiveLimit => limitAmount + rolloverAmount;
+  /// Effective limit = limitAmount (rollover disabled).
+  int get effectiveLimit => limitAmount;
 
   /// 0.0 – 1.0+  (can exceed 1.0 if over-budget)
   double get progressFraction =>

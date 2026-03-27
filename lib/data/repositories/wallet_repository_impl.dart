@@ -119,6 +119,14 @@ class WalletRepositoryImpl implements IWalletRepository {
   Future<bool> archive(int id) => _dao.archive(id);
 
   @override
+  Future<bool> unarchive(int id) => _dao.unarchive(id);
+
+  @override
+  Stream<List<WalletEntity>> watchAllIncludingArchived() => _dao
+      .watchAllIncludingArchived()
+      .map((list) => list.map(_toEntity).toList());
+
+  @override
   Future<WalletEntity?> getSystemWallet() async {
     final row = await _dao.getSystemWallet();
     return row != null ? _toEntity(row) : null;
@@ -181,6 +189,16 @@ class WalletRepositoryImpl implements IWalletRepository {
   @override
   Stream<int> watchTotalBalance() => _dao.watchTotalBalance();
 
+  @override
+  Future<void> updateSortOrders(List<({int id, int sortOrder})> updates) =>
+      _dao.updateSortOrders(updates);
+
+  @override
+  Future<List<WalletEntity>> getAllIncludingArchived() async {
+    final rows = await _dao.getAllIncludingArchived();
+    return rows.map(_toEntity).toList();
+  }
+
   // ── Mapping ───────────────────────────────────────────────────────────────
 
   static WalletEntity _toEntity(Wallet w) => WalletEntity(
@@ -197,6 +215,7 @@ class WalletRepositoryImpl implements IWalletRepository {
         linkedSenders: _decodeSenders(w.linkedSenders),
         isSystemWallet: w.isSystemWallet,
         isDefaultAccount: w.isDefaultAccount,
+        sortOrder: w.sortOrder,
       );
 
   @override

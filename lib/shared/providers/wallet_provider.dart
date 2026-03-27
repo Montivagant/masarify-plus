@@ -9,6 +9,11 @@ final walletsProvider = StreamProvider<List<WalletEntity>>(
   (ref) => ref.watch(walletRepositoryProvider).watchAll(),
 );
 
+/// All wallets INCLUDING archived — for the Wallets management screen.
+final allWalletsProvider = StreamProvider<List<WalletEntity>>(
+  (ref) => ref.watch(walletRepositoryProvider).watchAllIncludingArchived(),
+);
+
 /// Single wallet by id — null if not found or archived.
 final walletByIdProvider = StreamProvider.family<WalletEntity?, int>((ref, id) {
   return ref.watch(walletRepositoryProvider).watchById(id);
