@@ -143,6 +143,8 @@ autonomous: true
 
 <acceptance_criteria>
 - grep "isSystemWallet" lib/features/wallets/presentation/screens/wallets_screen.dart confirms system wallet filter
+- Behavioral check: verify no edit or delete route/action exists for system wallets (e.g., grep for isSystemWallet guards before delete/edit actions in wallet_detail_screen.dart and wallets_screen.dart)
+- flutter analyze lib/ reports zero issues
 </acceptance_criteria>
 
 ---
@@ -252,7 +254,8 @@ autonomous: true
 
 <acceptance_criteria>
 - grep "archivedWalletIdsProvider" lib/shared/providers/activity_provider.dart confirms archive filter
-- grep "isArchived" lib/shared/providers/wallet_provider.dart OR lib/data/repositories/wallet_repository_impl.dart confirms filter
+- grep "isArchived" lib/shared/providers/wallet_provider.dart confirms provider-level filter
+- grep "isArchived" lib/data/repositories/wallet_repository_impl.dart confirms repository-level filter
 </acceptance_criteria>
 
 ---
@@ -318,6 +321,7 @@ autonomous: true
 
 <acceptance_criteria>
 - grep "ReorderableListView" lib/features/dashboard/presentation/widgets/account_manage_sheet.dart confirms drag-and-drop
+- grep "ReorderableDragStartListener" lib/features/dashboard/presentation/widgets/account_manage_sheet.dart confirms drag handle is wired
 - grep "updateSortOrders" lib/features/dashboard/presentation/widgets/account_manage_sheet.dart confirms persistence
 </acceptance_criteria>
 

@@ -123,6 +123,8 @@ autonomous: true
    - Tighter padding: `10.0` vertical instead of default SnackBar padding
    - Swipe to dismiss: `dismissDirection: DismissDirection.horizontal`
    - Bottom margin: positioned just above the bottom nav bar area
+
+   **Note:** `SnackHelper` is a static utility class and cannot access `Theme.of(context)` for text styles. Using a raw `TextStyle` with the `AppSizes.snackTextSize` design token is the accepted exception for static utility classes that construct widgets without a live `BuildContext` for theme resolution.
 </action>
 
 <acceptance_criteria>

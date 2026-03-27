@@ -4,7 +4,7 @@ plan: 2
 title: "AI & Voice Fixes"
 wave: 1
 depends_on: []
-requirements: [AI-03, AI-04, VOICE-01, VOICE-02, VOICE-04]
+requirements: [AI-01, AI-03, AI-04, VOICE-01, VOICE-02, VOICE-04]
 bugs: [D-04, D-05, D-06, D-08, D-09, D-11, D-12]
 files_modified:
   - lib/core/services/ai/chat_response_parser.dart
@@ -47,9 +47,12 @@ autonomous: true
        RegExp(r'\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}'),
        '',
      );
-     // Strip residual JSON keys that indicate a leaked action block.
+     // Strip residual JSON key-value pairs only when they appear near
+     // other JSON structure indicators (open brace within 200 chars).
+     // This avoids corrupting normal prose that happens to contain
+     // words like "title" or "type".
      cleaned = cleaned.replaceAll(
-       RegExp(r'"(?:action|type|data|amount|title|category|wallet)":\s*"?[^",}\n]*"?,?\s*'),
+       RegExp(r'(?<=\{[^}]{0,200})"(?:action|type|data|amount|title|category|wallet)":\s*"?[^",}\n]*"?,?\s*'),
        '',
      );
      // Clean up leftover braces and whitespace.
@@ -93,6 +96,7 @@ autonomous: true
 - grep "_sanitizeRemainingJson" lib/core/services/ai/chat_response_parser.dart confirms safety net exists
 - grep "_maybeSanitize" lib/core/services/ai/chat_response_parser.dart confirms it is called
 - grep '"action"' lib/core/services/ai/chat_response_parser.dart shows the detection pattern
+- Unit test: sanitizer does NOT corrupt valid prose containing words like "title" or "type" (e.g., `"The title of this category is Food"` must pass through unchanged)
 - flutter analyze lib/ reports zero issues
 </acceptance_criteria>
 
