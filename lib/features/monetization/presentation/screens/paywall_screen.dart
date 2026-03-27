@@ -86,16 +86,20 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
     final features = [
       (
+        icon: AppIcons.ai,
+        label: context.l10n.paywall_feature_chat,
+      ),
+      (
+        icon: AppIcons.trendingUp,
+        label: context.l10n.paywall_feature_insights,
+      ),
+      (
         icon: AppIcons.budget,
         label: context.l10n.paywall_feature_budgets,
       ),
       (
         icon: AppIcons.goals,
         label: context.l10n.paywall_feature_goals,
-      ),
-      (
-        icon: AppIcons.trendingUp,
-        label: context.l10n.paywall_feature_insights,
       ),
       (
         icon: AppIcons.analytics,
@@ -108,10 +112,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       (
         icon: AppIcons.export_,
         label: context.l10n.paywall_feature_export,
-      ),
-      (
-        icon: AppIcons.ai,
-        label: context.l10n.paywall_feature_chat,
       ),
     ];
 
