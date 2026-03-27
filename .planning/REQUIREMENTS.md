@@ -78,10 +78,10 @@
 ### Subscription Paywall (PAYWALL)
 
 - [ ] **PAYWALL-01**: Free tier enforcement (2 budgets, 1 savings goal limit)
-- [ ] **PAYWALL-02**: Pro subscription purchase flow via Google Play Billing
+- [x] **PAYWALL-02**: Pro subscription purchase flow via Google Play Billing
 - [ ] **PAYWALL-03**: Paywall UI — AI features listed first, not budgets
-- [ ] **PAYWALL-04**: 7-day free trial (fix: wire ensureTrialStarted(), resolve 7 vs 14 day mismatch)
-- [ ] **PAYWALL-05**: Store purchaseToken + expiryDate in Drift for cancellation/grace handling
+- [x] **PAYWALL-04**: 7-day free trial (fix: wire ensureTrialStarted(), resolve 7 vs 14 day mismatch)
+- [x] **PAYWALL-05**: Store purchaseToken + expiryDate in Drift for cancellation/grace handling
 - [ ] **PAYWALL-06**: Restore purchases flow
 
 ### Performance (PERF)
