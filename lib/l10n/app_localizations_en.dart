@@ -2688,4 +2688,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get home_net_label => 'Net';
+
+  @override
+  String get home_sort_title => 'Sort by';
+
+  @override
+  String get home_no_matching_transactions =>
+      'No transactions match your filters';
+
+  @override
+  String get home_clear_filters => 'Clear filters';
+
+  @override
+  String get transaction_delete_confirm_title => 'Delete transaction?';
+
+  @override
+  String get transaction_delete_confirm_body => 'This cannot be undone.';
+
+  @override
+  String get transfer_delete_confirm_title => 'Delete transfer?';
+
+  @override
+  String get transfer_delete_confirm_body =>
+      'This will delete both legs of the transfer.';
+
+  @override
+  String get transfer_cannot_edit => 'Transfers cannot be edited from here';
 }

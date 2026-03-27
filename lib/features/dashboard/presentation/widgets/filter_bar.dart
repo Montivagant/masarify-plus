@@ -5,6 +5,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
+import 'sort_bottom_sheet.dart';
 
 /// Pinned filter bar with type chips, search icon, and sort button (D-09, D-10).
 ///
@@ -75,14 +76,10 @@ class FilterBar extends ConsumerWidget {
           // ── Sort button ──────────────────────────────────────────────
           IconButton(
             icon: const Icon(AppIcons.filter, size: AppSizes.iconSm),
-            onPressed: () {
-              // Sort bottom sheet — deferred to Plan 02.
-              // For now, cycles through sort orders.
-              final nextSort = SortOrder.values[
-                  (filter.sortOrder.index + 1) % SortOrder.values.length];
-              ref.read(homeFilterProvider.notifier).state =
-                  filter.copyWith(sortOrder: nextSort);
-            },
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              builder: (_) => const SortBottomSheet(),
+            ),
             tooltip: _sortLabel(context, filter.sortOrder),
             visualDensity: VisualDensity.compact,
           ),

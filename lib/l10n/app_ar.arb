@@ -1018,5 +1018,13 @@
       "count": {"type": "int"}
     }
   },
-  "home_net_label": "الصافي"
+  "home_net_label": "الصافي",
+  "home_sort_title": "ترتيب حسب",
+  "home_no_matching_transactions": "لا توجد معاملات تطابق فلاترك",
+  "home_clear_filters": "مسح الفلاتر",
+  "transaction_delete_confirm_title": "حذف المعاملة؟",
+  "transaction_delete_confirm_body": "لا يمكن التراجع عن هذا.",
+  "transfer_delete_confirm_title": "حذف التحويل؟",
+  "transfer_delete_confirm_body": "سيتم حذف طرفي التحويل.",
+  "transfer_cannot_edit": "لا يمكن تعديل التحويلات من هنا"
 }

@@ -2667,4 +2667,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get home_net_label => 'الصافي';
+
+  @override
+  String get home_sort_title => 'ترتيب حسب';
+
+  @override
+  String get home_no_matching_transactions => 'لا توجد معاملات تطابق فلاترك';
+
+  @override
+  String get home_clear_filters => 'مسح الفلاتر';
+
+  @override
+  String get transaction_delete_confirm_title => 'حذف المعاملة؟';
+
+  @override
+  String get transaction_delete_confirm_body => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get transfer_delete_confirm_title => 'حذف التحويل؟';
+
+  @override
+  String get transfer_delete_confirm_body => 'سيتم حذف طرفي التحويل.';
+
+  @override
+  String get transfer_cannot_edit => 'لا يمكن تعديل التحويلات من هنا';
 }

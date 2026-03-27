@@ -32,6 +32,7 @@ class TransactionCard extends StatelessWidget {
     required this.categoryName,
     this.brandInfo,
     this.transferCounterpartIcon,
+    this.walletName,
     this.onTap,
     this.onDelete,
     this.onEdit,
@@ -45,6 +46,11 @@ class TransactionCard extends StatelessWidget {
 
   /// Counterpart wallet icon for transfer entries (e.g., bank or mobile wallet).
   final IconData? transferCounterpartIcon;
+
+  /// Wallet/account name shown on the card in All Accounts view (D-15).
+  /// When non-null, displays as a small label after the title.
+  final String? walletName;
+
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
   final VoidCallback? onEdit;
@@ -79,6 +85,7 @@ class TransactionCard extends StatelessWidget {
       categoryColor: categoryColor,
       categoryName: categoryName,
       brandInfo: brandInfo,
+      walletName: walletName,
       amountColor: amountColor,
       amountPrefix: _amountPrefix,
       sourceIcon: _sourceIcon,
@@ -135,6 +142,7 @@ class _CardContent extends StatelessWidget {
     required this.categoryColor,
     required this.categoryName,
     this.brandInfo,
+    this.walletName,
     required this.amountColor,
     required this.amountPrefix,
     required this.sourceIcon,
@@ -146,6 +154,7 @@ class _CardContent extends StatelessWidget {
   final Color categoryColor;
   final String categoryName;
   final BrandInfo? brandInfo;
+  final String? walletName;
   final Color amountColor;
   final String amountPrefix;
   final IconData? sourceIcon;
@@ -189,20 +198,32 @@ class _CardContent extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (transaction.title.isNotEmpty) ...[
+                  if (transaction.title.isNotEmpty || walletName != null) ...[
                     const SizedBox(height: AppSizes.xxs),
                     Row(
                       children: [
-                        Flexible(
-                          child: Text(
-                            transaction.title,
-                            style: context.textStyles.bodySmall?.copyWith(
-                              color: context.colors.outline,
+                        if (transaction.title.isNotEmpty)
+                          Flexible(
+                            child: Text(
+                              transaction.title,
+                              style: context.textStyles.bodySmall?.copyWith(
+                                color: context.colors.outline,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                        if (walletName != null) ...[
+                          if (transaction.title.isNotEmpty)
+                            const SizedBox(width: AppSizes.xs),
+                          Text(
+                            walletName!,
+                            style: context.textStyles.labelSmall?.copyWith(
+                              color: context.colors.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                         if (sourceIcon != null) ...[
                           const SizedBox(width: AppSizes.xs),
                           Icon(

@@ -1038,5 +1038,13 @@
       "count": {"type": "int"}
     }
   },
-  "home_net_label": "Net"
+  "home_net_label": "Net",
+  "home_sort_title": "Sort by",
+  "home_no_matching_transactions": "No transactions match your filters",
+  "home_clear_filters": "Clear filters",
+  "transaction_delete_confirm_title": "Delete transaction?",
+  "transaction_delete_confirm_body": "This cannot be undone.",
+  "transfer_delete_confirm_title": "Delete transfer?",
+  "transfer_delete_confirm_body": "This will delete both legs of the transfer.",
+  "transfer_cannot_edit": "Transfers cannot be edited from here"
 }

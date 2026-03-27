@@ -5090,6 +5090,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Net'**
   String get home_net_label;
+
+  /// No description provided for @home_sort_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort by'**
+  String get home_sort_title;
+
+  /// No description provided for @home_no_matching_transactions.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions match your filters'**
+  String get home_no_matching_transactions;
+
+  /// No description provided for @home_clear_filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get home_clear_filters;
+
+  /// No description provided for @transaction_delete_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transaction?'**
+  String get transaction_delete_confirm_title;
+
+  /// No description provided for @transaction_delete_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get transaction_delete_confirm_body;
+
+  /// No description provided for @transfer_delete_confirm_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete transfer?'**
+  String get transfer_delete_confirm_title;
+
+  /// No description provided for @transfer_delete_confirm_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete both legs of the transfer.'**
+  String get transfer_delete_confirm_body;
+
+  /// No description provided for @transfer_cannot_edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfers cannot be edited from here'**
+  String get transfer_cannot_edit;
 }
 
 class _AppLocalizationsDelegate
