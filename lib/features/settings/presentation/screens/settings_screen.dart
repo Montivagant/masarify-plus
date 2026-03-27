@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:another_telephony/telephony.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,12 +13,8 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../../core/services/crash_log_service.dart';
-import '../../../../core/services/sms_parser_service.dart';
-import '../../../../core/utils/permission_helper.dart';
 import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
-import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/theme_provider.dart';
@@ -45,10 +40,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   bool _biometricEnabled = false;
   int _autoLockTimeoutMs = 0;
   bool _loaded = false;
-
-  // WS5: Smart Detection state (moved from SmartInputScreen).
-  bool _smsParserEnabled = false;
-  bool _awaitingSmsPermission = false;
 
   List<({String code, String label})> _currencies(BuildContext context) => [
         (code: 'EGP', label: context.l10n.settings_currency_egp),
@@ -80,9 +71,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (_awaitingSmsPermission) _finishSmsPermission();
-    }
+    // Reserved for future lifecycle handling.
   }
 
   Future<void> _loadPrefs() async {
@@ -96,7 +85,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       _pinEnabled = prefs.isPinEnabled;
       _biometricEnabled = prefs.isBiometricEnabled;
       _autoLockTimeoutMs = prefs.autoLockTimeoutMs;
-      _smsParserEnabled = prefs.isSmsParserEnabled;
       _loaded = true;
     });
   }
@@ -321,61 +309,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         ),
       ),
     );
-  }
-
-  // ── WS5: Smart Detection toggles (from SmartInputScreen) ──────────────
-
-  Future<void> _toggleSmsParser(bool value) async {
-    if (!Platform.isAndroid) return;
-    try {
-      if (value) {
-        if (!mounted) return;
-        final allowed = await PermissionHelper.showRationale(
-          context,
-          title: context.l10n.permission_sms_title,
-          rationale: context.l10n.permission_sms_body,
-        );
-        if (!allowed || !mounted) return;
-        _awaitingSmsPermission = true;
-        final granted = await Telephony.instance.requestSmsPermissions ?? false;
-        if (!_awaitingSmsPermission) return;
-        _awaitingSmsPermission = false;
-        if (!granted || !mounted) return;
-        await _finishSmsPermission();
-      } else {
-        final prefs = await ref.read(preferencesFutureProvider.future);
-        await prefs.setSmsParserEnabled(false);
-        if (!mounted) return;
-        setState(() => _smsParserEnabled = false);
-      }
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      _awaitingSmsPermission = false;
-      if (!mounted) return;
-      setState(() => _smsParserEnabled = !value);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
-  }
-
-  Future<void> _finishSmsPermission() async {
-    if (!Platform.isAndroid) return;
-    _awaitingSmsPermission = false;
-    try {
-      final granted = await Telephony.instance.requestSmsPermissions ?? false;
-      if (!granted || !mounted) return;
-      final prefs = await ref.read(preferencesFutureProvider.future);
-      await prefs.setSmsParserEnabled(true);
-      if (!mounted) return;
-      setState(() => _smsParserEnabled = true);
-      final dao = ref.read(smsParserLogDaoProvider);
-      final count = await SmsParserService(dao).scanInbox();
-      if (!mounted) return;
-      if (count > 0) ref.invalidate(pendingParsedTransactionsProvider);
-    } catch (e) {
-      CrashLogService.log(e, StackTrace.current);
-      if (!mounted) return;
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    }
   }
 
   Future<void> _clearAllData() async {
@@ -715,18 +648,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               onTap: () => _changePin(),
             ),
 
-          // ── Smart Detection (WS5: moved from SmartInputScreen) ──────
-          if (Platform.isAndroid) ...[
-            _SectionHeader(title: l10n.settings_smart_detection),
-            SwitchListTile(
-              secondary: _SettingsIconBox(icon: AppIcons.sms, cs: cs),
-              title: Text(l10n.settings_sms_parser),
-              subtitle: Text(l10n.settings_sms_parser_subtitle),
-              value: _smsParserEnabled,
-              onChanged: _toggleSmsParser,
-            ),
-          ],
-
           _SettingsTile(
             icon: AppIcons.notification,
             label: l10n.notif_prefs_title,
@@ -981,29 +902,6 @@ class _SectionHeader extends StatelessWidget {
           color: context.colors.primary,
           fontWeight: FontWeight.w700,
         ),
-      ),
-    );
-  }
-}
-
-/// WS5: Icon box for SwitchListTile secondary — matches _SettingsTile leading.
-class _SettingsIconBox extends StatelessWidget {
-  const _SettingsIconBox({required this.icon, required this.cs});
-
-  final IconData icon;
-  final ColorScheme cs;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      tier: GlassTier.inset,
-      padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-      child: SizedBox(
-        width: AppSizes.colorSwatchSize,
-        height: AppSizes.colorSwatchSize,
-        child: Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
       ),
     );
   }

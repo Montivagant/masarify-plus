@@ -1214,12 +1214,6 @@ abstract class AppLocalizations {
   /// **'Voice Input'**
   String get settings_voice_input;
 
-  /// No description provided for @settings_sms_parser.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS Parser'**
-  String get settings_sms_parser;
-
   /// No description provided for @settings_language_changed.
   ///
   /// In en, this message translates to:
@@ -1867,18 +1861,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} parsed transaction(s) matched and auto-resolved'**
   String parser_auto_resolved(int count);
-
-  /// No description provided for @settings_smart_detection.
-  ///
-  /// In en, this message translates to:
-  /// **'Smart Detection'**
-  String get settings_smart_detection;
-
-  /// No description provided for @settings_smart_detection_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Auto-detect transactions from SMS messages'**
-  String get settings_smart_detection_subtitle;
 
   /// No description provided for @settings_ai_models.
   ///
@@ -3649,24 +3631,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voice Input'**
   String get quick_add_voice;
-
-  /// No description provided for @settings_sms_parser_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan SMS inbox for bank transaction messages'**
-  String get settings_sms_parser_subtitle;
-
-  /// No description provided for @permission_sms_title.
-  ///
-  /// In en, this message translates to:
-  /// **'SMS Access'**
-  String get permission_sms_title;
-
-  /// No description provided for @permission_sms_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.'**
-  String get permission_sms_body;
 
   /// No description provided for @fab_expense.
   ///
