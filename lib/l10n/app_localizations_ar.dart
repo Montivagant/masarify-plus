@@ -1064,6 +1064,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get paywall_unlock_cta => 'اضغط للفتح';
 
   @override
+  String get paywall_pricing_terms => 'تجربة مجانية 7 أيام • إلغاء في أي وقت';
+
+  @override
+  String get subscription_manage => 'إدارة الاشتراك';
+
+  @override
+  String get settings_pro_status => 'مصاريفي برو';
+
+  @override
+  String settings_pro_trial_days(int days) {
+    return 'تجربة: باقي $days أيام';
+  }
+
+  @override
+  String get settings_pro_free => 'الباقة المجانية';
+
+  @override
   String get common_ok => 'حسناً';
 
   @override

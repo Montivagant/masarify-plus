@@ -1068,6 +1068,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paywall_unlock_cta => 'Tap to unlock';
 
   @override
+  String get paywall_pricing_terms => '7-day free trial • Cancel anytime';
+
+  @override
+  String get subscription_manage => 'Manage Subscription';
+
+  @override
+  String get settings_pro_status => 'Masarify Pro';
+
+  @override
+  String settings_pro_trial_days(int days) {
+    return 'Trial: $days days left';
+  }
+
+  @override
+  String get settings_pro_free => 'Free Plan';
+
+  @override
   String get common_ok => 'OK';
 
   @override

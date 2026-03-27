@@ -86,16 +86,20 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
     final features = [
       (
+        icon: AppIcons.ai,
+        label: context.l10n.paywall_feature_chat,
+      ),
+      (
+        icon: AppIcons.trendingUp,
+        label: context.l10n.paywall_feature_insights,
+      ),
+      (
         icon: AppIcons.budget,
         label: context.l10n.paywall_feature_budgets,
       ),
       (
         icon: AppIcons.goals,
         label: context.l10n.paywall_feature_goals,
-      ),
-      (
-        icon: AppIcons.trendingUp,
-        label: context.l10n.paywall_feature_insights,
       ),
       (
         icon: AppIcons.analytics,
@@ -108,10 +112,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       (
         icon: AppIcons.export_,
         label: context.l10n.paywall_feature_export,
-      ),
-      (
-        icon: AppIcons.ai,
-        label: context.l10n.paywall_feature_chat,
       ),
     ];
 
@@ -228,6 +228,22 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
             ),
 
             const SizedBox(height: AppSizes.lg),
+
+            // ── Pricing terms ──────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: Text(
+                context.l10n.paywall_pricing_terms,
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: cs.outline,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
 
             // ── Purchase buttons ─────────────────────────────────────
             if (_loading)

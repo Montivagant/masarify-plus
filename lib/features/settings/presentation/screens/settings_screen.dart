@@ -17,6 +17,7 @@ import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/providers/theme_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
@@ -531,6 +532,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
         children: [
+          // ── Subscription Status ──────────────────────────────────────
+          Builder(
+            builder: (context) {
+              // Watch pro access to trigger rebuilds on purchase/restore.
+              ref.watch(hasProAccessProvider);
+              final trialDays = ref.watch(trialDaysRemainingProvider);
+              final service = ref.read(subscriptionServiceProvider);
+              final isInTrial = service.isInTrial && !service.isPro;
+
+              final String subtitle;
+              if (service.isPro) {
+                subtitle = l10n.pro_badge;
+              } else if (isInTrial && trialDays > 0) {
+                subtitle = l10n.settings_pro_trial_days(trialDays);
+              } else {
+                subtitle = l10n.settings_pro_free;
+              }
+
+              return _SettingsTile(
+                icon: AppIcons.star,
+                label: l10n.settings_pro_status,
+                subtitle: subtitle,
+                onTap: () => context.push(AppRoutes.settingsSubscription),
+              );
+            },
+          ),
+          const Divider(height: 1),
+
           // ── Appearance ──────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_appearance),
 
