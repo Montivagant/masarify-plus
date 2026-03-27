@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +13,6 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../../core/services/crash_log_service.dart';
 import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
@@ -901,29 +902,6 @@ class _SectionHeader extends StatelessWidget {
           color: context.colors.primary,
           fontWeight: FontWeight.w700,
         ),
-      ),
-    );
-  }
-}
-
-/// WS5: Icon box for SwitchListTile secondary — matches _SettingsTile leading.
-class _SettingsIconBox extends StatelessWidget {
-  const _SettingsIconBox({required this.icon, required this.cs});
-
-  final IconData icon;
-  final ColorScheme cs;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassCard(
-      tier: GlassTier.inset,
-      padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacityLight4),
-      child: SizedBox(
-        width: AppSizes.colorSwatchSize,
-        height: AppSizes.colorSwatchSize,
-        child: Icon(icon, size: AppSizes.iconSm, color: cs.onPrimaryContainer),
       ),
     );
   }
