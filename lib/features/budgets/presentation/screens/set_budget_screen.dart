@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/month_name_extension.dart';
@@ -12,6 +13,7 @@ import '../../../../domain/entities/budget_entity.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
@@ -118,6 +120,21 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
 
   Future<void> _save() async {
     if (_categoryId == null || _limitPiastres <= 0) return;
+
+    // Free tier: max 2 budgets per month.
+    if (widget.editId == null) {
+      final hasPro = ref.read(hasProAccessProvider);
+      if (!hasPro) {
+        final existing =
+            await ref.read(budgetRepositoryProvider).getByMonth(_year, _month);
+        if (existing.length >= 2) {
+          if (!mounted) return;
+          context.push(AppRoutes.paywall);
+          return;
+        }
+      }
+    }
+
     setState(() => _loading = true);
     try {
       final repo = ref.read(budgetRepositoryProvider);
