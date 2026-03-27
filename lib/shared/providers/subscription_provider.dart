@@ -1,12 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/subscription_service.dart';
+import 'database_provider.dart';
 import 'theme_provider.dart';
 
 /// Singleton subscription service — initialized on app start.
 final subscriptionServiceProvider = Provider<SubscriptionService>(
   (ref) {
-    final service = SubscriptionService(ref.watch(sharedPreferencesProvider));
+    final db = ref.watch(databaseProvider);
+    final service = SubscriptionService(
+      ref.watch(sharedPreferencesProvider),
+      recordDao: db.subscriptionRecordDao,
+    );
     ref.onDispose(service.dispose);
     return service;
   },
