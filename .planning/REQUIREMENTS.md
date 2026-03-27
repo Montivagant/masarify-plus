@@ -23,7 +23,7 @@
 - [x] **TXN-04**: Transfer transactions display correctly: X account shows "Transfer to Y" with Y's icon, Y account shows "Transfer from X" with X's icon — one transaction per account
 - [x] **TXN-05**: Transactions added to the correct account (respects selected account from dashboard carousel) — verify fix
 - [ ] **TXN-06**: Transaction description field (notes/memo support)
-- [ ] **TXN-07**: Review/confirm transaction screen — full UX/UI revamp for clarity and usability
+- [x] **TXN-07**: Review/confirm transaction screen — full UX/UI revamp for clarity and usability
 
 ### AI Chat (AI)
 

@@ -85,7 +85,7 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 
 1/3 plans executed
 - [ ] 03-02-PLAN.md — Transaction SliverList with date grouping, search/sort/filter-badge, swipe-to-edit/delete, notes field verification (HOME-03, TXN-01, TXN-06)
-- [ ] 03-03-PLAN.md — VoiceConfirmScreen full UX/UI revamp with glassmorphic form, multi-draft support, RTL-safe transfer display (TXN-07)
+- [x] 03-03-PLAN.md — VoiceConfirmScreen full UX/UI revamp with glassmorphic form, multi-draft support, RTL-safe transfer display (TXN-07)
 
 **Success criteria:**
 1. Home screen renders with zero blank/whitespace zones in both Light and Dark themes, in both English LTR and Arabic RTL.
