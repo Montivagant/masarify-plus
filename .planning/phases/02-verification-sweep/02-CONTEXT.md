@@ -115,12 +115,14 @@ Verify every feature shipped in P5 Phases 2-4 actually works at runtime; fix all
 <deferred>
 ## Deferred Ideas
 
-- **Set any account as default** — new ACCT requirement, add to Phase 2 or 3 backlog
-- **Google sign-in for backup + purchases** — new auth flow, needs its own phase
+- **Set any account as default (re-set default)** — new ACCT requirement, add to Phase 3
+- **Google sign-in for backup + purchases** — new auth flow, needs its own phase or add to Phase 5
 - **Subscription plans visual screen in onboarding** — Phase 5 (Monetization)
 - **Nav/element restructuring** — Phase 3 (Home overhaul)
 - **Home screen full revamp** — Phase 3 (already planned)
 - **Transaction review screen full UX revamp** — Phase 3 (TXN-07)
+- **Unified form screen revamp** — All "Add New" screens (budget, bill, transaction, goal, account) need unified modern styling with design tokens. Phase 3.
+- **Google backup auth flow fix** — Re-think backup to require Google sign-in. Phase 3 or new phase.
 
 </deferred>
 
