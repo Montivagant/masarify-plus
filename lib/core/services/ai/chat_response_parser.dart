@@ -47,7 +47,7 @@ class ChatResponseParser {
     }
 
     if (match == null || matchedPattern == null) {
-      return ParsedChatResponse(textContent: rawContent);
+      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
 
     final jsonStr = match.group(1)!;
@@ -64,10 +64,35 @@ class ChatResponseParser {
           .replaceAll(RegExp(r'\n{3,}'), '\n\n') // collapse excessive newlines
           .trim();
 
-      return ParsedChatResponse(textContent: textContent, action: action);
+      return ParsedChatResponse(
+        textContent: _maybeSanitize(textContent),
+        action: action,
+      );
     } catch (_) {
       // Malformed JSON — treat entire response as plain text.
-      return ParsedChatResponse(textContent: rawContent);
+      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
+  }
+
+  /// Apply safety-net only if text still contains JSON indicators.
+  static String _maybeSanitize(String text) {
+    if (text.contains('"action"') || text.contains('"type":')) {
+      return _sanitizeRemainingJson(text);
+    }
+    return text;
+  }
+
+  /// Final safety net: strip any remaining action-JSON fragments that
+  /// slipped past the 2-layer parser (e.g., split across stream chunks,
+  /// nested in unrecognized markdown, or malformed responses).
+  static String _sanitizeRemainingJson(String text) {
+    // Strip any bare {...} block containing "action" key.
+    var cleaned = text.replaceAll(
+      RegExp(r'\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}'),
+      '',
+    );
+    // Clean up leftover whitespace.
+    cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+    return cleaned.isEmpty ? text : cleaned;
   }
 }
