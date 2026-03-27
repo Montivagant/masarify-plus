@@ -229,6 +229,22 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
 
             const SizedBox(height: AppSizes.lg),
 
+            // ── Pricing terms ──────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: Text(
+                context.l10n.paywall_pricing_terms,
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: cs.outline,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+
             // ── Purchase buttons ─────────────────────────────────────
             if (_loading)
               const Padding(

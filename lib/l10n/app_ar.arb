@@ -380,6 +380,7 @@
   "@paywall_trial_banner": {"placeholders": {"days": {"type": "int"}}},
   "paywall_pro_feature": "ميزة Pro",
   "paywall_unlock_cta": "اضغط للفتح",
+  "paywall_pricing_terms": "تجربة مجانية 7 أيام \u2022 إلغاء في أي وقت",
 
   "common_ok": "حسناً",
   "common_error_title": "حدث خطأ",

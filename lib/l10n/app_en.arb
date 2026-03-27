@@ -386,6 +386,7 @@
   "@paywall_trial_banner": {"placeholders": {"days": {"type": "int"}}},
   "paywall_pro_feature": "Pro Feature",
   "paywall_unlock_cta": "Tap to unlock",
+  "paywall_pricing_terms": "7-day free trial \u2022 Cancel anytime",
 
   "common_ok": "OK",
   "common_error_title": "An error occurred",
