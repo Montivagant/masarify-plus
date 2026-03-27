@@ -1046,5 +1046,21 @@
   "transaction_delete_confirm_body": "This cannot be undone.",
   "transfer_delete_confirm_title": "Delete transfer?",
   "transfer_delete_confirm_body": "This will delete both legs of the transfer.",
-  "transfer_cannot_edit": "Transfers cannot be edited from here"
+  "transfer_cannot_edit": "Transfers cannot be edited from here",
+  "voice_confirm_amount_missing": "Amount not detected — please enter",
+  "voice_confirm_select_category": "Select category",
+  "voice_confirm_select_account": "Select account",
+  "voice_confirm_from_account": "From",
+  "voice_confirm_to_account": "To",
+  "voice_confirm_add_notes": "Add notes...",
+  "voice_confirm_subscription_suggest": "Add to Subscriptions & Bills?",
+  "voice_confirm_save_next": "Save & Next",
+  "voice_confirm_draft_count": "{current} of {total}",
+  "@voice_confirm_draft_count": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "voice_confirm_all_saved": "All transactions saved!"
 }

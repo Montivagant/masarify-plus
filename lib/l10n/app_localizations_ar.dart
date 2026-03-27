@@ -2691,4 +2691,38 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_cannot_edit => 'لا يمكن تعديل التحويلات من هنا';
+
+  @override
+  String get voice_confirm_amount_missing =>
+      'لم يتم تحديد المبلغ — يرجى إدخاله';
+
+  @override
+  String get voice_confirm_select_category => 'اختر الفئة';
+
+  @override
+  String get voice_confirm_select_account => 'اختر الحساب';
+
+  @override
+  String get voice_confirm_from_account => 'من';
+
+  @override
+  String get voice_confirm_to_account => 'إلى';
+
+  @override
+  String get voice_confirm_add_notes => 'أضف ملاحظات...';
+
+  @override
+  String get voice_confirm_subscription_suggest =>
+      'إضافة إلى الاشتراكات والفواتير؟';
+
+  @override
+  String get voice_confirm_save_next => 'حفظ والتالي';
+
+  @override
+  String voice_confirm_draft_count(int current, int total) {
+    return '$current من $total';
+  }
+
+  @override
+  String get voice_confirm_all_saved => 'تم حفظ جميع المعاملات!';
 }
