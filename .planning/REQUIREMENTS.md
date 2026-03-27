@@ -131,17 +131,86 @@ Deferred to post-launch updates (v1.1+).
 
 ## Traceability
 
-<!-- Populated during roadmap creation -->
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| HOME-01 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-02 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-03 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-04 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-05 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-06 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-07 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| TXN-01 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| TXN-02 | Phase 2 — Verification Sweep | ○ Pending |
+| TXN-03 | Phase 2 — Verification Sweep | ○ Pending |
+| TXN-04 | Phase 2 — Verification Sweep | ○ Pending |
+| TXN-05 | Phase 2 — Verification Sweep | ○ Pending |
+| TXN-06 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| TXN-07 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| AI-01 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| AI-02 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| AI-03 | Phase 2 — Verification Sweep | ○ Pending |
+| AI-04 | Phase 2 — Verification Sweep | ○ Pending |
+| AI-05 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| AI-06 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| VOICE-01 | Phase 2 — Verification Sweep | ○ Pending |
+| VOICE-02 | Phase 2 — Verification Sweep | ○ Pending |
+| VOICE-03 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| VOICE-04 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-01 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-02 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-03 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-04 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-05 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-06 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-07 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-08 | Phase 2 — Verification Sweep | ○ Pending |
+| ACCT-09 | Phase 2 — Verification Sweep | ○ Pending |
+| SUB-01 | Phase 2 — Verification Sweep | ○ Pending |
+| SUB-02 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| SUB-03 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| SUB-04 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| SUB-05 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| CAT-01 | Phase 2 — Verification Sweep | ○ Pending |
+| CAT-02 | Phase 2 — Verification Sweep | ○ Pending |
+| CAT-03 | Phase 2 — Verification Sweep | ○ Pending |
+| CAT-04 | Phase 2 — Verification Sweep | ○ Pending |
+| CAT-05 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
+| ONBOARD-01 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| ONBOARD-02 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| ONBOARD-03 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| PAYWALL-01 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| PAYWALL-02 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| PAYWALL-03 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| PAYWALL-04 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| PAYWALL-05 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| PAYWALL-06 | Phase 5 — Monetization & Onboarding | ○ Pending |
+| PERF-01 | Phase 6 — Performance & Device Optimization | ○ Pending |
+| PERF-02 | Phase 6 — Performance & Device Optimization | ○ Pending |
+| PERF-03 | Phase 6 — Performance & Device Optimization | ○ Pending |
+| PERF-04 | Phase 6 — Performance & Device Optimization | ○ Pending |
+| PERF-05 | Phase 6 — Performance & Device Optimization | ○ Pending |
+| CLEAN-01 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| CLEAN-02 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| CLEAN-03 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| STORE-01 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| STORE-02 | Phase 7 — Store Submission | ○ Pending |
+| STORE-03 | Phase 7 — Store Submission | ○ Pending |
+| STORE-04 | Phase 7 — Store Submission | ○ Pending |
+| STORE-05 | Phase 7 — Store Submission | ○ Pending |
+| STORE-06 | Phase 7 — Store Submission | ○ Pending |
 
 **Coverage:**
-- v1 requirements: 57 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 57
+- v1 requirements: 66 total
+- Phase 1 (Compliance & Billing Foundation): 7 requirements
+- Phase 2 (Verification Sweep): 23 requirements
+- Phase 3 (Home Screen Overhaul): 10 requirements
+- Phase 4 (AI, Voice & Subscriptions Polish): 10 requirements
+- Phase 5 (Monetization & Onboarding): 6 requirements
+- Phase 6 (Performance & Device Optimization): 5 requirements
+- Phase 7 (Store Submission): 5 requirements
+- **Mapped: 66 | Unmapped: 0**
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after initialization*
+*Last updated: 2026-03-27 — roadmap v2 phase mappings*
