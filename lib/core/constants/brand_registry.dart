@@ -107,6 +107,18 @@ abstract final class BrandRegistry {
       keywords: ['hsbc', 'اتش اس بي سي'],
       initial: 'HSBC',
     ),
+    BrandInfo(
+      name: 'Alex Bank',
+      color: Color(0xFF003C71),
+      keywords: ['alex bank', 'بنك الاسكندرية', 'الإسكندرية'],
+      initial: 'AB',
+    ),
+    BrandInfo(
+      name: 'AAIB',
+      color: Color(0xFF005C5C),
+      keywords: ['aaib', 'العربي الأفريقي', 'arab african'],
+      initial: 'AAIB',
+    ),
 
     // ── Egyptian Fintech & Payments ──────────────────────────────────
     BrandInfo(
@@ -146,6 +158,22 @@ abstract final class BrandRegistry {
       color: Color(0xFFFF6B35),
       keywords: ['sympl', 'سيمبل'],
       initial: 'Sy',
+    ),
+    BrandInfo(
+      name: 'Paymob',
+      color: Color(0xFF0066FF),
+      keywords: ['paymob', 'بايموب'],
+      initial: 'PM',
+    ),
+    BrandInfo(
+      name: 'Khazna',
+      color: Color(0xFF00B894),
+      keywords: ['khazna', 'خزنة'],
+    ),
+    BrandInfo(
+      name: 'Lucky',
+      color: Color(0xFF4CAF50),
+      keywords: ['lucky', 'لاكي'],
     ),
 
     // ── Ride-hailing & Delivery ─────────────────────────────────────
@@ -215,6 +243,17 @@ abstract final class BrandRegistry {
       keywords: ['instashop'],
     ),
     BrandInfo(
+      name: 'Seoudi',
+      color: Color(0xFFE53935),
+      keywords: ['seoudi', 'سعودي', 'سعودى'],
+    ),
+    BrandInfo(
+      name: 'Hyper One',
+      color: Color(0xFF1565C0),
+      keywords: ['hyper one', 'هايبر وان'],
+      initial: 'H1',
+    ),
+    BrandInfo(
       name: 'B.Tech',
       color: Color(0xFF004B93),
       keywords: ['b.tech', 'btech', 'بي تك'],
@@ -242,6 +281,23 @@ abstract final class BrandRegistry {
       name: 'Shahid',
       color: Color(0xFF00BCD4),
       keywords: ['shahid', 'شاهد'],
+    ),
+    BrandInfo(
+      name: 'Anghami',
+      color: Color(0xFF6C3EA6),
+      keywords: ['anghami', 'أنغامي', 'انغامي'],
+    ),
+    BrandInfo(
+      name: 'Disney+',
+      color: Color(0xFF113CCF),
+      keywords: ['disney', 'ديزني'],
+      initial: 'D+',
+    ),
+    BrandInfo(
+      name: 'OSN',
+      color: Color(0xFF1A1A2E),
+      keywords: ['osn', 'أو إس إن'],
+      initial: 'OSN',
     ),
     BrandInfo(
       name: 'Apple',

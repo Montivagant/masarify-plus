@@ -1,5 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 /// Callback invoked when user taps a notification.
@@ -22,7 +22,7 @@ class NotificationService {
 
   static Future<void> initialize() async {
     if (_initialized) return;
-    tz.initializeTimeZones();
+    tz_data.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
@@ -130,6 +130,41 @@ class NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
+      payload: payload,
+    );
+  }
+
+  /// Schedule a one-shot notification at [scheduledDate].
+  /// Fires once — no repeating. Used for bill reminders.
+  static Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    final tzDate = tz.TZDateTime.from(scheduledDate, tz.local);
+    // Guard: do not schedule in the past.
+    if (tzDate.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tzDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'masarify_bills',
+          'Bill Reminders',
+          channelDescription: 'Upcoming bill and subscription reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
       payload: payload,
     );
   }
