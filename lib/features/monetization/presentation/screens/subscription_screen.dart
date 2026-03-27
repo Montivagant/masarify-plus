@@ -92,10 +92,14 @@ class SubscriptionScreen extends ConsumerWidget {
                 final restored = ref.read(hasProAccessProvider);
                 if (restored) {
                   SnackHelper.showSuccess(
-                      context, context.l10n.paywall_restored);
+                    context,
+                    context.l10n.paywall_restored,
+                  );
                 } else {
                   SnackHelper.showInfo(
-                      context, context.l10n.paywall_no_purchases);
+                    context,
+                    context.l10n.paywall_no_purchases,
+                  );
                 }
               },
               icon: const Icon(AppIcons.refresh),
