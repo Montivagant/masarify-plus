@@ -5198,6 +5198,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All transactions saved!'**
   String get voice_confirm_all_saved;
+
+  /// No description provided for @insight_upcoming_bills_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming Bills'**
+  String get insight_upcoming_bills_title;
+
+  /// No description provided for @insight_upcoming_bills_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 bill due this week} other{{count} bills due this week}}'**
+  String insight_upcoming_bills_body(int count);
+
+  /// No description provided for @insight_budget_savings_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Savings'**
+  String get insight_budget_savings_title;
+
+  /// No description provided for @insight_budget_savings_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} on {category}'**
+  String insight_budget_savings_body(String amount, String category);
 }
 
 class _AppLocalizationsDelegate

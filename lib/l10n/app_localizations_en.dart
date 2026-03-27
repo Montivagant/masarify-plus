@@ -2748,4 +2748,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voice_confirm_all_saved => 'All transactions saved!';
+
+  @override
+  String get insight_upcoming_bills_title => 'Upcoming Bills';
+
+  @override
+  String insight_upcoming_bills_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bills due this week',
+      one: '1 bill due this week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insight_budget_savings_title => 'Budget Savings';
+
+  @override
+  String insight_budget_savings_body(String amount, String category) {
+    return 'Saved $amount on $category';
+  }
 }

@@ -2725,4 +2725,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_confirm_all_saved => 'تم حفظ جميع المعاملات!';
+
+  @override
+  String get insight_upcoming_bills_title => 'فواتير قادمة';
+
+  @override
+  String insight_upcoming_bills_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count فواتير مستحقة هذا الأسبوع',
+      one: 'فاتورة واحدة مستحقة هذا الأسبوع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get insight_budget_savings_title => 'وفورات الميزانية';
+
+  @override
+  String insight_budget_savings_body(String amount, String category) {
+    return 'وفرت $amount في $category';
+  }
 }
