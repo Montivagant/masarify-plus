@@ -380,6 +380,8 @@
   "@paywall_trial_banner": {"placeholders": {"days": {"type": "int"}}},
   "paywall_pro_feature": "ميزة Pro",
   "paywall_unlock_cta": "اضغط للفتح",
+  "budget_limit_reached": "الباقة المجانية تسمح بميزانيتين فقط. اشترك في برو لميزانيات بلا حدود.",
+  "goal_limit_reached": "الباقة المجانية تسمح بهدف واحد فقط. اشترك في برو لأهداف بلا حدود.",
 
   "common_ok": "حسناً",
   "common_error_title": "حدث خطأ",

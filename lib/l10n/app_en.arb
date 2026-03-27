@@ -386,6 +386,8 @@
   "@paywall_trial_banner": {"placeholders": {"days": {"type": "int"}}},
   "paywall_pro_feature": "Pro Feature",
   "paywall_unlock_cta": "Tap to unlock",
+  "budget_limit_reached": "Free plan allows 2 budgets. Upgrade to Pro for unlimited.",
+  "goal_limit_reached": "Free plan allows 1 savings goal. Upgrade to Pro for unlimited.",
 
   "common_ok": "OK",
   "common_error_title": "An error occurred",
