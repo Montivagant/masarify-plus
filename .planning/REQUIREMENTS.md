@@ -9,7 +9,7 @@
 
 - [x] **HOME-01**: Full home screen revamp — replace bulky hero cards with modern, clean, sleek design
 - [x] **HOME-02**: "All Accounts" balance card must be visually distinct from individual account cards (it's a summary, not an account)
-- [ ] **HOME-03**: Filter and search actions for transactions on home screen
+- [x] **HOME-03**: Filter and search actions for transactions on home screen
 - [x] **HOME-04**: Quick filter chips (Expense/Income/Transfer/All) on home transaction list
 - [x] **HOME-05**: Eliminate whitespace and blank areas from home screen layout
 - [x] **HOME-06**: Remove Transactions tab entirely — merge all transaction functionality into home screen
@@ -17,12 +17,12 @@
 
 ### Transactions (TXN)
 
-- [ ] **TXN-01**: Swipe actions (edit/delete) working on ALL transaction types including transfers — with 2-step confirmation
+- [x] **TXN-01**: Swipe actions (edit/delete) working on ALL transaction types including transfers — with 2-step confirmation
 - [x] **TXN-02**: Category displayed first in transaction cards (category bold, title/note secondary) — verify this is working
 - [x] **TXN-03**: Cash withdrawal/deposit transactions appear in relevant account transaction lists — verify fix
 - [x] **TXN-04**: Transfer transactions display correctly: X account shows "Transfer to Y" with Y's icon, Y account shows "Transfer from X" with X's icon — one transaction per account
 - [x] **TXN-05**: Transactions added to the correct account (respects selected account from dashboard carousel) — verify fix
-- [ ] **TXN-06**: Transaction description field (notes/memo support)
+- [x] **TXN-06**: Transaction description field (notes/memo support)
 - [ ] **TXN-07**: Review/confirm transaction screen — full UX/UI revamp for clarity and usability
 
 ### AI Chat (AI)
@@ -135,17 +135,17 @@ Deferred to post-launch updates (v1.1+).
 |-------------|-------|--------|
 | HOME-01 | Phase 3 — Home Screen Overhaul | ○ Pending |
 | HOME-02 | Phase 3 — Home Screen Overhaul | ○ Pending |
-| HOME-03 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| HOME-03 | Phase 3 — Home Screen Overhaul | ● Complete |
 | HOME-04 | Phase 3 — Home Screen Overhaul | ○ Pending |
 | HOME-05 | Phase 3 — Home Screen Overhaul | ○ Pending |
 | HOME-06 | Phase 3 — Home Screen Overhaul | ○ Pending |
 | HOME-07 | Phase 3 — Home Screen Overhaul | ○ Pending |
-| TXN-01 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| TXN-01 | Phase 3 — Home Screen Overhaul | ● Complete |
 | TXN-02 | Phase 2 — Verification Sweep | ○ Pending |
 | TXN-03 | Phase 2 — Verification Sweep | ○ Pending |
 | TXN-04 | Phase 2 — Verification Sweep | ○ Pending |
 | TXN-05 | Phase 2 — Verification Sweep | ○ Pending |
-| TXN-06 | Phase 3 — Home Screen Overhaul | ○ Pending |
+| TXN-06 | Phase 3 — Home Screen Overhaul | ● Complete |
 | TXN-07 | Phase 3 — Home Screen Overhaul | ○ Pending |
 | AI-01 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |
 | AI-02 | Phase 4 — AI, Voice & Subscriptions Polish | ○ Pending |

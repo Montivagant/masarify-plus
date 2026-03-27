@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03
 status: executing
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-27T20:55:02.821Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-27T21:10:03Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Masarify — Project State
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 |-------|------|--------|-------|
 | 1 | Compliance & Billing Foundation | ● Complete | 3/3 |
 | 2 | Verification Sweep | ● Complete | 4/4 |
-| 3 | Home Screen Overhaul | ◑ In progress | 1/3 |
+| 3 | Home Screen Overhaul | ◑ In progress | 2/3 |
 | 4 | AI, Voice & Subscriptions Polish | ○ Pending | 0/3 |
 | 5 | Monetization & Onboarding | ○ Pending | 0/4 |
 | 6 | Performance & Device Optimization | ○ Pending | 0/3 |
@@ -85,6 +85,9 @@ Phase 1 → Phase 2 → Phase 3 → Phase 5 → Phase 6 → Phase 7
 
 - [Phase 03]: Used SliverToBoxAdapter for balance header instead of SliverAppBar to avoid dynamic expandedHeight and BackdropFilter issues
 - [Phase 03]: Direct wallet-ID selection (StateProvider<int?>) replaces index-based carousel selection
+- [Phase 03]: Flat _ListItem union type for interleaving date headers and transaction cards in SliverList
+- [Phase 03]: Transfer deletion extracts original ID via syntheticId ~/ 2 from TransferAdapter convention
+- [Phase 03]: SlidableAutoCloseBehavior wraps CustomScrollView for proper group close behavior
 
 ## Known Issues
 
@@ -92,8 +95,8 @@ None -- all pre-existing analyzer errors resolved (env.dart stub + SubscriptionR
 
 ## Session Continuity
 
-**Last session:** 2026-03-27T20:55:02.817Z
-**Stopped at:** Completed 03-01-PLAN.md
+**Last session:** 2026-03-27T21:10:03Z
+**Stopped at:** Completed 03-02-PLAN.md
 **Resume file:** None
 
 ---
