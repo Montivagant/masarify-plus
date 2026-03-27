@@ -18,10 +18,10 @@
 ### Transactions (TXN)
 
 - [ ] **TXN-01**: Swipe actions (edit/delete) working on ALL transaction types including transfers — with 2-step confirmation
-- [ ] **TXN-02**: Category displayed first in transaction cards (category bold, title/note secondary) — verify this is working
-- [ ] **TXN-03**: Cash withdrawal/deposit transactions appear in relevant account transaction lists — verify fix
-- [ ] **TXN-04**: Transfer transactions display correctly: X account shows "Transfer to Y" with Y's icon, Y account shows "Transfer from X" with X's icon — one transaction per account
-- [ ] **TXN-05**: Transactions added to the correct account (respects selected account from dashboard carousel) — verify fix
+- [x] **TXN-02**: Category displayed first in transaction cards (category bold, title/note secondary) — verify this is working
+- [x] **TXN-03**: Cash withdrawal/deposit transactions appear in relevant account transaction lists — verify fix
+- [x] **TXN-04**: Transfer transactions display correctly: X account shows "Transfer to Y" with Y's icon, Y account shows "Transfer from X" with X's icon — one transaction per account
+- [x] **TXN-05**: Transactions added to the correct account (respects selected account from dashboard carousel) — verify fix
 - [ ] **TXN-06**: Transaction description field (notes/memo support)
 - [ ] **TXN-07**: Review/confirm transaction screen — full UX/UI revamp for clarity and usability
 
