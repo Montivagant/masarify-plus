@@ -9,6 +9,7 @@ import 'daos/exchange_rate_dao.dart';
 import 'daos/goal_dao.dart';
 import 'daos/parsed_event_group_dao.dart';
 import 'daos/recurring_rule_dao.dart';
+import 'daos/subscription_record_dao.dart';
 import 'daos/sms_parser_log_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'daos/transfer_dao.dart';
@@ -23,6 +24,7 @@ import 'tables/parsed_event_groups_table.dart';
 import 'tables/recurring_rules_table.dart';
 import 'tables/savings_goals_table.dart';
 import 'tables/sms_parser_logs_table.dart';
+import 'tables/subscription_records_table.dart';
 import 'tables/transactions_table.dart';
 import 'tables/transfers_table.dart';
 import 'tables/wallets_table.dart';
@@ -44,6 +46,7 @@ part 'app_database.g.dart';
     CategoryMappings,
     ChatMessages,
     ParsedEventGroups,
+    SubscriptionRecords,
   ],
   daos: [
     WalletDao,
@@ -58,13 +61,14 @@ part 'app_database.g.dart';
     CategoryMappingDao,
     ChatMessageDao,
     ParsedEventGroupDao,
+    SubscriptionRecordDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -224,6 +228,47 @@ class AppDatabase extends _$AppDatabase {
                 );
               }
             }
+          }
+          if (from < 12) {
+            // Seed 12 new expense categories for existing users.
+            // Uses INSERT OR IGNORE to prevent duplicates on fresh installs
+            // (where CategorySeed already inserted them).
+            const newCats = [
+              "('Installments', 'أقساط', 'credit_score', '#E67E22', 'expense', 'needs', 1, 0, 17)",
+              "('Insurance', 'تأمين', 'shield', '#2ECC71', 'expense', 'needs', 1, 0, 18)",
+              "('Fuel & Parking', 'وقود ومواقف', 'local_gas_station', '#E74C3C', 'expense', 'needs', 1, 0, 19)",
+              "('Maintenance', 'صيانة', 'build', '#95A5A6', 'expense', 'needs', 1, 0, 20)",
+              "('Kids & Family', 'أطفال وعائلة', 'child_care', '#F39C12', 'expense', 'wants', 1, 0, 21)",
+              "('Pets', 'حيوانات أليفة', 'pets', '#8E44AD', 'expense', 'wants', 1, 0, 22)",
+              "('Café & Coffee', 'كافيه وقهوة', 'coffee', '#6F4E37', 'expense', 'wants', 1, 0, 23)",
+              "('Home Supplies', 'مستلزمات منزلية', 'weekend', '#1ABC9C', 'expense', 'wants', 1, 0, 24)",
+              "('Charity & Zakat', 'صدقة وزكاة', 'volunteer_activism', '#27AE60', 'expense', 'wants', 1, 0, 25)",
+              "('ATM & Bank Fees', 'رسوم بنكية', 'account_balance', '#34495E', 'expense', 'needs', 1, 0, 26)",
+              "('Delivery & Shipping', 'توصيل وشحن', 'local_shipping', '#D35400', 'expense', 'wants', 1, 0, 27)",
+              "('Savings Transfer', 'تحويل للادخار', 'savings', '#16A085', 'expense', 'wants', 1, 0, 28)",
+            ];
+            for (final values in newCats) {
+              await customStatement(
+                'INSERT OR IGNORE INTO categories '
+                '(name, name_ar, icon_name, color_hex, type, group_type, '
+                'is_default, is_archived, display_order) VALUES $values',
+              );
+            }
+
+            // Shift existing default income categories to order 29-34.
+            await customStatement(
+              'UPDATE categories SET display_order = display_order + 12 '
+              'WHERE type = \'income\' AND is_default = 1',
+            );
+          }
+          if (from < 13) {
+            // Add sortOrder column for carousel drag-and-drop reordering.
+            await m.addColumn(wallets, wallets.sortOrder);
+            // Initialize sortOrder to match existing id ordering.
+            await customStatement('UPDATE wallets SET sort_order = id');
+          }
+          if (from < 14) {
+            await m.createTable(subscriptionRecords);
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
