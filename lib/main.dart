@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
@@ -21,6 +22,10 @@ import 'shared/providers/theme_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Disable runtime font fetching — offline-first requirement.
+  // Fonts are bundled via google_fonts asset directory or cached on first use.
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   // Initialize crash log service before anything else.
   await CrashLogService.initialize();
