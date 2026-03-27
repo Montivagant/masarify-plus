@@ -82,8 +82,6 @@ dependencies:
   geolocator: ^13.0.1
   geocoding: ^3.0.0
 
-  # ── SMS Parser ──────────────────────────────────────────────────────────────
-  another_telephony: ^0.4.1
   rxdart: ^0.28.0
   connectivity_plus: ^7.0.0
 
