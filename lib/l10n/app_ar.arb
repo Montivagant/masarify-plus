@@ -998,5 +998,9 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+
+  "voice_add_as_recurring": "إضافة للاشتراكات والفواتير؟",
+  "voice_recurring_added": "تمت الإضافة للاشتراكات والفواتير",
+  "voice_amount_missing": "لم يتم تحديد المبلغ \u2014 يرجى إدخال المبلغ"
 }

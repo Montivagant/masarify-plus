@@ -5006,6 +5006,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create \'\'{name}\'\' instead?'**
   String voice_create_wallet_instead(String name);
+
+  /// No description provided for @voice_add_as_recurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Subscriptions & Bills?'**
+  String get voice_add_as_recurring;
+
+  /// No description provided for @voice_recurring_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to Subscriptions & Bills'**
+  String get voice_recurring_added;
+
+  /// No description provided for @voice_amount_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount not detected — please enter the amount'**
+  String get voice_amount_missing;
 }
 
 class _AppLocalizationsDelegate

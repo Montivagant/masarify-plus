@@ -2643,4 +2643,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
   }
+
+  @override
+  String get voice_add_as_recurring => 'Add to Subscriptions & Bills?';
+
+  @override
+  String get voice_recurring_added => 'Added to Subscriptions & Bills';
+
+  @override
+  String get voice_amount_missing =>
+      'Amount not detected — please enter the amount';
 }

@@ -2623,4 +2623,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'إنشاء \'\'$name\'\' بدلاً من ذلك؟';
   }
+
+  @override
+  String get voice_add_as_recurring => 'إضافة للاشتراكات والفواتير؟';
+
+  @override
+  String get voice_recurring_added => 'تمت الإضافة للاشتراكات والفواتير';
+
+  @override
+  String get voice_amount_missing => 'لم يتم تحديد المبلغ — يرجى إدخال المبلغ';
 }

@@ -1018,5 +1018,9 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+
+  "voice_add_as_recurring": "Add to Subscriptions & Bills?",
+  "voice_recurring_added": "Added to Subscriptions & Bills",
+  "voice_amount_missing": "Amount not detected \u2014 please enter the amount"
 }

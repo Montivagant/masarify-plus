@@ -168,6 +168,44 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           }
         }
       }
+
+      // Subscription suggestion: detect likely recurring expenses.
+      if (draft.type == 'expense' && !draft.showRecurringSuggestion) {
+        final text = draft.rawText.toLowerCase();
+        const subscriptionKeywords = [
+          'netflix',
+          'spotify',
+          'youtube',
+          'gym',
+          'internet',
+          'phone',
+          'subscription',
+          'اشتراك',
+          'نت',
+          'جيم',
+          'نتفليكس',
+          'سبوتيفاي',
+          'insurance',
+          'تأمين',
+          'rent',
+          'إيجار',
+          'ايجار',
+          'vodafone',
+          'فودافون',
+          'etisalat',
+          'اتصالات',
+          'orange',
+          'اورنج',
+          'we',
+          'shahid',
+          'شاهد',
+          'anghami',
+          'أنغامي',
+        ];
+        if (subscriptionKeywords.any((kw) => text.contains(kw))) {
+          draft.showRecurringSuggestion = true;
+        }
+      }
     }
   }
 
@@ -281,6 +319,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   onCreateWalletFromHint: draft.unmatchedHint != null
                       ? () => _createWalletFromHint(draft)
                       : null,
+                  onAddAsRecurring:
+                      draft.showRecurringSuggestion && !draft.recurringAdded
+                          ? () => _addAsRecurring(draft)
+                          : null,
+                  recurringAdded: draft.recurringAdded,
                 );
                 if (context.reduceMotion) return card;
                 return card
@@ -620,6 +663,34 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (mounted) SnackHelper.showError(context, genericMsg);
     }
   }
+
+  /// Create a recurring rule directly on-tap (no navigation).
+  Future<void> _addAsRecurring(_EditableDraft draft) async {
+    if (draft.walletId == null || draft.categoryId == null) return;
+    final genericMsg = context.l10n.common_error_generic;
+    try {
+      final repo = ref.read(recurringRuleRepositoryProvider);
+      await repo.create(
+        walletId: draft.walletId!,
+        categoryId: draft.categoryId!,
+        amount: draft.amountPiastres,
+        type: draft.type,
+        title: draft.noteController.text.trim().isNotEmpty
+            ? draft.noteController.text.trim()
+            : draft.rawText,
+        frequency: 'monthly',
+        startDate: draft.transactionDate,
+        nextDueDate: draft.transactionDate.add(const Duration(days: 30)),
+      );
+      if (mounted) {
+        setState(() => draft.recurringAdded = true);
+      }
+    } catch (_) {
+      if (mounted) {
+        SnackHelper.showError(context, genericMsg);
+      }
+    }
+  }
 }
 
 // ── Editable draft (mutable copy of VoiceTransactionDraft) ────────────────
@@ -662,6 +733,12 @@ class _EditableDraft {
   /// Enables inline "Create '{hint}' instead?" option on the draft card.
   String? unmatchedHint;
 
+  /// Whether this draft looks like a recurring subscription.
+  bool showRecurringSuggestion = false;
+
+  /// Whether the user has already tapped "Add to Subscriptions & Bills".
+  bool recurringAdded = false;
+
   /// Editable title/note for refining the transaction description.
   final TextEditingController noteController;
 }
@@ -683,6 +760,8 @@ class _DraftCard extends StatelessWidget {
     required this.onCategoryTap,
     required this.onWalletTap,
     this.onCreateWalletFromHint,
+    this.onAddAsRecurring,
+    this.recurringAdded = false,
   });
 
   final _EditableDraft draft;
@@ -698,6 +777,8 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onWalletTap;
   final VoidCallback? onCreateWalletFromHint;
+  final VoidCallback? onAddAsRecurring;
+  final bool recurringAdded;
 
   @override
   Widget build(BuildContext context) {
@@ -942,6 +1023,45 @@ class _DraftCard extends StatelessWidget {
                 ],
               ),
             ],
+
+            // ── Subscription suggestion ──────────────────────────
+            if (onAddAsRecurring != null || recurringAdded)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSizes.sm),
+                child: recurringAdded
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            AppIcons.checkCircle,
+                            size: AppSizes.iconXs,
+                            color: context.appTheme.incomeColor,
+                          ),
+                          const SizedBox(width: AppSizes.xs),
+                          Text(
+                            context.l10n.voice_recurring_added,
+                            style: context.textStyles.bodySmall?.copyWith(
+                              color: context.appTheme.incomeColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : TextButton.icon(
+                        onPressed: onAddAsRecurring,
+                        icon: const Icon(
+                          AppIcons.recurring,
+                          size: AppSizes.iconXs,
+                        ),
+                        label: Text(context.l10n.voice_add_as_recurring),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.sm,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ),
+              ),
 
             // ── Tappable amount editor ───────────────────────────
             const SizedBox(height: AppSizes.sm),
