@@ -382,6 +382,10 @@
   "paywall_unlock_cta": "اضغط للفتح",
   "paywall_pricing_terms": "تجربة مجانية 7 أيام \u2022 إلغاء في أي وقت",
   "subscription_manage": "إدارة الاشتراك",
+  "settings_pro_status": "مصاريفي برو",
+  "settings_pro_trial_days": "تجربة: باقي {days} أيام",
+  "@settings_pro_trial_days": {"placeholders": {"days": {"type": "int"}}},
+  "settings_pro_free": "الباقة المجانية",
 
   "common_ok": "حسناً",
   "common_error_title": "حدث خطأ",

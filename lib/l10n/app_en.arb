@@ -388,6 +388,10 @@
   "paywall_unlock_cta": "Tap to unlock",
   "paywall_pricing_terms": "7-day free trial \u2022 Cancel anytime",
   "subscription_manage": "Manage Subscription",
+  "settings_pro_status": "Masarify Pro",
+  "settings_pro_trial_days": "Trial: {days} days left",
+  "@settings_pro_trial_days": {"placeholders": {"days": {"type": "int"}}},
+  "settings_pro_free": "Free Plan",
 
   "common_ok": "OK",
   "common_error_title": "An error occurred",
