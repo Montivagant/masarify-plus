@@ -100,27 +100,24 @@ class _QuickAddChip extends ConsumerWidget {
       if (!context.mounted) return;
 
       var undone = false;
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.quick_add_saved(freq.title)),
-            duration: AppDurations.snackbarLong,
-            action: SnackBarAction(
-              label: context.l10n.common_undo,
-              onPressed: () {
-                undone = true;
-                ref.read(transactionRepositoryProvider).delete(txId);
-              },
-            ),
-          ),
-        ).closed.then((_) {
-          if (!undone) {
-            ref
-                .read(categoryFrequencyServiceProvider)
-                .recordUsage(freq.type, freq.categoryId);
-          }
-        });
+      SnackHelper.showSuccessAndReturn(
+        context,
+        context.l10n.quick_add_saved(freq.title),
+        duration: AppDurations.snackbarLong,
+        action: SnackBarAction(
+          label: context.l10n.common_undo,
+          onPressed: () {
+            undone = true;
+            ref.read(transactionRepositoryProvider).delete(txId);
+          },
+        ),
+      ).closed.then((_) {
+        if (!undone) {
+          ref
+              .read(categoryFrequencyServiceProvider)
+              .recordUsage(freq.type, freq.categoryId);
+        }
+      });
     } catch (_) {
       if (!context.mounted) return;
       SnackHelper.showError(context, context.l10n.common_error_generic);

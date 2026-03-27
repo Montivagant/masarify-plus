@@ -15,6 +15,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../domain/entities/savings_goal_entity.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -121,9 +122,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
       if (widget.editId == null) {
         // Create mode: require positive target
         setState(() => _nameError = null);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.goal_target_required)),
-        );
+        SnackHelper.showError(context, context.l10n.goal_target_required);
         return;
       }
       // Edit mode: target stays as-is (line 140 handles this)
@@ -172,9 +171,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
       // M1 fix: show error feedback instead of silently stopping spinner
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n.common_error_generic)),
-      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
     }
   }
 

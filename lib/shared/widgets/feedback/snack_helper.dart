@@ -73,6 +73,107 @@ abstract final class SnackHelper {
     );
   }
 
+  /// Show a success SnackBar and return its [ScaffoldFeatureController].
+  ///
+  /// Use when you need the `.closed` future (e.g. undo-then-record patterns).
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
+      showSuccessAndReturn(
+    BuildContext context,
+    String message, {
+    SnackBarAction? action,
+    Duration duration = AppDurations.snackbarDefault,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    return messenger.showSnackBar(
+      buildSnackBar(
+        message: message,
+        icon: AppIcons.checkCircle,
+        color: context.appTheme.incomeColor,
+        onColor: AppColors.white,
+        action: action,
+        duration: duration,
+      ),
+    );
+  }
+
+  /// Show an info SnackBar and return its [ScaffoldFeatureController].
+  ///
+  /// Use when you need the `.closed` future.
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
+      showInfoAndReturn(
+    BuildContext context,
+    String message, {
+    SnackBarAction? action,
+    Duration duration = AppDurations.snackbarDefault,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    return messenger.showSnackBar(
+      buildSnackBar(
+        message: message,
+        icon: AppIcons.infoFilled,
+        color: context.colors.primary,
+        onColor: context.colors.onPrimary,
+        action: action,
+        duration: duration,
+      ),
+    );
+  }
+
+  /// Build a styled [SnackBar] without showing it.
+  ///
+  /// Used by callers that need the [ScaffoldFeatureController] returned
+  /// by [ScaffoldMessengerState.showSnackBar] (e.g. for `.closed` callback).
+  static SnackBar buildSnackBar({
+    required String message,
+    required IconData icon,
+    required Color color,
+    required Color onColor,
+    SnackBarAction? action,
+    Duration duration = AppDurations.snackbarDefault,
+  }) {
+    return SnackBar(
+      content: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: onColor, size: AppSizes.iconSm),
+          const SizedBox(width: AppSizes.sm),
+          Flexible(
+            child: Text(
+              message,
+              style: TextStyle(
+                color: onColor,
+                fontSize: AppSizes.snackTextSize,
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.snackBorderRadius),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.md,
+        vertical: AppSizes.snackVerticalPadding,
+      ),
+      margin: const EdgeInsets.only(
+        left: AppSizes.snackHorizontalMargin,
+        right: AppSizes.snackHorizontalMargin,
+        bottom: AppSizes.snackbarBottomMargin,
+      ),
+      elevation: AppSizes.snackElevation,
+      duration: duration,
+      dismissDirection: DismissDirection.horizontal,
+      action: action,
+    );
+  }
+
   static void _show(
     BuildContext context, {
     required String message,
@@ -82,37 +183,17 @@ abstract final class SnackHelper {
     SnackBarAction? action,
     required Duration duration,
   }) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              Icon(icon, color: onColor, size: AppSizes.iconMd),
-              const SizedBox(width: AppSizes.sm),
-              Flexible(
-                child: Text(
-                  message,
-                  style: context.textStyles.bodyMedium?.copyWith(
-                    color: onColor,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: color,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-          ),
-          margin: const EdgeInsets.symmetric(
-            horizontal: AppSizes.md,
-          ).copyWith(bottom: AppSizes.snackbarBottomMargin),
-          duration: duration,
-          action: action,
-        ),
-      );
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      buildSnackBar(
+        message: message,
+        icon: icon,
+        color: color,
+        onColor: onColor,
+        action: action,
+        duration: duration,
+      ),
+    );
   }
 }

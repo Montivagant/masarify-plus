@@ -23,6 +23,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/action_card.dart';
 import '../widgets/message_bubble.dart';
@@ -200,11 +201,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
       if (mounted) {
         setState(() => _executingActions.remove(messageId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorGeneric),
-            duration: AppDurations.snackbarShort,
-          ),
+        SnackHelper.showError(
+          context,
+          errorGeneric,
+          duration: AppDurations.snackbarShort,
         );
       }
       return;
