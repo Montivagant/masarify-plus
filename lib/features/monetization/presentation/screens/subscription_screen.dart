@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -9,6 +10,7 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Shows current subscription status and links to the paywall.
@@ -79,6 +81,37 @@ class SubscriptionScreen extends ConsumerWidget {
                   color: cs.outline,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            const SizedBox(height: AppSizes.lg),
+            // Restore purchases
+            TextButton.icon(
+              onPressed: () async {
+                final service = ref.read(subscriptionServiceProvider);
+                await service.restorePurchases();
+                if (!context.mounted) return;
+                final restored = ref.read(hasProAccessProvider);
+                if (restored) {
+                  SnackHelper.showSuccess(
+                      context, context.l10n.paywall_restored);
+                } else {
+                  SnackHelper.showInfo(
+                      context, context.l10n.paywall_no_purchases);
+                }
+              },
+              icon: const Icon(AppIcons.refresh),
+              label: Text(context.l10n.paywall_restore),
+            ),
+            // Manage subscription (visible only for active subscribers)
+            if (service.isPro)
+              TextButton.icon(
+                onPressed: () => launchUrl(
+                  Uri.parse(
+                    'https://play.google.com/store/account/subscriptions?package=com.masarify.app',
+                  ),
+                  mode: LaunchMode.externalApplication,
+                ),
+                icon: const Icon(AppIcons.settings),
+                label: Text(context.l10n.subscription_manage),
               ),
             const Spacer(),
             if (!service.isPro)
