@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +13,7 @@ import '../../../../core/extensions/frequency_label_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -43,6 +46,10 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   DateTime? _endDate;
   bool _loading = false;
 
+  /// Suggested category from title text via categorization learning.
+  CategoryEntity? _suggestedCategory;
+  Timer? _debounceTimer;
+
   static const _frequencies = [
     'once',
     'daily',
@@ -66,12 +73,30 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     } else {
       _initWallet();
     }
+    _titleController.addListener(_onTitleChanged);
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _titleController.dispose();
     super.dispose();
+  }
+
+  void _onTitleChanged() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(AppDurations.categorySuggestionDebounce, () async {
+      final text = _titleController.text.trim();
+      if (text.length < 3 || _categoryId != null) return;
+      final service = ref.read(categorizationLearningServiceProvider);
+      final suggestedId = await service.suggestCategory(text);
+      if (!mounted || suggestedId == null || _categoryId != null) return;
+      final cats = ref.read(categoriesProvider).valueOrNull ?? [];
+      final cat = cats.where((c) => c.id == suggestedId).firstOrNull;
+      if (cat != null && (cat.type == _type || cat.type == 'both')) {
+        setState(() => _suggestedCategory = cat);
+      }
+    });
   }
 
   Future<void> _initWallet() async {
@@ -143,7 +168,10 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                             ? const Icon(AppIcons.check)
                             : null,
                         onTap: () {
-                          setState(() => _categoryId = c.id);
+                          setState(() {
+                            _categoryId = c.id;
+                            _suggestedCategory = null;
+                          });
                           ctx.pop();
                         },
                       ),
@@ -372,6 +400,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               onSelectionChanged: (v) => setState(() {
                 _type = v.first;
                 _categoryId = null;
+                _suggestedCategory = null;
               }),
             ),
             const SizedBox(height: AppSizes.lg),
@@ -382,6 +411,28 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
             ),
             const SizedBox(height: AppSizes.sm),
+            // Category suggestion chip from title text.
+            if (_suggestedCategory != null && _categoryId == null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSizes.sm),
+                child: ActionChip(
+                  avatar: Icon(
+                    CategoryIconMapper.fromName(
+                      _suggestedCategory!.iconName,
+                    ),
+                    size: AppSizes.iconSm,
+                  ),
+                  label: Text(
+                    _suggestedCategory!.displayName(context.languageCode),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _categoryId = _suggestedCategory!.id;
+                      _suggestedCategory = null;
+                    });
+                  },
+                ),
+              ),
             GestureDetector(
               onTap: () => _showCategoryPicker(typeCats),
               child: Container(

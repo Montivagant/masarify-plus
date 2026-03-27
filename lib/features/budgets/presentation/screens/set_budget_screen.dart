@@ -8,8 +8,10 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/month_name_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
+import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/budget_entity.dart';
 import '../../../../domain/entities/category_entity.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
@@ -241,6 +243,51 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
                     context.textStyles.labelLarge?.copyWith(color: cs.outline),
               ),
               const SizedBox(height: AppSizes.sm),
+              // Budget suggestion chips for unbudgeted categories.
+              if (_categoryId == null)
+                Builder(
+                  builder: (context) {
+                    final suggestions = ref.watch(budgetSuggestionsProvider);
+                    if (suggestions.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    final catMap = {
+                      for (final c in categories) c.id: c,
+                    };
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: AppSizes.sm,
+                      ),
+                      child: Wrap(
+                        spacing: AppSizes.sm,
+                        runSpacing: AppSizes.xs,
+                        children: suggestions.take(2).map((s) {
+                          final cat = catMap[s.categoryId];
+                          if (cat == null) {
+                            return const SizedBox.shrink();
+                          }
+                          return ActionChip(
+                            avatar: Icon(
+                              CategoryIconMapper.fromName(
+                                cat.iconName,
+                              ),
+                              size: AppSizes.iconSm,
+                            ),
+                            label: Text(
+                              '${cat.displayName(context.languageCode)}'
+                              ' (~${MoneyFormatter.format(s.monthlyAvg)}/mo)',
+                            ),
+                            onPressed: () {
+                              setState(
+                                () => _categoryId = s.categoryId,
+                              );
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
               GestureDetector(
                 onTap: () => _showCategoryPicker(categories),
                 child: Container(
