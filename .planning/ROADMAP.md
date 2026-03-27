@@ -18,7 +18,7 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 
 | # | Phase | Goal | Requirements | Plans |
 |---|-------|------|-------------|-------|
-| 1 | Compliance & Billing Foundation | Eliminate every Play Store rejection trigger and verify the billing stack works | 7 | 1/3 In Progress |
+| 1 | Compliance & Billing Foundation | Eliminate every Play Store rejection trigger and verify the billing stack works | 7 | 2/3 In Progress |
 | 2 | Verification Sweep | Prove every P5 feature works; fix what is broken | 23 | 4 |
 | 3 | Home Screen Overhaul | Build the hero screen that users screenshot and share | 10 | 3 |
 | 4 | AI, Voice & Subscriptions Polish | Make the differentiator features seamless end-to-end | 10 | 3 |

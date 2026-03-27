@@ -94,8 +94,8 @@
 
 ### Settings & Cleanup (CLEAN)
 
-- [ ] **CLEAN-01**: Remove "Notification Parsing" from Settings screen — verify fully removed
-- [ ] **CLEAN-02**: Remove another_telephony package from pubspec.yaml (SMS dep, unnecessary Play Store scrutiny)
+- [x] **CLEAN-01**: Remove "Notification Parsing" from Settings screen — verify fully removed
+- [x] **CLEAN-02**: Remove another_telephony package from pubspec.yaml (SMS dep, unnecessary Play Store scrutiny)
 - [x] **CLEAN-03**: Switch SCHEDULE_EXACT_ALARM to inexact alarms or WorkManager
 
 ### Play Store (STORE)
@@ -190,8 +190,8 @@ Deferred to post-launch updates (v1.1+).
 | PERF-03 | Phase 6 — Performance & Device Optimization | ○ Pending |
 | PERF-04 | Phase 6 — Performance & Device Optimization | ○ Pending |
 | PERF-05 | Phase 6 — Performance & Device Optimization | ○ Pending |
-| CLEAN-01 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
-| CLEAN-02 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| CLEAN-01 | Phase 1 — Compliance & Billing Foundation | ● Complete |
+| CLEAN-02 | Phase 1 — Compliance & Billing Foundation | ● Complete |
 | CLEAN-03 | Phase 1 — Compliance & Billing Foundation | ● Complete |
 | STORE-01 | Phase 1 — Compliance & Billing Foundation | ● Complete |
 | STORE-02 | Phase 7 — Store Submission | ○ Pending |
