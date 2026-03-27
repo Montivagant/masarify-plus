@@ -1018,5 +1018,22 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+
+  "home_filter_all": "All",
+  "home_filter_expenses": "Expenses",
+  "home_filter_income": "Income",
+  "home_filter_transfers": "Transfers",
+  "home_sort_date_newest": "Newest first",
+  "home_sort_date_oldest": "Oldest first",
+  "home_sort_amount_high": "Highest amount",
+  "home_sort_amount_low": "Lowest amount",
+  "home_search_hint": "Search transactions...",
+  "home_search_results": "{count} results",
+  "@home_search_results": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "home_net_label": "Net"
 }
