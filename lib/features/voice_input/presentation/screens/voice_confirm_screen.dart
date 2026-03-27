@@ -1144,6 +1144,41 @@ class _DraftCard extends StatelessWidget {
                       ),
               ),
 
+            // ── Missing amount prompt ─────────────────────────────
+            if (draft.amountPiastres <= 0) ...[
+              const SizedBox(height: AppSizes.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.md,
+                  vertical: AppSizes.sm,
+                ),
+                decoration: BoxDecoration(
+                  color: context.appTheme.expenseColor
+                      .withValues(alpha: AppSizes.opacityLight2),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.warning,
+                      size: AppSizes.iconXs,
+                      color: context.appTheme.expenseColor,
+                    ),
+                    const SizedBox(width: AppSizes.sm),
+                    Flexible(
+                      child: Text(
+                        context.l10n.voice_amount_missing,
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: context.appTheme.expenseColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // ── Tappable amount editor ───────────────────────────
             const SizedBox(height: AppSizes.sm),
             IgnorePointer(
@@ -1151,7 +1186,7 @@ class _DraftCard extends StatelessWidget {
               child: AmountInput(
                 initialPiastres: draft.amountPiastres,
                 onAmountChanged: onAmountChanged,
-                autofocus: false,
+                autofocus: draft.amountPiastres <= 0,
                 compact: true,
               ),
             ),
