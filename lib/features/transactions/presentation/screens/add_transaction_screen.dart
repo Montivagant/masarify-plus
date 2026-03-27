@@ -178,16 +178,6 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
     if (wallets.isEmpty) return;
     final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
 
-    // Priority 1: Respect the dashboard carousel selection.
-    final selectedId = ref.read(selectedAccountIdProvider);
-    if (selectedId != null) {
-      final selected = nonSystem.where((w) => w.id == selectedId).firstOrNull;
-      if (selected != null && !selected.isArchived) {
-        setState(() => _walletId = selected.id);
-        return;
-      }
-    }
-
     // Priority 2: DB default account.
     final defaultAccount =
         nonSystem.where((w) => w.isDefaultAccount).firstOrNull;
