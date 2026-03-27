@@ -60,7 +60,7 @@ class DashboardScreen extends ConsumerWidget {
           ref.invalidate(transactionsByMonthProvider(monthKey));
           ref.invalidate(budgetsByMonthProvider(monthKey));
           if (selectedWalletId != null) {
-            ref.invalidate(activityByWalletProvider(selectedWalletId!));
+            ref.invalidate(activityByWalletProvider(selectedWalletId));
           }
           await ref.read(recentActivityProvider.future);
         },

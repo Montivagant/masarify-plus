@@ -1,11 +1,12 @@
-/// Pure Dart adapter — zero Flutter/Drift imports.
-///
-/// Converts a [TransferEntity] into two synthetic [TransactionEntity] entries
-/// (sender and receiver) so transfers can appear in unified transaction lists.
-///
-/// Synthetic IDs are negative to avoid collision with real transaction IDs:
-///   fromEntry.id = -(transfer.id * 2)
-///   toEntry.id   = -(transfer.id * 2 + 1)
+// Pure Dart adapter — zero Flutter/Drift imports.
+//
+// Converts a TransferEntity into two synthetic TransactionEntity entries
+// (sender and receiver) so transfers can appear in unified transaction lists.
+//
+// Synthetic IDs are negative to avoid collision with real transaction IDs:
+//   fromEntry.id = -(transfer.id * 2)
+//   toEntry.id   = -(transfer.id * 2 + 1)
+
 import '../entities/transaction_entity.dart';
 import '../entities/transfer_entity.dart';
 
