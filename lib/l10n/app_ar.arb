@@ -768,6 +768,9 @@
   "chat_action_recurring_title": "إنشاء متكرر",
   "chat_action_wallet_title": "إنشاء حساب",
   "chat_action_delete_title": "حذف معاملة",
+  "chat_action_transfer_title": "تحويل",
+  "voice_transfer_from": "من",
+  "voice_transfer_to": "إلى",
   "chat_budget_created": "تم إنشاء ميزانية لـ {category}",
   "@chat_budget_created": {"placeholders": {"category": {"type": "String"}}},
   "chat_recurring_created": "تم إنشاء قاعدة متكررة \"{title}\"",
@@ -926,6 +929,28 @@
     "placeholders": {
       "title": {"type": "String"},
       "amount": {"type": "String"}
+    }
+  },
+  "chat_action_wallet_not_found": "مش لاقي حساب \"{name}\"",
+  "@chat_action_wallet_not_found": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_transfer_same_wallet": "حساب المصدر والوجهة لازم يكونوا مختلفين",
+  "chat_action_transfer_created": "تم تحويل {amount} من \"{from}\" لـ \"{to}\"!",
+  "@chat_action_transfer_created": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "from": {"type": "String"},
+      "to": {"type": "String"}
+    }
+  },
+  "recap_prime_message": "إزاي كان صرفي النهارده؟",
+  "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" شكله دفعة متكررة. تضيفه للاشتراكات والفواتير؟",
+  "@chat_subscription_suggest": {
+    "placeholders": {
+      "title": {"type": "String"}
     }
   },
 

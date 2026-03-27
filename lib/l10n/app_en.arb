@@ -788,6 +788,9 @@
   "chat_action_recurring_title": "Create Recurring",
   "chat_action_wallet_title": "Create Account",
   "chat_action_delete_title": "Delete Transaction",
+  "chat_action_transfer_title": "Transfer",
+  "voice_transfer_from": "From",
+  "voice_transfer_to": "To",
   "chat_budget_created": "Budget created for {category}",
   "@chat_budget_created": {"placeholders": {"category": {"type": "String"}}},
   "chat_recurring_created": "Recurring rule \"{title}\" created",
@@ -946,6 +949,28 @@
     "placeholders": {
       "title": {"type": "String"},
       "amount": {"type": "String"}
+    }
+  },
+  "chat_action_wallet_not_found": "Could not find account \"{name}\"",
+  "@chat_action_wallet_not_found": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_transfer_same_wallet": "Source and destination accounts must be different",
+  "chat_action_transfer_created": "Transfer of {amount} from \"{from}\" to \"{to}\" created!",
+  "@chat_action_transfer_created": {
+    "placeholders": {
+      "amount": {"type": "String"},
+      "from": {"type": "String"},
+      "to": {"type": "String"}
+    }
+  },
+  "recap_prime_message": "How was my spending today?",
+  "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" looks like a recurring payment. Add to Subscriptions & Bills?",
+  "@chat_subscription_suggest": {
+    "placeholders": {
+      "title": {"type": "String"}
     }
   },
 

@@ -2135,6 +2135,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_action_delete_title => 'Delete Transaction';
 
   @override
+  String get chat_action_transfer_title => 'Transfer';
+
+  @override
+  String get voice_transfer_from => 'From';
+
+  @override
+  String get voice_transfer_to => 'To';
+
+  @override
   String chat_budget_created(String category) {
     return 'Budget created for $category';
   }
@@ -2466,6 +2475,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chat_action_tx_deleted(String title, String amount) {
     return 'Transaction \"$title\" of $amount deleted!';
+  }
+
+  @override
+  String chat_action_wallet_not_found(String name) {
+    return 'Could not find account \"$name\"';
+  }
+
+  @override
+  String get chat_action_transfer_same_wallet =>
+      'Source and destination accounts must be different';
+
+  @override
+  String chat_action_transfer_created(String amount, String from, String to) {
+    return 'Transfer of $amount from \"$from\" to \"$to\" created!';
+  }
+
+  @override
+  String get recap_prime_message => 'How was my spending today?';
+
+  @override
+  String chat_subscription_suggest(String title) {
+    return '💡 \"$title\" looks like a recurring payment. Add to Subscriptions & Bills?';
   }
 
   @override

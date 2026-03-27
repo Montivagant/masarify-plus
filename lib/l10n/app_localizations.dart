@@ -4118,6 +4118,24 @@ abstract class AppLocalizations {
   /// **'Delete Transaction'**
   String get chat_action_delete_title;
 
+  /// No description provided for @chat_action_transfer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get chat_action_transfer_title;
+
+  /// No description provided for @voice_transfer_from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get voice_transfer_from;
+
+  /// No description provided for @voice_transfer_to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get voice_transfer_to;
+
   /// No description provided for @chat_budget_created.
   ///
   /// In en, this message translates to:
@@ -4706,6 +4724,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transaction \"{title}\" of {amount} deleted!'**
   String chat_action_tx_deleted(String title, String amount);
+
+  /// No description provided for @chat_action_wallet_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find account \"{name}\"'**
+  String chat_action_wallet_not_found(String name);
+
+  /// No description provided for @chat_action_transfer_same_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Source and destination accounts must be different'**
+  String get chat_action_transfer_same_wallet;
+
+  /// No description provided for @chat_action_transfer_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer of {amount} from \"{from}\" to \"{to}\" created!'**
+  String chat_action_transfer_created(String amount, String from, String to);
+
+  /// No description provided for @recap_prime_message.
+  ///
+  /// In en, this message translates to:
+  /// **'How was my spending today?'**
+  String get recap_prime_message;
+
+  /// No description provided for @chat_subscription_suggest.
+  ///
+  /// In en, this message translates to:
+  /// **'💡 \"{title}\" looks like a recurring payment. Add to Subscriptions & Bills?'**
+  String chat_subscription_suggest(String title);
 
   /// No description provided for @onboarding_default_account_note.
   ///

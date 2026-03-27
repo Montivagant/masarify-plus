@@ -2116,6 +2116,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_action_delete_title => 'حذف معاملة';
 
   @override
+  String get chat_action_transfer_title => 'تحويل';
+
+  @override
+  String get voice_transfer_from => 'من';
+
+  @override
+  String get voice_transfer_to => 'إلى';
+
+  @override
   String chat_budget_created(String category) {
     return 'تم إنشاء ميزانية لـ $category';
   }
@@ -2447,6 +2456,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String chat_action_tx_deleted(String title, String amount) {
     return 'تم حذف معاملة \"$title\" بمبلغ $amount!';
+  }
+
+  @override
+  String chat_action_wallet_not_found(String name) {
+    return 'مش لاقي حساب \"$name\"';
+  }
+
+  @override
+  String get chat_action_transfer_same_wallet =>
+      'حساب المصدر والوجهة لازم يكونوا مختلفين';
+
+  @override
+  String chat_action_transfer_created(String amount, String from, String to) {
+    return 'تم تحويل $amount من \"$from\" لـ \"$to\"!';
+  }
+
+  @override
+  String get recap_prime_message => 'إزاي كان صرفي النهارده؟';
+
+  @override
+  String chat_subscription_suggest(String title) {
+    return '💡 \"$title\" شكله دفعة متكررة. تضيفه للاشتراكات والفواتير؟';
   }
 
   @override
