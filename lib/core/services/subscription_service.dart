@@ -16,7 +16,7 @@ abstract final class SubscriptionIds {
 /// Exposes a [proStatusStream] that emits `true` when the user has
 /// an active Pro subscription or is within the free trial period.
 ///
-/// Trial logic: 14-day free trial from first app launch. Stored locally
+/// Trial logic: 7-day free trial from onboarding completion. Stored locally
 /// in SharedPreferences — not enforced server-side (acceptable for v1).
 class SubscriptionService {
   SubscriptionService(this._prefs);
@@ -25,7 +25,7 @@ class SubscriptionService {
 
   static const _kTrialStartDate = 'trial_start_date';
   static const _kProActive = 'pro_active';
-  static const _trialDays = 14;
+  static const _trialDays = 7;
 
   final _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
