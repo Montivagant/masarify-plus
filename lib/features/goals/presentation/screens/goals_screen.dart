@@ -13,6 +13,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/savings_goal_entity.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -24,6 +25,7 @@ class GoalsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeAsync = ref.watch(activeGoalsProvider);
+    final hasPro = ref.watch(hasProAccessProvider);
     final completedAsync = ref.watch(completedGoalsProvider);
 
     return Scaffold(
@@ -31,9 +33,19 @@ class GoalsScreen extends ConsumerWidget {
         title: context.l10n.goals_title,
         actions: [
           IconButton(
-            icon: const Icon(AppIcons.add),
+            icon: Icon(
+              !hasPro && (activeAsync.valueOrNull?.length ?? 0) >= 1
+                  ? AppIcons.lock
+                  : AppIcons.add,
+            ),
             tooltip: context.l10n.goal_add_title,
-            onPressed: () => context.push(AppRoutes.goalAdd),
+            onPressed: () {
+              if (!hasPro && (activeAsync.valueOrNull?.length ?? 0) >= 1) {
+                context.push(AppRoutes.paywall);
+              } else {
+                context.push(AppRoutes.goalAdd);
+              }
+            },
           ),
         ],
       ),
