@@ -20,7 +20,7 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 |---|-------|------|-------------|-------|
 | 1 | Compliance & Billing Foundation | Eliminate every Play Store rejection trigger and verify the billing stack works | 7 | 3/3 Complete (2026-03-27) |
 | 2 | Verification Sweep | Prove every P5 feature works; fix what is broken | 23 | 4/4 Complete (2026-03-27) |
-| 3 | Home Screen Overhaul | Build the hero screen that users screenshot and share | 10 | 3/3 Planned (2026-03-27) |
+| 3 | Home Screen Overhaul | 1/3 | In Progress|  |
 | 4 | AI, Voice & Subscriptions Polish | Make the differentiator features seamless end-to-end | 10 | 3 |
 | 5 | Monetization & Onboarding | Wire revenue, enforce free tier, polish first-run | 6 | 4 |
 | 6 | Performance & Device Optimization | Hit 2s cold start and 60fps scroll on Egypt's mid-range devices | 5 | 3 |
@@ -83,7 +83,7 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 
 **Plans:**
 
-- [ ] 03-01-PLAN.md — Provider infrastructure, balance header with account chips, filter bar, and CustomScrollView dashboard shell (HOME-01, HOME-02, HOME-04, HOME-05, HOME-06, HOME-07)
+1/3 plans executed
 - [ ] 03-02-PLAN.md — Transaction SliverList with date grouping, search/sort/filter-badge, swipe-to-edit/delete, notes field verification (HOME-03, TXN-01, TXN-06)
 - [ ] 03-03-PLAN.md — VoiceConfirmScreen full UX/UI revamp with glassmorphic form, multi-draft support, RTL-safe transfer display (TXN-07)
 

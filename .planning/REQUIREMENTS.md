@@ -7,13 +7,13 @@
 
 ### Home Screen (HOME)
 
-- [ ] **HOME-01**: Full home screen revamp — replace bulky hero cards with modern, clean, sleek design
-- [ ] **HOME-02**: "All Accounts" balance card must be visually distinct from individual account cards (it's a summary, not an account)
+- [x] **HOME-01**: Full home screen revamp — replace bulky hero cards with modern, clean, sleek design
+- [x] **HOME-02**: "All Accounts" balance card must be visually distinct from individual account cards (it's a summary, not an account)
 - [ ] **HOME-03**: Filter and search actions for transactions on home screen
-- [ ] **HOME-04**: Quick filter chips (Expense/Income/Transfer/All) on home transaction list
-- [ ] **HOME-05**: Eliminate whitespace and blank areas from home screen layout
-- [ ] **HOME-06**: Remove Transactions tab entirely — merge all transaction functionality into home screen
-- [ ] **HOME-07**: Upcoming bills/subscriptions due displayed on home screen (verify insight card works)
+- [x] **HOME-04**: Quick filter chips (Expense/Income/Transfer/All) on home transaction list
+- [x] **HOME-05**: Eliminate whitespace and blank areas from home screen layout
+- [x] **HOME-06**: Remove Transactions tab entirely — merge all transaction functionality into home screen
+- [x] **HOME-07**: Upcoming bills/subscriptions due displayed on home screen (verify insight card works)
 
 ### Transactions (TXN)
 
