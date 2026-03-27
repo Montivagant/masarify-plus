@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 02
 status: executing
-last_updated: "2026-03-27T18:37:02.162Z"
+last_updated: "2026-03-27T18:42:35.527Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Masarify — Project State
@@ -76,14 +76,17 @@ Phase 1 → Phase 2 → Phase 3 → Phase 5 → Phase 6 → Phase 7
 | 02 | Transfer metadata encoded in tags field | Keeps TransactionEntity pure without adding new fields |
 | 02 | Category-first display in TransactionCard | Bold categoryName primary, muted title secondary per P5 Phase 2B design |
 | 02 | Schema bumped v13 to v14 to register SubscriptionRecords table | Phase 1 deliverable was incomplete; table created but not registered in @DriftDatabase |
+| 02 | Added flutter_markdown for AI chat rendering | Was referenced in MEMORY.md but never committed; small well-maintained package |
+| 02 | Inline keyword lists for subscription/cash detection | Avoids dependency on uncommitted SubscriptionDetector/WalletMatcher utilities |
+| 02 | Created env.dart stub for dart-define variables | Resolves pre-existing analyzer errors; file is gitignored |
 
 ## Known Issues
 
-None -- all pre-existing analyzer errors resolved (SubscriptionRecords registration + unused import).
+None -- all pre-existing analyzer errors resolved (env.dart stub + SubscriptionRecords registration).
 
 ## Session Continuity
 
-**Last stopped at:** Completed 02-3-PLAN.md (Account & Subscription Verification)
+**Last stopped at:** Completed 02-2-PLAN.md (AI & Voice Fixes)
 **Resume:** Execute 02-4-PLAN.md (next plan in Phase 02)
 
 ---

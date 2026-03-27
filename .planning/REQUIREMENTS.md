@@ -27,19 +27,19 @@
 
 ### AI Chat (AI)
 
-- [ ] **AI-01**: AI replies in ONE language matching the user's language — no mixed Arabic+English responses
+- [x] **AI-01**: AI replies in ONE language matching the user's language — no mixed Arabic+English responses
 - [ ] **AI-02**: AI has current date/time awareness (2026, not 2024) — inject date into system prompt
-- [ ] **AI-03**: AI chat action responses are clean — no raw JSON leaked to user (verify 3-layer parser fix)
-- [ ] **AI-04**: AI message formatting uses rich text (markdown rendered) — no raw asterisks/hashtags (verify flutter_markdown)
+- [x] **AI-03**: AI chat action responses are clean — no raw JSON leaked to user (verify 3-layer parser fix)
+- [x] **AI-04**: AI message formatting uses rich text (markdown rendered) — no raw asterisks/hashtags (verify flutter_markdown)
 - [ ] **AI-05**: AI suggests creating subscriptions/bills based on transaction context and category (same as voice feature)
 - [ ] **AI-06**: AI correctly handles transfer requests between two named accounts (e.g., "paid 1000 from CIB to settle NBE debt" → creates transfer, not expense)
 
 ### Voice Input (VOICE)
 
-- [ ] **VOICE-01**: Voice correctly detects "Cash" / "كاش" as the system Cash wallet — not suggesting "Create Cash account"
-- [ ] **VOICE-02**: Voice transfer detection works for inter-bank transfers with correct amount signs (+/- on each side)
+- [x] **VOICE-01**: Voice correctly detects "Cash" / "كاش" as the system Cash wallet — not suggesting "Create Cash account"
+- [x] **VOICE-02**: Voice transfer detection works for inter-bank transfers with correct amount signs (+/- on each side)
 - [ ] **VOICE-03**: Brand icon matching accuracy improved — icons/colors match the context of transcribed audio
-- [ ] **VOICE-04**: Voice suggests "Add to Subscriptions & Bills?" based on transaction context/category (verify working)
+- [x] **VOICE-04**: Voice suggests "Add to Subscriptions & Bills?" based on transaction context/category (verify working)
 
 ### Accounts (ACCT)
 
