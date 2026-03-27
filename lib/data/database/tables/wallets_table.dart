@@ -27,5 +27,8 @@ class Wallets extends Table {
   BoolColumn get isDefaultAccount =>
       boolean().withDefault(const Constant(false))();
 
+  /// User-defined sort order for account carousel drag-and-drop reordering.
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
