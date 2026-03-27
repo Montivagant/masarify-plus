@@ -96,11 +96,11 @@
 
 - [ ] **CLEAN-01**: Remove "Notification Parsing" from Settings screen — verify fully removed
 - [ ] **CLEAN-02**: Remove another_telephony package from pubspec.yaml (SMS dep, unnecessary Play Store scrutiny)
-- [ ] **CLEAN-03**: Switch SCHEDULE_EXACT_ALARM to inexact alarms or WorkManager
+- [x] **CLEAN-03**: Switch SCHEDULE_EXACT_ALARM to inexact alarms or WorkManager
 
 ### Play Store (STORE)
 
-- [ ] **STORE-01**: Bump targetSdk to 35 — test edge-to-edge display against glassmorphic nav bar
+- [x] **STORE-01**: Bump targetSdk to 35 — test edge-to-edge display against glassmorphic nav bar
 - [ ] **STORE-02**: Play Store listing (title, description, screenshots, feature graphic)
 - [ ] **STORE-03**: Privacy policy (HTTPS URL) — declare audio→Gemini, chat→OpenRouter in Data Safety
 - [ ] **STORE-04**: App signing and release build
@@ -192,8 +192,8 @@ Deferred to post-launch updates (v1.1+).
 | PERF-05 | Phase 6 — Performance & Device Optimization | ○ Pending |
 | CLEAN-01 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
 | CLEAN-02 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
-| CLEAN-03 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
-| STORE-01 | Phase 1 — Compliance & Billing Foundation | ○ Pending |
+| CLEAN-03 | Phase 1 — Compliance & Billing Foundation | ● Complete |
+| STORE-01 | Phase 1 — Compliance & Billing Foundation | ● Complete |
 | STORE-02 | Phase 7 — Store Submission | ○ Pending |
 | STORE-03 | Phase 7 — Store Submission | ○ Pending |
 | STORE-04 | Phase 7 — Store Submission | ○ Pending |
