@@ -104,47 +104,66 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         }
       }
 
-      // Wallet hint matching: exact → contains → fuzzy → default.
+      // Wallet hint matching: cash keywords → exact → contains → fuzzy → default.
       // Every draft ALWAYS gets a walletId — never null, never blocking.
       if (draft.walletHint != null && draft.walletHint!.isNotEmpty) {
-        final hintLower = draft.walletHint!.toLowerCase();
-        // 1. Exact case-insensitive match
-        final exactMatch =
-            wallets.where((w) => w.name.toLowerCase() == hintLower).firstOrNull;
-        if (exactMatch != null) {
-          draft.walletId = exactMatch.id;
+        final hintLower = draft.walletHint!.toLowerCase().trim();
+
+        // 0. Cash keyword detection — resolve to system Cash wallet.
+        const cashKeywords = [
+          'cash',
+          'كاش',
+          'نقدي',
+          'نقود',
+          'نقد',
+          'فلوس',
+          'cash in hand',
+          'كاش في اليد',
+          'كاش في ايدي',
+        ];
+        final cashWallet = ref.read(systemWalletProvider).valueOrNull;
+        if (cashWallet != null && cashKeywords.contains(hintLower)) {
+          draft.walletId = cashWallet.id;
         } else {
-          // 2. Contains match — only auto-assign if exactly one match
-          final containsMatches = wallets
-              .where(
-                (w) =>
-                    w.name.toLowerCase().contains(hintLower) ||
-                    hintLower.contains(w.name.toLowerCase()),
-              )
-              .toList();
-          if (containsMatches.length == 1) {
-            draft.walletId = containsMatches.first.id;
+          // 1. Exact case-insensitive match
+          final exactMatch = wallets
+              .where((w) => w.name.toLowerCase() == hintLower)
+              .firstOrNull;
+          if (exactMatch != null) {
+            draft.walletId = exactMatch.id;
           } else {
-            // 3. Fuzzy match (≥50% overlap) — auto-assign directly
-            final hintChars = draft.walletHint!.toLowerCase();
-            WalletEntity? closest;
-            int bestScore = 0;
-            for (final w in wallets) {
-              final score = _similarityScore(hintChars, w.name.toLowerCase());
-              final threshold =
-                  (hintChars.length * 0.5).ceil().clamp(3, hintChars.length);
-              if (score > bestScore && score >= threshold) {
-                bestScore = score;
-                closest = w;
-              }
-            }
-            if (closest != null) {
-              // 3b. Fuzzy match found — auto-assign directly (no suggestion)
-              draft.walletId = closest.id;
+            // 2. Contains match — only auto-assign if exactly one match
+            final containsMatches = wallets
+                .where(
+                  (w) =>
+                      w.name.toLowerCase().contains(hintLower) ||
+                      hintLower.contains(w.name.toLowerCase()),
+                )
+                .toList();
+            if (containsMatches.length == 1) {
+              draft.walletId = containsMatches.first.id;
             } else {
-              // 4. No match at all — assign to Default account + flag hint
-              draft.walletId = defaultAccountId;
-              draft.unmatchedHint = draft.walletHint;
+              // 3. Fuzzy match (≥50% overlap) — auto-assign directly
+              final hintChars = draft.walletHint!.toLowerCase();
+              WalletEntity? closest;
+              int bestScore = 0;
+              for (final w in wallets) {
+                final score = _similarityScore(hintChars, w.name.toLowerCase());
+                final threshold =
+                    (hintChars.length * 0.5).ceil().clamp(3, hintChars.length);
+                if (score > bestScore && score >= threshold) {
+                  bestScore = score;
+                  closest = w;
+                }
+              }
+              if (closest != null) {
+                // 3b. Fuzzy match found — auto-assign directly (no suggestion)
+                draft.walletId = closest.id;
+              } else {
+                // 4. No match at all — assign to Default account + flag hint
+                draft.walletId = defaultAccountId;
+                draft.unmatchedHint = draft.walletHint;
+              }
             }
           }
         }
