@@ -43,19 +43,19 @@
 
 ### Accounts (ACCT)
 
-- [ ] **ACCT-01**: Cash account hidden from Accounts screen entirely — user cannot edit or delete it
-- [ ] **ACCT-02**: Default account: editable name, not deletable
-- [ ] **ACCT-03**: Archive feature for non-default accounts — hides from home, transactions, analytics, and AI context
-- [ ] **ACCT-04**: Archive has 2-step confirmation with explanation of what will happen
-- [ ] **ACCT-05**: Archived accounts appear under "Archived" section with strikethrough styling
-- [ ] **ACCT-06**: Unarchive flow restores full visibility
-- [ ] **ACCT-07**: Starting balance when creating an account (and in onboarding flow) — verify working
-- [ ] **ACCT-08**: Drag-and-drop reorder of account cards via expand/modal view — verify working
-- [ ] **ACCT-09**: Quick archive from the reorder modal
+- [x] **ACCT-01**: Cash account hidden from Accounts screen entirely — user cannot edit or delete it
+- [x] **ACCT-02**: Default account: editable name, not deletable
+- [x] **ACCT-03**: Archive feature for non-default accounts — hides from home, transactions, analytics, and AI context
+- [x] **ACCT-04**: Archive has 2-step confirmation with explanation of what will happen
+- [x] **ACCT-05**: Archived accounts appear under "Archived" section with strikethrough styling
+- [x] **ACCT-06**: Unarchive flow restores full visibility
+- [x] **ACCT-07**: Starting balance when creating an account (and in onboarding flow) — verify working
+- [x] **ACCT-08**: Drag-and-drop reorder of account cards via expand/modal view — verify working
+- [x] **ACCT-09**: Quick archive from the reorder modal
 
 ### Subscriptions & Bills (SUB)
 
-- [ ] **SUB-01**: Rename "Recurring & Bills" to "Subscriptions & Bills" across entire app — verify no remnants
+- [x] **SUB-01**: Rename "Recurring & Bills" to "Subscriptions & Bills" across entire app — verify no remnants
 - [ ] **SUB-02**: Due date field on subscriptions/bills
 - [ ] **SUB-03**: Notifications for upcoming bills based on due dates and learning patterns
 - [ ] **SUB-04**: Auto-detection of monthly bills from spending patterns (learning-based, not SMS)
@@ -63,10 +63,10 @@
 
 ### Categories (CAT)
 
-- [ ] **CAT-01**: Enriched default categories — add "Installments" and research more relevant categories for Egyptian market
-- [ ] **CAT-02**: Category search in picker
-- [ ] **CAT-03**: Smart category ordering — most used / most recent categories shown first (learning-based)
-- [ ] **CAT-04**: Category suggestion based on transaction title/note text input
+- [x] **CAT-01**: Enriched default categories — add "Installments" and research more relevant categories for Egyptian market
+- [x] **CAT-02**: Category search in picker
+- [x] **CAT-03**: Smart category ordering — most used / most recent categories shown first (learning-based)
+- [x] **CAT-04**: Category suggestion based on transaction title/note text input
 - [ ] **CAT-05**: Category suggestions in budget, goal, and recurring creation flows too
 
 ### Onboarding (ONBOARD)
