@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_10y.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -77,6 +78,24 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
+    // H-10: Enforce quiet hours — suppress notifications during user-defined window.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final quietEnabled = prefs.getBool('quiet_hours_enabled') ?? false;
+      if (quietEnabled) {
+        final start = prefs.getInt('quiet_hours_start') ?? 22;
+        final end = prefs.getInt('quiet_hours_end') ?? 7;
+        final hour = DateTime.now().hour;
+        // Handle window that spans midnight (e.g. 22:00 - 07:00).
+        final inQuietWindow = start > end
+            ? (hour >= start || hour < end)
+            : (hour >= start && hour < end);
+        if (inQuietWindow) return;
+      }
+    } catch (_) {
+      // If prefs fail, allow notification through (fail-open).
+    }
+
     await _plugin.show(
       id,
       title,

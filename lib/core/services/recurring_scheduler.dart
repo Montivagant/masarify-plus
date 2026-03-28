@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/repositories/i_category_repository.dart';
 import '../../domain/repositories/i_recurring_rule_repository.dart';
@@ -119,6 +121,16 @@ class RecurringScheduler {
   }
 
   Future<void> _fireReminder(RecurringRuleEntity rule) async {
+    // H-11: Respect user's bill reminder notification preference.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final billRemindersEnabled =
+          prefs.getBool('notify_bill_reminder') ?? true;
+      if (!billRemindersEnabled) return;
+    } catch (_) {
+      // If prefs fail, allow notification through (fail-open).
+    }
+
     // Use rule.id + 100000 offset to avoid notification id collisions.
     await NotificationService.show(
       id: rule.id + 100000,

@@ -1076,5 +1076,7 @@
   "transfer_delete_confirm": "سيتم حذف طرفي التحويل. متابعة؟",
   "transfer_deleted_message": "تم حذف التحويل",
   "budget_saved_last_month": "وفرت {amount} الشهر الماضي",
-  "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}}
+  "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}},
+  "notif_coming_soon": " (قريبًا)",
+  "notif_permission_denied": "تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات."
 }

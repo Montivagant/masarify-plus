@@ -5258,6 +5258,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved {amount} last month'**
   String budget_saved_last_month(String amount);
+
+  /// No description provided for @notif_coming_soon.
+  ///
+  /// In en, this message translates to:
+  /// **' (Coming Soon)'**
+  String get notif_coming_soon;
+
+  /// No description provided for @notif_permission_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission denied. Enable it in Settings to receive alerts.'**
+  String get notif_permission_denied;
 }
 
 class _AppLocalizationsDelegate

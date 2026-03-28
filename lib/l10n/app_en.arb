@@ -1107,5 +1107,7 @@
   "transfer_delete_confirm": "This will delete both legs of the transfer. Continue?",
   "transfer_deleted_message": "Transfer deleted",
   "budget_saved_last_month": "Saved {amount} last month",
-  "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}}
+  "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}},
+  "notif_coming_soon": " (Coming Soon)",
+  "notif_permission_denied": "Notification permission denied. Enable it in Settings to receive alerts."
 }

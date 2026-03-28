@@ -2790,4 +2790,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String budget_saved_last_month(String amount) {
     return 'وفرت $amount الشهر الماضي';
   }
+
+  @override
+  String get notif_coming_soon => ' (قريبًا)';
+
+  @override
+  String get notif_permission_denied =>
+      'تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات.';
 }

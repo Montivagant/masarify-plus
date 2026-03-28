@@ -2817,4 +2817,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String budget_saved_last_month(String amount) {
     return 'Saved $amount last month';
   }
+
+  @override
+  String get notif_coming_soon => ' (Coming Soon)';
+
+  @override
+  String get notif_permission_denied =>
+      'Notification permission denied. Enable it in Settings to receive alerts.';
 }

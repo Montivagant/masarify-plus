@@ -5,6 +5,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../shared/providers/preferences_provider.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Per-type notification preference toggles.
@@ -108,6 +109,17 @@ class _NotificationPreferencesScreenState
     await prefs.setQuietHours(_quietStart, _quietEnd);
   }
 
+  /// H-14: Request POST_NOTIFICATIONS permission on Android 13+ when user
+  /// first enables any toggle. Returns true if granted (or pre-13 device).
+  Future<bool> _ensureNotificationPermission() async {
+    final granted = await NotificationService.requestPermission();
+    // requestPermission() returns false on denial; true on grant or pre-API 33.
+    if (!granted && mounted) {
+      SnackHelper.showError(context, context.l10n.notif_permission_denied);
+    }
+    return granted;
+  }
+
   String _formatTime(int hour, int minute) {
     final time = TimeOfDay(hour: hour, minute: minute);
     return time.format(context);
@@ -126,10 +138,12 @@ class _NotificationPreferencesScreenState
           // ── Budget Alerts ─────────────────────────────────────
           _SectionTitle(title: l10n.notif_section_budget),
           SwitchListTile(
-            title: Text(l10n.notif_budget_warning),
+            title:
+                Text('${l10n.notif_budget_warning}${l10n.notif_coming_soon}'),
             subtitle: Text(l10n.notif_budget_warning_sub),
             value: _budgetWarning,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _budgetWarning = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -137,10 +151,12 @@ class _NotificationPreferencesScreenState
             },
           ),
           SwitchListTile(
-            title: Text(l10n.notif_budget_exceeded),
+            title:
+                Text('${l10n.notif_budget_exceeded}${l10n.notif_coming_soon}'),
             subtitle: Text(l10n.notif_budget_exceeded_sub),
             value: _budgetExceeded,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _budgetExceeded = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -157,6 +173,7 @@ class _NotificationPreferencesScreenState
             subtitle: Text(l10n.notif_bill_reminder_sub),
             value: _billReminder,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _billReminder = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -168,6 +185,7 @@ class _NotificationPreferencesScreenState
             subtitle: Text(l10n.notif_recurring_reminder_sub),
             value: _recurringReminder,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _recurringReminder = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -180,10 +198,12 @@ class _NotificationPreferencesScreenState
           // ── Goals ─────────────────────────────────────────────
           _SectionTitle(title: l10n.notif_section_goals),
           SwitchListTile(
-            title: Text(l10n.notif_goal_milestone),
+            title:
+                Text('${l10n.notif_goal_milestone}${l10n.notif_coming_soon}'),
             subtitle: Text(l10n.notif_goal_milestone_sub),
             value: _goalMilestone,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _goalMilestone = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -200,6 +220,7 @@ class _NotificationPreferencesScreenState
             subtitle: Text(l10n.settings_daily_recap_subtitle),
             value: _dailyReminder,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _dailyReminder = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
@@ -235,6 +256,7 @@ class _NotificationPreferencesScreenState
             subtitle: Text(l10n.notif_quiet_hours_sub),
             value: _quietHours,
             onChanged: (v) async {
+              if (v && !await _ensureNotificationPermission()) return;
               setState(() => _quietHours = v);
               final prefs = await ref.read(preferencesFutureProvider.future);
               if (!mounted) return;
