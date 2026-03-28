@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
@@ -54,7 +55,7 @@ class MonthSummaryInline extends ConsumerWidget {
       children: [
         // Income
         Icon(
-          Icons.arrow_upward,
+          AppIcons.income,
           size: AppSizes.iconXs,
           color: incomeColor,
         ),
@@ -69,7 +70,7 @@ class MonthSummaryInline extends ConsumerWidget {
         const SizedBox(width: AppSizes.md),
         // Expense
         Icon(
-          Icons.arrow_downward,
+          AppIcons.expense,
           size: AppSizes.iconXs,
           color: expenseColor,
         ),

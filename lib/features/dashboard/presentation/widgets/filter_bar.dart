@@ -6,6 +6,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
+import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
@@ -175,7 +176,7 @@ class FilterBar extends ConsumerWidget {
   }
 
   /// Returns up to 3 most-used categories based on frequency data.
-  List<dynamic> _topCategories(WidgetRef ref) {
+  List<CategoryEntity> _topCategories(WidgetRef ref) {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     if (categories.isEmpty) return [];
 

@@ -60,7 +60,9 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     final allWallets = ref.read(walletsProvider).valueOrNull ?? [];
     // IM-29 fix: exclude the other side's wallet from the picker
     final excludeId = isFrom ? _toWalletId : _fromWalletId;
-    final wallets = allWallets.where((w) => w.id != excludeId).toList();
+    final wallets = allWallets
+        .where((w) => w.id != excludeId && !w.isArchived && !w.isSystemWallet)
+        .toList();
     final current = isFrom ? _fromWalletId : _toWalletId;
     final pickerTitle = isFrom
         ? context.l10n.transfer_from_wallet
