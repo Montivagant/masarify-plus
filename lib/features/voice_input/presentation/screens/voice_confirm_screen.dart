@@ -8,12 +8,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/voice_dictionary.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/goal_keyword_matcher.dart';
+import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../domain/repositories/i_transaction_repository.dart';
@@ -195,6 +197,16 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           }
         }
       }
+
+      // Subscription detection: check if this looks like a recurring payment.
+      final catName = categories
+          .where((c) => c.id == draft.categoryId)
+          .firstOrNull
+          ?.displayName('en');
+      draft.isSubscriptionLike = SubscriptionDetector.isSubscriptionLike(
+        categoryName: catName,
+        transactionText: draft.rawText,
+      );
     }
   }
 
@@ -769,6 +781,9 @@ class _EditableDraft {
   /// Set when TO wallet hint had no match (transfer-only, D-15).
   String? unmatchedToHint;
 
+  /// Whether this draft looks like a recurring subscription/bill.
+  bool isSubscriptionLike = false;
+
   /// Editable title/note for refining the transaction description.
   final TextEditingController noteController;
 }
@@ -1072,6 +1087,51 @@ class _DraftCard extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+
+            // ── Subscription suggestion ────────────────────────
+            if (draft.isSubscriptionLike) ...[
+              const SizedBox(height: AppSizes.sm),
+              InkWell(
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                onTap: () => context.push(AppRoutes.recurringAdd),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.tertiaryContainer,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusSm),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.recurring,
+                        size: AppSizes.iconXs,
+                        color: cs.onTertiaryContainer,
+                      ),
+                      const SizedBox(width: AppSizes.xs),
+                      Expanded(
+                        child: Text(
+                          context.l10n.voice_confirm_subscription_suggest,
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: cs.onTertiaryContainer,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: AppSizes.iconXs,
+                        color: cs.onTertiaryContainer,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
 
