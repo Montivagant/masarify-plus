@@ -151,6 +151,33 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       }
       draft.walletId ??= defaultAccountId;
 
+      // Transfer "To" wallet matching (D-15)
+      if (_isCashType(draft.type) || draft.type == 'transfer') {
+        final toHint = draft.toWalletHint;
+        if (toHint != null && toHint.isNotEmpty) {
+          final toHintLower = toHint.toLowerCase();
+          final exactMatch = wallets
+              .where((w) => w.name.toLowerCase() == toHintLower)
+              .firstOrNull;
+          if (exactMatch != null) {
+            draft.toWalletId = exactMatch.id;
+          } else {
+            final containsMatches = wallets
+                .where(
+                  (w) =>
+                      w.name.toLowerCase().contains(toHintLower) ||
+                      toHintLower.contains(w.name.toLowerCase()),
+                )
+                .toList();
+            if (containsMatches.length == 1) {
+              draft.toWalletId = containsMatches.first.id;
+            } else {
+              draft.unmatchedToHint = toHint;
+            }
+          }
+        }
+      }
+
       // Goal inline suggestion: check rawText against active goal keywords.
       if (draft.matchedGoalName == null) {
         for (final goal in goals) {
@@ -280,6 +307,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   onWalletTap: () => _showWalletPicker(context, draft),
                   onCreateWalletFromHint: draft.unmatchedHint != null
                       ? () => _createWalletFromHint(draft)
+                      : null,
+                  onCreateToWalletFromHint: draft.unmatchedToHint != null
+                      ? () => _createToWalletFromHint(draft)
                       : null,
                 );
                 if (context.reduceMotion) return card;
@@ -620,6 +650,34 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (mounted) SnackHelper.showError(context, genericMsg);
     }
   }
+
+  /// Creates a new wallet for the "To" side of a transfer (D-15).
+  Future<void> _createToWalletFromHint(_EditableDraft draft) async {
+    final duplicateMsg = context.l10n.wallet_name_duplicate;
+    final genericMsg = context.l10n.common_error_generic;
+    final hintName = draft.unmatchedToHint!;
+    try {
+      final newId = await ref.read(walletRepositoryProvider).create(
+            name: hintName,
+            type: 'bank',
+            initialBalance: 0,
+          );
+      if (mounted) {
+        setState(() {
+          for (final d in _editableDrafts) {
+            if (d.unmatchedToHint == hintName) {
+              d.toWalletId = newId;
+              d.unmatchedToHint = null;
+            }
+          }
+        });
+      }
+    } on ArgumentError {
+      if (mounted) SnackHelper.showError(context, duplicateMsg);
+    } catch (_) {
+      if (mounted) SnackHelper.showError(context, genericMsg);
+    }
+  }
 }
 
 // ── Editable draft (mutable copy of VoiceTransactionDraft) ────────────────
@@ -630,6 +688,7 @@ class _EditableDraft {
     required this.amountPiastres,
     this.categoryHint,
     this.walletHint,
+    this.toWalletHint,
     this.note,
     required this.type,
     required this.transactionDate,
@@ -640,6 +699,7 @@ class _EditableDraft {
         amountPiastres: d.amountPiastres ?? 0,
         categoryHint: d.categoryHint,
         walletHint: d.walletHint,
+        toWalletHint: d.toWalletHint,
         note: d.note,
         type: d.type,
         transactionDate: d.transactionDate,
@@ -649,9 +709,11 @@ class _EditableDraft {
   int amountPiastres;
   String? categoryHint;
   String? walletHint;
+  String? toWalletHint;
   String? note;
   int? categoryId;
   int? walletId;
+  int? toWalletId;
   int? goalId;
   String? matchedGoalName;
   String type;
@@ -661,6 +723,9 @@ class _EditableDraft {
   /// Set when wallet hint had no match — transaction defaulted to Default account.
   /// Enables inline "Create '{hint}' instead?" option on the draft card.
   String? unmatchedHint;
+
+  /// Set when TO wallet hint had no match (transfer-only, D-15).
+  String? unmatchedToHint;
 
   /// Editable title/note for refining the transaction description.
   final TextEditingController noteController;
@@ -683,6 +748,7 @@ class _DraftCard extends StatelessWidget {
     required this.onCategoryTap,
     required this.onWalletTap,
     this.onCreateWalletFromHint,
+    this.onCreateToWalletFromHint,
   });
 
   final _EditableDraft draft;
@@ -698,6 +764,7 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onCategoryTap;
   final VoidCallback onWalletTap;
   final VoidCallback? onCreateWalletFromHint;
+  final VoidCallback? onCreateToWalletFromHint;
 
   @override
   Widget build(BuildContext context) {
@@ -891,7 +958,7 @@ class _DraftCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // ── Inline "Create instead?" for unmatched hints ──
+                  // ── Inline "Create instead?" for unmatched From hints ──
                   if (draft.unmatchedHint != null)
                     Padding(
                       padding:
@@ -907,6 +974,29 @@ class _DraftCard extends StatelessWidget {
                         child: Text(
                           context.l10n.voice_create_wallet_instead(
                             draft.unmatchedHint!,
+                          ),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: cs.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // ── Inline "Create instead?" for unmatched To hints (D-15) ──
+                  if (draft.unmatchedToHint != null)
+                    Padding(
+                      padding:
+                          const EdgeInsetsDirectional.only(start: AppSizes.sm),
+                      child: TextButton(
+                        onPressed: onCreateToWalletFromHint,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSizes.sm,
+                          ),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        child: Text(
+                          context.l10n.voice_create_wallet_instead(
+                            draft.unmatchedToHint!,
                           ),
                           style: context.textStyles.bodySmall?.copyWith(
                             color: cs.primary,

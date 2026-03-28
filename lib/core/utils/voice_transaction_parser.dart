@@ -142,6 +142,7 @@ class VoiceTransactionDraft {
     this.amountPiastres,
     this.categoryHint,
     this.walletHint,
+    this.toWalletHint,
     this.note,
     this.type = 'expense',
     this.dateOffset = 0,
@@ -157,6 +158,10 @@ class VoiceTransactionDraft {
   /// Wallet name mentioned by the user (e.g. "CIB", "Cash").
   /// Used for fuzzy matching in VoiceConfirmScreen.
   final String? walletHint;
+
+  /// Destination wallet hint for transfer-type drafts (D-15).
+  /// When a transfer references two accounts, this holds the "To" side.
+  final String? toWalletHint;
 
   final String? note;
 
