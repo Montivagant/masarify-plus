@@ -17,7 +17,6 @@ import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
-import '../../../../domain/repositories/i_transaction_repository.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
@@ -492,6 +491,14 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
         return;
       }
+      // M-8 fix: reject same-wallet transfers
+      if (draft.type == 'transfer' && draft.walletId == draft.toWalletId) {
+        SnackHelper.showError(
+          ctx,
+          '$prefix${ctx.l10n.chat_action_transfer_same_wallet}',
+        );
+        return;
+      }
     }
 
     setState(() => _saving = true);
@@ -502,47 +509,54 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final savedMsg = l10n.transaction_saved;
     final errorMsg = l10n.common_error_generic;
 
-    try {
-      // Save cash drafts as transfers (use already-loaded walletsProvider
-      // instead of systemWalletProvider to avoid stream race condition).
-      if (cashDrafts.isNotEmpty) {
-        final allWallets = ref.read(walletsProvider).valueOrNull ?? [];
-        final cashWallet =
-            allWallets.where((w) => w.isSystemWallet).firstOrNull;
-        if (cashWallet == null) {
-          setState(() => _saving = false);
-          if (mounted) SnackHelper.showError(ctx, errorMsg);
-          return;
-        }
+    // M-10 fix: per-draft error handling with partial success reporting.
+    int totalSuccess = 0;
+    int totalFail = 0;
 
+    // Save cash drafts as transfers (use already-loaded walletsProvider
+    // instead of systemWalletProvider to avoid stream race condition).
+    if (cashDrafts.isNotEmpty) {
+      final allWallets = ref.read(walletsProvider).valueOrNull ?? [];
+      final cashWallet = allWallets.where((w) => w.isSystemWallet).firstOrNull;
+      if (cashWallet == null) {
+        // Cash wallet missing — count all cash drafts as failed but don't abort.
+        totalFail += cashDrafts.length;
+      } else {
         final transferRepo = ref.read(transferRepositoryProvider);
         for (final draft in cashDrafts) {
-          final bankWalletId = draft.walletId!;
-          if (draft.type == 'cash_withdrawal') {
-            await transferRepo.create(
-              fromWalletId: bankWalletId,
-              toWalletId: cashWallet.id,
-              amount: draft.amountPiastres,
-              note: draft.note,
-              transferDate: draft.transactionDate,
-            );
-          } else {
-            // cash_deposit
-            await transferRepo.create(
-              fromWalletId: cashWallet.id,
-              toWalletId: bankWalletId,
-              amount: draft.amountPiastres,
-              note: draft.note,
-              transferDate: draft.transactionDate,
-            );
+          try {
+            final bankWalletId = draft.walletId!;
+            if (draft.type == 'cash_withdrawal') {
+              await transferRepo.create(
+                fromWalletId: bankWalletId,
+                toWalletId: cashWallet.id,
+                amount: draft.amountPiastres,
+                note: draft.note,
+                transferDate: draft.transactionDate,
+              );
+            } else {
+              // cash_deposit
+              await transferRepo.create(
+                fromWalletId: cashWallet.id,
+                toWalletId: bankWalletId,
+                amount: draft.amountPiastres,
+                note: draft.note,
+                transferDate: draft.transactionDate,
+              );
+            }
+            totalSuccess++;
+          } catch (_) {
+            totalFail++;
           }
         }
       }
+    }
 
-      // Save account-to-account transfers via transferRepo.
-      if (transferDrafts.isNotEmpty) {
-        final transferRepo = ref.read(transferRepositoryProvider);
-        for (final draft in transferDrafts) {
+    // Save account-to-account transfers via transferRepo.
+    if (transferDrafts.isNotEmpty) {
+      final transferRepo = ref.read(transferRepositoryProvider);
+      for (final draft in transferDrafts) {
+        try {
           await transferRepo.create(
             fromWalletId: draft.walletId!,
             toWalletId: draft.toWalletId!,
@@ -550,70 +564,80 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             note: draft.note,
             transferDate: draft.transactionDate,
           );
+          totalSuccess++;
+        } catch (_) {
+          totalFail++;
         }
       }
+    }
 
-      // Save regular transaction drafts as batch (expense/income only).
-      if (txDrafts.isNotEmpty) {
-        final txRepo = ref.read(transactionRepositoryProvider);
-        await txRepo.createBatch(
-          txDrafts
-              .map(
-                (draft) => CreateTransactionParams(
-                  walletId: draft.walletId!,
-                  categoryId: draft.categoryId!,
-                  amount: draft.amountPiastres,
-                  type: draft.type,
-                  title: draft.noteController.text.trim().isNotEmpty
-                      ? draft.noteController.text.trim()
-                      : draft.rawText,
-                  transactionDate: draft.transactionDate,
-                  source: 'voice',
-                  rawSourceText: draft.rawText,
-                  note: draft.note,
-                  goalId: draft.goalId,
-                ),
-              )
-              .toList(),
-        );
-
-        // H-1: Wire category learning for voice transactions.
-        final learningService = ref.read(categorizationLearningServiceProvider);
-        for (final draft in txDrafts) {
+    // Save regular transaction drafts individually (expense/income only).
+    if (txDrafts.isNotEmpty) {
+      final txRepo = ref.read(transactionRepositoryProvider);
+      final learningService = ref.read(categorizationLearningServiceProvider);
+      for (final draft in txDrafts) {
+        try {
+          await txRepo.create(
+            walletId: draft.walletId!,
+            categoryId: draft.categoryId!,
+            amount: draft.amountPiastres,
+            type: draft.type,
+            title: draft.noteController.text.trim().isNotEmpty
+                ? draft.noteController.text.trim()
+                : draft.rawText,
+            transactionDate: draft.transactionDate,
+            source: 'voice',
+            rawSourceText: draft.rawText,
+            note: draft.note,
+            goalId: draft.goalId,
+          );
+          totalSuccess++;
+          // H-1: Wire category learning for successfully saved voice transactions.
           if (draft.categoryId != null) {
             final title = draft.noteController.text.trim().isNotEmpty
                 ? draft.noteController.text.trim()
                 : draft.rawText;
             learningService.recordMapping(title, draft.categoryId!);
           }
+        } catch (_) {
+          totalFail++;
         }
       }
+    }
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      // Use the goal match already computed during _applyDefaults.
+    // Report result based on success/failure counts.
+    if (totalSuccess == 0 && totalFail > 0) {
+      // All failed — show error, don't pop.
+      setState(() => _saving = false);
+      SnackHelper.showError(context, errorMsg);
+      return;
+    }
+
+    if (totalFail > 0) {
+      // Partial success — inform user.
+      SnackHelper.showInfo(
+        context,
+        'Saved $totalSuccess of ${totalSuccess + totalFail} transactions',
+      );
+    } else {
+      // All succeeded — check for goal match.
       final matchedGoalName = txDrafts.map((d) => d.matchedGoalName).firstWhere(
             (n) => n != null,
             orElse: () => null,
           );
-
       if (matchedGoalName != null) {
-        if (mounted) {
-          SnackHelper.showInfo(
-            context,
-            l10n.goal_link_prompt(matchedGoalName),
-            duration: AppDurations.snackbarLong,
-          );
-        }
+        SnackHelper.showInfo(
+          context,
+          l10n.goal_link_prompt(matchedGoalName),
+          duration: AppDurations.snackbarLong,
+        );
       } else {
-        if (mounted) SnackHelper.showSuccess(context, savedMsg);
+        SnackHelper.showSuccess(context, savedMsg);
       }
-      nav.pop();
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      SnackHelper.showError(context, errorMsg);
     }
+    nav.pop();
   }
 
   Future<void> _showCategoryPicker(
