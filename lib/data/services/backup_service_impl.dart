@@ -27,27 +27,25 @@ class BackupServiceImpl implements BackupService {
 
   @override
   Future<String> exportToJson() async {
-    final wallets = await _db.select(_db.wallets).get();
-    final categories = await _db.select(_db.categories).get();
-    final transactions = await _db.select(_db.transactions).get();
-    final transfers = await _db.select(_db.transfers).get();
-    final budgets = await _db.select(_db.budgets).get();
-    final goals = await _db.select(_db.savingsGoals).get();
-    final contributions = await _db.select(_db.goalContributions).get();
-    final rules = await _db.select(_db.recurringRules).get();
-    final smsLogs = await _db.select(_db.smsParserLogs).get();
-    final rates = await _db.select(_db.exchangeRates).get();
-    final catMappings = await _db.select(_db.categoryMappings).get();
-    final chatMessages = await _db.select(_db.chatMessages).get();
-    final parsedEventGroups = await _db.select(_db.parsedEventGroups).get();
-    final subscriptionRecords = await _db.select(_db.subscriptionRecords).get();
+    // H-15: Wrap in transaction for consistent snapshot.
+    final tables = await _db.transaction(() async {
+      final wallets = await _db.select(_db.wallets).get();
+      final categories = await _db.select(_db.categories).get();
+      final transactions = await _db.select(_db.transactions).get();
+      final transfers = await _db.select(_db.transfers).get();
+      final budgets = await _db.select(_db.budgets).get();
+      final goals = await _db.select(_db.savingsGoals).get();
+      final contributions = await _db.select(_db.goalContributions).get();
+      final rules = await _db.select(_db.recurringRules).get();
+      final smsLogs = await _db.select(_db.smsParserLogs).get();
+      final rates = await _db.select(_db.exchangeRates).get();
+      final catMappings = await _db.select(_db.categoryMappings).get();
+      final chatMessages = await _db.select(_db.chatMessages).get();
+      final parsedEventGroups = await _db.select(_db.parsedEventGroups).get();
+      final subscriptionRecords =
+          await _db.select(_db.subscriptionRecords).get();
 
-    final crashLog = await CrashLogService.readLog();
-
-    final data = {
-      'version': _schemaVersion,
-      'exportDate': DateTime.now().toIso8601String(),
-      'tables': {
+      return {
         'wallets': wallets.map(_walletToMap).toList(),
         'categories': categories.map(_categoryToMap).toList(),
         'transactions': transactions.map(_transactionToMap).toList(),
@@ -64,7 +62,15 @@ class BackupServiceImpl implements BackupService {
             parsedEventGroups.map(_parsedEventGroupToMap).toList(),
         'subscription_records':
             subscriptionRecords.map(_subscriptionRecordToMap).toList(),
-      },
+      };
+    });
+
+    final crashLog = await CrashLogService.readLog();
+
+    final data = {
+      'version': _schemaVersion,
+      'exportDate': DateTime.now().toIso8601String(),
+      'tables': tables,
       if (crashLog != null) 'crash_log': crashLog,
     };
 
@@ -388,6 +394,7 @@ class BackupServiceImpl implements BackupService {
         'colorHex': w.colorHex,
         'isArchived': w.isArchived,
         'displayOrder': w.displayOrder,
+        'sortOrder': w.sortOrder,
         'linkedSenders': w.linkedSenders,
         'isSystemWallet': w.isSystemWallet,
         'isDefaultAccount': w.isDefaultAccount,
@@ -554,6 +561,7 @@ class BackupServiceImpl implements BackupService {
         colorHex: Value(m['colorHex'] as String),
         isArchived: Value(m['isArchived'] as bool),
         displayOrder: Value(_int(m['displayOrder'])),
+        sortOrder: Value(_intN(m['sortOrder']) ?? 0),
         linkedSenders: Value(m['linkedSenders'] as String? ?? '[]'),
         isSystemWallet: Value(m['isSystemWallet'] as bool? ?? false),
         isDefaultAccount: Value(m['isDefaultAccount'] as bool? ?? false),

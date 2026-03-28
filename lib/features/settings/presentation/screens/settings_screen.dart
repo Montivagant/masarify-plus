@@ -388,7 +388,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
     final db = ref.read(databaseProvider);
     // M16 fix: wrap in single transaction for atomicity.
-    // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (13 tables).
+    // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (14 tables).
     await db.transaction(() async {
       await db.customStatement('DELETE FROM transactions');
       await db.customStatement('DELETE FROM transfers');
@@ -402,6 +402,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       await db.customStatement('DELETE FROM exchange_rates');
       await db.customStatement('DELETE FROM category_mappings');
       await db.customStatement('DELETE FROM chat_messages');
+      // H-16: Include subscription_records in clear-all.
+      await db.customStatement('DELETE FROM subscription_records');
       await db.customStatement('DELETE FROM wallets');
       await db.customStatement('DELETE FROM categories');
     });
