@@ -109,9 +109,9 @@ abstract final class AppSizes {
   static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 
-  /// Snackbar bottom margin to clear nav bar with comfortable gap.
-  /// bottomNavHeight (64) + md (16) = 80dp
-  static const double snackbarBottomMargin = bottomNavHeight + md;
+  /// Snackbar bottom margin to clear floating nav bar with comfortable gap.
+  /// bottomNavHeight (64) + navBottomMargin (16) + gap (16) = 96dp
+  static const double snackbarBottomMargin = bottomNavHeight + md + md;
 
   // ── SnackBar / Toast ──────────────────────────────────────────────────
   static const double snackTextSize = 13.0;
