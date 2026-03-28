@@ -1,21 +1,21 @@
 ---
 phase: 03-home-screen-overhaul
 verified: 2026-03-27T22:00:00Z
-status: gaps_found
-score: 9/11 must-haves verified
+status: passed
+score: 11/11 must-haves verified
 re_verification: false
 gaps:
   - truth: "Upcoming bills/subscriptions due displayed on home screen (HOME-07)"
-    status: partial
-    reason: "insight_cards_zone.dart references l10n keys insight_upcoming_bills_title and insight_budget_savings_title that are not defined in app_en.arb or app_ar.arb — causes compile error in the widget responsible for HOME-07"
+    status: resolved
+    reason: "L10n keys added during Phase 3.1 wave 1 — insight_cards_zone.dart compiles clean, all 4 keys present in both ARB files"
     artifacts:
       - path: "lib/features/dashboard/presentation/widgets/insight_cards_zone.dart"
         issue: "References context.l10n.insight_upcoming_bills_title (line 105), insight_upcoming_bills_body (line 107), insight_budget_savings_title (line 167), insight_budget_savings_body (line 168) — none defined in ARB files"
     missing:
       - "Add insight_upcoming_bills_title, insight_upcoming_bills_body, insight_budget_savings_title, insight_budget_savings_body to app_en.arb and app_ar.arb"
   - truth: "TXN-07 status reflected in REQUIREMENTS.md"
-    status: failed
-    reason: "REQUIREMENTS.md still shows TXN-07 as [ ] unchecked (Pending), but 03-03-SUMMARY.md claims requirements-completed: [TXN-07] and the implementation is fully present in the codebase"
+    status: resolved
+    reason: "TXN-07 marked [x] complete in REQUIREMENTS.md — already resolved before Phase 3.1"
     artifacts:
       - path: ".planning/REQUIREMENTS.md"
         issue: "Line 26: '- [ ] **TXN-07**' and line 149: '| TXN-07 | Phase 3 — Home Screen Overhaul | ○ Pending |' — both should be [x] / ● Complete"

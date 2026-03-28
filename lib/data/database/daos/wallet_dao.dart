@@ -80,6 +80,19 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
       (select(wallets)..where((w) => w.isDefaultAccount.equals(true)))
           .watchSingleOrNull();
 
+  /// Set a wallet as the default account (clears previous default).
+  Future<bool> setAsDefault(int id) async {
+    return transaction(() async {
+      // Clear all existing defaults.
+      await (update(wallets)..where((w) => w.isDefaultAccount.equals(true)))
+          .write(const WalletsCompanion(isDefaultAccount: Value(false)));
+      // Set the new default.
+      final count = await (update(wallets)..where((w) => w.id.equals(id)))
+          .write(const WalletsCompanion(isDefaultAccount: Value(true)));
+      return count > 0;
+    });
+  }
+
   /// Unarchive a wallet (set isArchived = false).
   Future<bool> unarchive(int id) async {
     return (update(wallets)..where((w) => w.id.equals(id)))

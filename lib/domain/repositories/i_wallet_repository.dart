@@ -67,6 +67,9 @@ abstract interface class IWalletRepository {
   /// Reactive stream of the default account.
   Stream<WalletEntity?> watchDefaultAccount();
 
+  /// Set a wallet as the default account (clears previous default).
+  Future<bool> setAsDefault(int walletId);
+
   /// Batch-update sort orders for carousel drag-and-drop reordering.
   Future<void> updateSortOrders(List<({int id, int sortOrder})> updates);
 

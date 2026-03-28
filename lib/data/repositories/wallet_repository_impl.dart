@@ -122,6 +122,9 @@ class WalletRepositoryImpl implements IWalletRepository {
   Future<bool> unarchive(int id) => _dao.unarchive(id);
 
   @override
+  Future<bool> setAsDefault(int walletId) => _dao.setAsDefault(walletId);
+
+  @override
   Stream<List<WalletEntity>> watchAllIncludingArchived() => _dao
       .watchAllIncludingArchived()
       .map((list) => list.map(_toEntity).toList());

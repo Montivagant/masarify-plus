@@ -2876,6 +2876,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'The default account cannot be archived.';
 
   @override
+  String get wallet_set_default_title => 'Set as Default';
+
+  @override
+  String wallet_set_default_confirm(String name) {
+    return 'Make $name your default account?';
+  }
+
+  @override
+  String wallet_set_default_success(String name) {
+    return '$name is now your default account.';
+  }
+
+  @override
   String get wallet_manage_title => 'Manage Accounts';
 
   @override

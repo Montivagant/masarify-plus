@@ -5391,6 +5391,24 @@ abstract class AppLocalizations {
   /// **'The default account cannot be archived.'**
   String get wallet_cannot_archive_default;
 
+  /// No description provided for @wallet_set_default_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Default'**
+  String get wallet_set_default_title;
+
+  /// No description provided for @wallet_set_default_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Make {name} your default account?'**
+  String wallet_set_default_confirm(String name);
+
+  /// No description provided for @wallet_set_default_success.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is now your default account.'**
+  String wallet_set_default_success(String name);
+
   /// No description provided for @wallet_manage_title.
   ///
   /// In en, this message translates to:

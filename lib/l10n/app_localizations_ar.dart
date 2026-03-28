@@ -2851,6 +2851,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_cannot_archive_default => 'لا يمكن أرشفة الحساب الافتراضي.';
 
   @override
+  String get wallet_set_default_title => 'تعيين كافتراضي';
+
+  @override
+  String wallet_set_default_confirm(String name) {
+    return 'جعل $name حسابك الافتراضي؟';
+  }
+
+  @override
+  String wallet_set_default_success(String name) {
+    return '$name هو الآن حسابك الافتراضي.';
+  }
+
+  @override
   String get wallet_manage_title => 'إدارة الحسابات';
 
   @override

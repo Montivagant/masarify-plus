@@ -117,6 +117,23 @@ class _AccountManageSheetState extends ConsumerState<AccountManageSheet> {
     await _loadWallets(); // refresh
   }
 
+  Future<void> _setAsDefault(WalletEntity wallet) async {
+    final confirmed = await ConfirmDialog.show(
+      context,
+      title: context.l10n.wallet_set_default_title,
+      message: context.l10n.wallet_set_default_confirm(wallet.name),
+    );
+    if (!confirmed || !mounted) return;
+    await ref.read(walletRepositoryProvider).setAsDefault(wallet.id);
+    HapticFeedback.mediumImpact();
+    if (!mounted) return;
+    SnackHelper.showSuccess(
+      context,
+      context.l10n.wallet_set_default_success(wallet.name),
+    );
+    await _loadWallets();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
@@ -198,6 +215,9 @@ class _AccountManageSheetState extends ConsumerState<AccountManageSheet> {
                       wallet: w,
                       index: index,
                       onToggleArchive: () => _toggleArchive(w),
+                      onSetDefault: w.isDefaultAccount || w.isArchived
+                          ? null
+                          : () => _setAsDefault(w),
                     );
                   },
                 ),
@@ -215,16 +235,19 @@ class _WalletTile extends StatelessWidget {
     required this.wallet,
     required this.index,
     required this.onToggleArchive,
+    this.onSetDefault,
   });
 
   final WalletEntity wallet;
   final int index;
   final VoidCallback onToggleArchive;
+  final VoidCallback? onSetDefault;
 
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
     final isArchived = wallet.isArchived;
+    final isDefault = wallet.isDefaultAccount;
 
     return ListTile(
       leading: ReorderableDragStartListener(
@@ -235,12 +258,23 @@ class _WalletTile extends StatelessWidget {
           size: AppSizes.iconSm,
         ),
       ),
-      title: Text(
-        wallet.name,
-        style: context.textStyles.bodyMedium?.copyWith(
-          color: isArchived ? cs.outline : null,
-          decoration: isArchived ? TextDecoration.lineThrough : null,
-        ),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              wallet.name,
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: isArchived ? cs.outline : null,
+                decoration: isArchived ? TextDecoration.lineThrough : null,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (isDefault) ...[
+            const SizedBox(width: AppSizes.xs),
+            Icon(AppIcons.star, size: AppSizes.iconXs, color: cs.primary),
+          ],
+        ],
       ),
       subtitle: Text(
         MoneyFormatter.format(wallet.balance),
@@ -248,16 +282,31 @@ class _WalletTile extends StatelessWidget {
           color: cs.outline,
         ),
       ),
-      trailing: IconButton(
-        icon: Icon(
-          isArchived ? AppIcons.unarchive : AppIcons.archive,
-          size: AppSizes.iconSm,
-          color: isArchived ? cs.primary : cs.outline,
-        ),
-        onPressed: onToggleArchive,
-        tooltip: isArchived
-            ? context.l10n.wallet_unarchive_action
-            : context.l10n.wallet_archive_action,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onSetDefault != null)
+            IconButton(
+              icon: Icon(
+                AppIcons.star,
+                size: AppSizes.iconSm,
+                color: cs.outline,
+              ),
+              onPressed: onSetDefault,
+              tooltip: context.l10n.wallet_set_default_title,
+            ),
+          IconButton(
+            icon: Icon(
+              isArchived ? AppIcons.unarchive : AppIcons.archive,
+              size: AppSizes.iconSm,
+              color: isArchived ? cs.primary : cs.outline,
+            ),
+            onPressed: onToggleArchive,
+            tooltip: isArchived
+                ? context.l10n.wallet_unarchive_action
+                : context.l10n.wallet_archive_action,
+          ),
+        ],
       ),
     );
   }
