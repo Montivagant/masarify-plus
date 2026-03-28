@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -76,7 +77,7 @@ class SortBottomSheet extends ConsumerWidget {
                 onTap: () {
                   ref.read(homeFilterProvider.notifier).state =
                       ref.read(homeFilterProvider).copyWith(sortOrder: order);
-                  Navigator.pop(context);
+                  context.pop();
                 },
               );
             }),

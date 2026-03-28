@@ -69,7 +69,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
               height: AppSizes.dotSm,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: baseColor.withValues(alpha: 0.55),
+                color: baseColor.withValues(alpha: AppSizes.opacityMedium),
               ),
             ),
           ),
@@ -91,7 +91,10 @@ class _TypingIndicatorState extends State<TypingIndicator>
                 height: AppSizes.dotSm,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: baseColor.withValues(alpha: 0.3 + 0.5 * value),
+                  color: baseColor.withValues(
+                    alpha:
+                        AppSizes.opacityLight3 + AppSizes.opacityMedium * value,
+                  ),
                 ),
               );
             },

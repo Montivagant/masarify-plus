@@ -117,7 +117,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       await showDialog(
         context: context,
         barrierDismissible: false,
-        barrierColor: context.colors.scrim.withValues(alpha: 0.6),
+        barrierColor:
+            context.colors.scrim.withValues(alpha: AppSizes.opacityMedium2),
         builder: (_) => const _SuccessOverlay(),
       );
       if (!mounted) return;
