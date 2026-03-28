@@ -33,7 +33,7 @@ abstract final class AppRoutes {
   static const String categoryAdd = '/categories/add';
   static const String categoryEdit = '/categories/:id/edit';
 
-  // ── Recurring & Bills ─────────────────────────────────────────────────
+  // ── Subscriptions & Bills ──────────────────────────────────────────────
   static const String recurring = '/recurring';
   static const String recurringAdd = '/recurring/add';
   static const String recurringEdit = '/recurring/:id/edit';

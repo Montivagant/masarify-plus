@@ -364,7 +364,7 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-        // Tab 1: Recurring & Bills
+        // Tab 1: Subscriptions & Bills
         StatefulShellBranch(
           routes: [
             GoRoute(
