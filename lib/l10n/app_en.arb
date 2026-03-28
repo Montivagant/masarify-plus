@@ -116,7 +116,7 @@
   "recurring_frequency_yearly": "Yearly",
   "recurring_frequency_custom": "Custom",
   "recurring_next_due": "Next due",
-  "recurring_and_bills_title": "Recurring & Bills",
+  "recurring_and_bills_title": "Subscriptions & Bills",
   "recurring_overdue": "Overdue",
   "recurring_upcoming_bills": "Upcoming Bills",
   "recurring_paid": "Paid",
@@ -780,7 +780,7 @@
   "hub_planning_title": "Planning",
   "hub_section_accounts": "Accounts",
   "hub_section_goals_budgets": "Budgets & Goals",
-  "hub_section_recurring": "Recurring & Bills",
+  "hub_section_recurring": "Subscriptions & Bills",
 
   "nav_planning": "Planning",
 
