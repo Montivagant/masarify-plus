@@ -978,8 +978,8 @@
   "onboarding_slide1_body": "اضغط الزر، اكتب المبلغ، خلاص.\nأسرع طريقة لتسجيل مصاريفك.",
   "onboarding_slide2_title": "قولها وبس",
   "onboarding_slide2_body": "اتكلم بشكل طبيعي. الذكاء الاصطناعي\nيفهم مصاريفك بأي لغة.",
-  "onboarding_slide3_title": "كشف SMS تلقائي",
-  "onboarding_slide3_body": "رسائل البنك تتحول لمعاملات\nتلقائياً. من غير ما تكتب حاجة.",
+  "onboarding_slide3_title": "مستشارك المالي الذكي",
+  "onboarding_slide3_body": "احصل على نصائح ذكية عن مصاريفك وميزانيتك — بالذكاء الاصطناعي.",
   "onboarding_demo_amount": "١٥٠٫٠٠ جنيه",
   "onboarding_demo_food": "أكل",
   "onboarding_demo_transport": "مواصلات",
@@ -987,6 +987,8 @@
   "onboarding_demo_sms_sender": "بنك CIB",
   "onboarding_demo_sms_body": "عملية شراء ٢٥٠.٠٠ جنيه...",
   "onboarding_demo_sms_result": "٢٥٠ جنيه — تم الكشف تلقائياً",
+  "onboarding_demo_chat_user": "صرفت كام على الأكل الأسبوع ده؟",
+  "onboarding_demo_chat_ai": "صرفت ٤٥٠ ج.م على الأكل — أكتر ١٥٪ من الأسبوع اللي فات.",
   "onboarding_pick_account_title": "حسابك الأساسي إيه؟",
   "onboarding_pick_account_body": "اختار واحد عشان تبدأ — تقدر تضيف تاني بعدين.",
   "onboarding_type_bank": "حساب بنكي",
@@ -997,6 +999,9 @@
   "onboarding_type_mobile_desc": "فودافون كاش، أورانج، إلخ.",
   "onboarding_default_bank_name": "حسابي البنكي",
   "onboarding_default_mobile_name": "محفظة الموبايل",
+
+  "disclaimer_financial": "مصاريفي يقدم إرشادات ميزانية فقط، وليس نصائح مالية أو استثمارية أو ضريبية منظمة.",
+  "disclaimer_ai_content": "محتوى مُنشأ بالذكاء الاصطناعي",
 
   "common_dismiss": "إخفاء",
 

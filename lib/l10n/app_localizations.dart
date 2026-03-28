@@ -4884,13 +4884,13 @@ abstract class AppLocalizations {
   /// No description provided for @onboarding_slide3_title.
   ///
   /// In en, this message translates to:
-  /// **'SMS Auto-Detect'**
+  /// **'Your AI Financial Advisor'**
   String get onboarding_slide3_title;
 
   /// No description provided for @onboarding_slide3_body.
   ///
   /// In en, this message translates to:
-  /// **'Bank SMS messages become transactions\nautomatically. No typing needed.'**
+  /// **'Get smart spending insights, budget advice, and financial guidance — powered by AI.'**
   String get onboarding_slide3_body;
 
   /// No description provided for @onboarding_demo_amount.
@@ -4934,6 +4934,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'EGP 250 — Auto-detected'**
   String get onboarding_demo_sms_result;
+
+  /// No description provided for @onboarding_demo_chat_user.
+  ///
+  /// In en, this message translates to:
+  /// **'How much did I spend on food this week?'**
+  String get onboarding_demo_chat_user;
+
+  /// No description provided for @onboarding_demo_chat_ai.
+  ///
+  /// In en, this message translates to:
+  /// **'You spent EGP 450 on food — 15% more than last week.'**
+  String get onboarding_demo_chat_ai;
 
   /// No description provided for @onboarding_pick_account_title.
   ///
@@ -4994,6 +5006,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mobile Wallet'**
   String get onboarding_default_mobile_name;
+
+  /// No description provided for @disclaimer_financial.
+  ///
+  /// In en, this message translates to:
+  /// **'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.'**
+  String get disclaimer_financial;
+
+  /// No description provided for @disclaimer_ai_content.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-generated content'**
+  String get disclaimer_ai_content;
 
   /// No description provided for @common_dismiss.
   ///

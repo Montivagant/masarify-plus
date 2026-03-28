@@ -213,6 +213,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       subtitle: context.l10n.onboarding_slide3_body,
                       demoWidget: const ChatDemo(),
                       pageOffset: _offsetForPage(3),
+                      footerWidget: Text(
+                        context.l10n.disclaimer_financial,
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.outline,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     // Page 4: Starting balance (optional)
                     _StartingBalancePage(

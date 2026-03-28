@@ -43,10 +43,19 @@ class PreferencesService {
   static const _kQuietHoursStart = 'quiet_hours_start';
   static const _kQuietHoursEnd = 'quiet_hours_end';
 
+  static const _kHasSeenAiDisclaimer = 'has_seen_ai_disclaimer';
+
   // ── Onboarding ────────────────────────────────────────────────────────────
   bool get isOnboardingDone => _prefs.getBool(_kOnboardingDone) ?? false;
 
   Future<void> markOnboardingDone() => _prefs.setBool(_kOnboardingDone, true);
+
+  // ── AI Disclaimer ─────────────────────────────────────────────────────
+  bool get hasSeenAiDisclaimer =>
+      _prefs.getBool(_kHasSeenAiDisclaimer) ?? false;
+
+  Future<void> markAiDisclaimerSeen() =>
+      _prefs.setBool(_kHasSeenAiDisclaimer, true);
 
   // ── PIN (Phase 4) ─────────────────────────────────────────────────────────
   bool get isPinEnabled => _prefs.getBool(_kPinEnabled) ?? false;

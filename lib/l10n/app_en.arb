@@ -998,8 +998,8 @@
   "onboarding_slide1_body": "Tap the button, type the amount, done.\nThe fastest expense logging you'll find.",
   "onboarding_slide2_title": "Just Say It",
   "onboarding_slide2_body": "Speak naturally. AI understands\nyour expenses in any language.",
-  "onboarding_slide3_title": "SMS Auto-Detect",
-  "onboarding_slide3_body": "Bank SMS messages become transactions\nautomatically. No typing needed.",
+  "onboarding_slide3_title": "Your AI Financial Advisor",
+  "onboarding_slide3_body": "Get smart spending insights, budget advice, and financial guidance \u2014 powered by AI.",
   "onboarding_demo_amount": "EGP 150.00",
   "onboarding_demo_food": "Food",
   "onboarding_demo_transport": "Transport",
@@ -1007,6 +1007,8 @@
   "onboarding_demo_sms_sender": "CIB Bank",
   "onboarding_demo_sms_body": "Purchase EGP 250.00 at...",
   "onboarding_demo_sms_result": "EGP 250 — Auto-detected",
+  "onboarding_demo_chat_user": "How much did I spend on food this week?",
+  "onboarding_demo_chat_ai": "You spent EGP 450 on food \u2014 15% more than last week.",
   "onboarding_pick_account_title": "What's Your Main Account?",
   "onboarding_pick_account_body": "Pick one to start — you can add more later.",
   "onboarding_type_bank": "Bank Account",
@@ -1017,6 +1019,9 @@
   "onboarding_type_mobile_desc": "Vodafone Cash, Orange, etc.",
   "onboarding_default_bank_name": "My Bank",
   "onboarding_default_mobile_name": "Mobile Wallet",
+
+  "disclaimer_financial": "Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.",
+  "disclaimer_ai_content": "AI-generated content",
 
   "common_dismiss": "Dismiss",
 
