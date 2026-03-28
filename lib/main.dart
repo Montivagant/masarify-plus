@@ -97,6 +97,19 @@ Future<void> main() async {
   if (Platform.isAndroid && PreferencesService(prefs).isSmsParserEnabled) {
     unawaited(_scanSmsInBackground(container));
   }
+
+  // M-18 fix: handle cold-start from notification tap.
+  final launchPayload = await NotificationService.getLaunchPayload();
+  if (launchPayload != null) {
+    // Delay slightly to let the router initialize after splash.
+    Future<void>.delayed(const Duration(milliseconds: 500), () {
+      if (launchPayload == 'recap') {
+        appRouter.go(AppRoutes.chat);
+      } else if (launchPayload.startsWith('recurring:')) {
+        appRouter.go(AppRoutes.recurring);
+      }
+    });
+  }
 }
 
 /// Scan SMS inbox for financial messages (local regex parsing only).

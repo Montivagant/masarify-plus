@@ -225,6 +225,18 @@
   "backup_export_csv_subtitle": "معاملات شهرية بتنسيق جدول بيانات",
   "backup_export_pdf_subtitle": "تقرير ملخص مالي شهري",
 
+  "csv_header_date": "التاريخ",
+  "csv_header_title": "العنوان",
+  "csv_header_amount": "المبلغ",
+  "csv_header_currency": "العملة",
+  "csv_header_type": "النوع",
+  "csv_header_category": "الفئة",
+  "csv_header_account": "الحساب",
+  "csv_header_tags": "العلامات",
+  "csv_header_source": "المصدر",
+  "csv_header_location": "الموقع",
+  "csv_header_notes": "الملاحظات",
+
   "auth_pin_setup_title": "تعيين رمز PIN",
   "auth_pin_setup_subtitle": "أنشئ رمز PIN من ٦ أرقام لحماية بياناتك",
   "auth_pin_confirm": "تأكيد رمز PIN",

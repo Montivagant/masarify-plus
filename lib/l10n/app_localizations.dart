@@ -1334,6 +1334,72 @@ abstract class AppLocalizations {
   /// **'Monthly financial summary report'**
   String get backup_export_pdf_subtitle;
 
+  /// No description provided for @csv_header_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get csv_header_date;
+
+  /// No description provided for @csv_header_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get csv_header_title;
+
+  /// No description provided for @csv_header_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get csv_header_amount;
+
+  /// No description provided for @csv_header_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get csv_header_currency;
+
+  /// No description provided for @csv_header_type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get csv_header_type;
+
+  /// No description provided for @csv_header_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get csv_header_category;
+
+  /// No description provided for @csv_header_account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get csv_header_account;
+
+  /// No description provided for @csv_header_tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get csv_header_tags;
+
+  /// No description provided for @csv_header_source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get csv_header_source;
+
+  /// No description provided for @csv_header_location.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get csv_header_location;
+
+  /// No description provided for @csv_header_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get csv_header_notes;
+
   /// No description provided for @auth_pin_setup_title.
   ///
   /// In en, this message translates to:

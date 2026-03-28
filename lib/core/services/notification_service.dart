@@ -71,6 +71,14 @@ class NotificationService {
     return false;
   }
 
+  /// M-18 fix: check if app was launched from a notification tap (cold start).
+  /// Returns the payload string, or null if not launched from notification.
+  static Future<String?> getLaunchPayload() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details == null || !details.didNotificationLaunchApp) return null;
+    return details.notificationResponse?.payload;
+  }
+
   /// Show an instant notification.
   static Future<void> show({
     required int id,

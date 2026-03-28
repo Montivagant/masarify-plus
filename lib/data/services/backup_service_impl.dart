@@ -321,6 +321,7 @@ class BackupServiceImpl implements BackupService {
   Future<String> exportTransactionsToCsv({
     required int year,
     required int month,
+    List<String>? headers,
   }) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
@@ -334,51 +335,110 @@ class BackupServiceImpl implements BackupService {
           ..orderBy([(t) => OrderingTerm.asc(t.transactionDate)]))
         .get();
 
+    // M-11 fix: also query transfers for the same date range.
+    final transfers = await (_db.select(_db.transfers)
+          ..where(
+            (t) =>
+                t.transferDate.isBiggerOrEqualValue(start) &
+                t.transferDate.isSmallerThanValue(end),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.transferDate)]))
+        .get();
+
     final categories = await _db.select(_db.categories).get();
     final wallets = await _db.select(_db.wallets).get();
 
     final catMap = {for (final c in categories) c.id: c.name};
     final walletMap = {for (final w in wallets) w.id: w.name};
+    final walletCurrencyMap = {for (final w in wallets) w.id: w.currencyCode};
+
+    // Build date-keyed rows for chronological interleaving.
+    final dataRows = <(DateTime, List<dynamic>)>[];
+
+    for (final tx in txs) {
+      dataRows.add(
+        (
+          tx.transactionDate,
+          [
+            DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
+            tx.title,
+            // Raw decimal for machine-readable CSV; intentionally bypasses
+            // MoneyFormatter to avoid locale-dependent formatting (e.g. Arabic digits).
+            (tx.amount / 100).toStringAsFixed(2),
+            tx.currencyCode,
+            tx.type,
+            catMap[tx.categoryId] ?? '',
+            walletMap[tx.walletId] ?? '',
+            tx.tags,
+            tx.source,
+            tx.locationName ?? '',
+            tx.note ?? '',
+          ],
+        ),
+      );
+    }
+
+    // M-11 fix: append transfer rows.
+    for (final tr in transfers) {
+      final fromName = walletMap[tr.fromWalletId] ?? '?';
+      final toName = walletMap[tr.toWalletId] ?? '?';
+      final notes = StringBuffer(tr.note ?? '');
+      if (tr.fee > 0) {
+        if (notes.isNotEmpty) notes.write(' | ');
+        notes.write('Fee: ${(tr.fee / 100).toStringAsFixed(2)}');
+      }
+      dataRows.add(
+        (
+          tr.transferDate,
+          [
+            DateFormat('yyyy-MM-dd HH:mm').format(tr.transferDate),
+            '$fromName \u2192 $toName',
+            (tr.amount / 100).toStringAsFixed(2),
+            walletCurrencyMap[tr.fromWalletId] ?? 'EGP',
+            'transfer',
+            '',
+            walletMap[tr.fromWalletId] ?? '',
+            '',
+            'manual',
+            '',
+            notes.toString(),
+          ],
+        ),
+      );
+    }
+
+    // Sort combined rows by date for chronological order.
+    dataRows.sort((a, b) => a.$1.compareTo(b.$1));
+
+    // M-12 fix: use localized headers if provided, else English defaults.
+    final headerRow = headers ??
+        [
+          'Date',
+          'Title',
+          'Amount',
+          'Currency',
+          'Type',
+          'Category',
+          'Account',
+          'Tags',
+          'Source',
+          'Location',
+          'Notes',
+        ];
 
     final rows = <List<dynamic>>[
-      [
-        'Date',
-        'Title',
-        'Amount',
-        'Currency',
-        'Type',
-        'Category',
-        'Account',
-        'Tags',
-        'Source',
-        'Location',
-        'Notes',
-      ],
-      ...txs.map(
-        (tx) => [
-          DateFormat('yyyy-MM-dd HH:mm').format(tx.transactionDate),
-          tx.title,
-          // Raw decimal for machine-readable CSV; intentionally bypasses
-          // MoneyFormatter to avoid locale-dependent formatting (e.g. Arabic digits).
-          (tx.amount / 100).toStringAsFixed(2),
-          tx.currencyCode,
-          tx.type,
-          catMap[tx.categoryId] ?? '',
-          walletMap[tx.walletId] ?? '',
-          tx.tags,
-          tx.source,
-          tx.locationName ?? '',
-          tx.note ?? '',
-        ],
-      ),
+      headerRow,
+      ...dataRows.map((e) => e.$2),
     ];
 
     final csv = const ListToCsvConverter().convert(rows);
+    // M-19 fix: prepend UTF-8 BOM for Excel compatibility with Arabic text.
+    final csvWithBom = '\uFEFF$csv';
     final dir = await getTemporaryDirectory();
     final file = File(
       '${dir.path}/masarify_${year}_${month.toString().padLeft(2, '0')}.csv',
     );
-    await file.writeAsString(csv);
+    await file.writeAsString(csvWithBom);
     return file.path;
   }
 

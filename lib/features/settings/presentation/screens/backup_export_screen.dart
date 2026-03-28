@@ -20,6 +20,7 @@ import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
@@ -124,12 +125,14 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
 
       // Upload to Drive
       final driveService = ref.read(googleDriveBackupProvider);
-      await driveService.uploadBackup(jsonData);
+      // M-15 fix: capture file ID returned by uploadBackup.
+      final fileId = await driveService.uploadBackup(jsonData);
 
-      // Save backup date
+      // Save backup date + file ID
       final now = DateTime.now().toIso8601String();
       final prefs = await ref.read(preferencesFutureProvider.future);
       await prefs.setLastBackupDate(now);
+      await prefs.setDriveFileId(fileId); // M-15 fix: persist file ID
 
       // Clean up temp file
       try {
@@ -210,6 +213,8 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         await tempFile.writeAsString(jsonData);
 
         await ref.read(backupServiceProvider).importFromJson(tempFile.path);
+        // M-17 fix: reconcile subscription state after DB restore.
+        await ref.read(subscriptionServiceProvider).restorePurchases();
 
         if (!mounted) return;
         SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
@@ -334,6 +339,8 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(backupServiceProvider).importFromJson(filePath);
+      // M-17 fix: reconcile subscription state after DB restore.
+      await ref.read(subscriptionServiceProvider).restorePurchases();
       if (!mounted) return;
       SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
       // C-6 fix: force full provider re-initialization by navigating to splash
@@ -380,16 +387,32 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   // ── Export CSV ──────────────────────────────────────────────────────────
 
   Future<void> _exportCsv() async {
+    // M-12 fix: capture l10n before async gap for build_context_synchronously.
+    final l10n = context.l10n;
     final picked = await _pickMonth();
     if (picked == null || _busy) return;
 
     setState(() => _busy = true);
     String? path;
     try {
+      // M-12 fix: pass localized CSV column headers.
       path = await ref.read(backupServiceProvider).exportTransactionsToCsv(
-            year: picked.year,
-            month: picked.month,
-          );
+        year: picked.year,
+        month: picked.month,
+        headers: [
+          l10n.csv_header_date,
+          l10n.csv_header_title,
+          l10n.csv_header_amount,
+          l10n.csv_header_currency,
+          l10n.csv_header_type,
+          l10n.csv_header_category,
+          l10n.csv_header_account,
+          l10n.csv_header_tags,
+          l10n.csv_header_source,
+          l10n.csv_header_location,
+          l10n.csv_header_notes,
+        ],
+      );
       if (!mounted) return;
       await Share.shareXFiles([XFile(path)]);
       if (mounted) {
