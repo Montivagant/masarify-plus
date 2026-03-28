@@ -23,22 +23,56 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/guards/pro_feature_guard.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/action_card.dart';
 import '../widgets/message_bubble.dart';
+import '../widgets/subscription_suggest_card.dart';
 import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.recapMode = false});
+
+  /// When true, auto-sends a recap priming message on first load.
+  final bool recapMode;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
+/// Subscription suggestion data for interactive card rendering.
+class _SubscriptionSuggestion {
+  const _SubscriptionSuggestion({
+    required this.title,
+    required this.categoryName,
+  });
+
+  final String title;
+  final String categoryName;
+}
+
+/// Common subscription keywords for detecting recurring patterns.
+const _subscriptionKeywords = [
+  'netflix', 'spotify', 'youtube', 'disney', 'hulu', 'hbo',
+  'apple music', 'amazon prime', 'deezer', 'anghami', 'shahid',
+  'osn', 'crunchyroll', 'gym', 'internet', 'vodafone', 'orange',
+  'etisalat', 'we', 'instapay', 'adobe', 'microsoft', 'google one',
+  'icloud', 'dropbox', 'notion', 'figma', 'canva', 'chatgpt',
+  'openai', 'copilot', 'github', 'slack',
+  // Arabic equivalents
+  'نتفلكس', 'سبوتيفاي', 'يوتيوب', 'أنغامي', 'شاهد',
+  'فودافون', 'أورنج', 'اتصالات', 'وي', 'جيم', 'إنترنت',
+];
+
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   bool _isSending = false;
+
+  /// Guards against duplicate recap priming across widget rebuilds.
+  /// Static so it persists even if the widget is rebuilt within the same
+  /// app session (e.g. provider invalidation triggers new State instance).
+  static bool _recapSentThisSession = false;
 
   /// In-memory action status for the current session. On confirm or cancel,
   /// the message content is stripped of its JSON block in the DB (via
@@ -46,6 +80,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// across restarts. The status enum itself is not stored in the DB.
   final Map<int, ChatActionStatus> _actionStates = {};
   final Set<int> _executingActions = {};
+
+  /// Subscription suggestion shown as an interactive card after a confirmed
+  /// transaction that matches known subscription keywords.
+  _SubscriptionSuggestion? _pendingSubscriptionSuggestion;
+
+  @override
+  void initState() {
+    super.initState();
+    // If opened from the daily recap notification, auto-send the priming message.
+    // Uses a static flag to prevent duplicate sends across widget rebuilds.
+    if (widget.recapMode && !_recapSentThisSession) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final isOnline = ref.read(isOnlineProvider).valueOrNull ?? false;
+        if (!isOnline) return; // Let user see offline banner instead
+        _recapSentThisSession = true;
+        _controller.text = context.l10n.recap_prime_message;
+        _send();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -152,6 +207,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       setState(() {
         _actionStates.clear();
         _executingActions.clear();
+        _pendingSubscriptionSuggestion = null;
       });
       await ref.read(chatMessageRepositoryProvider).deleteAll();
     }
@@ -176,11 +232,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
       if (mounted) {
         setState(() => _executingActions.remove(messageId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorGeneric),
-            duration: AppDurations.snackbarShort,
-          ),
+        SnackHelper.showError(
+          context,
+          errorGeneric,
+          duration: AppDurations.snackbarShort,
         );
       }
       return;
@@ -197,24 +252,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       noActiveWallet: l10n.chat_action_no_active_wallet,
       budgetExists: l10n.chat_action_budget_exists,
       walletExists: l10n.chat_action_wallet_exists,
+      walletNotFound: l10n.chat_action_wallet_not_found,
+      transferSameWallet: l10n.chat_action_transfer_same_wallet,
       txNotFound: l10n.chat_action_tx_not_found,
       goalCreated: l10n.chat_action_goal_created,
       txRecorded: l10n.chat_action_tx_recorded,
       budgetCreated: l10n.chat_action_budget_created,
       recurringCreated: l10n.chat_action_recurring_created,
       walletCreated: l10n.chat_action_wallet_created,
+      transferCreated: l10n.chat_action_transfer_created,
       txDeleted: l10n.chat_action_tx_deleted,
     );
 
     try {
       final selectedWalletId = ref.read(selectedAccountIdProvider);
-      final successMsg = await executor.execute(
+      final result = await executor.execute(
         action,
         categories: categories,
         wallets: wallets,
         messages: messages,
         selectedWalletId: selectedWalletId,
       );
+
+      // Append subscription suggestion if detected.
+      var followUpContent = result.message;
+      if (result.subscriptionSuggestion != null) {
+        followUpContent +=
+            '\n\n${l10n.chat_subscription_suggest(result.subscriptionSuggestion!.title)}';
+      }
+
       // Atomic: strip JSON + insert success message in one transaction so a
       // crash between them cannot leave inconsistent state. Done before
       // mounted check so the DB write completes even if the widget unmounts.
@@ -223,10 +289,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         messageId: messageId,
         strippedContent: strippedText,
         strippedTokenCount: newTokens,
-        followUpContent: successMsg,
+        followUpContent: followUpContent,
       );
       if (!mounted) return;
-      setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
+      setState(() {
+        _actionStates[messageId] = ChatActionStatus.confirmed;
+        // Check if the confirmed transaction looks like a subscription.
+        if (action is CreateTransactionAction) {
+          final titleLc = action.title.toLowerCase();
+          final isSubscription =
+              _subscriptionKeywords.any((kw) => titleLc.contains(kw));
+          if (isSubscription) {
+            _pendingSubscriptionSuggestion = _SubscriptionSuggestion(
+              title: action.title,
+              categoryName: action.categoryName,
+            );
+          }
+        }
+      });
     } catch (e) {
       final errorMsg = e is ArgumentError ? e.message.toString() : errorGeneric;
       await repo.insert(
@@ -308,7 +388,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: Text(context.l10n.chat_error_generic),
                 ),
                 data: (messages) {
-                  final itemCount = messages.length + (_isSending ? 1 : 0);
+                  final hasSuggestion = _pendingSubscriptionSuggestion != null;
+                  final itemCount = messages.length +
+                      (_isSending ? 1 : 0) +
+                      (hasSuggestion ? 1 : 0);
                   if (itemCount == 0) {
                     return Center(
                       child: Text(
@@ -329,7 +412,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                     itemCount: itemCount,
                     itemBuilder: (context, index) {
-                      // Index 0 = bottom of reversed list.
+                      // Slot 0 (bottom): typing indicator when sending.
                       if (_isSending && index == 0) {
                         return const Align(
                           alignment: AlignmentDirectional.centerStart,
@@ -341,9 +424,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           ),
                         );
                       }
-                      final msgIndex = _isSending
-                          ? messages.length - index
-                          : messages.length - 1 - index;
+                      // Subscription suggestion card sits just above
+                      // the typing indicator (or at slot 0 when idle).
+                      final suggestionSlot = _isSending ? 1 : 0;
+                      if (hasSuggestion && index == suggestionSlot) {
+                        return SubscriptionSuggestCard(
+                          title: _pendingSubscriptionSuggestion!.title,
+                          categoryName:
+                              _pendingSubscriptionSuggestion!.categoryName,
+                        );
+                      }
+                      // Offset past virtual slots to get real message.
+                      final virtualSlots =
+                          (_isSending ? 1 : 0) + (hasSuggestion ? 1 : 0);
+                      final msgIndex =
+                          messages.length - 1 - (index - virtualSlots);
                       final msg = messages[msgIndex];
 
                       // For assistant messages, parse for action JSON.
