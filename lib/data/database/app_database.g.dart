@@ -110,6 +110,14 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("is_default_account" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _sortOrderMeta =
+      const VerificationMeta('sortOrder');
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+      'sort_order', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -132,6 +140,7 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
         linkedSenders,
         isSystemWallet,
         isDefaultAccount,
+        sortOrder,
         createdAt
       ];
   @override
@@ -207,6 +216,10 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           isDefaultAccount.isAcceptableOrUnknown(
               data['is_default_account']!, _isDefaultAccountMeta));
     }
+    if (data.containsKey('sort_order')) {
+      context.handle(_sortOrderMeta,
+          sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -244,6 +257,8 @@ class $WalletsTable extends Wallets with TableInfo<$WalletsTable, Wallet> {
           .read(DriftSqlType.bool, data['${effectivePrefix}is_system_wallet'])!,
       isDefaultAccount: attachedDatabase.typeMapping.read(
           DriftSqlType.bool, data['${effectivePrefix}is_default_account'])!,
+      sortOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sort_order'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -276,6 +291,9 @@ class Wallet extends DataClass implements Insertable<Wallet> {
   /// True for the mandatory default bank account — fallback for all transaction assignment.
   /// Exactly one wallet may have this flag set (enforced by partial unique index).
   final bool isDefaultAccount;
+
+  /// Custom sort order for carousel reordering. Lower = first.
+  final int sortOrder;
   final DateTime createdAt;
   const Wallet(
       {required this.id,
@@ -290,6 +308,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       required this.linkedSenders,
       required this.isSystemWallet,
       required this.isDefaultAccount,
+      required this.sortOrder,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -306,6 +325,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
     map['linked_senders'] = Variable<String>(linkedSenders);
     map['is_system_wallet'] = Variable<bool>(isSystemWallet);
     map['is_default_account'] = Variable<bool>(isDefaultAccount);
+    map['sort_order'] = Variable<int>(sortOrder);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -324,6 +344,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       linkedSenders: Value(linkedSenders),
       isSystemWallet: Value(isSystemWallet),
       isDefaultAccount: Value(isDefaultAccount),
+      sortOrder: Value(sortOrder),
       createdAt: Value(createdAt),
     );
   }
@@ -344,6 +365,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       linkedSenders: serializer.fromJson<String>(json['linkedSenders']),
       isSystemWallet: serializer.fromJson<bool>(json['isSystemWallet']),
       isDefaultAccount: serializer.fromJson<bool>(json['isDefaultAccount']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -363,6 +385,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       'linkedSenders': serializer.toJson<String>(linkedSenders),
       'isSystemWallet': serializer.toJson<bool>(isSystemWallet),
       'isDefaultAccount': serializer.toJson<bool>(isDefaultAccount),
+      'sortOrder': serializer.toJson<int>(sortOrder),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -380,6 +403,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           String? linkedSenders,
           bool? isSystemWallet,
           bool? isDefaultAccount,
+          int? sortOrder,
           DateTime? createdAt}) =>
       Wallet(
         id: id ?? this.id,
@@ -394,6 +418,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
         linkedSenders: linkedSenders ?? this.linkedSenders,
         isSystemWallet: isSystemWallet ?? this.isSystemWallet,
         isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
+        sortOrder: sortOrder ?? this.sortOrder,
         createdAt: createdAt ?? this.createdAt,
       );
   Wallet copyWithCompanion(WalletsCompanion data) {
@@ -421,6 +446,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       isDefaultAccount: data.isDefaultAccount.present
           ? data.isDefaultAccount.value
           : this.isDefaultAccount,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -440,6 +466,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           ..write('linkedSenders: $linkedSenders, ')
           ..write('isSystemWallet: $isSystemWallet, ')
           ..write('isDefaultAccount: $isDefaultAccount, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -459,6 +486,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
       linkedSenders,
       isSystemWallet,
       isDefaultAccount,
+      sortOrder,
       createdAt);
   @override
   bool operator ==(Object other) =>
@@ -476,6 +504,7 @@ class Wallet extends DataClass implements Insertable<Wallet> {
           other.linkedSenders == this.linkedSenders &&
           other.isSystemWallet == this.isSystemWallet &&
           other.isDefaultAccount == this.isDefaultAccount &&
+          other.sortOrder == this.sortOrder &&
           other.createdAt == this.createdAt);
 }
 
@@ -492,6 +521,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
   final Value<String> linkedSenders;
   final Value<bool> isSystemWallet;
   final Value<bool> isDefaultAccount;
+  final Value<int> sortOrder;
   final Value<DateTime> createdAt;
   const WalletsCompanion({
     this.id = const Value.absent(),
@@ -506,6 +536,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.linkedSenders = const Value.absent(),
     this.isSystemWallet = const Value.absent(),
     this.isDefaultAccount = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   WalletsCompanion.insert({
@@ -521,6 +552,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     this.linkedSenders = const Value.absent(),
     this.isSystemWallet = const Value.absent(),
     this.isDefaultAccount = const Value.absent(),
+    this.sortOrder = const Value.absent(),
     this.createdAt = const Value.absent(),
   })  : name = Value(name),
         type = Value(type);
@@ -537,6 +569,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     Expression<String>? linkedSenders,
     Expression<bool>? isSystemWallet,
     Expression<bool>? isDefaultAccount,
+    Expression<int>? sortOrder,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -552,6 +585,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       if (linkedSenders != null) 'linked_senders': linkedSenders,
       if (isSystemWallet != null) 'is_system_wallet': isSystemWallet,
       if (isDefaultAccount != null) 'is_default_account': isDefaultAccount,
+      if (sortOrder != null) 'sort_order': sortOrder,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -569,6 +603,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       Value<String>? linkedSenders,
       Value<bool>? isSystemWallet,
       Value<bool>? isDefaultAccount,
+      Value<int>? sortOrder,
       Value<DateTime>? createdAt}) {
     return WalletsCompanion(
       id: id ?? this.id,
@@ -583,6 +618,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
       linkedSenders: linkedSenders ?? this.linkedSenders,
       isSystemWallet: isSystemWallet ?? this.isSystemWallet,
       isDefaultAccount: isDefaultAccount ?? this.isDefaultAccount,
+      sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -626,6 +662,9 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
     if (isDefaultAccount.present) {
       map['is_default_account'] = Variable<bool>(isDefaultAccount.value);
     }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -647,6 +686,7 @@ class WalletsCompanion extends UpdateCompanion<Wallet> {
           ..write('linkedSenders: $linkedSenders, ')
           ..write('isSystemWallet: $isSystemWallet, ')
           ..write('isDefaultAccount: $isDefaultAccount, ')
+          ..write('sortOrder: $sortOrder, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -6700,6 +6740,364 @@ class ParsedEventGroupsCompanion extends UpdateCompanion<ParsedEventGroup> {
   }
 }
 
+class $SubscriptionRecordsTable extends SubscriptionRecords
+    with TableInfo<$SubscriptionRecordsTable, SubscriptionRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SubscriptionRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _purchaseTokenMeta =
+      const VerificationMeta('purchaseToken');
+  @override
+  late final GeneratedColumn<String> purchaseToken = GeneratedColumn<String>(
+      'purchase_token', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _productIdMeta =
+      const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+      'product_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _purchaseDateMeta =
+      const VerificationMeta('purchaseDate');
+  @override
+  late final GeneratedColumn<DateTime> purchaseDate = GeneratedColumn<DateTime>(
+      'purchase_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _expiryDateMeta =
+      const VerificationMeta('expiryDate');
+  @override
+  late final GeneratedColumn<DateTime> expiryDate = GeneratedColumn<DateTime>(
+      'expiry_date', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('active'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, purchaseToken, productId, purchaseDate, expiryDate, status];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'subscription_records';
+  @override
+  VerificationContext validateIntegrity(Insertable<SubscriptionRecord> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('purchase_token')) {
+      context.handle(
+          _purchaseTokenMeta,
+          purchaseToken.isAcceptableOrUnknown(
+              data['purchase_token']!, _purchaseTokenMeta));
+    } else if (isInserting) {
+      context.missing(_purchaseTokenMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+          _purchaseDateMeta,
+          purchaseDate.isAcceptableOrUnknown(
+              data['purchase_date']!, _purchaseDateMeta));
+    } else if (isInserting) {
+      context.missing(_purchaseDateMeta);
+    }
+    if (data.containsKey('expiry_date')) {
+      context.handle(
+          _expiryDateMeta,
+          expiryDate.isAcceptableOrUnknown(
+              data['expiry_date']!, _expiryDateMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SubscriptionRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SubscriptionRecord(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      purchaseToken: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}purchase_token'])!,
+      productId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
+      purchaseDate: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}purchase_date'])!,
+      expiryDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}expiry_date']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+    );
+  }
+
+  @override
+  $SubscriptionRecordsTable createAlias(String alias) {
+    return $SubscriptionRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class SubscriptionRecord extends DataClass
+    implements Insertable<SubscriptionRecord> {
+  final int id;
+
+  /// Google Play purchase token — unique identifier for each purchase.
+  final String purchaseToken;
+
+  /// Product ID (e.g., 'masarify_pro_monthly', 'masarify_pro_yearly').
+  final String productId;
+
+  /// When the purchase was made.
+  final DateTime purchaseDate;
+
+  /// When the subscription expires. Null for lifetime purchases (not applicable yet).
+  final DateTime? expiryDate;
+
+  /// Subscription status: 'active', 'cancelled', 'expired', 'grace_period'.
+  final String status;
+  const SubscriptionRecord(
+      {required this.id,
+      required this.purchaseToken,
+      required this.productId,
+      required this.purchaseDate,
+      this.expiryDate,
+      required this.status});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['purchase_token'] = Variable<String>(purchaseToken);
+    map['product_id'] = Variable<String>(productId);
+    map['purchase_date'] = Variable<DateTime>(purchaseDate);
+    if (!nullToAbsent || expiryDate != null) {
+      map['expiry_date'] = Variable<DateTime>(expiryDate);
+    }
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  SubscriptionRecordsCompanion toCompanion(bool nullToAbsent) {
+    return SubscriptionRecordsCompanion(
+      id: Value(id),
+      purchaseToken: Value(purchaseToken),
+      productId: Value(productId),
+      purchaseDate: Value(purchaseDate),
+      expiryDate: expiryDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiryDate),
+      status: Value(status),
+    );
+  }
+
+  factory SubscriptionRecord.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SubscriptionRecord(
+      id: serializer.fromJson<int>(json['id']),
+      purchaseToken: serializer.fromJson<String>(json['purchaseToken']),
+      productId: serializer.fromJson<String>(json['productId']),
+      purchaseDate: serializer.fromJson<DateTime>(json['purchaseDate']),
+      expiryDate: serializer.fromJson<DateTime?>(json['expiryDate']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'purchaseToken': serializer.toJson<String>(purchaseToken),
+      'productId': serializer.toJson<String>(productId),
+      'purchaseDate': serializer.toJson<DateTime>(purchaseDate),
+      'expiryDate': serializer.toJson<DateTime?>(expiryDate),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  SubscriptionRecord copyWith(
+          {int? id,
+          String? purchaseToken,
+          String? productId,
+          DateTime? purchaseDate,
+          Value<DateTime?> expiryDate = const Value.absent(),
+          String? status}) =>
+      SubscriptionRecord(
+        id: id ?? this.id,
+        purchaseToken: purchaseToken ?? this.purchaseToken,
+        productId: productId ?? this.productId,
+        purchaseDate: purchaseDate ?? this.purchaseDate,
+        expiryDate: expiryDate.present ? expiryDate.value : this.expiryDate,
+        status: status ?? this.status,
+      );
+  SubscriptionRecord copyWithCompanion(SubscriptionRecordsCompanion data) {
+    return SubscriptionRecord(
+      id: data.id.present ? data.id.value : this.id,
+      purchaseToken: data.purchaseToken.present
+          ? data.purchaseToken.value
+          : this.purchaseToken,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
+      expiryDate:
+          data.expiryDate.present ? data.expiryDate.value : this.expiryDate,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SubscriptionRecord(')
+          ..write('id: $id, ')
+          ..write('purchaseToken: $purchaseToken, ')
+          ..write('productId: $productId, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('expiryDate: $expiryDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, purchaseToken, productId, purchaseDate, expiryDate, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SubscriptionRecord &&
+          other.id == this.id &&
+          other.purchaseToken == this.purchaseToken &&
+          other.productId == this.productId &&
+          other.purchaseDate == this.purchaseDate &&
+          other.expiryDate == this.expiryDate &&
+          other.status == this.status);
+}
+
+class SubscriptionRecordsCompanion extends UpdateCompanion<SubscriptionRecord> {
+  final Value<int> id;
+  final Value<String> purchaseToken;
+  final Value<String> productId;
+  final Value<DateTime> purchaseDate;
+  final Value<DateTime?> expiryDate;
+  final Value<String> status;
+  const SubscriptionRecordsCompanion({
+    this.id = const Value.absent(),
+    this.purchaseToken = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.expiryDate = const Value.absent(),
+    this.status = const Value.absent(),
+  });
+  SubscriptionRecordsCompanion.insert({
+    this.id = const Value.absent(),
+    required String purchaseToken,
+    required String productId,
+    required DateTime purchaseDate,
+    this.expiryDate = const Value.absent(),
+    this.status = const Value.absent(),
+  })  : purchaseToken = Value(purchaseToken),
+        productId = Value(productId),
+        purchaseDate = Value(purchaseDate);
+  static Insertable<SubscriptionRecord> custom({
+    Expression<int>? id,
+    Expression<String>? purchaseToken,
+    Expression<String>? productId,
+    Expression<DateTime>? purchaseDate,
+    Expression<DateTime>? expiryDate,
+    Expression<String>? status,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (purchaseToken != null) 'purchase_token': purchaseToken,
+      if (productId != null) 'product_id': productId,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
+      if (expiryDate != null) 'expiry_date': expiryDate,
+      if (status != null) 'status': status,
+    });
+  }
+
+  SubscriptionRecordsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? purchaseToken,
+      Value<String>? productId,
+      Value<DateTime>? purchaseDate,
+      Value<DateTime?>? expiryDate,
+      Value<String>? status}) {
+    return SubscriptionRecordsCompanion(
+      id: id ?? this.id,
+      purchaseToken: purchaseToken ?? this.purchaseToken,
+      productId: productId ?? this.productId,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      expiryDate: expiryDate ?? this.expiryDate,
+      status: status ?? this.status,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (purchaseToken.present) {
+      map['purchase_token'] = Variable<String>(purchaseToken.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<DateTime>(purchaseDate.value);
+    }
+    if (expiryDate.present) {
+      map['expiry_date'] = Variable<DateTime>(expiryDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SubscriptionRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('purchaseToken: $purchaseToken, ')
+          ..write('productId: $productId, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('expiryDate: $expiryDate, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6719,6 +7117,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ChatMessagesTable chatMessages = $ChatMessagesTable(this);
   late final $ParsedEventGroupsTable parsedEventGroups =
       $ParsedEventGroupsTable(this);
+  late final $SubscriptionRecordsTable subscriptionRecords =
+      $SubscriptionRecordsTable(this);
   late final WalletDao walletDao = WalletDao(this as AppDatabase);
   late final CategoryDao categoryDao = CategoryDao(this as AppDatabase);
   late final TransactionDao transactionDao =
@@ -6738,6 +7138,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ChatMessageDao(this as AppDatabase);
   late final ParsedEventGroupDao parsedEventGroupDao =
       ParsedEventGroupDao(this as AppDatabase);
+  late final SubscriptionRecordDao subscriptionRecordDao =
+      SubscriptionRecordDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6755,7 +7157,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         exchangeRates,
         categoryMappings,
         chatMessages,
-        parsedEventGroups
+        parsedEventGroups,
+        subscriptionRecords
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -6805,6 +7208,7 @@ typedef $$WalletsTableCreateCompanionBuilder = WalletsCompanion Function({
   Value<String> linkedSenders,
   Value<bool> isSystemWallet,
   Value<bool> isDefaultAccount,
+  Value<int> sortOrder,
   Value<DateTime> createdAt,
 });
 typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
@@ -6820,6 +7224,7 @@ typedef $$WalletsTableUpdateCompanionBuilder = WalletsCompanion Function({
   Value<String> linkedSenders,
   Value<bool> isSystemWallet,
   Value<bool> isDefaultAccount,
+  Value<int> sortOrder,
   Value<DateTime> createdAt,
 });
 
@@ -6966,6 +7371,9 @@ class $$WalletsTableFilterComposer
   ColumnFilters<bool> get isDefaultAccount => $composableBuilder(
       column: $table.isDefaultAccount,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -7147,6 +7555,9 @@ class $$WalletsTableOrderingComposer
       column: $table.isDefaultAccount,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+      column: $table.sortOrder, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 }
@@ -7195,6 +7606,9 @@ class $$WalletsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDefaultAccount => $composableBuilder(
       column: $table.isDefaultAccount, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -7368,6 +7782,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<String> linkedSenders = const Value.absent(),
             Value<bool> isSystemWallet = const Value.absent(),
             Value<bool> isDefaultAccount = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion(
@@ -7383,6 +7798,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             linkedSenders: linkedSenders,
             isSystemWallet: isSystemWallet,
             isDefaultAccount: isDefaultAccount,
+            sortOrder: sortOrder,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
@@ -7398,6 +7814,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             Value<String> linkedSenders = const Value.absent(),
             Value<bool> isSystemWallet = const Value.absent(),
             Value<bool> isDefaultAccount = const Value.absent(),
+            Value<int> sortOrder = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               WalletsCompanion.insert(
@@ -7413,6 +7830,7 @@ class $$WalletsTableTableManager extends RootTableManager<
             linkedSenders: linkedSenders,
             isSystemWallet: isSystemWallet,
             isDefaultAccount: isDefaultAccount,
+            sortOrder: sortOrder,
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
@@ -12320,6 +12738,195 @@ typedef $$ParsedEventGroupsTableProcessedTableManager = ProcessedTableManager<
     (ParsedEventGroup, $$ParsedEventGroupsTableReferences),
     ParsedEventGroup,
     PrefetchHooks Function({bool canonicalLogId})>;
+typedef $$SubscriptionRecordsTableCreateCompanionBuilder
+    = SubscriptionRecordsCompanion Function({
+  Value<int> id,
+  required String purchaseToken,
+  required String productId,
+  required DateTime purchaseDate,
+  Value<DateTime?> expiryDate,
+  Value<String> status,
+});
+typedef $$SubscriptionRecordsTableUpdateCompanionBuilder
+    = SubscriptionRecordsCompanion Function({
+  Value<int> id,
+  Value<String> purchaseToken,
+  Value<String> productId,
+  Value<DateTime> purchaseDate,
+  Value<DateTime?> expiryDate,
+  Value<String> status,
+});
+
+class $$SubscriptionRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $SubscriptionRecordsTable> {
+  $$SubscriptionRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get purchaseToken => $composableBuilder(
+      column: $table.purchaseToken, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get productId => $composableBuilder(
+      column: $table.productId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get purchaseDate => $composableBuilder(
+      column: $table.purchaseDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+}
+
+class $$SubscriptionRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SubscriptionRecordsTable> {
+  $$SubscriptionRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get purchaseToken => $composableBuilder(
+      column: $table.purchaseToken,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get productId => $composableBuilder(
+      column: $table.productId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get purchaseDate => $composableBuilder(
+      column: $table.purchaseDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SubscriptionRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SubscriptionRecordsTable> {
+  $$SubscriptionRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get purchaseToken => $composableBuilder(
+      column: $table.purchaseToken, builder: (column) => column);
+
+  GeneratedColumn<String> get productId =>
+      $composableBuilder(column: $table.productId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get purchaseDate => $composableBuilder(
+      column: $table.purchaseDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiryDate => $composableBuilder(
+      column: $table.expiryDate, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$SubscriptionRecordsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SubscriptionRecordsTable,
+    SubscriptionRecord,
+    $$SubscriptionRecordsTableFilterComposer,
+    $$SubscriptionRecordsTableOrderingComposer,
+    $$SubscriptionRecordsTableAnnotationComposer,
+    $$SubscriptionRecordsTableCreateCompanionBuilder,
+    $$SubscriptionRecordsTableUpdateCompanionBuilder,
+    (
+      SubscriptionRecord,
+      BaseReferences<_$AppDatabase, $SubscriptionRecordsTable,
+          SubscriptionRecord>
+    ),
+    SubscriptionRecord,
+    PrefetchHooks Function()> {
+  $$SubscriptionRecordsTableTableManager(
+      _$AppDatabase db, $SubscriptionRecordsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SubscriptionRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SubscriptionRecordsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SubscriptionRecordsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> purchaseToken = const Value.absent(),
+            Value<String> productId = const Value.absent(),
+            Value<DateTime> purchaseDate = const Value.absent(),
+            Value<DateTime?> expiryDate = const Value.absent(),
+            Value<String> status = const Value.absent(),
+          }) =>
+              SubscriptionRecordsCompanion(
+            id: id,
+            purchaseToken: purchaseToken,
+            productId: productId,
+            purchaseDate: purchaseDate,
+            expiryDate: expiryDate,
+            status: status,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String purchaseToken,
+            required String productId,
+            required DateTime purchaseDate,
+            Value<DateTime?> expiryDate = const Value.absent(),
+            Value<String> status = const Value.absent(),
+          }) =>
+              SubscriptionRecordsCompanion.insert(
+            id: id,
+            purchaseToken: purchaseToken,
+            productId: productId,
+            purchaseDate: purchaseDate,
+            expiryDate: expiryDate,
+            status: status,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$SubscriptionRecordsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SubscriptionRecordsTable,
+    SubscriptionRecord,
+    $$SubscriptionRecordsTableFilterComposer,
+    $$SubscriptionRecordsTableOrderingComposer,
+    $$SubscriptionRecordsTableAnnotationComposer,
+    $$SubscriptionRecordsTableCreateCompanionBuilder,
+    $$SubscriptionRecordsTableUpdateCompanionBuilder,
+    (
+      SubscriptionRecord,
+      BaseReferences<_$AppDatabase, $SubscriptionRecordsTable,
+          SubscriptionRecord>
+    ),
+    SubscriptionRecord,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12350,4 +12957,6 @@ class $AppDatabaseManager {
       $$ChatMessagesTableTableManager(_db, _db.chatMessages);
   $$ParsedEventGroupsTableTableManager get parsedEventGroups =>
       $$ParsedEventGroupsTableTableManager(_db, _db.parsedEventGroups);
+  $$SubscriptionRecordsTableTableManager get subscriptionRecords =>
+      $$SubscriptionRecordsTableTableManager(_db, _db.subscriptionRecords);
 }

@@ -1,15 +1,28 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/data/latest_10y.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
+
+/// Callback invoked when user taps a notification.
+/// Set via [NotificationService.onNotificationTap].
+typedef NotificationTapCallback = void Function(String? payload);
 
 /// Wrapper around flutter_local_notifications.
-/// Handles initialization, permission, and scheduling.
+/// Handles initialization, permission, scheduling, and deep-link dispatch.
 class NotificationService {
   static final _plugin = FlutterLocalNotificationsPlugin();
   static bool _initialized = false;
 
+  /// External callback for notification taps (set from main.dart / router).
+  static NotificationTapCallback? onNotificationTap;
+
+  /// Notification ID for the daily spending recap.
+  /// Recurring rules use `rule.id + 100_000`, so this must stay below 100_000
+  /// and above any manually-assigned ID to avoid collisions.
+  static const recapNotificationId = 99999;
+
   static Future<void> initialize() async {
     if (_initialized) return;
-    tz.initializeTimeZones();
+    tz_data.initializeTimeZones();
 
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
@@ -25,9 +38,13 @@ class NotificationService {
         android: androidSettings,
         iOS: iosSettings,
       ),
-      onDidReceiveNotificationResponse: (_) {},
+      onDidReceiveNotificationResponse: _onResponse,
     );
     _initialized = true;
+  }
+
+  static void _onResponse(NotificationResponse response) {
+    onNotificationTap?.call(response.payload);
   }
 
   /// Request notification permission (Android 13+ and iOS).
@@ -76,5 +93,84 @@ class NotificationService {
       ),
       payload: payload,
     );
+  }
+
+  /// Schedule a daily notification at [hour]:[minute] local time.
+  /// Uses `DateTimeComponents.time` so it repeats every day.
+  static Future<void> scheduleDaily({
+    required int id,
+    required String title,
+    required String body,
+    required int hour,
+    required int minute,
+    String? payload,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled =
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
+    // If the time has already passed today, schedule for tomorrow.
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'masarify_recap',
+          'Daily Recap',
+          channelDescription: 'Daily spending recap reminder',
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: payload,
+    );
+  }
+
+  /// Schedule a one-shot notification at [scheduledDate].
+  /// Fires once — no repeating. Used for bill reminders.
+  static Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    final tzDate = tz.TZDateTime.from(scheduledDate, tz.local);
+    // Guard: do not schedule in the past.
+    if (tzDate.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+    await _plugin.zonedSchedule(
+      id,
+      title,
+      body,
+      tzDate,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'masarify_bills',
+          'Bill Reminders',
+          channelDescription: 'Upcoming bill and subscription reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      payload: payload,
+    );
+  }
+
+  /// Cancel a scheduled notification by [id].
+  static Future<void> cancelScheduled(int id) async {
+    await _plugin.cancel(id);
   }
 }
