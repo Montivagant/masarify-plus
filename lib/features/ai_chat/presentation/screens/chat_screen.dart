@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -25,6 +24,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/guards/pro_feature_guard.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/action_card.dart';
@@ -202,12 +202,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
       if (mounted) {
         setState(() => _executingActions.remove(messageId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorGeneric),
-            duration: AppDurations.snackbarShort,
-          ),
-        );
+        SnackHelper.showError(context, errorGeneric);
       }
       return;
     }
