@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/voice_dictionary.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -87,7 +86,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         }
       }
       // WS-4 fix: keyword fallback when AI icon didn't match.
-      if (draft.categoryId == null) {
+      if (draft.categoryId == null && draft.type != 'transfer') {
         final text = draft.rawText.toLowerCase();
         for (final entry in VoiceDictionary.categoryKeywords.entries) {
           if (text.contains(entry.key)) {
@@ -106,18 +105,37 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         }
       }
 
+      // Final fallback: assign "Other Expense" / "Other Income" so the user
+      // doesn't get blocked by "please select a category" on confirm.
+      // Transfers and cash types don't need a category (saved as transfers).
+      // Match by iconName ('more_horiz') — not user-editable, unlike name.
+      if (draft.categoryId == null &&
+          draft.type != 'transfer' &&
+          !_isCashType(draft.type)) {
+        final other = categories
+            .where(
+              (c) =>
+                  c.iconName == 'more_horiz' &&
+                  (c.type == draft.type || c.type == 'both'),
+            )
+            .firstOrNull;
+        if (other != null) draft.categoryId = other.id;
+      }
+
       // Wallet hint matching: exact → contains → fuzzy → default.
       // Every draft ALWAYS gets a walletId — never null, never blocking.
+      // Match against non-system wallets only — Cash is a payment method.
       if (draft.walletHint != null && draft.walletHint!.isNotEmpty) {
         final hintLower = draft.walletHint!.toLowerCase();
         // 1. Exact case-insensitive match
-        final exactMatch =
-            wallets.where((w) => w.name.toLowerCase() == hintLower).firstOrNull;
+        final exactMatch = nonSystem
+            .where((w) => w.name.toLowerCase() == hintLower)
+            .firstOrNull;
         if (exactMatch != null) {
           draft.walletId = exactMatch.id;
         } else {
           // 2. Contains match — only auto-assign if exactly one match
-          final containsMatches = wallets
+          final containsMatches = nonSystem
               .where(
                 (w) =>
                     w.name.toLowerCase().contains(hintLower) ||
@@ -131,7 +149,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             final hintChars = draft.walletHint!.toLowerCase();
             WalletEntity? closest;
             int bestScore = 0;
-            for (final w in wallets) {
+            for (final w in nonSystem) {
               final score = _similarityScore(hintChars, w.name.toLowerCase());
               final threshold =
                   (hintChars.length * 0.5).ceil().clamp(3, hintChars.length);
@@ -144,9 +162,19 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               // 3b. Fuzzy match found — auto-assign directly (no suggestion)
               draft.walletId = closest.id;
             } else {
-              // 4. No match at all — assign to Default account + flag hint
-              draft.walletId = defaultAccountId;
-              draft.unmatchedHint = draft.walletHint;
+              // 4. No match in user accounts. Check if the user explicitly
+              // said "cash" — if so, assign to the system Cash wallet.
+              final systemWallet =
+                  wallets.where((w) => w.isSystemWallet).firstOrNull;
+              if (systemWallet != null &&
+                  VoiceDictionary.cashWalletKeywordSet
+                      .contains(hintLower.trim())) {
+                draft.walletId = systemWallet.id;
+              } else {
+                // 5. No match at all — assign to Default account + flag hint
+                draft.walletId = defaultAccountId;
+                draft.unmatchedHint = draft.walletHint;
+              }
             }
           }
         }
@@ -158,13 +186,14 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         final toHint = draft.toWalletHint;
         if (toHint != null && toHint.isNotEmpty) {
           final toHintLower = toHint.toLowerCase();
-          final exactMatch = wallets
+          // Match against non-system wallets only.
+          final exactMatch = nonSystem
               .where((w) => w.name.toLowerCase() == toHintLower)
               .firstOrNull;
           if (exactMatch != null) {
             draft.toWalletId = exactMatch.id;
           } else {
-            final containsMatches = wallets
+            final containsMatches = nonSystem
                 .where(
                   (w) =>
                       w.name.toLowerCase().contains(toHintLower) ||
@@ -323,6 +352,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   onCreateToWalletFromHint: draft.unmatchedToHint != null
                       ? () => _createToWalletFromHint(draft)
                       : null,
+                  onCreateSubscription:
+                      draft.isSubscriptionLike && draft.categoryId != null
+                          ? () => _createSubscriptionFromDraft(draft)
+                          : null,
+                  subscriptionAdded: draft.subscriptionAdded,
                 );
                 if (context.reduceMotion) return card;
                 return card
@@ -422,9 +456,12 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final included = _editableDrafts.where((d) => d.isIncluded).toList();
     if (included.isEmpty) return;
 
-    // Separate cash-type drafts from regular transaction drafts
+    // Separate drafts by type: cash transfers, account-to-account transfers, regular transactions.
     final cashDrafts = included.where((d) => _isCashType(d.type)).toList();
-    final txDrafts = included.where((d) => !_isCashType(d.type)).toList();
+    final transferDrafts = included.where((d) => d.type == 'transfer').toList();
+    final txDrafts = included
+        .where((d) => !_isCashType(d.type) && d.type != 'transfer')
+        .toList();
 
     // Validate all included drafts
     final total = included.length;
@@ -435,8 +472,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_amount_zero}');
         return;
       }
-      // Cash types don't need a category
-      if (draft.categoryId == null && !_isCashType(draft.type)) {
+      // Cash types and transfers don't need a category.
+      if (draft.categoryId == null &&
+          !_isCashType(draft.type) &&
+          draft.type != 'transfer') {
         SnackHelper.showError(
           ctx,
           '$prefix${ctx.l10n.error_category_required}',
@@ -444,6 +483,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         return;
       }
       if (draft.walletId == null) {
+        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
+        return;
+      }
+      // Transfers require a destination wallet.
+      if (draft.type == 'transfer' && draft.toWalletId == null) {
         SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
         return;
       }
@@ -458,9 +502,12 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final errorMsg = l10n.common_error_generic;
 
     try {
-      // Save cash drafts as transfers
+      // Save cash drafts as transfers (use already-loaded walletsProvider
+      // instead of systemWalletProvider to avoid stream race condition).
       if (cashDrafts.isNotEmpty) {
-        final cashWallet = ref.read(systemWalletProvider).valueOrNull;
+        final allWallets = ref.read(walletsProvider).valueOrNull ?? [];
+        final cashWallet =
+            allWallets.where((w) => w.isSystemWallet).firstOrNull;
         if (cashWallet == null) {
           setState(() => _saving = false);
           if (mounted) SnackHelper.showError(ctx, errorMsg);
@@ -491,7 +538,21 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
         }
       }
 
-      // Save regular transaction drafts as batch
+      // Save account-to-account transfers via transferRepo.
+      if (transferDrafts.isNotEmpty) {
+        final transferRepo = ref.read(transferRepositoryProvider);
+        for (final draft in transferDrafts) {
+          await transferRepo.create(
+            fromWalletId: draft.walletId!,
+            toWalletId: draft.toWalletId!,
+            amount: draft.amountPiastres,
+            note: draft.note,
+            transferDate: draft.transactionDate,
+          );
+        }
+      }
+
+      // Save regular transaction drafts as batch (expense/income only).
       if (txDrafts.isNotEmpty) {
         final txRepo = ref.read(transactionRepositoryProvider);
         await txRepo.createBatch(
@@ -732,6 +793,38 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       if (mounted) SnackHelper.showError(context, genericMsg);
     }
   }
+
+  /// One-tap inline subscription creation — mirrors _createWalletFromHint
+  /// pattern: no navigation, instant feedback.
+  Future<void> _createSubscriptionFromDraft(_EditableDraft draft) async {
+    try {
+      final title = draft.noteController.text.trim().isNotEmpty
+          ? draft.noteController.text.trim()
+          : draft.rawText;
+      final now = DateTime.now();
+      await ref.read(recurringRuleRepositoryProvider).create(
+            walletId: draft.walletId!,
+            categoryId: draft.categoryId!,
+            amount: draft.amountPiastres,
+            type: draft.type,
+            title: title,
+            frequency: 'monthly',
+            startDate: now,
+            nextDueDate: now.add(const Duration(days: 30)),
+          );
+      if (mounted) {
+        HapticFeedback.selectionClick();
+        setState(() {
+          draft.isSubscriptionLike = false;
+          draft.subscriptionAdded = true;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+      }
+    }
+  }
 }
 
 // ── Editable draft (mutable copy of VoiceTransactionDraft) ────────────────
@@ -784,6 +877,9 @@ class _EditableDraft {
   /// Whether this draft looks like a recurring subscription/bill.
   bool isSubscriptionLike = false;
 
+  /// True after user tapped "Add to Subscriptions" and it succeeded.
+  bool subscriptionAdded = false;
+
   /// Editable title/note for refining the transaction description.
   final TextEditingController noteController;
 }
@@ -806,6 +902,8 @@ class _DraftCard extends StatelessWidget {
     required this.onWalletTap,
     this.onCreateWalletFromHint,
     this.onCreateToWalletFromHint,
+    this.onCreateSubscription,
+    this.subscriptionAdded = false,
   });
 
   final _EditableDraft draft;
@@ -822,6 +920,8 @@ class _DraftCard extends StatelessWidget {
   final VoidCallback onWalletTap;
   final VoidCallback? onCreateWalletFromHint;
   final VoidCallback? onCreateToWalletFromHint;
+  final VoidCallback? onCreateSubscription;
+  final bool subscriptionAdded;
 
   @override
   Widget build(BuildContext context) {
@@ -1090,12 +1190,45 @@ class _DraftCard extends StatelessWidget {
               ),
             ],
 
-            // ── Subscription suggestion ────────────────────────
-            if (draft.isSubscriptionLike) ...[
+            // ── Subscription suggestion / confirmation ─────────
+            if (subscriptionAdded) ...[
+              const SizedBox(height: AppSizes.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.sm,
+                  vertical: AppSizes.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: cs.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.checkCircle,
+                      size: AppSizes.iconXs,
+                      color: cs.onTertiaryContainer,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Expanded(
+                      child: Text(
+                        context.l10n.voice_confirm_subscription_added,
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.onTertiaryContainer,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (draft.isSubscriptionLike &&
+                onCreateSubscription != null) ...[
               const SizedBox(height: AppSizes.sm),
               InkWell(
                 borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-                onTap: () => context.push(AppRoutes.recurringAdd),
+                onTap: onCreateSubscription,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.sm,
@@ -1123,11 +1256,6 @@ class _DraftCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      Icon(
-                        AppIcons.chevronRight,
-                        size: AppSizes.iconXs,
-                        color: cs.onTertiaryContainer,
                       ),
                     ],
                   ),

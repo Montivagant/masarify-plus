@@ -88,10 +88,13 @@ abstract final class VoiceDictionary {
   ];
 
   /// Keywords that refer to the physical cash (system) wallet.
-  /// Used by [WalletMatcher.isCashWalletHint] for explicit cash detection.
+  /// Used by [WalletMatcher.isCashWalletHint], [ChatActionExecutor], and
+  /// [VoiceConfirmScreen] for explicit cash detection.
   static const List<String> cashWalletKeywords = [
     'كاش',
+    'كاش فلوس',
     'نقدي',
+    'نقدية',
     'نقود',
     'نقد',
     'كاش في اليد',
@@ -99,6 +102,11 @@ abstract final class VoiceDictionary {
     'cash',
     'cash in hand',
   ];
+
+  /// Fast lookup set for [cashWalletKeywords].
+  static final Set<String> cashWalletKeywordSet = {
+    for (final k in cashWalletKeywords) k,
+  };
 
   /// Time keyword → day offset from today.
   static const Map<String, int> timeKeywords = {

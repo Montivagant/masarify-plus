@@ -384,6 +384,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         (!_isCustom || _endDate != null);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
         title:
             isEdit ? context.l10n.recurring_edit : context.l10n.recurring_add,

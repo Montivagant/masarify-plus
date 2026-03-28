@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/transaction_entity.dart';
+import 'activity_provider.dart';
 import 'category_provider.dart';
 import 'selected_account_provider.dart';
-import 'transaction_provider.dart';
 
 // ── Enums ─────────────────────────────────────────────────────────────────
 
@@ -67,10 +67,10 @@ final filteredActivityProvider =
   final filter = ref.watch(homeFilterProvider);
   final walletId = ref.watch(selectedAccountIdProvider);
 
-  // Choose base stream based on account selection.
+  // Choose base stream: unified activity (transactions + transfers merged).
   final baseActivity = walletId != null
-      ? ref.watch(transactionsByWalletProvider(walletId))
-      : ref.watch(recentTransactionsProvider);
+      ? ref.watch(activityByWalletProvider(walletId))
+      : ref.watch(recentActivityProvider);
 
   return baseActivity.whenData((items) {
     var result = List<TransactionEntity>.of(items);

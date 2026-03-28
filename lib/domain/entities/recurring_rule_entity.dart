@@ -62,15 +62,18 @@ class RecurringRuleEntity {
   }
 
   /// True when a one-time bill is past its due date and still unpaid.
+  /// Compares date components only (not time) to avoid off-by-one at day
+  /// boundaries — a bill due today is NOT overdue until tomorrow.
   bool get isOverdue {
     if (isPaid || frequency != 'once') return false;
     final now = DateTime.now();
-    final endOfDueDate = DateTime(
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final dueDate = DateTime(
       nextDueDate.year,
       nextDueDate.month,
-      nextDueDate.day + 1,
+      nextDueDate.day,
     );
-    return now.isAfter(endOfDueDate);
+    return todayDate.isAfter(dueDate);
   }
 
   /// Convenience getter: true for one-time bills.

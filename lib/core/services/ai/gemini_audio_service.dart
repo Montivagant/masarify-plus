@@ -313,16 +313,23 @@ RULES:
 10. If amount is unclear, set amount_egp to 0
 11. Always set a note — use the relevant portion of transcript
 
-TYPE DETECTION:
+TYPE DETECTION (priority order — check income BEFORE cash):
+- "income": استلمت, اخدت, اتقبضت, قبضت, راتب, مرتب, salary, income, received, earned, got paid
+  IMPORTANT: Salary is ALWAYS type "income", even if received in cash.
+  "استلمت مرتبي" = income, wallet_hint=null (default account).
+  "استلمت مرتبي كاش" = income, wallet_hint="cash" (the app routes to physical cash wallet).
 - "expense" (default): دفعت, اشتريت, صرفت, paid, bought, spent
-- "income": اتقبضت, راتب, مرتب, salary, income, received, earned
 - "cash_withdrawal": سحبت, سحب, ATM, صراف, سحبت من الصراف, withdrew, withdrawal, cash out
-- "cash_deposit": أودعت, إيداع, حطيت فلوس, deposited, deposit, cash deposit, put money
+  ONLY when explicitly mentioning ATM/cash machine/physical cash withdrawal.
+- "cash_deposit": أودعت, إيداع, حطيت فلوس في البنك, deposited, deposit, put money in bank
+  ONLY when explicitly depositing into a bank. Never for salary/income.
 - "transfer": حولت, حولتلهم, سديت, سددت, نقلت, حطيت في, تحويل, transferred, moved, sent to, settle
   Key signal: TWO wallet/account names mentioned (source and destination).
   For transfer, set BOTH wallet_hint (source account) AND to_wallet_hint (destination account).
   category_icon should be null for transfers.
-For cash_withdrawal/cash_deposit, wallet_hint should be the bank account name mentioned.
+WALLET HINT: Only set wallet_hint if the user EXPLICITLY mentions an account/bank name. Do NOT guess. Leave null if no account mentioned — the app assigns the default account automatically.
+- If user says "كاش"/"cash"/"نقدي", set wallet_hint to "cash" — the app routes to the physical cash wallet.
+- For cash_withdrawal/cash_deposit, wallet_hint should be the bank account name mentioned.
 
 AVAILABLE CATEGORIES:
 {{CATEGORIES_JSON}}

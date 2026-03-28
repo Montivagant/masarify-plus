@@ -19,6 +19,7 @@ import '../../../../domain/entities/chat_message_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/chat_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
@@ -235,24 +236,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
 
     try {
-      final selectedWalletId = ref.read(selectedAccountIdProvider);
-      final result = await executor.execute(
-        action,
-        categories: categories,
-        wallets: wallets,
-        messages: messages,
-        selectedWalletId: selectedWalletId,
-      );
-      // Atomic: strip JSON + insert success message in one transaction so a
-      // crash between them cannot leave inconsistent state. Done before
-      // mounted check so the DB write completes even if the widget unmounts.
-      final newTokens = AiChatService.estimateTokens(strippedText);
-      await repo.finalizeAction(
-        messageId: messageId,
-        strippedContent: strippedText,
-        strippedTokenCount: newTokens,
-        followUpContent: result.message,
-      );
+      var selectedWalletId = ref.read(selectedAccountIdProvider);
+      // Validate selected wallet still exists — reset if stale (deleted/archived).
+      if (selectedWalletId != null &&
+          !wallets.any((w) => w.id == selectedWalletId && !w.isArchived)) {
+        selectedWalletId = null;
+        ref.read(selectedAccountIdProvider.notifier).state = null;
+      }
+      final db = ref.read(databaseProvider);
+
+      // Wrap action execution + finalize in a single DB transaction so a crash
+      // between them cannot leave inconsistent state (action executed but
+      // message not finalized → duplicate execution on restart).
+      final result = await db.transaction(() async {
+        final r = await executor.execute(
+          action,
+          categories: categories,
+          wallets: wallets,
+          messages: messages,
+          selectedWalletId: selectedWalletId,
+        );
+        final newTokens = AiChatService.estimateTokens(strippedText);
+        await repo.finalizeAction(
+          messageId: messageId,
+          strippedContent: strippedText,
+          strippedTokenCount: newTokens,
+          followUpContent: r.message,
+        );
+        return r;
+      });
+
       if (!mounted) return;
       setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
 

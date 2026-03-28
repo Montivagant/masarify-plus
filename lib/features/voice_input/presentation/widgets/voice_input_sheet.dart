@@ -213,7 +213,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       final categories = ref.read(categoriesProvider).valueOrNull ?? [];
       final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
       final wallets = ref.read(walletsProvider).valueOrNull ?? [];
-      final walletNames = wallets.map((w) => w.name).toList();
+      // Exclude system Cash wallet — "cash" is a payment method, not an account.
+      final walletNames =
+          wallets.where((w) => !w.isSystemWallet).map((w) => w.name).toList();
 
       final drafts = await gemini.parseAudio(
         audioBytes: audioBytes,

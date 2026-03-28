@@ -212,6 +212,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
     final canSave = _categoryId != null && _limitPiastres > 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
         title:
             isEdit ? context.l10n.budget_edit_title : context.l10n.budget_set,

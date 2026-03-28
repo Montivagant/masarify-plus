@@ -65,19 +65,24 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
             ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
           .get();
 
-  /// Total income or expense for a given month (in piastres)
+  /// Total income or expense for a given month (in piastres).
+  /// Excludes transactions on archived wallets for consistency with
+  /// [sumByCategoryAndMonth].
   Future<int> sumByTypeAndMonth(String type, int year, int month) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
     final result = await customSelect(
-      'SELECT COALESCE(SUM(amount), 0) AS total FROM transactions '
-      'WHERE type = ? AND transaction_date >= ? AND transaction_date < ?',
+      'SELECT COALESCE(SUM(t.amount), 0) AS total '
+      'FROM transactions t '
+      'JOIN wallets w ON t.wallet_id = w.id '
+      'WHERE t.type = ? AND t.transaction_date >= ? '
+      'AND t.transaction_date < ? AND w.is_archived = 0',
       variables: [
         Variable.withString(type),
         Variable.withDateTime(start),
         Variable.withDateTime(end),
       ],
-      readsFrom: {transactions},
+      readsFrom: {transactions, attachedDatabase.wallets},
     ).getSingle();
     return result.read<int>('total');
   }

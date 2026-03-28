@@ -50,6 +50,7 @@ class MonthSummaryInline extends ConsumerWidget {
     const bullet = '\u2022\u2022\u2022\u2022';
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Income
         Icon(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
@@ -288,8 +289,31 @@ class _WalletCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = ColorUtils.fromHex(wallet.colorHex);
     final nameStyle = context.textStyles.bodyLarge;
+    final cs = context.colors;
 
-    return GlassCard(
+    // Build swipe actions (archive or unarchive).
+    final endActions = <Widget>[
+      if (!isArchived && onArchive != null)
+        SlidableAction(
+          onPressed: (_) => onArchive!(),
+          backgroundColor: cs.error,
+          foregroundColor: cs.onError,
+          icon: AppIcons.archive,
+          label: context.l10n.wallet_archive_action,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        ),
+      if (isArchived && onUnarchive != null)
+        SlidableAction(
+          onPressed: (_) => onUnarchive!(),
+          backgroundColor: cs.primary,
+          foregroundColor: cs.onPrimary,
+          icon: AppIcons.unarchive,
+          label: context.l10n.wallet_unarchive_action,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+        ),
+    ];
+
+    final card = GlassCard(
       showShadow: true,
       onTap: onTap,
       margin: const EdgeInsets.symmetric(
@@ -318,65 +342,31 @@ class _WalletCard extends StatelessWidget {
           wallet.name,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
-          // 2C: Strikethrough for archived wallets.
           style: isArchived
               ? nameStyle?.copyWith(decoration: TextDecoration.lineThrough)
               : nameStyle,
         ),
         subtitle: Text(_typeLabel(context, wallet.type)),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              MoneyFormatter.format(wallet.balance),
-              style: context.textStyles.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            // Archive/Unarchive action via popup menu on long press.
-            if (onArchive != null || onUnarchive != null)
-              PopupMenuButton<String>(
-                icon: Icon(
-                  AppIcons.moreVert,
-                  size: AppSizes.iconSm,
-                  color: context.colors.outline,
-                ),
-                padding: EdgeInsets.zero,
-                itemBuilder: (_) => [
-                  if (!isArchived && onArchive != null)
-                    PopupMenuItem<String>(
-                      value: 'archive',
-                      child: Row(
-                        children: [
-                          const Icon(AppIcons.archive, size: AppSizes.iconSm),
-                          const SizedBox(width: AppSizes.sm),
-                          Text(context.l10n.wallet_archive_action),
-                        ],
-                      ),
-                    ),
-                  if (isArchived && onUnarchive != null)
-                    PopupMenuItem<String>(
-                      value: 'unarchive',
-                      child: Row(
-                        children: [
-                          const Icon(AppIcons.unarchive, size: AppSizes.iconSm),
-                          const SizedBox(width: AppSizes.sm),
-                          Text(context.l10n.wallet_unarchive_action),
-                        ],
-                      ),
-                    ),
-                ],
-                onSelected: (value) {
-                  if (value == 'archive') {
-                    onArchive?.call();
-                  } else if (value == 'unarchive') {
-                    onUnarchive?.call();
-                  }
-                },
-              ),
-          ],
+        trailing: Text(
+          MoneyFormatter.format(wallet.balance),
+          style: context.textStyles.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
         onLongPress: onEdit,
       ),
+    );
+
+    // Wrap in Slidable if swipe actions are available.
+    if (endActions.isEmpty) return card;
+
+    return Slidable(
+      key: ValueKey(wallet.id),
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        extentRatio: 0.3,
+        children: endActions,
+      ),
+      child: card,
     );
   }
 }

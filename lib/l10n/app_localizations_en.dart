@@ -307,10 +307,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recurring_add => 'Add Recurring';
+  String get recurring_add => 'Add Subscription';
 
   @override
-  String get recurring_edit => 'Edit Recurring';
+  String get recurring_edit => 'Edit Subscription';
 
   @override
   String get recurring_frequency_daily => 'Daily';
@@ -461,7 +461,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_calendar => 'Calendar';
 
   @override
-  String get hub_recurring => 'Recurring';
+  String get hub_recurring => 'Subscriptions';
 
   @override
   String get hub_settings => 'Settings';
@@ -1722,7 +1722,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_total => 'Total';
 
   @override
-  String get recurring_active => 'Active Recurring';
+  String get recurring_active => 'Active Subscriptions';
 
   @override
   String get recurring_paused => 'Paused';
@@ -1746,26 +1746,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_end_date_required => 'End Date';
 
   @override
-  String get recurring_empty_title => 'No Recurring Rules';
+  String get recurring_empty_title => 'No Subscriptions';
 
   @override
   String get recurring_empty_sub =>
-      'Set up recurring transactions to save time';
+      'Set up subscriptions & bills to track regular payments';
 
   @override
-  String get recurring_delete_title => 'Delete Recurring';
+  String get recurring_delete_title => 'Delete Subscription';
 
   @override
   String get recurring_delete_confirm =>
-      'Are you sure you want to delete this recurring transaction?';
+      'Are you sure you want to delete this subscription?';
 
   @override
   String get recurring_confirm_activate =>
-      'Activate this recurring transaction? It will start creating transactions automatically.';
+      'Activate this subscription? It will start creating transactions automatically.';
 
   @override
   String get recurring_confirm_pause =>
-      'Pause this recurring transaction? No new transactions will be created until reactivated.';
+      'Pause this subscription? No new transactions will be created until reactivated.';
 
   @override
   String get recurring_title_label => 'Title';
@@ -1777,7 +1777,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_type_label => 'Transaction Type';
 
   @override
-  String get recurring_saved => 'Recurring transaction saved';
+  String get recurring_saved => 'Subscription saved';
 
   @override
   String get calendar_no_transactions_day => 'No transactions on this day';
@@ -1952,7 +1952,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif_budget_exceeded_sub => 'Notify when a budget is fully spent';
 
   @override
-  String get notif_section_bills => 'Bills & Recurring';
+  String get notif_section_bills => 'Subscriptions & Bills';
 
   @override
   String get notif_bill_reminder => 'Bill Reminders';
@@ -1962,11 +1962,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Remind about upcoming bills before due date';
 
   @override
-  String get notif_recurring_reminder => 'Recurring Transactions';
+  String get notif_recurring_reminder => 'Subscriptions';
 
   @override
   String get notif_recurring_reminder_sub =>
-      'Notify when recurring transactions are due';
+      'Notify when subscriptions are due';
 
   @override
   String get notif_section_goals => 'Goals';
@@ -2103,12 +2103,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insight_recurring_detected(String title) {
-    return 'Monthly: $title — add as recurring?';
+    return 'Monthly: $title — add as subscription?';
   }
 
   @override
   String insight_weekly_detected(String title) {
-    return 'Weekly: $title — add as recurring?';
+    return 'Weekly: $title — add as subscription?';
   }
 
   @override
@@ -2157,7 +2157,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_action_budget_title => 'Create Budget';
 
   @override
-  String get chat_action_recurring_title => 'Create Recurring';
+  String get chat_action_recurring_title => 'Create Subscription';
 
   @override
   String get chat_action_wallet_title => 'Create Account';
@@ -2181,7 +2181,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chat_recurring_created(String title) {
-    return 'Recurring rule \"$title\" created';
+    return 'Subscription \"$title\" created';
   }
 
   @override
@@ -2208,145 +2208,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get chat_wallet_name_taken =>
       'An account with this name already exists';
-
-  @override
-  String get quick_start_title => 'Quick Start';
-
-  @override
-  String get quick_start_subtitle => 'Set up your finances in a few steps';
-
-  @override
-  String get quick_start_step_wallets => 'How do you manage your money?';
-
-  @override
-  String get quick_start_step_categories => 'What do you spend most on?';
-
-  @override
-  String get quick_start_step_budgets => 'Set monthly budgets';
-
-  @override
-  String get quick_start_step_bills => 'Any regular bills?';
-
-  @override
-  String get quick_start_step_goals => 'Saving for something?';
-
-  @override
-  String get quick_start_source_cash => 'Cash only';
-
-  @override
-  String get quick_start_source_bank => 'Bank account';
-
-  @override
-  String get quick_start_source_mobile => 'Mobile wallet';
-
-  @override
-  String get quick_start_source_multiple => 'Multiple sources';
-
-  @override
-  String get quick_start_category_food => 'Food';
-
-  @override
-  String get quick_start_category_rent => 'Rent';
-
-  @override
-  String get quick_start_category_transport => 'Transport';
-
-  @override
-  String get quick_start_category_bills => 'Bills';
-
-  @override
-  String get quick_start_category_shopping => 'Shopping';
-
-  @override
-  String get quick_start_category_health => 'Health';
-
-  @override
-  String get quick_start_category_education => 'Education';
-
-  @override
-  String get quick_start_category_other => 'Other';
-
-  @override
-  String get quick_start_budget_hint => 'Monthly limit';
-
-  @override
-  String get quick_start_bill_internet => 'Internet';
-
-  @override
-  String get quick_start_bill_phone => 'Phone';
-
-  @override
-  String get quick_start_bill_electricity => 'Electricity';
-
-  @override
-  String get quick_start_bill_gas => 'Gas';
-
-  @override
-  String get quick_start_bill_gym => 'Gym';
-
-  @override
-  String get quick_start_bill_subscription => 'Subscription';
-
-  @override
-  String get quick_start_goal_emergency => 'Emergency fund';
-
-  @override
-  String get quick_start_goal_vacation => 'Vacation';
-
-  @override
-  String get quick_start_goal_car => 'Car';
-
-  @override
-  String get quick_start_goal_wedding => 'Wedding';
-
-  @override
-  String get quick_start_goal_education => 'Education';
-
-  @override
-  String get quick_start_goal_custom => 'Custom';
-
-  @override
-  String get quick_start_goal_target => 'Target amount';
-
-  @override
-  String get quick_start_source_other => 'Other';
-
-  @override
-  String get quick_start_custom_wallet_name => 'Account name';
-
-  @override
-  String get quick_start_bill_other => 'Custom bill';
-
-  @override
-  String get quick_start_bill_name_hint => 'Bill name';
-
-  @override
-  String get quick_start_goal_custom_name => 'Goal name';
-
-  @override
-  String get quick_start_wallet_type_label => 'Account type';
-
-  @override
-  String get quick_start_done_title => 'You\'re all set!';
-
-  @override
-  String get quick_start_done_subtitle => 'Your finances are ready to track';
-
-  @override
-  String get quick_start_tip_title => 'Quick start your finances';
-
-  @override
-  String get quick_start_tip_subtitle =>
-      'Set up budgets, bills, and goals in seconds';
-
-  @override
-  String get quick_start_add_another => 'Add another?';
-
-  @override
-  String get quick_start_adjust => 'Adjust?';
-
-  @override
-  String get quick_start_amount_label => 'Amount';
 
   @override
   String get backup_cloud_title => 'Cloud Backup';
@@ -2495,7 +2356,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chat_action_recurring_created(
       String title, String frequency, String amount) {
-    return 'Recurring \"$title\" ($frequency) of $amount created!';
+    return 'Subscription \"$title\" ($frequency) of $amount created!';
   }
 
   @override
@@ -2677,7 +2538,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String insight_recurring_title(String title) {
-    return 'Recurring: $title';
+    return 'Subscription: $title';
   }
 
   @override
@@ -2814,6 +2675,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get voice_confirm_subscription_suggest =>
       'Add to Subscriptions & Bills?';
+
+  @override
+  String get voice_confirm_subscription_added =>
+      'Added to Subscriptions & Bills';
 
   @override
   String get voice_confirm_save_next => 'Save & Next';

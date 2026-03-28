@@ -93,6 +93,7 @@ abstract final class SnackHelper {
         onColor: AppColors.white,
         action: action,
         duration: duration,
+        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }
@@ -117,6 +118,7 @@ abstract final class SnackHelper {
         onColor: context.colors.onPrimary,
         action: action,
         duration: duration,
+        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }
@@ -132,6 +134,7 @@ abstract final class SnackHelper {
     required Color onColor,
     SnackBarAction? action,
     Duration duration = AppDurations.snackbarDefault,
+    double bottomMargin = AppSizes.snackbarBottomMargin,
   }) {
     return SnackBar(
       content: Row(
@@ -162,16 +165,23 @@ abstract final class SnackHelper {
         horizontal: AppSizes.md,
         vertical: AppSizes.snackVerticalPadding,
       ),
-      margin: const EdgeInsets.only(
+      margin: EdgeInsets.only(
         left: AppSizes.snackHorizontalMargin,
         right: AppSizes.snackHorizontalMargin,
-        bottom: AppSizes.snackbarBottomMargin,
+        bottom: bottomMargin,
       ),
       elevation: AppSizes.snackElevation,
       duration: duration,
       dismissDirection: DismissDirection.horizontal,
       action: action,
     );
+  }
+
+  /// Bottom margin adapts to keyboard state: small when keyboard is visible
+  /// (form screens), full 72dp when hidden (clears the floating nav bar).
+  static double _adaptiveBottomMargin(BuildContext context) {
+    final keyboardUp = MediaQuery.viewInsetsOf(context).bottom > 0;
+    return keyboardUp ? AppSizes.sm : AppSizes.snackbarBottomMargin;
   }
 
   static void _show(
@@ -193,6 +203,7 @@ abstract final class SnackHelper {
         onColor: onColor,
         action: action,
         duration: duration,
+        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }

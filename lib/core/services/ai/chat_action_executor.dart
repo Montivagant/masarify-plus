@@ -6,6 +6,7 @@ import '../../../domain/repositories/i_recurring_rule_repository.dart';
 import '../../../domain/repositories/i_transaction_repository.dart';
 import '../../../domain/repositories/i_transfer_repository.dart';
 import '../../../domain/repositories/i_wallet_repository.dart';
+import '../../constants/voice_dictionary.dart';
 import '../../utils/money_formatter.dart';
 import '../../utils/subscription_detector.dart';
 import '../../utils/wallet_matcher.dart';
@@ -90,7 +91,8 @@ class ChatActionExecutor {
         ),
       CreateWalletAction() => _executeWallet(action, messages),
       CreateTransferAction() => _executeTransfer(action, wallets, messages),
-      DeleteTransactionAction() => _executeDeleteTransaction(action, messages),
+      DeleteTransactionAction() =>
+        _executeDeleteTransaction(action, messages, selectedWalletId),
     };
   }
 
@@ -139,9 +141,11 @@ class ChatActionExecutor {
 
     final matched = _matchCategory(action.categoryName, compatibleCats, m);
 
-    // Wallet selection: prefer the user's currently-selected account,
-    // then fall back to the first non-archived wallet.
-    final wallet = _resolveWallet(wallets, m, selectedWalletId);
+    // Wallet selection: if AI specified a wallet name, resolve by name.
+    // "cash" routes to the system Cash wallet. Otherwise use selected/default.
+    final wallet = action.walletName != null
+        ? _resolveWalletByName(action.walletName!, wallets, m)
+        : _resolveWallet(wallets, m, selectedWalletId);
 
     // Date parsing.
     final date = action.date != null
@@ -295,6 +299,7 @@ class ChatActionExecutor {
   Future<ExecutionResult> _executeDeleteTransaction(
     DeleteTransactionAction action,
     ChatActionMessages m,
+    int? selectedWalletId,
   ) async {
     // Find matching transaction by title + amount, optionally narrowing by date.
     final now = DateTime.now();
@@ -310,13 +315,19 @@ class ChatActionExecutor {
     final query = action.title.toLowerCase();
 
     // Find by title (contains) + exact amount match.
-    final matches = txs
+    // If a specific wallet is selected, narrow to that wallet first.
+    var matches = txs
         .where(
           (tx) =>
               tx.title.toLowerCase().contains(query) &&
               tx.amount == action.amountPiastres,
         )
         .toList();
+    if (selectedWalletId != null) {
+      final walletMatches =
+          matches.where((tx) => tx.walletId == selectedWalletId).toList();
+      if (walletMatches.isNotEmpty) matches = walletMatches;
+    }
 
     if (matches.isEmpty) {
       throw ArgumentError(m.txNotFound(action.title));
@@ -339,7 +350,10 @@ class ChatActionExecutor {
       throw ArgumentError(m.invalidAmount);
     }
 
-    final activeWallets = wallets.where((w) => !w.isArchived).toList();
+    // Exclude archived and system Cash — transfers between user accounts only.
+    // Cash transfers use dedicated cash_withdrawal/cash_deposit types.
+    final activeWallets =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
     if (activeWallets.isEmpty) {
       throw ArgumentError(m.noActiveWallet);
     }
@@ -388,16 +402,48 @@ class ChatActionExecutor {
     ChatActionMessages m,
     int? selectedWalletId,
   ) {
-    final activeWallets = wallets.where((w) => !w.isArchived).toList();
+    // Exclude archived and system Cash wallet — Cash is a payment method,
+    // not a user account. Cash transfers use dedicated cash_withdrawal type.
+    final activeWallets =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
     if (activeWallets.isEmpty) {
       throw ArgumentError(m.noActiveWallet);
     }
-    return selectedWalletId != null
-        ? activeWallets.firstWhere(
-            (w) => w.id == selectedWalletId,
-            orElse: () => activeWallets.first,
-          )
-        : activeWallets.first;
+
+    // 1. If a specific wallet is selected (dashboard chip), use it.
+    if (selectedWalletId != null) {
+      final match = activeWallets.where((w) => w.id == selectedWalletId);
+      if (match.isNotEmpty) return match.first;
+      // Selected wallet was deleted/archived — fall through to default.
+    }
+
+    // 2. Otherwise, prefer the user's default account.
+    final defaultWallet =
+        activeWallets.where((w) => w.isDefaultAccount).firstOrNull;
+    return defaultWallet ?? activeWallets.first;
+  }
+
+  /// Resolve wallet by name from AI JSON. Handles the special "cash" keyword
+  /// by routing to the system Cash wallet. Other names use WalletMatcher.
+  WalletEntity _resolveWalletByName(
+    String name,
+    List<WalletEntity> wallets,
+    ChatActionMessages m,
+  ) {
+    // Special case: "cash" → system Cash wallet.
+    if (VoiceDictionary.cashWalletKeywordSet
+        .contains(name.toLowerCase().trim())) {
+      final systemWallet = wallets.where((w) => w.isSystemWallet).firstOrNull;
+      if (systemWallet != null) return systemWallet;
+    }
+
+    // Normal case: match against non-system, non-archived wallets.
+    final activeWallets =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+    final match = WalletMatcher.match(name, activeWallets);
+    if (match != null) return match;
+
+    throw ArgumentError(m.walletNotFound(name));
   }
 
   /// Shared category matching logic: exact → contains (case-insensitive, both languages).

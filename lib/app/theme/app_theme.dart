@@ -60,11 +60,7 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
         ),
-        insetPadding: const EdgeInsets.only(
-          bottom: AppSizes.snackbarBottomMargin,
-          left: AppSizes.md,
-          right: AppSizes.md,
-        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
       ),
       extensions: const [AppThemeExtension.light],
     );
@@ -122,11 +118,7 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
         ),
-        insetPadding: const EdgeInsets.only(
-          bottom: AppSizes.snackbarBottomMargin,
-          left: AppSizes.md,
-          right: AppSizes.md,
-        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
       ),
       extensions: const [AppThemeExtension.dark],
     );

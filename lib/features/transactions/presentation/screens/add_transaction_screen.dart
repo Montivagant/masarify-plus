@@ -301,6 +301,18 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
         return;
       }
 
+      // Guard: can't transfer from cash to cash (same wallet).
+      if (walletId == cashWallet.id) {
+        setState(() => _loading = false);
+        if (mounted) {
+          SnackHelper.showError(
+            context,
+            context.l10n.chat_action_transfer_same_wallet,
+          );
+        }
+        return;
+      }
+
       final transferRepo = ref.read(transferRepositoryProvider);
       final note = _noteController.text.trim().isEmpty
           ? null
@@ -1082,8 +1094,7 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
         Expanded(
           child: ListView(
             controller: widget.scrollController,
-            padding:
-                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding: const EdgeInsets.only(bottom: AppSizes.lg),
             children: [
               // ── Type toggle (scrollable chips — 4 options) ───────────
               Padding(
@@ -1292,23 +1303,24 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
                   ),
                 ),
               ],
-
-              // ── Save button (inside scroll content) ──────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                  vertical: AppSizes.lg,
-                ),
-                child: AppButton(
-                  label: context.l10n.common_save,
-                  onPressed: canSave && !_loading
-                      ? (_isCashType ? _saveCashTransfer : _save)
-                      : null,
-                  isLoading: _loading,
-                  icon: AppIcons.check,
-                ),
-              ),
             ],
+          ),
+        ),
+        // ── Save button (pinned outside scroll — always visible above keyboard)
+        Padding(
+          padding: EdgeInsets.only(
+            left: AppSizes.screenHPadding,
+            right: AppSizes.screenHPadding,
+            top: AppSizes.sm,
+            bottom: MediaQuery.viewInsetsOf(context).bottom + AppSizes.md,
+          ),
+          child: AppButton(
+            label: context.l10n.common_save,
+            onPressed: canSave && !_loading
+                ? (_isCashType ? _saveCashTransfer : _save)
+                : null,
+            isLoading: _loading,
+            icon: AppIcons.check,
           ),
         ),
       ],

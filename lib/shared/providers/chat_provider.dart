@@ -123,11 +123,11 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
   final recurringRules = ref.watch(recurringRulesProvider).valueOrNull ?? [];
   final activeRecurringCount = recurringRules.where((r) => r.isActive).length;
 
-  // Wallet/account names for AI context (non-archived, includes Cash).
-  // D-07: Include system Cash wallet so AI can reference it.
+  // Wallet/account names for AI context — exclude archived and system Cash.
+  // Cash is handled separately as a payment method, not an account.
   final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
   final walletList = wallets
-      .where((w) => !w.isArchived)
+      .where((w) => !w.isArchived && !w.isSystemWallet)
       .map((w) => '${w.name} (${w.type})')
       .toList();
 

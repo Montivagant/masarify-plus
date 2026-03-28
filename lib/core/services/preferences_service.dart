@@ -20,7 +20,6 @@ class PreferencesService {
   static const _kHideBalances = 'hide_balances';
   static const _kSmsParserEnabled = 'sms_parser_enabled';
   static const _kAiModel = 'ai_model';
-  static const _kQuickStartDone = 'quick_start_done';
   static const _kLastBackupDate = 'last_backup_date';
   static const _kDriveFileId = 'drive_file_id';
 
@@ -180,11 +179,6 @@ class PreferencesService {
         type == 'income' ? _kLastCatIncome : _kLastCatExpense,
         categoryId,
       );
-
-  // ── Quick Start ──────────────────────────────────────────────────────────
-  bool get isQuickStartDone => _prefs.getBool(_kQuickStartDone) ?? false;
-
-  Future<void> markQuickStartDone() => _prefs.setBool(_kQuickStartDone, true);
 
   // ── Google Drive Backup ────────────────────────────────────────────────
   String? get lastBackupDate => _prefs.getString(_kLastBackupDate);

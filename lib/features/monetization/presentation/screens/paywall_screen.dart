@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +27,7 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   List<ProductDetails> _products = [];
   bool _loading = true;
   bool _purchasing = false;
+  bool _loadError = false;
 
   @override
   void initState() {
@@ -33,13 +36,31 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
   }
 
   Future<void> _loadProducts() async {
-    final service = ref.read(subscriptionServiceProvider);
-    final products = await service.getProducts();
-    if (!mounted) return;
     setState(() {
-      _products = products;
-      _loading = false;
+      _loading = true;
+      _loadError = false;
     });
+    try {
+      final service = ref.read(subscriptionServiceProvider);
+      final products = await service.getProducts();
+      if (!mounted) return;
+      setState(() {
+        _products = products;
+        _loading = false;
+      });
+    } catch (e, st) {
+      dev.log(
+        'Failed to load products',
+        name: 'Paywall',
+        error: e,
+        stackTrace: st,
+      );
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadError = true;
+      });
+    }
   }
 
   Future<void> _purchase(ProductDetails product) async {
@@ -48,7 +69,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
     try {
       final service = ref.read(subscriptionServiceProvider);
       await service.purchase(product);
-    } catch (_) {
+    } catch (e, st) {
+      dev.log('Purchase failed', name: 'Paywall', error: e, stackTrace: st);
       if (mounted) {
         SnackHelper.showError(context, context.l10n.common_error_generic);
       }
@@ -70,7 +92,8 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
       } else {
         SnackHelper.showInfo(context, context.l10n.paywall_no_purchases);
       }
-    } catch (_) {
+    } catch (e, st) {
+      dev.log('Restore failed', name: 'Paywall', error: e, stackTrace: st);
       if (mounted) {
         SnackHelper.showError(context, context.l10n.common_error_generic);
       }
@@ -251,8 +274,32 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 padding: EdgeInsets.all(AppSizes.lg),
                 child: CircularProgressIndicator.adaptive(),
               )
+            else if (_loadError)
+              // Store load failed — show error with retry.
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      context.l10n.paywall_store_unavailable,
+                      style: context.textStyles.bodyMedium?.copyWith(
+                        color: cs.outline,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSizes.md),
+                    TextButton.icon(
+                      onPressed: _loadProducts,
+                      icon: const Icon(AppIcons.refresh),
+                      label: Text(context.l10n.common_retry),
+                    ),
+                  ],
+                ),
+              )
             else if (_products.isEmpty)
-              // Store not available — show generic message.
+              // Store available but no products configured.
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,

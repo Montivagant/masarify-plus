@@ -75,6 +75,7 @@ sealed class ChatAction {
       categoryName: category,
       date: json['date'] as String?,
       note: json['note'] as String?,
+      walletName: json['wallet'] as String?,
     );
   }
 
@@ -226,6 +227,7 @@ class CreateTransactionAction extends ChatAction {
     required this.categoryName,
     this.date,
     this.note,
+    this.walletName,
   });
 
   final String title;
@@ -238,6 +240,11 @@ class CreateTransactionAction extends ChatAction {
   final String? date;
   final String? note;
 
+  /// Optional wallet/account name. When provided, the executor resolves
+  /// it by name instead of using the selected/default account.
+  /// "cash" routes to the physical Cash system wallet.
+  final String? walletName;
+
   @override
   Map<String, dynamic> toJson() => {
         'action': 'create_transaction',
@@ -247,6 +254,7 @@ class CreateTransactionAction extends ChatAction {
         'category': categoryName,
         if (date != null) 'date': date,
         if (note != null) 'note': note,
+        if (walletName != null) 'wallet': walletName,
       };
 }
 

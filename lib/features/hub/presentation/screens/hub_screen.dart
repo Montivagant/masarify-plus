@@ -10,7 +10,6 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
-import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/cards/glass_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -107,24 +106,6 @@ class HubScreen extends ConsumerWidget {
               context.l10n.chat_title,
               AppIcons.ai,
               AppRoutes.chat,
-            ),
-            // Quick Start tile — only shown if wizard not completed.
-            Builder(
-              builder: (context) {
-                final isDone = ref
-                        .watch(preferencesFutureProvider)
-                        .valueOrNull
-                        ?.isQuickStartDone ??
-                    false;
-                if (isDone) return const SizedBox.shrink();
-                return _tile(
-                  context,
-                  context.l10n.quick_start_title,
-                  AppIcons.quickStart,
-                  AppRoutes.quickStart,
-                  subtitle: context.l10n.quick_start_subtitle,
-                );
-              },
             ),
           ]),
 

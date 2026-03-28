@@ -155,6 +155,7 @@ class _AddCategoryScreenState extends ConsumerState<AddCategoryScreen> {
     final selectedColor = ColorUtils.fromHex(_colorHex);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
         title: isEdit
             ? context.l10n.category_edit_title

@@ -75,8 +75,9 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
     }
     _lastRestoreAt = now;
     final service = ref.read(subscriptionServiceProvider);
+    // Re-validate subscription with Play Store — detects lapsed subs.
     // Fire and forget — errors are silently ignored.
-    service.restorePurchases().catchError((_) {});
+    service.revalidate().catchError((_) {});
   }
 
   @override

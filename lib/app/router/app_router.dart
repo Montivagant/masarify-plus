@@ -24,7 +24,6 @@ import '../../features/monetization/presentation/screens/paywall_screen.dart';
 import '../../features/monetization/presentation/screens/subscription_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/onboarding/presentation/screens/splash_screen.dart';
-import '../../features/quick_start/presentation/screens/quick_start_screen.dart';
 import '../../features/recurring/presentation/screens/add_recurring_screen.dart';
 import '../../features/recurring/presentation/screens/recurring_screen.dart';
 import '../../features/reports/presentation/screens/reports_screen.dart';
@@ -335,12 +334,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.settingsSubscription,
       builder: (_, __) => const SubscriptionScreen(),
-    ),
-
-    // Quick Start wizard
-    GoRoute(
-      path: AppRoutes.quickStart,
-      builder: (_, __) => const QuickStartScreen(),
     ),
 
     // Monetization (Phase 5)

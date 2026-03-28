@@ -95,13 +95,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       );
 
       // Create a default bank account with the optional starting balance.
+      // Idempotency guard: if onboarding crashed mid-way and is retried,
+      // skip account creation if a default already exists.
       if (!mounted) return;
-      await walletRepo.create(
-        name: context.l10n.onboarding_default_bank_name,
-        type: 'bank',
-        initialBalance: _startingBalancePiastres.clamp(0, (1 << 31) - 1),
-        isDefaultAccount: true,
-      );
+      final defaultBankName = context.l10n.onboarding_default_bank_name;
+      final existingDefault = await walletRepo.getDefaultAccount();
+      if (existingDefault == null) {
+        await walletRepo.create(
+          name: defaultBankName,
+          type: 'bank',
+          initialBalance: _startingBalancePiastres.clamp(0, (1 << 31) - 1),
+          isDefaultAccount: true,
+        );
+      }
 
       // Mark onboarding complete.
       final prefs = await ref.read(preferencesFutureProvider.future);

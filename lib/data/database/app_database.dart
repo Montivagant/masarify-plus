@@ -361,6 +361,16 @@ class AppDatabase extends _$AppDatabase {
       'CREATE UNIQUE INDEX IF NOT EXISTS idx_wallets_default '
       'ON wallets(is_default_account) WHERE is_default_account = 1',
     );
+    // Composite index for "recent transactions per wallet" queries.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transactions_wallet_date '
+      'ON transactions(wallet_id, transaction_date DESC)',
+    );
+    // Recurring rules by wallet — for "all rules for this wallet" queries.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_recurring_rules_wallet '
+      'ON recurring_rules(wallet_id)',
+    );
   }
 
   static QueryExecutor _openConnection() {

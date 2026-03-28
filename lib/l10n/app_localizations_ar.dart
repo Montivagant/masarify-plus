@@ -304,10 +304,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get recurring_add => 'إضافة متكرر';
+  String get recurring_add => 'إضافة اشتراك';
 
   @override
-  String get recurring_edit => 'تعديل التكرار';
+  String get recurring_edit => 'تعديل الاشتراك';
 
   @override
   String get recurring_frequency_daily => 'يومي';
@@ -458,7 +458,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_calendar => 'التقويم';
 
   @override
-  String get hub_recurring => 'المعاملات المتكررة';
+  String get hub_recurring => 'الاشتراكات';
 
   @override
   String get hub_settings => 'الإعدادات';
@@ -1706,7 +1706,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_total => 'إجمالي';
 
   @override
-  String get recurring_active => 'المتكررة النشطة';
+  String get recurring_active => 'الاشتراكات النشطة';
 
   @override
   String get recurring_paused => 'متوقفة';
@@ -1730,25 +1730,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_end_date_required => 'تاريخ الانتهاء';
 
   @override
-  String get recurring_empty_title => 'لا توجد قواعد متكررة';
+  String get recurring_empty_title => 'لا توجد اشتراكات';
 
   @override
-  String get recurring_empty_sub => 'أضف معاملاتك المتكررة لتوفير الوقت';
+  String get recurring_empty_sub =>
+      'أضف اشتراكاتك وفواتيرك لتتبع المدفوعات الدورية';
 
   @override
-  String get recurring_delete_title => 'حذف المتكرر';
+  String get recurring_delete_title => 'حذف الاشتراك';
 
   @override
-  String get recurring_delete_confirm =>
-      'هل أنت متأكد من حذف هذه المعاملة المتكررة؟';
+  String get recurring_delete_confirm => 'هل أنت متأكد من حذف هذا الاشتراك؟';
 
   @override
   String get recurring_confirm_activate =>
-      'تفعيل هذه المعاملة المتكررة؟ سيتم إنشاء معاملات تلقائياً.';
+      'تفعيل هذا الاشتراك؟ سيتم إنشاء معاملات تلقائياً.';
 
   @override
   String get recurring_confirm_pause =>
-      'إيقاف هذه المعاملة المتكررة؟ لن يتم إنشاء معاملات جديدة حتى إعادة التفعيل.';
+      'إيقاف هذا الاشتراك؟ لن يتم إنشاء معاملات جديدة حتى إعادة التفعيل.';
 
   @override
   String get recurring_title_label => 'العنوان';
@@ -1760,7 +1760,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_type_label => 'نوع المعاملة';
 
   @override
-  String get recurring_saved => 'تم حفظ المعاملة المتكررة';
+  String get recurring_saved => 'تم حفظ الاشتراك';
 
   @override
   String get calendar_no_transactions_day => 'لا توجد معاملات في هذا اليوم';
@@ -1935,7 +1935,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notif_budget_exceeded_sub => 'إشعار عند استنفاد الميزانية بالكامل';
 
   @override
-  String get notif_section_bills => 'الفواتير والمتكررات';
+  String get notif_section_bills => 'الاشتراكات والفواتير';
 
   @override
   String get notif_bill_reminder => 'تذكير الفواتير';
@@ -1945,11 +1945,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تذكير بالفواتير القادمة قبل موعد الاستحقاق';
 
   @override
-  String get notif_recurring_reminder => 'المعاملات المتكررة';
+  String get notif_recurring_reminder => 'الاشتراكات';
 
   @override
-  String get notif_recurring_reminder_sub =>
-      'إشعار عند استحقاق المعاملات المتكررة';
+  String get notif_recurring_reminder_sub => 'إشعار عند استحقاق الاشتراكات';
 
   @override
   String get notif_section_goals => 'الأهداف';
@@ -2084,12 +2083,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String insight_recurring_detected(String title) {
-    return 'شهري: $title — أضف كمتكرر؟';
+    return 'شهري: $title — أضف كاشتراك؟';
   }
 
   @override
   String insight_weekly_detected(String title) {
-    return 'أسبوعي: $title — أضف كمتكرر؟';
+    return 'أسبوعي: $title — أضف كاشتراك؟';
   }
 
   @override
@@ -2138,7 +2137,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_action_budget_title => 'إنشاء ميزانية';
 
   @override
-  String get chat_action_recurring_title => 'إنشاء متكرر';
+  String get chat_action_recurring_title => 'إنشاء اشتراك';
 
   @override
   String get chat_action_wallet_title => 'إنشاء حساب';
@@ -2162,7 +2161,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String chat_recurring_created(String title) {
-    return 'تم إنشاء قاعدة متكررة \"$title\"';
+    return 'تم إنشاء اشتراك \"$title\"';
   }
 
   @override
@@ -2187,145 +2186,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get chat_wallet_name_taken => 'يوجد حساب بهذا الاسم بالفعل';
-
-  @override
-  String get quick_start_title => 'بداية سريعة';
-
-  @override
-  String get quick_start_subtitle => 'أعد ماليتك في خطوات بسيطة';
-
-  @override
-  String get quick_start_step_wallets => 'كيف تدير أموالك؟';
-
-  @override
-  String get quick_start_step_categories => 'على ماذا تنفق أكثر؟';
-
-  @override
-  String get quick_start_step_budgets => 'حدد ميزانيات شهرية';
-
-  @override
-  String get quick_start_step_bills => 'هل لديك فواتير منتظمة؟';
-
-  @override
-  String get quick_start_step_goals => 'تدخر لشيء ما؟';
-
-  @override
-  String get quick_start_source_cash => 'نقداً فقط';
-
-  @override
-  String get quick_start_source_bank => 'حساب بنكي';
-
-  @override
-  String get quick_start_source_mobile => 'محفظة إلكترونية';
-
-  @override
-  String get quick_start_source_multiple => 'مصادر متعددة';
-
-  @override
-  String get quick_start_category_food => 'طعام';
-
-  @override
-  String get quick_start_category_rent => 'إيجار';
-
-  @override
-  String get quick_start_category_transport => 'مواصلات';
-
-  @override
-  String get quick_start_category_bills => 'فواتير';
-
-  @override
-  String get quick_start_category_shopping => 'تسوق';
-
-  @override
-  String get quick_start_category_health => 'صحة';
-
-  @override
-  String get quick_start_category_education => 'تعليم';
-
-  @override
-  String get quick_start_category_other => 'أخرى';
-
-  @override
-  String get quick_start_budget_hint => 'الحد الشهري';
-
-  @override
-  String get quick_start_bill_internet => 'إنترنت';
-
-  @override
-  String get quick_start_bill_phone => 'هاتف';
-
-  @override
-  String get quick_start_bill_electricity => 'كهرباء';
-
-  @override
-  String get quick_start_bill_gas => 'غاز';
-
-  @override
-  String get quick_start_bill_gym => 'نادي رياضي';
-
-  @override
-  String get quick_start_bill_subscription => 'اشتراك';
-
-  @override
-  String get quick_start_goal_emergency => 'صندوق طوارئ';
-
-  @override
-  String get quick_start_goal_vacation => 'إجازة';
-
-  @override
-  String get quick_start_goal_car => 'سيارة';
-
-  @override
-  String get quick_start_goal_wedding => 'زفاف';
-
-  @override
-  String get quick_start_goal_education => 'تعليم';
-
-  @override
-  String get quick_start_goal_custom => 'مخصص';
-
-  @override
-  String get quick_start_goal_target => 'المبلغ المستهدف';
-
-  @override
-  String get quick_start_source_other => 'أخرى';
-
-  @override
-  String get quick_start_custom_wallet_name => 'اسم الحساب';
-
-  @override
-  String get quick_start_bill_other => 'فاتورة مخصصة';
-
-  @override
-  String get quick_start_bill_name_hint => 'اسم الفاتورة';
-
-  @override
-  String get quick_start_goal_custom_name => 'اسم الهدف';
-
-  @override
-  String get quick_start_wallet_type_label => 'نوع الحساب';
-
-  @override
-  String get quick_start_done_title => 'أنت جاهز!';
-
-  @override
-  String get quick_start_done_subtitle => 'ماليتك جاهزة للتتبع';
-
-  @override
-  String get quick_start_tip_title => 'ابدأ ماليتك بسرعة';
-
-  @override
-  String get quick_start_tip_subtitle =>
-      'أعد الميزانيات والفواتير والأهداف في ثوانٍ';
-
-  @override
-  String get quick_start_add_another => 'إضافة آخر؟';
-
-  @override
-  String get quick_start_adjust => 'تعديل؟';
-
-  @override
-  String get quick_start_amount_label => 'المبلغ';
 
   @override
   String get backup_cloud_title => 'نسخ احتياطي سحابي';
@@ -2476,7 +2336,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String chat_action_recurring_created(
       String title, String frequency, String amount) {
-    return 'تم إنشاء \"$frequency\" متكرر \"$title\" بمبلغ $amount!';
+    return 'تم إنشاء اشتراك \"$title\" ($frequency) بمبلغ $amount!';
   }
 
   @override
@@ -2656,7 +2516,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String insight_recurring_title(String title) {
-    return 'متكرر: $title';
+    return 'اشتراك: $title';
   }
 
   @override
@@ -2790,6 +2650,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get voice_confirm_subscription_suggest =>
       'إضافة إلى الاشتراكات والفواتير؟';
+
+  @override
+  String get voice_confirm_subscription_added =>
+      'تمت الإضافة إلى الاشتراكات والفواتير';
 
   @override
   String get voice_confirm_save_next => 'حفظ والتالي';

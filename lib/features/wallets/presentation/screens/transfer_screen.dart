@@ -189,6 +189,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
         _amountPiastres > 0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(title: context.l10n.transfer_title),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(

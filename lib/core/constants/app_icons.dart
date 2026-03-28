@@ -119,7 +119,6 @@ abstract final class AppIcons {
   static const IconData delivery = PhosphorIconsFill.truck;
   static const IconData savingsTransfer = PhosphorIconsFill.piggyBank;
   static const IconData ai = PhosphorIconsFill.sparkle;
-  static const IconData quickStart = PhosphorIconsFill.rocketLaunch;
   static const IconData send = PhosphorIconsFill.paperPlaneRight;
   static const IconData archive = PhosphorIconsRegular.archive;
   static const IconData unarchive = PhosphorIconsRegular.arrowCounterClockwise;

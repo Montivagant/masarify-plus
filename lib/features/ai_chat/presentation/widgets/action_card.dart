@@ -229,7 +229,7 @@ class ActionCard extends StatelessWidget {
           ),
           _DetailLine(
             label: context.l10n.recurring_frequency_label,
-            value: frequency,
+            value: _localizeFrequency(context, frequency),
             labelStyle: labelS,
             valueStyle: valueStyle,
           ),
@@ -254,7 +254,7 @@ class ActionCard extends StatelessWidget {
           ),
           _DetailLine(
             label: context.l10n.wallet_type_label,
-            value: type,
+            value: _localizeWalletType(context, type),
             labelStyle: labelS,
             valueStyle: valueStyle,
           ),
@@ -401,6 +401,29 @@ class ActionCard extends StatelessWidget {
     if (parsed == null) return isoDate;
     return DateFormat.yMd(context.languageCode).format(parsed);
   }
+
+  /// Localize a frequency value from the AI JSON (always English).
+  String _localizeFrequency(BuildContext context, String freq) =>
+      switch (freq.toLowerCase()) {
+        'daily' => context.l10n.recurring_frequency_daily,
+        'weekly' => context.l10n.recurring_frequency_weekly,
+        'monthly' => context.l10n.recurring_frequency_monthly,
+        'yearly' => context.l10n.recurring_frequency_yearly,
+        'once' => context.l10n.recurring_frequency_once,
+        'custom' => context.l10n.recurring_frequency_custom,
+        _ => freq,
+      };
+
+  /// Localize a wallet type value from the AI JSON (always English).
+  String _localizeWalletType(BuildContext context, String type) =>
+      switch (type.toLowerCase()) {
+        'bank' => context.l10n.wallet_type_bank_short,
+        'mobile_wallet' => context.l10n.wallet_type_mobile_wallet_short,
+        'credit_card' => context.l10n.wallet_type_credit_card_short,
+        'prepaid_card' => context.l10n.wallet_type_prepaid_card_short,
+        'investment' => context.l10n.wallet_type_investment_short,
+        _ => type,
+      };
 }
 
 class _DetailLine extends StatelessWidget {

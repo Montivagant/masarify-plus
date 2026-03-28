@@ -23,7 +23,6 @@ import '../widgets/filter_badge.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/filter_bar_delegate.dart';
 import '../widgets/insight_cards_zone.dart';
-import '../widgets/quick_start_tip_card.dart';
 import '../widgets/search_header.dart';
 import '../widgets/transaction_sliver_list.dart';
 
@@ -35,12 +34,11 @@ import '../widgets/transaction_sliver_list.dart';
 ///
 /// Layout order:
 /// 1. Offline banner (conditional)
-/// 2. Quick start tip card (conditional)
-/// 3. Balance header with account chips (or Search header when searching)
-/// 4. Insight cards zone (scroll away, hidden during search)
-/// 5. Pinned filter bar
-/// 6. Filter badge (when both account + type filters active)
-/// 7. Transaction SliverList with date grouping and swipe actions
+/// 2. Balance header with account chips (or Search header when searching)
+/// 3. Insight cards zone (scroll away, hidden during search)
+/// 4. Pinned filter bar
+/// 5. Filter badge (when both account + type filters active)
+/// 6. Transaction SliverList with date grouping and swipe actions
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
@@ -91,9 +89,6 @@ class DashboardScreen extends ConsumerWidget {
             slivers: [
               // ── Offline banner ────────────────────────────────────────
               if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
-
-              // ── Quick start tip card (conditional) ────────────────────
-              const SliverToBoxAdapter(child: QuickStartTipCard()),
 
               // ── Balance header or Search header ───────────────────────
               if (!filter.isSearchActive)
@@ -185,11 +180,11 @@ class DashboardScreen extends ConsumerWidget {
         content: Text(ctx.l10n.transaction_delete_confirm_body),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(ctx.l10n.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             child: Text(
               ctx.l10n.common_delete,
               style: TextStyle(color: ctx.colors.error),
@@ -224,11 +219,11 @@ class DashboardScreen extends ConsumerWidget {
         content: Text(ctx.l10n.transfer_delete_confirm_body),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => ctx.pop(false),
             child: Text(ctx.l10n.common_cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => ctx.pop(true),
             child: Text(
               ctx.l10n.common_delete,
               style: TextStyle(color: ctx.colors.error),

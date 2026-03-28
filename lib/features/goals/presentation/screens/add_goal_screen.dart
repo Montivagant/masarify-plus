@@ -120,15 +120,11 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
       setState(() => _nameError = context.l10n.error_name_required);
       return;
     }
-    // R5-I1 fix: validate target on both create and edit
+    // Validate target on both create and edit — target must be positive.
     if (_targetPiastres <= 0) {
-      if (widget.editId == null) {
-        // Create mode: require positive target
-        setState(() => _nameError = null);
-        SnackHelper.showError(context, context.l10n.goal_target_required);
-        return;
-      }
-      // Edit mode: target stays as-is (line 140 handles this)
+      setState(() => _nameError = null);
+      SnackHelper.showError(context, context.l10n.goal_target_required);
+      return;
     }
 
     // Free tier: max 1 active goal.
@@ -158,8 +154,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
               name: name,
               iconName: _iconName,
               colorHex: _colorHex,
-              targetAmount:
-                  _targetPiastres > 0 ? _targetPiastres : existing.targetAmount,
+              targetAmount: _targetPiastres,
               currentAmount: existing.currentAmount,
               currencyCode: existing.currencyCode,
               deadline: _deadline,
@@ -198,6 +193,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
     final selectedColor = ColorUtils.fromHex(_colorHex);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
         title:
             isEdit ? context.l10n.goal_edit_title : context.l10n.goal_add_title,

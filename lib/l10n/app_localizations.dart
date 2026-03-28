@@ -677,13 +677,13 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_add.
   ///
   /// In en, this message translates to:
-  /// **'Add Recurring'**
+  /// **'Add Subscription'**
   String get recurring_add;
 
   /// No description provided for @recurring_edit.
   ///
   /// In en, this message translates to:
-  /// **'Edit Recurring'**
+  /// **'Edit Subscription'**
   String get recurring_edit;
 
   /// No description provided for @recurring_frequency_daily.
@@ -983,7 +983,7 @@ abstract class AppLocalizations {
   /// No description provided for @hub_recurring.
   ///
   /// In en, this message translates to:
-  /// **'Recurring'**
+  /// **'Subscriptions'**
   String get hub_recurring;
 
   /// No description provided for @hub_settings.
@@ -3359,7 +3359,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_active.
   ///
   /// In en, this message translates to:
-  /// **'Active Recurring'**
+  /// **'Active Subscriptions'**
   String get recurring_active;
 
   /// No description provided for @recurring_paused.
@@ -3407,37 +3407,37 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'No Recurring Rules'**
+  /// **'No Subscriptions'**
   String get recurring_empty_title;
 
   /// No description provided for @recurring_empty_sub.
   ///
   /// In en, this message translates to:
-  /// **'Set up recurring transactions to save time'**
+  /// **'Set up subscriptions & bills to track regular payments'**
   String get recurring_empty_sub;
 
   /// No description provided for @recurring_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete Recurring'**
+  /// **'Delete Subscription'**
   String get recurring_delete_title;
 
   /// No description provided for @recurring_delete_confirm.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete this recurring transaction?'**
+  /// **'Are you sure you want to delete this subscription?'**
   String get recurring_delete_confirm;
 
   /// No description provided for @recurring_confirm_activate.
   ///
   /// In en, this message translates to:
-  /// **'Activate this recurring transaction? It will start creating transactions automatically.'**
+  /// **'Activate this subscription? It will start creating transactions automatically.'**
   String get recurring_confirm_activate;
 
   /// No description provided for @recurring_confirm_pause.
   ///
   /// In en, this message translates to:
-  /// **'Pause this recurring transaction? No new transactions will be created until reactivated.'**
+  /// **'Pause this subscription? No new transactions will be created until reactivated.'**
   String get recurring_confirm_pause;
 
   /// No description provided for @recurring_title_label.
@@ -3461,7 +3461,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_saved.
   ///
   /// In en, this message translates to:
-  /// **'Recurring transaction saved'**
+  /// **'Subscription saved'**
   String get recurring_saved;
 
   /// No description provided for @calendar_no_transactions_day.
@@ -3791,7 +3791,7 @@ abstract class AppLocalizations {
   /// No description provided for @notif_section_bills.
   ///
   /// In en, this message translates to:
-  /// **'Bills & Recurring'**
+  /// **'Subscriptions & Bills'**
   String get notif_section_bills;
 
   /// No description provided for @notif_bill_reminder.
@@ -3809,13 +3809,13 @@ abstract class AppLocalizations {
   /// No description provided for @notif_recurring_reminder.
   ///
   /// In en, this message translates to:
-  /// **'Recurring Transactions'**
+  /// **'Subscriptions'**
   String get notif_recurring_reminder;
 
   /// No description provided for @notif_recurring_reminder_sub.
   ///
   /// In en, this message translates to:
-  /// **'Notify when recurring transactions are due'**
+  /// **'Notify when subscriptions are due'**
   String get notif_recurring_reminder_sub;
 
   /// No description provided for @notif_section_goals.
@@ -4067,13 +4067,13 @@ abstract class AppLocalizations {
   /// No description provided for @insight_recurring_detected.
   ///
   /// In en, this message translates to:
-  /// **'Monthly: {title} — add as recurring?'**
+  /// **'Monthly: {title} — add as subscription?'**
   String insight_recurring_detected(String title);
 
   /// No description provided for @insight_weekly_detected.
   ///
   /// In en, this message translates to:
-  /// **'Weekly: {title} — add as recurring?'**
+  /// **'Weekly: {title} — add as subscription?'**
   String insight_weekly_detected(String title);
 
   /// No description provided for @insight_over_budget_prediction.
@@ -4157,7 +4157,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_action_recurring_title.
   ///
   /// In en, this message translates to:
-  /// **'Create Recurring'**
+  /// **'Create Subscription'**
   String get chat_action_recurring_title;
 
   /// No description provided for @chat_action_wallet_title.
@@ -4199,7 +4199,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_recurring_created.
   ///
   /// In en, this message translates to:
-  /// **'Recurring rule \"{title}\" created'**
+  /// **'Subscription \"{title}\" created'**
   String chat_recurring_created(String title);
 
   /// No description provided for @chat_wallet_created.
@@ -4243,282 +4243,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An account with this name already exists'**
   String get chat_wallet_name_taken;
-
-  /// No description provided for @quick_start_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick Start'**
-  String get quick_start_title;
-
-  /// No description provided for @quick_start_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up your finances in a few steps'**
-  String get quick_start_subtitle;
-
-  /// No description provided for @quick_start_step_wallets.
-  ///
-  /// In en, this message translates to:
-  /// **'How do you manage your money?'**
-  String get quick_start_step_wallets;
-
-  /// No description provided for @quick_start_step_categories.
-  ///
-  /// In en, this message translates to:
-  /// **'What do you spend most on?'**
-  String get quick_start_step_categories;
-
-  /// No description provided for @quick_start_step_budgets.
-  ///
-  /// In en, this message translates to:
-  /// **'Set monthly budgets'**
-  String get quick_start_step_budgets;
-
-  /// No description provided for @quick_start_step_bills.
-  ///
-  /// In en, this message translates to:
-  /// **'Any regular bills?'**
-  String get quick_start_step_bills;
-
-  /// No description provided for @quick_start_step_goals.
-  ///
-  /// In en, this message translates to:
-  /// **'Saving for something?'**
-  String get quick_start_step_goals;
-
-  /// No description provided for @quick_start_source_cash.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash only'**
-  String get quick_start_source_cash;
-
-  /// No description provided for @quick_start_source_bank.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank account'**
-  String get quick_start_source_bank;
-
-  /// No description provided for @quick_start_source_mobile.
-  ///
-  /// In en, this message translates to:
-  /// **'Mobile wallet'**
-  String get quick_start_source_mobile;
-
-  /// No description provided for @quick_start_source_multiple.
-  ///
-  /// In en, this message translates to:
-  /// **'Multiple sources'**
-  String get quick_start_source_multiple;
-
-  /// No description provided for @quick_start_category_food.
-  ///
-  /// In en, this message translates to:
-  /// **'Food'**
-  String get quick_start_category_food;
-
-  /// No description provided for @quick_start_category_rent.
-  ///
-  /// In en, this message translates to:
-  /// **'Rent'**
-  String get quick_start_category_rent;
-
-  /// No description provided for @quick_start_category_transport.
-  ///
-  /// In en, this message translates to:
-  /// **'Transport'**
-  String get quick_start_category_transport;
-
-  /// No description provided for @quick_start_category_bills.
-  ///
-  /// In en, this message translates to:
-  /// **'Bills'**
-  String get quick_start_category_bills;
-
-  /// No description provided for @quick_start_category_shopping.
-  ///
-  /// In en, this message translates to:
-  /// **'Shopping'**
-  String get quick_start_category_shopping;
-
-  /// No description provided for @quick_start_category_health.
-  ///
-  /// In en, this message translates to:
-  /// **'Health'**
-  String get quick_start_category_health;
-
-  /// No description provided for @quick_start_category_education.
-  ///
-  /// In en, this message translates to:
-  /// **'Education'**
-  String get quick_start_category_education;
-
-  /// No description provided for @quick_start_category_other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get quick_start_category_other;
-
-  /// No description provided for @quick_start_budget_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Monthly limit'**
-  String get quick_start_budget_hint;
-
-  /// No description provided for @quick_start_bill_internet.
-  ///
-  /// In en, this message translates to:
-  /// **'Internet'**
-  String get quick_start_bill_internet;
-
-  /// No description provided for @quick_start_bill_phone.
-  ///
-  /// In en, this message translates to:
-  /// **'Phone'**
-  String get quick_start_bill_phone;
-
-  /// No description provided for @quick_start_bill_electricity.
-  ///
-  /// In en, this message translates to:
-  /// **'Electricity'**
-  String get quick_start_bill_electricity;
-
-  /// No description provided for @quick_start_bill_gas.
-  ///
-  /// In en, this message translates to:
-  /// **'Gas'**
-  String get quick_start_bill_gas;
-
-  /// No description provided for @quick_start_bill_gym.
-  ///
-  /// In en, this message translates to:
-  /// **'Gym'**
-  String get quick_start_bill_gym;
-
-  /// No description provided for @quick_start_bill_subscription.
-  ///
-  /// In en, this message translates to:
-  /// **'Subscription'**
-  String get quick_start_bill_subscription;
-
-  /// No description provided for @quick_start_goal_emergency.
-  ///
-  /// In en, this message translates to:
-  /// **'Emergency fund'**
-  String get quick_start_goal_emergency;
-
-  /// No description provided for @quick_start_goal_vacation.
-  ///
-  /// In en, this message translates to:
-  /// **'Vacation'**
-  String get quick_start_goal_vacation;
-
-  /// No description provided for @quick_start_goal_car.
-  ///
-  /// In en, this message translates to:
-  /// **'Car'**
-  String get quick_start_goal_car;
-
-  /// No description provided for @quick_start_goal_wedding.
-  ///
-  /// In en, this message translates to:
-  /// **'Wedding'**
-  String get quick_start_goal_wedding;
-
-  /// No description provided for @quick_start_goal_education.
-  ///
-  /// In en, this message translates to:
-  /// **'Education'**
-  String get quick_start_goal_education;
-
-  /// No description provided for @quick_start_goal_custom.
-  ///
-  /// In en, this message translates to:
-  /// **'Custom'**
-  String get quick_start_goal_custom;
-
-  /// No description provided for @quick_start_goal_target.
-  ///
-  /// In en, this message translates to:
-  /// **'Target amount'**
-  String get quick_start_goal_target;
-
-  /// No description provided for @quick_start_source_other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get quick_start_source_other;
-
-  /// No description provided for @quick_start_custom_wallet_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Account name'**
-  String get quick_start_custom_wallet_name;
-
-  /// No description provided for @quick_start_bill_other.
-  ///
-  /// In en, this message translates to:
-  /// **'Custom bill'**
-  String get quick_start_bill_other;
-
-  /// No description provided for @quick_start_bill_name_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Bill name'**
-  String get quick_start_bill_name_hint;
-
-  /// No description provided for @quick_start_goal_custom_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Goal name'**
-  String get quick_start_goal_custom_name;
-
-  /// No description provided for @quick_start_wallet_type_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Account type'**
-  String get quick_start_wallet_type_label;
-
-  /// No description provided for @quick_start_done_title.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re all set!'**
-  String get quick_start_done_title;
-
-  /// No description provided for @quick_start_done_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your finances are ready to track'**
-  String get quick_start_done_subtitle;
-
-  /// No description provided for @quick_start_tip_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick start your finances'**
-  String get quick_start_tip_title;
-
-  /// No description provided for @quick_start_tip_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Set up budgets, bills, and goals in seconds'**
-  String get quick_start_tip_subtitle;
-
-  /// No description provided for @quick_start_add_another.
-  ///
-  /// In en, this message translates to:
-  /// **'Add another?'**
-  String get quick_start_add_another;
-
-  /// No description provided for @quick_start_adjust.
-  ///
-  /// In en, this message translates to:
-  /// **'Adjust?'**
-  String get quick_start_adjust;
-
-  /// No description provided for @quick_start_amount_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Amount'**
-  String get quick_start_amount_label;
 
   /// No description provided for @backup_cloud_title.
   ///
@@ -4763,7 +4487,7 @@ abstract class AppLocalizations {
   /// No description provided for @chat_action_recurring_created.
   ///
   /// In en, this message translates to:
-  /// **'Recurring \"{title}\" ({frequency}) of {amount} created!'**
+  /// **'Subscription \"{title}\" ({frequency}) of {amount} created!'**
   String chat_action_recurring_created(
       String title, String frequency, String amount);
 
@@ -5064,7 +4788,7 @@ abstract class AppLocalizations {
   /// No description provided for @insight_recurring_title.
   ///
   /// In en, this message translates to:
-  /// **'Recurring: {title}'**
+  /// **'Subscription: {title}'**
   String insight_recurring_title(String title);
 
   /// No description provided for @insight_recurring_body.
@@ -5306,6 +5030,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to Subscriptions & Bills?'**
   String get voice_confirm_subscription_suggest;
+
+  /// No description provided for @voice_confirm_subscription_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to Subscriptions & Bills'**
+  String get voice_confirm_subscription_added;
 
   /// No description provided for @voice_confirm_save_next.
   ///

@@ -53,9 +53,6 @@ abstract final class AppRoutes {
   static const String settingsNotifications = '/settings/notifications';
   static const String settingsSubscription = '/settings/subscription';
 
-  // ── Quick Start ──────────────────────────────────────────────────────
-  static const String quickStart = '/quick-start';
-
   // ── Monetization (Phase 5) ────────────────────────────────────────────
   static const String paywall = '/paywall';
 

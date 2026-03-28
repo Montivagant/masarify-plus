@@ -182,6 +182,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
     final types = _walletTypes(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
         title: isEdit
             ? context.l10n.wallet_edit_title

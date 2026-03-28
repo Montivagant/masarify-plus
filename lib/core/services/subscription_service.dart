@@ -25,7 +25,13 @@ class SubscriptionService {
 
   static const _kTrialStartDate = 'trial_start_date';
   static const _kProActive = 'pro_active';
+  static const _kSubscriptionValidatedAt = 'subscription_validated_at';
   static const _trialDays = 7;
+
+  /// Grace period: monthly billing cycle + 3-day buffer.
+  /// If the subscription wasn't re-validated within this window, consider
+  /// it potentially expired and require re-validation via the store.
+  static const _subscriptionGraceDays = 33;
 
   final _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
@@ -38,20 +44,37 @@ class SubscriptionService {
   bool get isPro => _prefs.getBool(_kProActive) ?? false;
 
   /// Days remaining in trial, or 0 if expired/not started.
+  /// Compares at midnight boundaries for consistent calendar-day precision.
   int get trialDaysRemaining {
     final startStr = _prefs.getString(_kTrialStartDate);
     if (startStr == null) return _trialDays; // Not started = full trial
     final start = DateTime.tryParse(startStr);
     if (start == null) return 0;
-    final elapsed = DateTime.now().difference(start).inDays;
+    final startDate = DateTime(start.year, start.month, start.day);
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final elapsed = todayDate.difference(startDate).inDays;
     return (elapsed < _trialDays) ? _trialDays - elapsed : 0;
   }
 
   /// Whether the user is currently in the free trial period.
   bool get isInTrial => trialDaysRemaining > 0;
 
+  /// Whether the paid subscription has gone stale (not re-validated within
+  /// the grace period). Returns false if not Pro (nothing to expire).
+  bool get _isSubscriptionStale {
+    if (!isPro) return false;
+    final validatedStr = _prefs.getString(_kSubscriptionValidatedAt);
+    if (validatedStr == null) return true; // Never validated → stale
+    final validated = DateTime.tryParse(validatedStr);
+    if (validated == null) return true;
+    return DateTime.now().difference(validated).inDays > _subscriptionGraceDays;
+  }
+
   /// Whether the user has any Pro access (subscription OR trial).
-  bool get hasProAccess => isPro || isInTrial;
+  /// A paid subscription is considered expired if it hasn't been re-validated
+  /// within [_subscriptionGraceDays] days (handles lapsed subscriptions).
+  bool get hasProAccess => (isPro && !_isSubscriptionStale) || isInTrial;
 
   /// Start the trial if not already started.
   Future<void> ensureTrialStarted() async {
@@ -102,6 +125,14 @@ class SubscriptionService {
   /// Public restore for the settings/paywall "Restore" button.
   Future<void> restorePurchases() => _restorePurchases();
 
+  /// Re-validate subscription with the store. Call on app resume to detect
+  /// lapsed subscriptions. Resets Pro status and re-checks via Play Billing.
+  Future<void> revalidate() async {
+    final available = await _iap.isAvailable();
+    if (!available) return;
+    await _restorePurchases();
+  }
+
   void _handlePurchaseUpdates(List<PurchaseDetails> purchases) {
     for (final purchase in purchases) {
       switch (purchase.status) {
@@ -124,6 +155,10 @@ class SubscriptionService {
 
   Future<void> _activatePro() async {
     await _prefs.setBool(_kProActive, true);
+    await _prefs.setString(
+      _kSubscriptionValidatedAt,
+      DateTime.now().toIso8601String(),
+    );
     _proController.add(true);
   }
 
