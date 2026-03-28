@@ -8,7 +8,7 @@
 
 Deliver sub-2-second cold start and smooth 60fps scrolling on Egypt's dominant mid-range Android devices (Samsung A14, Xiaomi Redmi 12). Optimize database queries, rendering pipeline, startup sequence, and build configuration. Requirements: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05.
 
-**BLOCKING PREREQUISITE:** 13 regressions from prior phases must be fixed before executing this phase. See `<deferred>` section. Performance profiling on broken UI is pointless — fix first, then optimize.
+**BLOCKING PREREQUISITE:** 18+ regressions from prior phases must be fixed before executing this phase. See `<deferred>` section. Performance profiling on broken UI is pointless — fix first, then optimize.
 
 </domain>
 
@@ -181,7 +181,7 @@ Deliver sub-2-second cold start and smooth 60fps scrolling on Egypt's dominant m
 
 ### BLOCKING: Prior Phase Regressions (Must Fix Before Phase 6 Execution)
 
-These 11 issues were discovered during user testing and must be resolved before performance work begins. Use `/gsd:quick` or `/gsd:insert-phase` to create a regression fix pass.
+These issues were discovered during user testing and must be resolved before performance work begins. Use `/gsd:insert-phase` to create a comprehensive regression fix phase.
 
 1. **Cash wallet removed** — System "Cash" / "Cash in Hand" wallet was removed during home screen revamp (Phase 3). NOT requested. Critical for differentiating physical cash from bank/card accounts. Also broke AI cash detection.
 2. **Account reorder feature missing** — Drag-and-drop reorder modal (Phase 2B/3 feature) lost during home screen overhaul.
@@ -196,6 +196,14 @@ These 11 issues were discovered during user testing and must be resolved before 
 11. **Subscriptions & Bills screen, Transaction Details screen, Add New X screens/bottom sheets** — No UI improvements applied from planned changes. CRUD screens untouched.
 12. **Toast notifications appearing mid-screen** — SnackBars should appear at bottom, not centered on screen. Regression.
 13. **AI replies in English to Arabizi input** — When user types in Arabizi (Arabic written in Latin script, e.g., "ana sraft 200 gneih"), AI should reply in Arabic since the user's intent is Arabic communication. AI should detect language intent, not just script. Also: AI should reply in the same language the user types in (English input → English reply, Arabic/Arabizi input → Arabic reply), regardless of app locale.
+14. **Voice Confirm Screen transfer layout broken** — Huge font sizes, duplicate amount display (large + small with little spacing). Single entry shows the number twice.
+15. **Transfer to non-existing accounts only suggests creating one** — Should suggest creating ALL non-existing accounts mentioned, not just one. Suggestion should appear inside the select bank dropdown with inline account name entry (less steps).
+16. **Category selection on Voice Confirm Screen** — Should be auto-assigned, with option to re-select or select multiple. Current implementation requires manual selection.
+17. **Category icons are old/plain** — Enriched icon library (bank logos, app logos, merchant logos) either not implemented or lost. Brand icons should auto-attach to transactions based on merchant/brand detection.
+18. **Brand icon enrichment missing across app** — Promised enriched library of icons for banks, apps, known merchants was not fully implemented or is not displaying correctly.
+
+### RISK: Unknown Regressions
+User reports fear of additional hidden regressions, especially in AI configuration. A **full systematic audit** of all features against their specifications is recommended before proceeding with any new phase work.
 
 ### Not In Scope (Future Phases)
 - None — discussion stayed within phase scope
