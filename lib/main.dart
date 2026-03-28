@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
+import 'app/router/app_router.dart';
+import 'core/constants/app_routes.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/glass_config_service.dart';
 import 'core/services/notification_service.dart';
@@ -80,6 +82,19 @@ Future<void> main() async {
   // parsing only, no AI enrichment — user triggers enrichment from review screen).
   if (Platform.isAndroid && PreferencesService(prefs).isSmsParserEnabled) {
     unawaited(_scanSmsInBackground(container));
+  }
+
+  // M-18 fix: handle cold-start from notification tap.
+  final launchPayload = await NotificationService.getLaunchPayload();
+  if (launchPayload != null) {
+    // Delay slightly to let the router initialize after splash.
+    Future<void>.delayed(const Duration(milliseconds: 500), () {
+      if (launchPayload == 'recap') {
+        appRouter.go(AppRoutes.chat);
+      } else if (launchPayload.startsWith('recurring:')) {
+        appRouter.go(AppRoutes.recurring);
+      }
+    });
   }
 }
 

@@ -111,3 +111,6 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/dictionaries/
+    # M-14: Arabic font for PDF export. Download NotoSansArabic-Regular.ttf
+    # from https://fonts.google.com/noto/specimen/Noto+Sans+Arabic and place here.
+    - assets/fonts/

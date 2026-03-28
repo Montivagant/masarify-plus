@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -50,6 +51,27 @@ class PdfExportService {
 
   final AppDatabase _db;
 
+  // M-14 fix: cache Arabic font to avoid reloading on every export.
+  static pw.Font? _cachedArabicFont;
+
+  /// Load Arabic-capable font from bundled assets.
+  /// Returns null if the font file is not bundled yet (graceful fallback).
+  /// TODO(M-14): Download NotoSansArabic-Regular.ttf from Google Fonts and
+  /// place at assets/fonts/NotoSansArabic-Regular.ttf for Arabic PDF support.
+  static Future<pw.Font?> _loadArabicFont() async {
+    if (_cachedArabicFont != null) return _cachedArabicFont;
+    try {
+      final data = await rootBundle.load(
+        'assets/fonts/NotoSansArabic-Regular.ttf',
+      );
+      _cachedArabicFont = pw.Font.ttf(data);
+      return _cachedArabicFont;
+    } catch (_) {
+      // Font file not bundled — Arabic glyphs will render as boxes.
+      return null;
+    }
+  }
+
   Future<String> generate({
     required int year,
     required int month,
@@ -59,6 +81,19 @@ class PdfExportService {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
     final monthLabel = DateFormat.yMMMM(locale).format(start);
+    final isArabic = locale == 'ar';
+
+    // M-14 fix: load Arabic font if needed.
+    pw.ThemeData? pdfTheme;
+    if (isArabic) {
+      final arabicFont = await _loadArabicFont();
+      if (arabicFont != null) {
+        pdfTheme = pw.ThemeData.withFont(
+          base: arabicFont,
+          bold: arabicFont,
+        );
+      }
+    }
 
     // Query data.
     final txs = await (_db.select(_db.transactions)
@@ -99,11 +134,14 @@ class PdfExportService {
     final top5 = topCategories.take(5).toList();
 
     // Build PDF.
-    final pdf = pw.Document();
+    // M-14 fix: apply Arabic theme if available.
+    final pdf = pw.Document(theme: pdfTheme);
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        // M-14 fix: RTL text direction for Arabic locale.
+        textDirection: isArabic ? pw.TextDirection.rtl : pw.TextDirection.ltr,
         margin: const pw.EdgeInsets.all(AppSizes.pdfMargin),
         build: (context) => [
           // Header
