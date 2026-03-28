@@ -321,12 +321,78 @@ class AiChatService {
 
   static int estimateTokens(String text) => (text.length / 4).ceil();
 
+  /// Detects Franco-Arab/Arabizi patterns in user text.
+  /// Returns true if text likely contains Arabizi (Arabic in Latin letters).
+  static bool isArabizi(String text) {
+    // Numbers-for-letters: 3=ع, 7=ح, 2=ء, 5=خ, 8=ق, 9=ص
+    final arabiziNumbers =
+        RegExp(r'[237589](?=[a-zA-Z])|(?<=[a-zA-Z])[237589]');
+    // Common Arabizi words
+    const arabiziWords = [
+      'ana',
+      'enta',
+      'enty',
+      'mesh',
+      'msh',
+      'kda',
+      'keda',
+      'leih',
+      'leh',
+      'ezzay',
+      'ezay',
+      'aywa',
+      'la2',
+      'tab',
+      'yalla',
+      'bas',
+      'khalas',
+      'habibi',
+      'shokran',
+      'ahlan',
+      'gneih',
+      'geneh',
+      'sraft',
+      'dafa3t',
+      '3ayz',
+      '3ayza',
+      '7aga',
+      'fe',
+      'fi',
+      'el',
+      'wel',
+      'betaa',
+    ];
+
+    final lower = text.toLowerCase();
+    if (arabiziNumbers.hasMatch(lower)) return true;
+    final words = lower.split(RegExp(r'\s+'));
+    int matches = 0;
+    for (final w in words) {
+      if (arabiziWords.contains(w)) matches++;
+    }
+    // If 2+ Arabizi words detected, classify as Arabizi
+    return matches >= 2;
+  }
+
   Future<OpenRouterResponse> sendMessage({
     required List<ChatMessageEntity> allMessages,
     required FinancialContext financialContext,
   }) async {
-    final systemPrompt = _buildSystemPrompt(financialContext);
+    var systemPrompt = _buildSystemPrompt(financialContext);
     final trimmed = _trimHistory(allMessages);
+
+    // D-22: Code-level Arabizi assist — when the user's locale is English
+    // but the latest message is Arabizi, inject an explicit Arabic hint.
+    if (financialContext.userLocale != 'ar' && trimmed.isNotEmpty) {
+      final lastUserMsg = trimmed.lastWhere(
+        (m) => m.role == 'user',
+        orElse: () => trimmed.last,
+      );
+      if (isArabizi(lastUserMsg.content)) {
+        systemPrompt +=
+            '\nIMPORTANT: The user\'s message is in Arabizi (Arabic using Latin letters). You MUST reply in Arabic.';
+      }
+    }
 
     final messages = <Map<String, String>>[
       {'role': 'system', 'content': systemPrompt},
