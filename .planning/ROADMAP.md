@@ -96,6 +96,16 @@ This roadmap is ordered by **risk elimination speed** — not by feature groupin
 
 ---
 
+### Phase 03.1: Regression Fix & Feature Audit (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 3
+**Plans:** 1/3 plans executed
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 03.1 to break down)
+
 ### Phase 4: AI, Voice & Subscriptions Polish
 **Goal:** Make the AI Financial Advisor and voice input into a seamless, differentiated experience that justifies the Pro paywall.
 **Requirements:** AI-01, AI-02, AI-05, AI-06, VOICE-03, SUB-02, SUB-03, SUB-04, SUB-05, CAT-05

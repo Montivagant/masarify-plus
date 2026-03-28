@@ -2824,9 +2824,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get voice_confirm_all_saved => 'All transactions saved!';
-
-  @override
   String get insight_upcoming_bills_title => 'Upcoming Bills';
 
   @override

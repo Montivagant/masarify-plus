@@ -5319,12 +5319,6 @@ abstract class AppLocalizations {
   /// **'{current} of {total}'**
   String voice_confirm_draft_count(int current, int total);
 
-  /// No description provided for @voice_confirm_all_saved.
-  ///
-  /// In en, this message translates to:
-  /// **'All transactions saved!'**
-  String get voice_confirm_all_saved;
-
   /// No description provided for @insight_upcoming_bills_title.
   ///
   /// In en, this message translates to:

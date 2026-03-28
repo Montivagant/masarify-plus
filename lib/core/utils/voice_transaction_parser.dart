@@ -143,6 +143,7 @@ class VoiceTransactionDraft {
     this.categoryHint,
     this.walletHint,
     this.toWalletHint,
+    this.title,
     this.note,
     this.type = 'expense',
     this.dateOffset = 0,
@@ -162,6 +163,9 @@ class VoiceTransactionDraft {
   /// Destination wallet hint for transfer-type drafts (D-15).
   /// When a transfer references two accounts, this holds the "To" side.
   final String? toWalletHint;
+
+  /// Short AI-generated title (2-4 words, e.g. "KFC Meal", "Uber Ride").
+  final String? title;
 
   final String? note;
 

@@ -1102,7 +1102,6 @@
       "total": {"type": "int"}
     }
   },
-  "voice_confirm_all_saved": "All transactions saved!",
   "insight_upcoming_bills_title": "Upcoming Bills",
   "insight_upcoming_bills_body": "{count, plural, =1{1 bill due this week} other{{count} bills due this week}}",
   "@insight_upcoming_bills_body": {
