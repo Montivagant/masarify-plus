@@ -1353,45 +1353,50 @@ class _OptionalSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Collapsed state: tappable chips row ──────────────────
-          GestureDetector(
-            onTap: onToggle,
-            behavior: HitTestBehavior.opaque,
-            child: Row(
-              children: [
-                Icon(
-                  expanded ? AppIcons.expandLess : AppIcons.expandMore,
-                  size: AppSizes.iconXs,
-                  color: cs.outline,
-                ),
-                const SizedBox(width: AppSizes.xs),
-                Text(
+          // ── Toggle row with Switch (D-18) ──────────────────────
+          Row(
+            children: [
+              Icon(
+                AppIcons.settings,
+                size: AppSizes.iconSm,
+                color: cs.outline,
+              ),
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: Text(
                   context.l10n.transaction_optional_details,
                   style: context.textStyles.bodySmall?.copyWith(
                     color: cs.outline,
                   ),
                 ),
-                const Spacer(),
-                // Quick-access chips when collapsed
-                if (!expanded) ...[
-                  _QuickChip(
-                    icon: AppIcons.calendar,
-                    label: DateUtils.isSameDay(date, DateTime.now())
-                        ? context.l10n.date_today
-                        : MaterialLocalizations.of(context)
-                            .formatShortDate(date),
-                  ),
-                  const SizedBox(width: AppSizes.xs),
-                  if (locationName != null)
-                    Flexible(
-                      child: _QuickChip(
-                        icon: AppIcons.location,
-                        label: locationName!,
-                      ),
+              ),
+              // Quick-access chips when collapsed
+              if (!expanded) ...[
+                _QuickChip(
+                  icon: AppIcons.calendar,
+                  label: DateUtils.isSameDay(date, DateTime.now())
+                      ? context.l10n.date_today
+                      : MaterialLocalizations.of(context).formatShortDate(date),
+                ),
+                const SizedBox(width: AppSizes.xs),
+                if (locationName != null)
+                  Flexible(
+                    child: _QuickChip(
+                      icon: AppIcons.location,
+                      label: locationName!,
                     ),
-                ],
+                  ),
               ],
-            ),
+              SizedBox(
+                height: AppSizes.iconContainerSm,
+                child: FittedBox(
+                  child: Switch.adaptive(
+                    value: expanded,
+                    onChanged: (_) => onToggle(),
+                  ),
+                ),
+              ),
+            ],
           ),
 
           // ── Expanded state: full form fields ─────────────────────
