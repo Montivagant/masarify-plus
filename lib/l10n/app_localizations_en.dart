@@ -2517,11 +2517,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Speak naturally. AI understands\nyour expenses in any language.';
 
   @override
-  String get onboarding_slide3_title => 'SMS Auto-Detect';
+  String get onboarding_slide3_title => 'Your AI Financial Advisor';
 
   @override
   String get onboarding_slide3_body =>
-      'Bank SMS messages become transactions\nautomatically. No typing needed.';
+      'Get smart spending insights, budget advice, and financial guidance — powered by AI.';
 
   @override
   String get onboarding_demo_amount => 'EGP 150.00';
@@ -2543,6 +2543,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_demo_sms_result => 'EGP 250 — Auto-detected';
+
+  @override
+  String get onboarding_demo_chat_user =>
+      'How much did I spend on food this week?';
+
+  @override
+  String get onboarding_demo_chat_ai =>
+      'You spent EGP 450 on food — 15% more than last week.';
 
   @override
   String get onboarding_pick_account_title => 'What\'s Your Main Account?';

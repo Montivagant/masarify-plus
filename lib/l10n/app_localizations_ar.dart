@@ -2497,11 +2497,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'اتكلم بشكل طبيعي. الذكاء الاصطناعي\nيفهم مصاريفك بأي لغة.';
 
   @override
-  String get onboarding_slide3_title => 'كشف SMS تلقائي';
+  String get onboarding_slide3_title => 'مستشارك المالي الذكي';
 
   @override
   String get onboarding_slide3_body =>
-      'رسائل البنك تتحول لمعاملات\nتلقائياً. من غير ما تكتب حاجة.';
+      'احصل على نصائح ذكية عن مصاريفك وميزانيتك — بالذكاء الاصطناعي.';
 
   @override
   String get onboarding_demo_amount => '١٥٠٫٠٠ جنيه';
@@ -2523,6 +2523,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_demo_sms_result => '٢٥٠ جنيه — تم الكشف تلقائياً';
+
+  @override
+  String get onboarding_demo_chat_user => 'صرفت كام على الأكل الأسبوع ده؟';
+
+  @override
+  String get onboarding_demo_chat_ai =>
+      'صرفت ٤٥٠ ج.م على الأكل — أكتر ١٥٪ من الأسبوع اللي فات.';
 
   @override
   String get onboarding_pick_account_title => 'حسابك الأساسي إيه؟';
