@@ -331,7 +331,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_next_due => 'Next due';
 
   @override
-  String get recurring_and_bills_title => 'Recurring & Bills';
+  String get recurring_and_bills_title => 'Subscriptions & Bills';
 
   @override
   String get recurring_overdue => 'Overdue';
@@ -2125,7 +2125,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_section_goals_budgets => 'Budgets & Goals';
 
   @override
-  String get hub_section_recurring => 'Recurring & Bills';
+  String get hub_section_recurring => 'Subscriptions & Bills';
 
   @override
   String get nav_planning => 'Planning';

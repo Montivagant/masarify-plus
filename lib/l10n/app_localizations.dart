@@ -725,7 +725,7 @@ abstract class AppLocalizations {
   /// No description provided for @recurring_and_bills_title.
   ///
   /// In en, this message translates to:
-  /// **'Recurring & Bills'**
+  /// **'Subscriptions & Bills'**
   String get recurring_and_bills_title;
 
   /// No description provided for @recurring_overdue.
@@ -4097,7 +4097,7 @@ abstract class AppLocalizations {
   /// No description provided for @hub_section_recurring.
   ///
   /// In en, this message translates to:
-  /// **'Recurring & Bills'**
+  /// **'Subscriptions & Bills'**
   String get hub_section_recurring;
 
   /// No description provided for @nav_planning.

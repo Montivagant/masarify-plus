@@ -328,7 +328,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_next_due => 'الموعد القادم';
 
   @override
-  String get recurring_and_bills_title => 'المتكررة والفواتير';
+  String get recurring_and_bills_title => 'الاشتراكات والفواتير';
 
   @override
   String get recurring_overdue => 'متأخرة';
@@ -2106,7 +2106,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_section_goals_budgets => 'الميزانيات والأهداف';
 
   @override
-  String get hub_section_recurring => 'المتكرر والفواتير';
+  String get hub_section_recurring => 'الاشتراكات والفواتير';
 
   @override
   String get nav_planning => 'التخطيط';
