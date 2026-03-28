@@ -642,6 +642,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_export_pdf_subtitle => 'تقرير ملخص مالي شهري';
 
   @override
+  String get csv_header_date => 'التاريخ';
+
+  @override
+  String get csv_header_title => 'العنوان';
+
+  @override
+  String get csv_header_amount => 'المبلغ';
+
+  @override
+  String get csv_header_currency => 'العملة';
+
+  @override
+  String get csv_header_type => 'النوع';
+
+  @override
+  String get csv_header_category => 'الفئة';
+
+  @override
+  String get csv_header_account => 'الحساب';
+
+  @override
+  String get csv_header_tags => 'العلامات';
+
+  @override
+  String get csv_header_source => 'المصدر';
+
+  @override
+  String get csv_header_location => 'الموقع';
+
+  @override
+  String get csv_header_notes => 'الملاحظات';
+
+  @override
   String get auth_pin_setup_title => 'تعيين رمز PIN';
 
   @override

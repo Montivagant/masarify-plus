@@ -644,6 +644,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_export_pdf_subtitle => 'Monthly financial summary report';
 
   @override
+  String get csv_header_date => 'Date';
+
+  @override
+  String get csv_header_title => 'Title';
+
+  @override
+  String get csv_header_amount => 'Amount';
+
+  @override
+  String get csv_header_currency => 'Currency';
+
+  @override
+  String get csv_header_type => 'Type';
+
+  @override
+  String get csv_header_category => 'Category';
+
+  @override
+  String get csv_header_account => 'Account';
+
+  @override
+  String get csv_header_tags => 'Tags';
+
+  @override
+  String get csv_header_source => 'Source';
+
+  @override
+  String get csv_header_location => 'Location';
+
+  @override
+  String get csv_header_notes => 'Notes';
+
+  @override
   String get auth_pin_setup_title => 'Set PIN';
 
   @override

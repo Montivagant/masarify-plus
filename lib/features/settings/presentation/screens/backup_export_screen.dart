@@ -373,16 +373,32 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   // ── Export CSV ──────────────────────────────────────────────────────────
 
   Future<void> _exportCsv() async {
+    // M-12 fix: capture l10n before async gap for build_context_synchronously.
+    final l10n = context.l10n;
     final picked = await _pickMonth();
     if (picked == null || _busy) return;
 
     setState(() => _busy = true);
     String? path;
     try {
+      // M-12 fix: pass localized CSV column headers.
       path = await ref.read(backupServiceProvider).exportTransactionsToCsv(
-            year: picked.year,
-            month: picked.month,
-          );
+        year: picked.year,
+        month: picked.month,
+        headers: [
+          l10n.csv_header_date,
+          l10n.csv_header_title,
+          l10n.csv_header_amount,
+          l10n.csv_header_currency,
+          l10n.csv_header_type,
+          l10n.csv_header_category,
+          l10n.csv_header_account,
+          l10n.csv_header_tags,
+          l10n.csv_header_source,
+          l10n.csv_header_location,
+          l10n.csv_header_notes,
+        ],
+      );
       if (!mounted) return;
       await Share.shareXFiles([XFile(path)]);
       if (mounted) {

@@ -19,8 +19,10 @@ abstract class BackupService {
 
   /// Exports transactions for the given month/year to CSV.
   /// Returns the file path on success.
+  /// If [headers] is provided, uses them as CSV column headers (localized).
   Future<String> exportTransactionsToCsv({
     required int year,
     required int month,
+    List<String>? headers,
   });
 }

@@ -230,6 +230,18 @@
   "backup_export_csv_subtitle": "Monthly transactions in spreadsheet format",
   "backup_export_pdf_subtitle": "Monthly financial summary report",
 
+  "csv_header_date": "Date",
+  "csv_header_title": "Title",
+  "csv_header_amount": "Amount",
+  "csv_header_currency": "Currency",
+  "csv_header_type": "Type",
+  "csv_header_category": "Category",
+  "csv_header_account": "Account",
+  "csv_header_tags": "Tags",
+  "csv_header_source": "Source",
+  "csv_header_location": "Location",
+  "csv_header_notes": "Notes",
+
   "auth_pin_setup_title": "Set PIN",
   "auth_pin_setup_subtitle": "Create a 6-digit PIN to protect your data",
   "auth_pin_confirm": "Confirm PIN",
