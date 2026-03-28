@@ -921,6 +921,61 @@
       "to": {"type": "String"}
     }
   },
+  "chat_action_update_tx_title": "تعديل معاملة",
+  "chat_action_update_budget_title": "تعديل ميزانية",
+  "chat_action_delete_budget_title": "حذف ميزانية",
+  "chat_action_delete_goal_title": "حذف هدف",
+  "chat_action_delete_recurring_title": "حذف اشتراك",
+  "chat_action_tx_updated": "تم تعديل معاملة \"{title}\" إلى {amount}!",
+  "@chat_action_tx_updated": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_budget_updated": "تم تعديل ميزانية \"{category}\" إلى {amount}!",
+  "@chat_action_budget_updated": {
+    "placeholders": {
+      "category": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_budget_deleted": "تم حذف ميزانية \"{category}\"!",
+  "@chat_action_budget_deleted": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_budget_not_found": "مفيش ميزانية لـ \"{category}\" الشهر ده",
+  "@chat_action_budget_not_found": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_goal_deleted": "تم حذف هدف \"{name}\"!",
+  "@chat_action_goal_deleted": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_goal_not_found": "مفيش هدف اسمه \"{name}\"",
+  "@chat_action_goal_not_found": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_recurring_deleted": "تم حذف اشتراك \"{title}\"!",
+  "@chat_action_recurring_deleted": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "chat_action_recurring_not_found": "مفيش اشتراك اسمه \"{title}\"",
+  "@chat_action_recurring_not_found": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
   "recap_prime_message": "إزاي كان صرفي النهارده؟",
   "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" شكله دفعة متكررة. تضيفه للاشتراكات والفواتير؟",
   "@chat_subscription_suggest": {

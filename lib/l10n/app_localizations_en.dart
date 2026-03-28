@@ -2417,6 +2417,61 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get chat_action_update_tx_title => 'Update Transaction';
+
+  @override
+  String get chat_action_update_budget_title => 'Update Budget';
+
+  @override
+  String get chat_action_delete_budget_title => 'Delete Budget';
+
+  @override
+  String get chat_action_delete_goal_title => 'Delete Goal';
+
+  @override
+  String get chat_action_delete_recurring_title => 'Delete Subscription';
+
+  @override
+  String chat_action_tx_updated(String title, String amount) {
+    return 'Transaction \"$title\" updated to $amount!';
+  }
+
+  @override
+  String chat_action_budget_updated(String category, String amount) {
+    return 'Budget for \"$category\" updated to $amount!';
+  }
+
+  @override
+  String chat_action_budget_deleted(String category) {
+    return 'Budget for \"$category\" deleted!';
+  }
+
+  @override
+  String chat_action_budget_not_found(String category) {
+    return 'No budget found for \"$category\" this month';
+  }
+
+  @override
+  String chat_action_goal_deleted(String name) {
+    return 'Goal \"$name\" deleted!';
+  }
+
+  @override
+  String chat_action_goal_not_found(String name) {
+    return 'No goal found matching \"$name\"';
+  }
+
+  @override
+  String chat_action_recurring_deleted(String title) {
+    return 'Subscription \"$title\" deleted!';
+  }
+
+  @override
+  String chat_action_recurring_not_found(String title) {
+    return 'No subscription found matching \"$title\"';
+  }
+
+  @override
   String get recap_prime_message => 'How was my spending today?';
 
   @override

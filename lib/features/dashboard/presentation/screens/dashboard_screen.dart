@@ -73,65 +73,69 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(totalBalanceProvider);
-          ref.invalidate(recentActivityProvider);
-          ref.invalidate(transactionsByMonthProvider(monthKey));
-          ref.invalidate(budgetsByMonthProvider(monthKey));
-          if (selectedWalletId != null) {
-            ref.invalidate(activityByWalletProvider(selectedWalletId));
-          }
-          // M-5 fix: invalidate all background AI insight providers
-          ref.invalidate(spendingPredictionsProvider);
-          ref.invalidate(detectedPatternsProvider);
-          ref.invalidate(budgetSuggestionsProvider);
-          ref.invalidate(budgetSavingsProvider);
-          ref.invalidate(upcomingBillsProvider);
-          await ref.read(recentActivityProvider.future);
-        },
-        child: SlidableAutoCloseBehavior(
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // ── Offline banner ────────────────────────────────────────
-              if (!isOnline) SliverToBoxAdapter(child: _OfflineBanner()),
+      body: Column(
+        children: [
+          // ── Fixed zone: offline banner + header (never scrolls) ──────
+          if (!isOnline) _OfflineBanner(),
+          if (filter.isSearchActive)
+            SearchHeader(resultCount: resultCount)
+          else
+            const BalanceHeader(),
 
-              // ── Balance header or Search header ───────────────────────
-              if (!filter.isSearchActive)
-                const SliverToBoxAdapter(child: BalanceHeader()),
-              if (filter.isSearchActive)
-                SliverToBoxAdapter(
-                  child: SearchHeader(resultCount: resultCount),
+          // ── Scrollable zone: insight cards + filter bar + transactions
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(totalBalanceProvider);
+                ref.invalidate(recentActivityProvider);
+                ref.invalidate(transactionsByMonthProvider(monthKey));
+                ref.invalidate(budgetsByMonthProvider(monthKey));
+                if (selectedWalletId != null) {
+                  ref.invalidate(activityByWalletProvider(selectedWalletId));
+                }
+                // M-5 fix: invalidate all background AI insight providers
+                ref.invalidate(spendingPredictionsProvider);
+                ref.invalidate(detectedPatternsProvider);
+                ref.invalidate(budgetSuggestionsProvider);
+                ref.invalidate(budgetSavingsProvider);
+                ref.invalidate(upcomingBillsProvider);
+                await ref.read(recentActivityProvider.future);
+              },
+              child: SlidableAutoCloseBehavior(
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // ── Insight cards zone (scroll away, hidden during search)
+                    if (!filter.isSearchActive)
+                      const SliverToBoxAdapter(child: InsightCardsZone()),
+
+                    // ── Pinned filter bar (D-09) ──────────────────────────
+                    const SliverPersistentHeader(
+                      pinned: true,
+                      delegate: FilterBarDelegate(child: FilterBar()),
+                    ),
+
+                    // ── Filter badge (D-14 — both account + type active) ──
+                    const SliverToBoxAdapter(child: FilterBadge()),
+
+                    // ── Transaction list with date grouping (D-13) ────────
+                    TransactionSliverList(
+                      onTap: (tx) => _onTransactionTap(context, tx),
+                      onEdit: (tx) => _editTransaction(context, ref, tx),
+                      onDelete: (tx) => _deleteTransaction(context, ref, tx),
+                    ),
+
+                    // ── Bottom padding for nav bar clearance ──────────────
+                    const SliverPadding(
+                      padding:
+                          EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+                    ),
+                  ],
                 ),
-
-              // ── Insight cards zone (scroll away, hidden during search)
-              if (!filter.isSearchActive)
-                const SliverToBoxAdapter(child: InsightCardsZone()),
-
-              // ── Pinned filter bar (D-09) ──────────────────────────────
-              const SliverPersistentHeader(
-                pinned: true,
-                delegate: FilterBarDelegate(child: FilterBar()),
               ),
-
-              // ── Filter badge (D-14 — both account + type active) ─────
-              const SliverToBoxAdapter(child: FilterBadge()),
-
-              // ── Transaction list with date grouping (D-13) ───────────
-              TransactionSliverList(
-                onTap: (tx) => _onTransactionTap(context, tx),
-                onEdit: (tx) => _editTransaction(context, ref, tx),
-                onDelete: (tx) => _deleteTransaction(context, ref, tx),
-              ),
-
-              // ── Bottom padding for nav bar clearance ──────────────────
-              const SliverPadding(
-                padding: EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

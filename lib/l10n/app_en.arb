@@ -941,6 +941,61 @@
       "to": {"type": "String"}
     }
   },
+  "chat_action_update_tx_title": "Update Transaction",
+  "chat_action_update_budget_title": "Update Budget",
+  "chat_action_delete_budget_title": "Delete Budget",
+  "chat_action_delete_goal_title": "Delete Goal",
+  "chat_action_delete_recurring_title": "Delete Subscription",
+  "chat_action_tx_updated": "Transaction \"{title}\" updated to {amount}!",
+  "@chat_action_tx_updated": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_budget_updated": "Budget for \"{category}\" updated to {amount}!",
+  "@chat_action_budget_updated": {
+    "placeholders": {
+      "category": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "chat_action_budget_deleted": "Budget for \"{category}\" deleted!",
+  "@chat_action_budget_deleted": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_budget_not_found": "No budget found for \"{category}\" this month",
+  "@chat_action_budget_not_found": {
+    "placeholders": {
+      "category": {"type": "String"}
+    }
+  },
+  "chat_action_goal_deleted": "Goal \"{name}\" deleted!",
+  "@chat_action_goal_deleted": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_goal_not_found": "No goal found matching \"{name}\"",
+  "@chat_action_goal_not_found": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "chat_action_recurring_deleted": "Subscription \"{title}\" deleted!",
+  "@chat_action_recurring_deleted": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "chat_action_recurring_not_found": "No subscription found matching \"{title}\"",
+  "@chat_action_recurring_not_found": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
   "recap_prime_message": "How was my spending today?",
   "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" looks like a recurring payment. Add to Subscriptions & Bills?",
   "@chat_subscription_suggest": {

@@ -4,20 +4,26 @@ import 'chat_action.dart';
 
 /// Result of parsing an AI chat response.
 class ParsedChatResponse {
-  const ParsedChatResponse({required this.textContent, this.action});
+  const ParsedChatResponse({
+    required this.textContent,
+    this.actions = const [],
+  });
 
-  /// Human-readable text with the JSON action block stripped.
+  /// Human-readable text with all JSON action blocks stripped.
   final String textContent;
 
-  /// Parsed action, or `null` if no valid action was found.
-  final ChatAction? action;
+  /// Parsed actions (may be empty if no valid actions found).
+  final List<ChatAction> actions;
+
+  /// Convenience: first action, for backwards-compatible single-action usage.
+  ChatAction? get action => actions.isNotEmpty ? actions.first : null;
 }
 
 /// Extracts structured [ChatAction] JSON blocks from raw AI responses.
 ///
-/// The AI is instructed to embed a fenced JSON block (```json ... ```) when
-/// it wants to suggest an action. This parser finds, extracts, and validates
-/// that block, returning the remaining text separately.
+/// The AI is instructed to embed fenced JSON blocks (```json ... ```) when
+/// it wants to suggest actions. This parser finds, extracts, and validates
+/// all blocks, returning the remaining text separately.
 class ChatResponseParser {
   ChatResponseParser._();
 
@@ -25,7 +31,7 @@ class ChatResponseParser {
   /// Uses greedy match to capture the outermost `}` before the closing fence,
   /// correctly handling nested objects in the JSON.
   static final _fencedJsonRegex = RegExp(
-    r'```json\s*(\{[\s\S]*\})\s*```',
+    r'```json\s*(\{[\s\S]*?\})\s*```',
   );
 
   /// Bare JSON with an "action" key (fallback for models that omit fences).
@@ -33,66 +39,79 @@ class ChatResponseParser {
     r'(\{[^{}]*"action"\s*:\s*"[^"]+?"[^{}]*\})',
   );
 
-  /// Parse [rawContent] into text + optional action.
+  /// Parse [rawContent] into text + list of actions.
   static ParsedChatResponse parse(String rawContent) {
-    // Try fenced JSON first.
-    var match = _fencedJsonRegex.firstMatch(rawContent);
-    RegExp? matchedPattern;
-    if (match != null) {
-      matchedPattern = _fencedJsonRegex;
-    } else {
-      // Fallback: bare JSON with "action" key.
-      match = _bareJsonRegex.firstMatch(rawContent);
-      if (match != null) matchedPattern = _bareJsonRegex;
+    final actions = <ChatAction>[];
+    var remaining = rawContent;
+
+    // Layer 1: Extract ALL fenced JSON blocks.
+    final fencedMatches = _fencedJsonRegex.allMatches(rawContent).toList();
+    if (fencedMatches.isNotEmpty) {
+      for (final match in fencedMatches) {
+        final jsonStr = match.group(1)!;
+        final action = _tryParseAction(jsonStr);
+        if (action != null) actions.add(action);
+        remaining = remaining.replaceFirst(match.group(0)!, '');
+      }
+
+      if (actions.isNotEmpty) {
+        return ParsedChatResponse(
+          textContent: _cleanText(remaining),
+          actions: actions,
+        );
+      }
+    }
+
+    // Layer 2: Bare JSON fallback — extract all matches.
+    final bareMatches = _bareJsonRegex.allMatches(rawContent).toList();
+    if (bareMatches.isNotEmpty) {
+      remaining = rawContent;
+      for (final match in bareMatches) {
+        final jsonStr = match.group(1)!;
+        final action = _tryParseAction(jsonStr);
+        if (action != null) actions.add(action);
+        remaining = remaining.replaceFirst(match.group(0)!, '');
+      }
+
+      if (actions.isNotEmpty) {
+        return ParsedChatResponse(
+          textContent: _cleanText(remaining),
+          actions: actions,
+        );
+      }
     }
 
     // Layer 3: Balanced-brace extraction for edge cases where JSON is
     // embedded in markdown or malformed fences.
-    if (match == null || matchedPattern == null) {
-      final braceResult = _extractBalancedBrace(rawContent);
-      if (braceResult != null) {
-        try {
-          final decoded = jsonDecode(braceResult) as Map<String, dynamic>;
-          final action = ChatAction.fromJson(decoded);
-          if (action != null) {
-            final textContent = rawContent
-                .replaceFirst(braceResult, '')
-                .replaceAll(RegExp(r'\n{3,}'), '\n\n')
-                .trim();
-            return ParsedChatResponse(
-              textContent: _maybeSanitize(textContent),
-              action: action,
-            );
-          }
-        } catch (_) {
-          // Balanced brace found but not valid JSON — fall through.
-        }
+    final braceResult = _extractBalancedBrace(rawContent);
+    if (braceResult != null) {
+      final action = _tryParseAction(braceResult);
+      if (action != null) {
+        final textContent = rawContent.replaceFirst(braceResult, '');
+        return ParsedChatResponse(
+          textContent: _cleanText(textContent),
+          actions: [action],
+        );
       }
-      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
 
-    final jsonStr = match.group(1)!;
+    return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
+  }
+
+  /// Try to parse a JSON string into a [ChatAction].
+  static ChatAction? _tryParseAction(String jsonStr) {
     try {
       final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
-      final action = ChatAction.fromJson(decoded);
-      if (action == null) {
-        return ParsedChatResponse(textContent: rawContent);
-      }
-
-      // Strip the matched JSON block from the text.
-      final textContent = rawContent
-          .replaceFirst(matchedPattern, '')
-          .replaceAll(RegExp(r'\n{3,}'), '\n\n') // collapse excessive newlines
-          .trim();
-
-      return ParsedChatResponse(
-        textContent: _maybeSanitize(textContent),
-        action: action,
-      );
+      return ChatAction.fromJson(decoded);
     } catch (_) {
-      // Malformed JSON — treat entire response as plain text.
-      return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
+      return null;
     }
+  }
+
+  /// Clean up text after stripping JSON blocks.
+  static String _cleanText(String text) {
+    final cleaned = text.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+    return _maybeSanitize(cleaned);
   }
 
   /// Apply safety-net only if text still contains JSON indicators.
@@ -130,15 +149,12 @@ class ChatResponseParser {
   }
 
   /// Final safety net: strip any remaining action-JSON fragments that
-  /// slipped past the 2-layer parser (e.g., split across stream chunks,
-  /// nested in unrecognized markdown, or malformed responses).
+  /// slipped past the parser.
   static String _sanitizeRemainingJson(String text) {
-    // Strip any bare {...} block containing "action" key.
     var cleaned = text.replaceAll(
       RegExp(r'\{[^{}]*"action"\s*:\s*"[^"]*"[^{}]*\}'),
       '',
     );
-    // Clean up leftover whitespace.
     cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
     return cleaned.isEmpty ? text : cleaned;
   }

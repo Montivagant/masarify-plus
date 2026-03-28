@@ -4587,6 +4587,84 @@ abstract class AppLocalizations {
   /// **'Transfer of {amount} from \"{from}\" to \"{to}\" created!'**
   String chat_action_transfer_created(String amount, String from, String to);
 
+  /// No description provided for @chat_action_update_tx_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Transaction'**
+  String get chat_action_update_tx_title;
+
+  /// No description provided for @chat_action_update_budget_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Budget'**
+  String get chat_action_update_budget_title;
+
+  /// No description provided for @chat_action_delete_budget_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Budget'**
+  String get chat_action_delete_budget_title;
+
+  /// No description provided for @chat_action_delete_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Goal'**
+  String get chat_action_delete_goal_title;
+
+  /// No description provided for @chat_action_delete_recurring_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Subscription'**
+  String get chat_action_delete_recurring_title;
+
+  /// No description provided for @chat_action_tx_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction \"{title}\" updated to {amount}!'**
+  String chat_action_tx_updated(String title, String amount);
+
+  /// No description provided for @chat_action_budget_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget for \"{category}\" updated to {amount}!'**
+  String chat_action_budget_updated(String category, String amount);
+
+  /// No description provided for @chat_action_budget_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget for \"{category}\" deleted!'**
+  String chat_action_budget_deleted(String category);
+
+  /// No description provided for @chat_action_budget_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget found for \"{category}\" this month'**
+  String chat_action_budget_not_found(String category);
+
+  /// No description provided for @chat_action_goal_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal \"{name}\" deleted!'**
+  String chat_action_goal_deleted(String name);
+
+  /// No description provided for @chat_action_goal_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No goal found matching \"{name}\"'**
+  String chat_action_goal_not_found(String name);
+
+  /// No description provided for @chat_action_recurring_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription \"{title}\" deleted!'**
+  String chat_action_recurring_deleted(String title);
+
+  /// No description provided for @chat_action_recurring_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscription found matching \"{title}\"'**
+  String chat_action_recurring_not_found(String title);
+
   /// No description provided for @recap_prime_message.
   ///
   /// In en, this message translates to:

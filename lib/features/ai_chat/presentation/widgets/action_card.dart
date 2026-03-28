@@ -69,6 +69,31 @@ class ActionCard extends StatelessWidget {
           context.l10n.chat_action_delete_title,
           theme.expenseColor,
         ),
+      UpdateTransactionAction() => (
+          AppIcons.edit,
+          context.l10n.chat_action_update_tx_title,
+          cs.primary,
+        ),
+      UpdateBudgetAction() => (
+          AppIcons.budget,
+          context.l10n.chat_action_update_budget_title,
+          cs.tertiary,
+        ),
+      DeleteBudgetAction() => (
+          AppIcons.delete,
+          context.l10n.chat_action_delete_budget_title,
+          theme.expenseColor,
+        ),
+      DeleteGoalAction() => (
+          AppIcons.delete,
+          context.l10n.chat_action_delete_goal_title,
+          theme.expenseColor,
+        ),
+      DeleteRecurringAction() => (
+          AppIcons.delete,
+          context.l10n.chat_action_delete_recurring_title,
+          theme.expenseColor,
+        ),
     };
 
     return Align(
@@ -318,6 +343,89 @@ class ActionCard extends StatelessWidget {
               labelStyle: labelS,
               valueStyle: valueStyle,
             ),
+        ],
+      UpdateTransactionAction(
+        :final title,
+        :final amountPiastres,
+        :final newTitle,
+        :final newAmountPiastres,
+        :final newCategory,
+      ) =>
+        [
+          _DetailLine(
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          _DetailLine(
+            label: context.l10n.common_amount,
+            value: MoneyFormatter.format(amountPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          if (newTitle != null)
+            _DetailLine(
+              label: '→ ${context.l10n.transaction_title_label}',
+              value: newTitle,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newAmountPiastres != null)
+            _DetailLine(
+              label: '→ ${context.l10n.common_amount}',
+              value: MoneyFormatter.format(newAmountPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newCategory != null)
+            _DetailLine(
+              label: '→ ${context.l10n.transaction_category}',
+              value: newCategory,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+        ],
+      UpdateBudgetAction(:final categoryName, :final newLimitPiastres) => [
+          _DetailLine(
+            label: context.l10n.transaction_category,
+            value: categoryName,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          _DetailLine(
+            label: '→ ${context.l10n.budget_limit}',
+            value: MoneyFormatter.format(newLimitPiastres),
+            labelStyle: labelS,
+            valueStyle: valueStyle?.copyWith(color: cs.primary),
+          ),
+        ],
+      DeleteBudgetAction(:final categoryName) => [
+          _DetailLine(
+            label: context.l10n.transaction_category,
+            value: categoryName,
+            labelStyle: labelS,
+            valueStyle:
+                valueStyle?.copyWith(color: context.appTheme.expenseColor),
+          ),
+        ],
+      DeleteGoalAction(:final name) => [
+          _DetailLine(
+            label: context.l10n.transaction_title_label,
+            value: name,
+            labelStyle: labelS,
+            valueStyle:
+                valueStyle?.copyWith(color: context.appTheme.expenseColor),
+          ),
+        ],
+      DeleteRecurringAction(:final title) => [
+          _DetailLine(
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle:
+                valueStyle?.copyWith(color: context.appTheme.expenseColor),
+          ),
         ],
     };
   }

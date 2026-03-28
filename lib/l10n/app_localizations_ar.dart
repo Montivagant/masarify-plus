@@ -2397,6 +2397,61 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get chat_action_update_tx_title => 'تعديل معاملة';
+
+  @override
+  String get chat_action_update_budget_title => 'تعديل ميزانية';
+
+  @override
+  String get chat_action_delete_budget_title => 'حذف ميزانية';
+
+  @override
+  String get chat_action_delete_goal_title => 'حذف هدف';
+
+  @override
+  String get chat_action_delete_recurring_title => 'حذف اشتراك';
+
+  @override
+  String chat_action_tx_updated(String title, String amount) {
+    return 'تم تعديل معاملة \"$title\" إلى $amount!';
+  }
+
+  @override
+  String chat_action_budget_updated(String category, String amount) {
+    return 'تم تعديل ميزانية \"$category\" إلى $amount!';
+  }
+
+  @override
+  String chat_action_budget_deleted(String category) {
+    return 'تم حذف ميزانية \"$category\"!';
+  }
+
+  @override
+  String chat_action_budget_not_found(String category) {
+    return 'مفيش ميزانية لـ \"$category\" الشهر ده';
+  }
+
+  @override
+  String chat_action_goal_deleted(String name) {
+    return 'تم حذف هدف \"$name\"!';
+  }
+
+  @override
+  String chat_action_goal_not_found(String name) {
+    return 'مفيش هدف اسمه \"$name\"';
+  }
+
+  @override
+  String chat_action_recurring_deleted(String title) {
+    return 'تم حذف اشتراك \"$title\"!';
+  }
+
+  @override
+  String chat_action_recurring_not_found(String title) {
+    return 'مفيش اشتراك اسمه \"$title\"';
+  }
+
+  @override
   String get recap_prime_message => 'إزاي كان صرفي النهارده؟';
 
   @override

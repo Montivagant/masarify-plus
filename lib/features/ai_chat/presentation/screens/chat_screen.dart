@@ -46,12 +46,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _isSending = false;
   bool _showDisclaimer = false;
 
-  /// In-memory action status for the current session. On confirm or cancel,
-  /// the message content is stripped of its JSON block in the DB (via
-  /// [ChatMessageDao.updateContent]), making the resolved state durable
-  /// across restarts. The status enum itself is not stored in the DB.
-  final Map<int, ChatActionStatus> _actionStates = {};
-  final Set<int> _executingActions = {};
+  /// In-memory action status for the current session. Keyed by compound
+  /// string '${messageId}_$actionIndex' to support multiple actions per message.
+  /// On confirm or cancel, the message content is stripped of its JSON blocks
+  /// in the DB, making the resolved state durable across restarts.
+  final Map<String, ChatActionStatus> _actionStates = {};
+  final Set<String> _executingActions = {};
 
   @override
   void initState() {
@@ -89,6 +89,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     final repo = ref.read(chatMessageRepositoryProvider);
     final aiService = ref.read(aiChatServiceProvider);
+    // Force fresh DateTime.now() — the cached provider goes stale across
+    // midnight or long sessions, making the AI unaware of the current date.
+    ref.invalidate(financialContextProvider);
     final financialCtx = ref.read(financialContextProvider);
 
     // Cache l10n strings before async gap.
@@ -183,13 +186,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  /// Compound key for action status tracking: '${messageId}_$actionIndex'.
+  String _actionKey(int messageId, int actionIndex) =>
+      '${messageId}_$actionIndex';
+
+  Widget _buildActionCard(
+    int messageId,
+    int actionIndex,
+    ChatAction action,
+    String strippedText,
+  ) {
+    final key = _actionKey(messageId, actionIndex);
+    final status = _actionStates[key] ?? ChatActionStatus.pending;
+    return ActionCard(
+      action: action,
+      status: status,
+      onConfirm: status == ChatActionStatus.pending ||
+              status == ChatActionStatus.failed
+          ? () => _onConfirmAction(messageId, actionIndex, action, strippedText)
+          : null,
+      onCancel: status == ChatActionStatus.pending
+          ? () => _onCancelAction(messageId, actionIndex, strippedText)
+          : null,
+    );
+  }
+
   Future<void> _onConfirmAction(
     int messageId,
+    int actionIndex,
     ChatAction action,
     String strippedText,
   ) async {
-    if (_executingActions.contains(messageId)) return;
-    setState(() => _executingActions.add(messageId));
+    final key = _actionKey(messageId, actionIndex);
+    if (_executingActions.contains(key)) return;
+    setState(() => _executingActions.add(key));
 
     final executor = ref.read(chatActionExecutorProvider);
     final categoriesAsync = ref.read(categoriesProvider);
@@ -201,7 +231,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     // Guard against cold-start or error: providers may not be ready yet.
     if (categoriesAsync is! AsyncData || walletsAsync is! AsyncData) {
       if (mounted) {
-        setState(() => _executingActions.remove(messageId));
+        setState(() => _executingActions.remove(key));
         SnackHelper.showError(context, errorGeneric);
       }
       return;
@@ -228,6 +258,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       walletCreated: l10n.chat_action_wallet_created,
       transferCreated: l10n.chat_action_transfer_created,
       txDeleted: l10n.chat_action_tx_deleted,
+      txUpdated: l10n.chat_action_tx_updated,
+      budgetUpdated: l10n.chat_action_budget_updated,
+      budgetDeleted: l10n.chat_action_budget_deleted,
+      budgetNotFound: l10n.chat_action_budget_not_found,
+      goalDeleted: l10n.chat_action_goal_deleted,
+      goalNotFound: l10n.chat_action_goal_not_found,
+      recurringDeleted: l10n.chat_action_recurring_deleted,
+      recurringNotFound: l10n.chat_action_recurring_not_found,
     );
 
     try {
@@ -262,7 +300,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       });
 
       if (!mounted) return;
-      setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
+      setState(() => _actionStates[key] = ChatActionStatus.confirmed);
 
       // Show subscription suggestion if the created transaction looks recurring.
       if (result.subscriptionSuggestion != null && mounted) {
@@ -283,14 +321,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         tokenCount: 0,
       );
       if (!mounted) return;
-      setState(() => _actionStates[messageId] = ChatActionStatus.failed);
+      setState(() => _actionStates[key] = ChatActionStatus.failed);
     } finally {
-      if (mounted) setState(() => _executingActions.remove(messageId));
+      if (mounted) setState(() => _executingActions.remove(key));
     }
   }
 
-  Future<void> _onCancelAction(int messageId, String strippedText) async {
-    setState(() => _actionStates[messageId] = ChatActionStatus.cancelled);
+  Future<void> _onCancelAction(
+    int messageId,
+    int actionIndex,
+    String strippedText,
+  ) async {
+    final key = _actionKey(messageId, actionIndex);
+    setState(() => _actionStates[key] = ChatActionStatus.cancelled);
     // Strip JSON so the action card doesn't reappear after navigation.
     try {
       final newTokens = AiChatService.estimateTokens(strippedText);
@@ -438,9 +481,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       // For assistant messages, parse for action JSON.
                       if (msg.role == 'assistant') {
                         final parsed = ChatResponseParser.parse(msg.content);
-                        if (parsed.action != null) {
-                          final status =
-                              _actionStates[msg.id] ?? ChatActionStatus.pending;
+                        if (parsed.actions.isNotEmpty) {
                           final textMsg = ChatMessageEntity(
                             id: msg.id,
                             role: msg.role,
@@ -453,24 +494,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             children: [
                               if (parsed.textContent.isNotEmpty)
                                 MessageBubble(message: textMsg),
-                              ActionCard(
-                                action: parsed.action!,
-                                status: status,
-                                onConfirm: status == ChatActionStatus.pending ||
-                                        status == ChatActionStatus.failed
-                                    ? () => _onConfirmAction(
-                                          msg.id,
-                                          parsed.action!,
-                                          parsed.textContent,
-                                        )
-                                    : null,
-                                onCancel: status == ChatActionStatus.pending
-                                    ? () => _onCancelAction(
-                                          msg.id,
-                                          parsed.textContent,
-                                        )
-                                    : null,
-                              ),
+                              for (int i = 0; i < parsed.actions.length; i++)
+                                _buildActionCard(
+                                  msg.id,
+                                  i,
+                                  parsed.actions[i],
+                                  parsed.textContent,
+                                ),
                             ],
                           );
                         }

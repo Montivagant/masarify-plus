@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/transaction_grouper.dart';
+import '../../../../domain/adapters/transfer_adapter.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
@@ -44,9 +46,12 @@ class TransactionSliverList extends ConsumerWidget {
     final selectedWalletId = ref.watch(selectedAccountIdProvider);
     final filter = ref.watch(homeFilterProvider);
 
-    // Build wallet name lookup for All Accounts view.
+    // Build wallet lookup maps for All Accounts view + transfer resolution.
     final walletNames = <int, String>{
       for (final w in wallets) w.id: w.name,
+    };
+    final walletTypes = <int, String>{
+      for (final w in wallets) w.id: w.type,
     };
 
     final showWalletName = selectedWalletId == null;
@@ -131,11 +136,32 @@ class TransactionSliverList extends ConsumerWidget {
               languageCode: context.languageCode,
             );
 
+            // Resolve counterpart info for transfer entries (port from
+            // transaction_list_section.dart — transfers have categoryId 0
+            // which resolves to "?" without this intercept).
+            IconData? transferCounterpartIcon;
+            String? transferDisplayName;
+            if (tx.type == 'transfer') {
+              final cpId = counterpartWalletId(tx.tags);
+              if (cpId != null) {
+                final cpName = walletNames[cpId];
+                if (cpName != null) {
+                  transferCounterpartIcon =
+                      AppIcons.walletType(walletTypes[cpId] ?? 'bank');
+                  final isSender = isTransferSender(tx.tags);
+                  transferDisplayName = isSender
+                      ? '${context.l10n.common_transfer} → $cpName'
+                      : '${context.l10n.common_transfer} ← $cpName';
+                }
+              }
+            }
+
             return TransactionCard(
               transaction: tx,
               categoryIcon: resolved.icon,
               categoryColor: resolved.color,
-              categoryName: resolved.name,
+              categoryName: transferDisplayName ?? resolved.name,
+              transferCounterpartIcon: transferCounterpartIcon,
               walletName: showWalletName ? walletNames[tx.walletId] : null,
               onTap: onTap != null ? () => onTap!(tx) : null,
               onEdit: onEdit != null ? () => onEdit!(tx) : null,

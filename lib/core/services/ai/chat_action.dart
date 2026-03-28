@@ -29,6 +29,16 @@ sealed class ChatAction {
         return _parseTransfer(json);
       case 'delete_transaction':
         return _parseDeleteTransaction(json);
+      case 'update_transaction':
+        return _parseUpdateTransaction(json);
+      case 'update_budget':
+        return _parseUpdateBudget(json);
+      case 'delete_budget':
+        return _parseDeleteBudget(json);
+      case 'delete_goal':
+        return _parseDeleteGoal(json);
+      case 'delete_recurring':
+        return _parseDeleteRecurring(json);
       default:
         return null;
     }
@@ -126,6 +136,9 @@ sealed class ChatAction {
       frequency: frequency,
       categoryName: category,
       type: type,
+      startDate: json['start_date'] as String?,
+      nextDueDate: json['next_due_date'] as String?,
+      endDate: json['end_date'] as String?,
     );
   }
 
@@ -185,6 +198,80 @@ sealed class ChatAction {
       amountPiastres: piastres,
       date: json['date'] as String?,
     );
+  }
+
+  static UpdateTransactionAction? _parseUpdateTransaction(
+    Map<String, dynamic> json,
+  ) {
+    // Match criteria: title + amount (required to find the transaction).
+    final title = json['title'] as String?;
+    final rawAmount = json['amount'];
+    if (title == null || title.isEmpty || rawAmount == null) return null;
+
+    final piastres = (_toDouble(rawAmount) * 100).round();
+    if (piastres <= 0 || piastres > _kMaxPiastres) return null;
+
+    // Updatable fields (all optional — at least one should be provided).
+    final newRawAmount = json['new_amount'];
+    final newPiastres =
+        newRawAmount != null ? (_toDouble(newRawAmount) * 100).round() : null;
+
+    return UpdateTransactionAction(
+      title: title,
+      amountPiastres: piastres,
+      date: json['date'] as String?,
+      newTitle: json['new_title'] as String?,
+      newAmountPiastres:
+          newPiastres != null && newPiastres > 0 ? newPiastres : null,
+      newCategory: json['new_category'] as String?,
+      newDate: json['new_date'] as String?,
+      newNote: json['new_note'] as String?,
+    );
+  }
+
+  static UpdateBudgetAction? _parseUpdateBudget(Map<String, dynamic> json) {
+    final category = json['category'] as String?;
+    if (category == null || category.isEmpty) return null;
+
+    final rawNewLimit = json['new_limit'];
+    if (rawNewLimit == null) return null;
+
+    final newPiastres = (_toDouble(rawNewLimit) * 100).round();
+    if (newPiastres <= 0 || newPiastres > _kMaxPiastres) return null;
+
+    return UpdateBudgetAction(
+      categoryName: category,
+      month: json['month'] as int?,
+      year: json['year'] as int?,
+      newLimitPiastres: newPiastres,
+    );
+  }
+
+  static DeleteBudgetAction? _parseDeleteBudget(Map<String, dynamic> json) {
+    final category = json['category'] as String?;
+    if (category == null || category.isEmpty) return null;
+
+    return DeleteBudgetAction(
+      categoryName: category,
+      month: json['month'] as int?,
+      year: json['year'] as int?,
+    );
+  }
+
+  static DeleteGoalAction? _parseDeleteGoal(Map<String, dynamic> json) {
+    final name = json['name'] as String?;
+    if (name == null || name.isEmpty) return null;
+
+    return DeleteGoalAction(name: name);
+  }
+
+  static DeleteRecurringAction? _parseDeleteRecurring(
+    Map<String, dynamic> json,
+  ) {
+    final title = json['title'] as String?;
+    if (title == null || title.isEmpty) return null;
+
+    return DeleteRecurringAction(title: title);
   }
 
   static double _toDouble(dynamic value) {
@@ -294,6 +381,9 @@ class CreateRecurringAction extends ChatAction {
     required this.frequency,
     required this.categoryName,
     required this.type,
+    this.startDate,
+    this.nextDueDate,
+    this.endDate,
   });
 
   final String title;
@@ -309,6 +399,15 @@ class CreateRecurringAction extends ChatAction {
   /// 'income' or 'expense'.
   final String type;
 
+  /// Optional ISO date for when the recurring rule starts.
+  final String? startDate;
+
+  /// Optional ISO date for the next due date (e.g., "due on the 15th").
+  final String? nextDueDate;
+
+  /// Optional ISO date for when the recurring rule ends.
+  final String? endDate;
+
   @override
   Map<String, dynamic> toJson() => {
         'action': 'create_recurring',
@@ -317,6 +416,9 @@ class CreateRecurringAction extends ChatAction {
         'frequency': frequency,
         'category': categoryName,
         'type': type,
+        if (startDate != null) 'start_date': startDate,
+        if (nextDueDate != null) 'next_due_date': nextDueDate,
+        if (endDate != null) 'end_date': endDate,
       };
 }
 
@@ -395,6 +497,116 @@ class DeleteTransactionAction extends ChatAction {
         'title': title,
         'amount': amountPiastres / 100,
         if (date != null) 'date': date,
+      };
+}
+
+/// Action to update a transaction by matching title + amount.
+class UpdateTransactionAction extends ChatAction {
+  const UpdateTransactionAction({
+    required this.title,
+    required this.amountPiastres,
+    this.date,
+    this.newTitle,
+    this.newAmountPiastres,
+    this.newCategory,
+    this.newDate,
+    this.newNote,
+  });
+
+  // Match criteria.
+  final String title;
+  final int amountPiastres;
+  final String? date;
+
+  // Fields to update (all optional).
+  final String? newTitle;
+  final int? newAmountPiastres;
+  final String? newCategory;
+  final String? newDate;
+  final String? newNote;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_transaction',
+        'title': title,
+        'amount': amountPiastres / 100,
+        if (date != null) 'date': date,
+        if (newTitle != null) 'new_title': newTitle,
+        if (newAmountPiastres != null) 'new_amount': newAmountPiastres! / 100,
+        if (newCategory != null) 'new_category': newCategory,
+        if (newDate != null) 'new_date': newDate,
+        if (newNote != null) 'new_note': newNote,
+      };
+}
+
+/// Action to update a budget's limit by matching category + month.
+class UpdateBudgetAction extends ChatAction {
+  const UpdateBudgetAction({
+    required this.categoryName,
+    required this.newLimitPiastres,
+    this.month,
+    this.year,
+  });
+
+  final String categoryName;
+  final int newLimitPiastres;
+  final int? month;
+  final int? year;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_budget',
+        'category': categoryName,
+        'new_limit': newLimitPiastres / 100,
+        if (month != null) 'month': month,
+        if (year != null) 'year': year,
+      };
+}
+
+/// Action to delete a budget by matching category + month.
+class DeleteBudgetAction extends ChatAction {
+  const DeleteBudgetAction({
+    required this.categoryName,
+    this.month,
+    this.year,
+  });
+
+  final String categoryName;
+  final int? month;
+  final int? year;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'delete_budget',
+        'category': categoryName,
+        if (month != null) 'month': month,
+        if (year != null) 'year': year,
+      };
+}
+
+/// Action to delete a savings goal by name.
+class DeleteGoalAction extends ChatAction {
+  const DeleteGoalAction({required this.name});
+
+  final String name;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'delete_goal',
+        'name': name,
+      };
+}
+
+/// Action to delete a recurring rule by title.
+class DeleteRecurringAction extends ChatAction {
+  const DeleteRecurringAction({required this.title});
+
+  final String title;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'delete_recurring',
+        'title': title,
       };
 }
 

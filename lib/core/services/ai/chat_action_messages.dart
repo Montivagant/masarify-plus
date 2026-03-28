@@ -21,6 +21,14 @@ class ChatActionMessages {
     required this.walletCreated,
     required this.transferCreated,
     required this.txDeleted,
+    required this.txUpdated,
+    required this.budgetUpdated,
+    required this.budgetDeleted,
+    required this.budgetNotFound,
+    required this.goalDeleted,
+    required this.goalNotFound,
+    required this.recurringDeleted,
+    required this.recurringNotFound,
   });
 
   // ── Errors (simple strings) ───────────────────────────────────────────
@@ -46,4 +54,12 @@ class ChatActionMessages {
   final String Function(String name, String amount) walletCreated;
   final String Function(String amount, String from, String to) transferCreated;
   final String Function(String title, String amount) txDeleted;
+  final String Function(String title, String amount) txUpdated;
+  final String Function(String category, String amount) budgetUpdated;
+  final String Function(String category) budgetDeleted;
+  final String Function(String category) budgetNotFound;
+  final String Function(String name) goalDeleted;
+  final String Function(String name) goalNotFound;
+  final String Function(String title) recurringDeleted;
+  final String Function(String title) recurringNotFound;
 }
