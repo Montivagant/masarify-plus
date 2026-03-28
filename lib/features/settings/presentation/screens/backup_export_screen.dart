@@ -11,6 +11,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/google_drive_backup_service.dart';
@@ -54,6 +55,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       final account = await driveService.signInSilently();
       if (!mounted) return;
       final prefs = await ref.read(preferencesFutureProvider.future);
+      if (!mounted) return; // C-1 fix: second mounted check after second await
       setState(() {
         _driveSignedIn = account != null;
         _driveEmail = account?.email;
@@ -211,6 +213,9 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
 
         if (!mounted) return;
         SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
+        // C-6 fix: force full provider re-initialization
+        context.go(AppRoutes.splash);
+        return;
       } finally {
         // Always clean up temp dir
         try {
@@ -329,9 +334,11 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(backupServiceProvider).importFromJson(filePath);
-      if (mounted) {
-        SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
-      }
+      if (!mounted) return;
+      SnackHelper.showSuccess(context, context.l10n.backup_restore_success);
+      // C-6 fix: force full provider re-initialization by navigating to splash
+      context.go(AppRoutes.splash);
+      return; // Skip finally's setState — we've left the screen
     } on FormatException {
       if (mounted) {
         SnackHelper.showError(context, context.l10n.backup_error_invalid);
