@@ -330,25 +330,56 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               builder: (context) {
                 final includedCount =
                     _editableDrafts.where((d) => d.isIncluded).length;
+                final isMultiDraft = _editableDrafts.length > 1;
+                final allIncluded = _editableDrafts.every((d) => d.isIncluded);
                 return SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSizes.screenHPadding),
-                    child: FilledButton(
-                      onPressed: _saving || includedCount == 0
-                          ? null
-                          : () => _confirmAll(context),
-                      child: _saving
-                          ? SizedBox(
-                              width: AppSizes.spinnerSize,
-                              height: AppSizes.spinnerSize,
-                              child: CircularProgressIndicator(
-                                strokeWidth: AppSizes.spinnerStrokeWidth,
-                                color: context.colors.onPrimary,
+                    child: Row(
+                      children: [
+                        // Primary confirm button for selected drafts
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: _saving || includedCount == 0
+                                ? null
+                                : () => _confirmAll(context),
+                            child: _saving
+                                ? SizedBox(
+                                    width: AppSizes.spinnerSize,
+                                    height: AppSizes.spinnerSize,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: AppSizes.spinnerStrokeWidth,
+                                      color: context.colors.onPrimary,
+                                    ),
+                                  )
+                                : Text(
+                                    context.l10n
+                                        .voice_confirm_count(includedCount),
+                                  ),
+                          ),
+                        ),
+                        // "Save All" shortcut for multi-draft (D-16)
+                        if (isMultiDraft && !allIncluded) ...[
+                          const SizedBox(width: AppSizes.sm),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _saving
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        for (final d in _editableDrafts) {
+                                          d.isIncluded = true;
+                                        }
+                                      });
+                                      _confirmAll(context);
+                                    },
+                              child: Text(
+                                context.l10n.voice_confirm_accept_all,
                               ),
-                            )
-                          : Text(
-                              context.l10n.voice_confirm_count(includedCount),
                             ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 );

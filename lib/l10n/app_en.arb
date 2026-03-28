@@ -289,6 +289,8 @@
   "voice_processing": "Processing...",
   "voice_confirm_title": "Review Transactions",
   "voice_confirm_all": "Confirm All",
+  "voice_confirm_accept_all": "Save All",
+  "voice_confirm_all_saved": "All transactions saved",
   "voice_remove": "Remove",
   "voice_unavailable": "Voice input is not available on this device",
   "voice_error_no_service": "Voice input is not available. Please check your internet connection.",

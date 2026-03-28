@@ -1652,6 +1652,18 @@ abstract class AppLocalizations {
   /// **'Confirm All'**
   String get voice_confirm_all;
 
+  /// No description provided for @voice_confirm_accept_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Save All'**
+  String get voice_confirm_accept_all;
+
+  /// No description provided for @voice_confirm_all_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'All transactions saved'**
+  String get voice_confirm_all_saved;
+
   /// No description provided for @voice_remove.
   ///
   /// In en, this message translates to:
