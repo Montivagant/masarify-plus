@@ -35,6 +35,7 @@ import '../../features/transactions/presentation/screens/add_transaction_screen.
 import '../../features/transactions/presentation/screens/transaction_detail_screen.dart';
 import '../../features/voice_input/presentation/screens/voice_confirm_screen.dart';
 import '../../features/wallets/presentation/screens/add_wallet_screen.dart';
+import '../../features/wallets/presentation/screens/transfer_detail_screen.dart';
 import '../../features/wallets/presentation/screens/transfer_screen.dart';
 import '../../features/wallets/presentation/screens/wallet_detail_screen.dart';
 import '../../features/wallets/presentation/screens/wallets_screen.dart';
@@ -184,6 +185,15 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.transfer,
       builder: (_, __) => const TransferScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.transferDetail,
+      redirect: (_, state) =>
+          _parseId(state) == null ? AppRoutes.dashboard : null,
+      pageBuilder: (context, state) => _fadePage(
+        state: state,
+        child: TransferDetailScreen(transferId: _parseId(state)!),
+      ),
     ),
 
     // Categories — static routes before parameterised ones

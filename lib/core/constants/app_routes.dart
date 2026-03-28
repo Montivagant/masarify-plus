@@ -27,6 +27,7 @@ abstract final class AppRoutes {
   static const String walletEdit = '/wallets/:id/edit';
   static const String walletDetail = '/wallets/:id';
   static const String transfer = '/transfer';
+  static const String transferDetail = '/transfers/:id';
 
   // ── Categories ────────────────────────────────────────────────────────
   static const String categories = '/categories';
@@ -60,6 +61,7 @@ abstract final class AppRoutes {
   static String walletDetailPath(int id) => '/wallets/$id';
   static String editWalletPath(int id) => '/wallets/$id/edit';
   static String transactionDetailPath(int id) => '/transactions/$id';
+  static String transferDetailPath(int id) => '/transfers/$id';
   static String editCategoryPath(int id) => '/categories/$id/edit';
   static String goalDetailPath(int id) => '/goals/$id';
   static String editGoalPath(int id) => '/goals/$id/edit';

@@ -109,10 +109,12 @@ abstract final class AppSizes {
   static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 
-  /// Snackbar bottom margin — minimal gap only.
-  /// Flutter's Scaffold auto-offsets floating SnackBars above the FAB.
-  /// Explicit large margins stack on top of that, pushing to mid-screen.
-  static const double snackbarBottomMargin = sm;
+  /// Snackbar bottom margin to clear the floating nav bar + raised FAB.
+  /// The SnackBar renders on the inner screen Scaffold (no FAB/nav), so
+  /// Flutter's auto-offset doesn't apply. Manual clearance needed:
+  /// bottomNavHeight(64) + fabVerticalOffset(24) + md(16) = 104dp.
+  static const double snackbarBottomMargin =
+      bottomNavHeight + fabVerticalOffset + md;
 
   // ── SnackBar / Toast ──────────────────────────────────────────────────
   static const double snackTextSize = 13.0;

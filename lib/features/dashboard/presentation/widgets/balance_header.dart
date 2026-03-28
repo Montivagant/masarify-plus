@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
@@ -118,6 +120,32 @@ class BalanceHeader extends ConsumerWidget {
                           onTap: () => ref
                               .read(selectedAccountIdProvider.notifier)
                               .state = w.id,
+                        ),
+                      ),
+                      // Quick-add account chip
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          end: AppSizes.sm,
+                        ),
+                        child: ActionChip(
+                          avatar: Icon(
+                            AppIcons.add,
+                            size: AppSizes.iconXs,
+                            color: cs.primary,
+                          ),
+                          label: Text(
+                            context.l10n.wallet_add_short,
+                            style: context.textStyles.labelSmall?.copyWith(
+                              color: cs.primary,
+                            ),
+                          ),
+                          side: BorderSide(
+                            color: cs.primary.withValues(
+                              alpha: AppSizes.opacityLight4,
+                            ),
+                          ),
+                          backgroundColor: cs.surface,
+                          onPressed: () => context.push(AppRoutes.walletAdd),
                         ),
                       ),
                     ],

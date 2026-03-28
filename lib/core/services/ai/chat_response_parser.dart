@@ -158,4 +158,30 @@ class ChatResponseParser {
     cleaned = cleaned.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
     return cleaned.isEmpty ? text : cleaned;
   }
+
+  /// Strip only the Nth JSON action block from [rawContent], preserving
+  /// all other blocks. Used for per-action confirm/cancel in multi-action
+  /// messages so that confirming one action doesn't destroy the others.
+  static String stripActionAtIndex(String rawContent, int index) {
+    // Try fenced blocks first (primary format).
+    final fencedMatches = _fencedJsonRegex.allMatches(rawContent).toList();
+    if (index < fencedMatches.length) {
+      return rawContent
+          .replaceFirst(fencedMatches[index].group(0)!, '')
+          .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+          .trim();
+    }
+
+    // Fallback: try bare JSON blocks.
+    final bareMatches = _bareJsonRegex.allMatches(rawContent).toList();
+    if (index < bareMatches.length) {
+      return rawContent
+          .replaceFirst(bareMatches[index].group(0)!, '')
+          .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+          .trim();
+    }
+
+    // Index out of range — return content as-is.
+    return rawContent;
+  }
 }

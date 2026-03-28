@@ -1214,6 +1214,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_not_found => 'الحساب غير موجود';
 
   @override
+  String get wallet_add_short => 'إضافة';
+
+  @override
   String get wallet_add_title => 'حساب جديد';
 
   @override
@@ -1749,6 +1752,25 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_resume => 'تفعيل';
+
+  @override
+  String get recurring_error_title => 'من فضلك أدخل عنوان';
+
+  @override
+  String get recurring_error_amount => 'من فضلك أدخل مبلغ صحيح';
+
+  @override
+  String get recurring_error_category => 'من فضلك اختر فئة';
+
+  @override
+  String get recurring_error_wallet => 'من فضلك اختر حساب';
+
+  @override
+  String get recurring_error_end_date => 'تاريخ الانتهاء مطلوب للتكرار المخصص';
+
+  @override
+  String get recurring_error_date_order =>
+      'تاريخ الانتهاء لازم يكون بعد تاريخ البدء';
 
   @override
   String get recurring_frequency_label => 'التكرار';
@@ -2455,6 +2477,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recap_prime_message => 'إزاي كان صرفي النهارده؟';
 
   @override
+  String get chat_copy_message => 'نسخ الرسالة';
+
+  @override
+  String get chat_share_message => 'مشاركة الرسالة';
+
+  @override
+  String get chat_copied => 'تم نسخ الرسالة!';
+
+  @override
   String chat_subscription_suggest(String title) {
     return '💡 \"$title\" شكله دفعة متكررة. تضيفه للاشتراكات والفواتير؟';
   }
@@ -2693,6 +2724,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get home_net_label => 'الصافي';
 
   @override
+  String get home_net_tooltip =>
+      'الدخل ناقص المصروفات الشهر ده (التحويلات مش محسوبة)';
+
+  @override
   String get home_sort_title => 'ترتيب حسب';
 
   @override
@@ -2864,6 +2899,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get onboarding_starting_balance_set => 'تحديد الرصيد';
+
+  @override
+  String get transfer_detail_title => 'تفاصيل التحويل';
+
+  @override
+  String get transfer_fee_label => 'رسوم';
+
+  @override
+  String get transfer_not_found => 'التحويل غير موجود';
 
   @override
   String get transfer_delete_title => 'حذف التحويل';

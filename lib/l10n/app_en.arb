@@ -441,6 +441,7 @@
 
   "wallet_detail_title": "Account Details",
   "wallet_not_found": "Account not found",
+  "wallet_add_short": "Add",
   "wallet_add_title": "New Account",
   "wallet_edit_title": "Edit Account",
   "wallet_delete_title": "Delete Account",
@@ -628,6 +629,12 @@
   "recurring_paused": "Paused",
   "recurring_pause": "Pause",
   "recurring_resume": "Resume",
+  "recurring_error_title": "Please enter a title",
+  "recurring_error_amount": "Please enter a valid amount",
+  "recurring_error_category": "Please select a category",
+  "recurring_error_wallet": "Please select an account",
+  "recurring_error_end_date": "End date is required for custom frequency",
+  "recurring_error_date_order": "End date must be after start date",
   "recurring_frequency_label": "Frequency",
   "recurring_start_date": "Start Date",
   "recurring_end_date": "End Date (optional)",
@@ -997,6 +1004,9 @@
     }
   },
   "recap_prime_message": "How was my spending today?",
+  "chat_copy_message": "Copy message",
+  "chat_share_message": "Share message",
+  "chat_copied": "Message copied!",
   "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" looks like a recurring payment. Add to Subscriptions & Bills?",
   "@chat_subscription_suggest": {
     "placeholders": {
@@ -1099,6 +1109,7 @@
     }
   },
   "home_net_label": "Net",
+  "home_net_tooltip": "Income minus expenses this month (transfers excluded)",
   "home_sort_title": "Sort by",
   "home_no_matching_transactions": "No transactions match your filters",
   "home_clear_filters": "Clear filters",
@@ -1170,6 +1181,9 @@
   "onboarding_starting_balance_title": "Starting Balance",
   "onboarding_starting_balance_body": "Set your current account balance to start tracking accurately.",
   "onboarding_starting_balance_set": "Set Balance",
+  "transfer_detail_title": "Transfer Details",
+  "transfer_fee_label": "Fee",
+  "transfer_not_found": "Transfer not found",
   "transfer_delete_title": "Delete Transfer",
   "transfer_delete_confirm": "This will delete both legs of the transfer. Continue?",
   "transfer_deleted_message": "Transfer deleted",

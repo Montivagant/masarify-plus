@@ -1219,6 +1219,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_not_found => 'Account not found';
 
   @override
+  String get wallet_add_short => 'Add';
+
+  @override
   String get wallet_add_title => 'New Account';
 
   @override
@@ -1765,6 +1768,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_resume => 'Resume';
+
+  @override
+  String get recurring_error_title => 'Please enter a title';
+
+  @override
+  String get recurring_error_amount => 'Please enter a valid amount';
+
+  @override
+  String get recurring_error_category => 'Please select a category';
+
+  @override
+  String get recurring_error_wallet => 'Please select an account';
+
+  @override
+  String get recurring_error_end_date =>
+      'End date is required for custom frequency';
+
+  @override
+  String get recurring_error_date_order => 'End date must be after start date';
 
   @override
   String get recurring_frequency_label => 'Frequency';
@@ -2475,6 +2497,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recap_prime_message => 'How was my spending today?';
 
   @override
+  String get chat_copy_message => 'Copy message';
+
+  @override
+  String get chat_share_message => 'Share message';
+
+  @override
+  String get chat_copied => 'Message copied!';
+
+  @override
   String chat_subscription_suggest(String title) {
     return '💡 \"$title\" looks like a recurring payment. Add to Subscriptions & Bills?';
   }
@@ -2716,6 +2747,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_net_label => 'Net';
 
   @override
+  String get home_net_tooltip =>
+      'Income minus expenses this month (transfers excluded)';
+
+  @override
   String get home_sort_title => 'Sort by';
 
   @override
@@ -2890,6 +2925,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboarding_starting_balance_set => 'Set Balance';
+
+  @override
+  String get transfer_detail_title => 'Transfer Details';
+
+  @override
+  String get transfer_fee_label => 'Fee';
+
+  @override
+  String get transfer_not_found => 'Transfer not found';
 
   @override
   String get transfer_delete_title => 'Delete Transfer';

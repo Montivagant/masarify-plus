@@ -194,7 +194,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     int messageId,
     int actionIndex,
     ChatAction action,
-    String strippedText,
+    String rawContent,
   ) {
     final key = _actionKey(messageId, actionIndex);
     final status = _actionStates[key] ?? ChatActionStatus.pending;
@@ -203,10 +203,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       status: status,
       onConfirm: status == ChatActionStatus.pending ||
               status == ChatActionStatus.failed
-          ? () => _onConfirmAction(messageId, actionIndex, action, strippedText)
+          ? () => _onConfirmAction(messageId, actionIndex, action, rawContent)
           : null,
       onCancel: status == ChatActionStatus.pending
-          ? () => _onCancelAction(messageId, actionIndex, strippedText)
+          ? () => _onCancelAction(messageId, actionIndex, rawContent)
           : null,
     );
   }
@@ -215,7 +215,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     int messageId,
     int actionIndex,
     ChatAction action,
-    String strippedText,
+    String rawContent,
   ) async {
     final key = _actionKey(messageId, actionIndex);
     if (_executingActions.contains(key)) return;
@@ -289,10 +289,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           messages: messages,
           selectedWalletId: selectedWalletId,
         );
-        final newTokens = AiChatService.estimateTokens(strippedText);
+        // Strip only THIS action's JSON block, preserving others.
+        final contentAfterStrip = ChatResponseParser.stripActionAtIndex(
+          rawContent,
+          actionIndex,
+        );
+        final newTokens = AiChatService.estimateTokens(contentAfterStrip);
         await repo.finalizeAction(
           messageId: messageId,
-          strippedContent: strippedText,
+          strippedContent: contentAfterStrip,
           strippedTokenCount: newTokens,
           followUpContent: r.message,
         );
@@ -330,16 +335,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> _onCancelAction(
     int messageId,
     int actionIndex,
-    String strippedText,
+    String rawContent,
   ) async {
     final key = _actionKey(messageId, actionIndex);
     setState(() => _actionStates[key] = ChatActionStatus.cancelled);
-    // Strip JSON so the action card doesn't reappear after navigation.
+    // Strip only THIS action's JSON block, preserving others.
     try {
-      final newTokens = AiChatService.estimateTokens(strippedText);
+      final contentAfterStrip = ChatResponseParser.stripActionAtIndex(
+        rawContent,
+        actionIndex,
+      );
+      final newTokens = AiChatService.estimateTokens(contentAfterStrip);
       await ref.read(chatMessageRepositoryProvider).updateContent(
             messageId,
-            strippedText,
+            contentAfterStrip,
             tokenCount: newTokens,
           );
     } catch (e, st) {
@@ -499,7 +508,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   msg.id,
                                   i,
                                   parsed.actions[i],
-                                  parsed.textContent,
+                                  msg.content, // raw content for per-action stripping
                                 ),
                             ],
                           );

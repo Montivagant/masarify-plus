@@ -186,8 +186,26 @@ class GeminiAudioService {
 
       final type = (tx['type'] as String?) ?? 'expense';
       var categoryIcon = tx['category_icon'] as String?;
-      final title = tx['title'] as String?;
+      var title = tx['title'] as String?;
       final note = tx['note'] as String?;
+
+      // Post-process title: LLM sometimes puts the full transcript in title.
+      // Title should be 2-4 words max; full text goes in note.
+      if (title != null && title.length > 50) {
+        // Truncate to first 4 words.
+        final words = title.split(RegExp(r'\s+'));
+        title = words.take(4).join(' ');
+      }
+      if (title != null && note != null && title == note) {
+        // Model duplicated text — generate short title from first 3 words.
+        final words = note.split(RegExp(r'\s+'));
+        title = words.take(3).join(' ');
+      }
+      if ((title == null || title.isEmpty) && note != null && note.isNotEmpty) {
+        // No title — generate from first 3 words of note.
+        final words = note.split(RegExp(r'\s+'));
+        title = words.take(3).join(' ');
+      }
       final dateOffset = (tx['date_offset'] as int?) ?? 0;
       // LLMs sometimes return literal "null" instead of JSON null
       var walletHint = tx['wallet_hint'] as String?;

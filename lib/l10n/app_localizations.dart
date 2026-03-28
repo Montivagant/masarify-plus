@@ -2408,6 +2408,12 @@ abstract class AppLocalizations {
   /// **'Account not found'**
   String get wallet_not_found;
 
+  /// No description provided for @wallet_add_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get wallet_add_short;
+
   /// No description provided for @wallet_add_title.
   ///
   /// In en, this message translates to:
@@ -3445,6 +3451,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Resume'**
   String get recurring_resume;
+
+  /// No description provided for @recurring_error_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a title'**
+  String get recurring_error_title;
+
+  /// No description provided for @recurring_error_amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid amount'**
+  String get recurring_error_amount;
+
+  /// No description provided for @recurring_error_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a category'**
+  String get recurring_error_category;
+
+  /// No description provided for @recurring_error_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select an account'**
+  String get recurring_error_wallet;
+
+  /// No description provided for @recurring_error_end_date.
+  ///
+  /// In en, this message translates to:
+  /// **'End date is required for custom frequency'**
+  String get recurring_error_end_date;
+
+  /// No description provided for @recurring_error_date_order.
+  ///
+  /// In en, this message translates to:
+  /// **'End date must be after start date'**
+  String get recurring_error_date_order;
 
   /// No description provided for @recurring_frequency_label.
   ///
@@ -4671,6 +4713,24 @@ abstract class AppLocalizations {
   /// **'How was my spending today?'**
   String get recap_prime_message;
 
+  /// No description provided for @chat_copy_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy message'**
+  String get chat_copy_message;
+
+  /// No description provided for @chat_share_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Share message'**
+  String get chat_share_message;
+
+  /// No description provided for @chat_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Message copied!'**
+  String get chat_copied;
+
   /// No description provided for @chat_subscription_suggest.
   ///
   /// In en, this message translates to:
@@ -5085,6 +5145,12 @@ abstract class AppLocalizations {
   /// **'Net'**
   String get home_net_label;
 
+  /// No description provided for @home_net_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Income minus expenses this month (transfers excluded)'**
+  String get home_net_tooltip;
+
   /// No description provided for @home_sort_title.
   ///
   /// In en, this message translates to:
@@ -5378,6 +5444,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set Balance'**
   String get onboarding_starting_balance_set;
+
+  /// No description provided for @transfer_detail_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Details'**
+  String get transfer_detail_title;
+
+  /// No description provided for @transfer_fee_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Fee'**
+  String get transfer_fee_label;
+
+  /// No description provided for @transfer_not_found.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer not found'**
+  String get transfer_not_found;
 
   /// No description provided for @transfer_delete_title.
   ///

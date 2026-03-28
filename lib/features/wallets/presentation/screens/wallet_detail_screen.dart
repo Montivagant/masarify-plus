@@ -11,6 +11,7 @@ import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/transaction_grouper.dart';
+import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -73,12 +74,12 @@ class WalletDetailScreen extends ConsumerWidget {
                 onPressed: () =>
                     context.push(AppRoutes.editWalletPath(wallet.id)),
               ),
-              // 2B: Hide delete button for default and system accounts.
+              // Archive button for non-default, non-system accounts.
               if (!wallet.isDefaultAccount && !wallet.isSystemWallet)
                 IconButton(
-                  icon: const Icon(AppIcons.delete),
-                  tooltip: context.l10n.common_delete,
-                  onPressed: () => _confirmDelete(context, ref, wallet.id),
+                  icon: const Icon(AppIcons.archive),
+                  tooltip: context.l10n.wallet_archive_action,
+                  onPressed: () => _confirmArchive(context, ref, wallet),
                 ),
             ],
           ),
@@ -287,43 +288,26 @@ class WalletDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(
+  Future<void> _confirmArchive(
     BuildContext context,
     WidgetRef ref,
-    int walletId,
+    WalletEntity wallet,
   ) async {
-    // H9/H10 fix: check for references via repository
-    final hasReferences =
-        await ref.read(walletRepositoryProvider).hasReferences(walletId);
-
-    if (hasReferences) {
-      if (!context.mounted) return;
-      await ConfirmDialog.show(
-        context,
-        title: context.l10n.wallet_cannot_delete_title,
-        message: context.l10n.wallet_cannot_delete_body,
-        confirmLabel: context.l10n.common_ok,
-      );
-      return;
-    }
-
     if (!context.mounted) return;
 
-    // IM-19 fix: warn if wallet has non-zero balance
-    final wallet = await ref.read(walletRepositoryProvider).getById(walletId);
-    if (!context.mounted) return;
-    final balanceWarning = (wallet != null && wallet.balance != 0)
+    final balanceWarning = wallet.balance != 0
         ? '\n\n${context.l10n.wallet_archive_balance_warning}'
         : '';
 
-    final confirmed = await ConfirmDialog.confirmDelete(
+    final confirmed = await ConfirmDialog.show(
       context,
-      title: context.l10n.wallet_delete_title,
-      message: '${context.l10n.wallet_delete_confirm}$balanceWarning',
+      title: context.l10n.wallet_archive_title,
+      message: '${context.l10n.wallet_archive_confirm}$balanceWarning',
+      confirmLabel: context.l10n.wallet_archive_action,
     );
 
-    if (confirmed && context.mounted) {
-      await ref.read(walletRepositoryProvider).archive(walletId);
+    if (confirmed == true && context.mounted) {
+      await ref.read(walletRepositoryProvider).archive(wallet.id);
       HapticFeedback.mediumImpact();
       if (context.mounted) context.pop();
     }

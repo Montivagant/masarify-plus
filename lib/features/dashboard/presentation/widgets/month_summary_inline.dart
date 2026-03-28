@@ -83,21 +83,37 @@ class MonthSummaryInline extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: AppSizes.md),
-        // Net
-        Text(
-          context.l10n.home_net_label,
-          style: bodySmall?.copyWith(
-            color: context.colors.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(width: AppSizes.xs),
-        Text(
-          hidden
-              ? bullet
-              : '${isPositive ? '+' : '-'}${MoneyFormatter.formatCompact(net.abs())}',
-          style: bodySmall?.copyWith(
-            color: netColor,
-            fontWeight: FontWeight.w600,
+        // Net (with tooltip explaining the calculation)
+        Tooltip(
+          message: context.l10n.home_net_tooltip,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                context.l10n.home_net_label,
+                style: bodySmall?.copyWith(
+                  color: context.colors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(width: AppSizes.xxs),
+              Icon(
+                AppIcons.infoFilled,
+                size: AppSizes.iconXxs,
+                color: context.colors.onSurfaceVariant.withValues(
+                  alpha: AppSizes.opacityMedium,
+                ),
+              ),
+              const SizedBox(width: AppSizes.xs),
+              Text(
+                hidden
+                    ? bullet
+                    : '${isPositive ? '+' : '-'}${MoneyFormatter.formatCompact(net.abs())}',
+                style: bodySmall?.copyWith(
+                  color: netColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],

@@ -435,6 +435,7 @@
 
   "wallet_detail_title": "تفاصيل الحساب",
   "wallet_not_found": "الحساب غير موجود",
+  "wallet_add_short": "إضافة",
   "wallet_add_title": "حساب جديد",
   "wallet_edit_title": "تعديل الحساب",
   "wallet_delete_title": "حذف الحساب",
@@ -622,6 +623,12 @@
   "recurring_paused": "متوقفة",
   "recurring_pause": "إيقاف",
   "recurring_resume": "تفعيل",
+  "recurring_error_title": "من فضلك أدخل عنوان",
+  "recurring_error_amount": "من فضلك أدخل مبلغ صحيح",
+  "recurring_error_category": "من فضلك اختر فئة",
+  "recurring_error_wallet": "من فضلك اختر حساب",
+  "recurring_error_end_date": "تاريخ الانتهاء مطلوب للتكرار المخصص",
+  "recurring_error_date_order": "تاريخ الانتهاء لازم يكون بعد تاريخ البدء",
   "recurring_frequency_label": "التكرار",
   "recurring_start_date": "تاريخ البدء",
   "recurring_end_date": "تاريخ الانتهاء (اختياري)",
@@ -977,6 +984,9 @@
     }
   },
   "recap_prime_message": "إزاي كان صرفي النهارده؟",
+  "chat_copy_message": "نسخ الرسالة",
+  "chat_share_message": "مشاركة الرسالة",
+  "chat_copied": "تم نسخ الرسالة!",
   "chat_subscription_suggest": "\ud83d\udca1 \"{title}\" شكله دفعة متكررة. تضيفه للاشتراكات والفواتير؟",
   "@chat_subscription_suggest": {
     "placeholders": {
@@ -1079,6 +1089,7 @@
     }
   },
   "home_net_label": "الصافي",
+  "home_net_tooltip": "الدخل ناقص المصروفات الشهر ده (التحويلات مش محسوبة)",
   "home_sort_title": "ترتيب حسب",
   "home_no_matching_transactions": "لا توجد معاملات تطابق فلاترك",
   "home_clear_filters": "مسح الفلاتر",
@@ -1139,6 +1150,9 @@
   "onboarding_starting_balance_title": "الرصيد الافتتاحي",
   "onboarding_starting_balance_body": "حدد رصيد حسابك الحالي لبدء التتبع بدقة.",
   "onboarding_starting_balance_set": "تحديد الرصيد",
+  "transfer_detail_title": "تفاصيل التحويل",
+  "transfer_fee_label": "رسوم",
+  "transfer_not_found": "التحويل غير موجود",
   "transfer_delete_title": "حذف التحويل",
   "transfer_delete_confirm": "سيتم حذف طرفي التحويل. متابعة؟",
   "transfer_deleted_message": "تم حذف التحويل",

@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_10y.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -24,6 +25,14 @@ class NotificationService {
   static Future<void> initialize() async {
     if (_initialized) return;
     tz_data.initializeTimeZones();
+    // Set device-local timezone so scheduled notifications fire at correct
+    // local time instead of UTC (the default for tz.local).
+    try {
+      final deviceTzInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(deviceTzInfo.identifier));
+    } catch (_) {
+      // Fallback: leave as UTC if timezone detection fails.
+    }
 
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',

@@ -143,9 +143,12 @@ class DashboardScreen extends ConsumerWidget {
   // ── Transaction actions ──────────────────────────────────────────────────
 
   void _onTransactionTap(BuildContext context, TransactionEntity tx) {
-    // Only real transactions have detail screens (positive IDs).
     if (tx.id > 0) {
       context.push(AppRoutes.transactionDetailPath(tx.id));
+    } else {
+      // Synthetic transfer entry — extract original transfer ID and show detail.
+      final transferId = tx.id.abs() ~/ 2;
+      context.push(AppRoutes.transferDetailPath(transferId));
     }
   }
 

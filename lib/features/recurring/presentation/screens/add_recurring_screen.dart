@@ -278,18 +278,34 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   Future<void> _save() async {
     if (_loading) return;
     final title = _titleController.text.trim();
-    if (title.isEmpty ||
-        _amountPiastres <= 0 ||
-        _categoryId == null ||
-        _walletId == null) {
+    if (title.isEmpty) {
+      SnackHelper.showError(context, context.l10n.recurring_error_title);
+      return;
+    }
+    if (_amountPiastres <= 0) {
+      SnackHelper.showError(context, context.l10n.recurring_error_amount);
+      return;
+    }
+    if (_categoryId == null) {
+      SnackHelper.showError(context, context.l10n.recurring_error_category);
+      return;
+    }
+    if (_walletId == null) {
+      SnackHelper.showError(context, context.l10n.recurring_error_wallet);
       return;
     }
 
     // For custom frequency, endDate is required.
-    if (_isCustom && _endDate == null) return;
+    if (_isCustom && _endDate == null) {
+      SnackHelper.showError(context, context.l10n.recurring_error_end_date);
+      return;
+    }
 
-    // M9 fix: guard end date < start date
-    if (_endDate != null && _endDate!.isBefore(_startDate)) return;
+    // Guard end date < start date.
+    if (_endDate != null && _endDate!.isBefore(_startDate)) {
+      SnackHelper.showError(context, context.l10n.recurring_error_date_order);
+      return;
+    }
 
     setState(() => _loading = true);
     try {
@@ -569,9 +585,16 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
                       selected: _frequency == f,
                       onSelected: (_) => setState(() {
                         _frequency = f;
-                        // Reset end date when switching frequency.
+                        // Chain end date based on frequency.
                         if (f == 'once') {
                           _endDate = _startDate;
+                        } else if (f == 'yearly') {
+                          // Auto-compute: 1 year from start date.
+                          _endDate = DateTime(
+                            _startDate.year + 1,
+                            _startDate.month,
+                            _startDate.day,
+                          );
                         } else if (f != 'custom') {
                           _endDate = null;
                         }
