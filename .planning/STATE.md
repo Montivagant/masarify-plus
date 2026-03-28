@@ -4,10 +4,10 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 6
 status: planning
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-28T02:17:13.271Z"
+stopped_at: Phase 3.1 context gathered (auto mode)
+last_updated: "2026-03-28T02:35:06.558Z"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 5
   total_plans: 17
   completed_plans: 17
@@ -32,6 +32,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | 1 | Compliance & Billing Foundation | ● Complete | 3/3 |
 | 2 | Verification Sweep | ● Complete | 4/4 |
 | 3 | Home Screen Overhaul | ◑ In progress | 2/3 |
+| 3.1 | Regression Fix & Feature Audit | ○ Pending (INSERTED) | 0/0 |
 | 4 | AI, Voice & Subscriptions Polish | ● Complete | 3/3 |
 | 5 | Monetization & Onboarding | ○ Pending | 0/4 |
 | 6 | Performance & Device Optimization | ○ Pending | 0/3 |
@@ -63,7 +64,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Critical Path
 
-Phase 1 → Phase 2 → Phase 3 → Phase 5 → Phase 6 → Phase 7
+Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Phase 6 → Phase 7
 (Phase 4 runs parallel to Phase 3 and is off the critical path unless it takes longer)
 
 ## Accumulated Decisions
@@ -89,15 +90,19 @@ Phase 1 → Phase 2 → Phase 3 → Phase 5 → Phase 6 → Phase 7
 - [Phase 03]: Transfer deletion extracts original ID via syntheticId ~/ 2 from TransferAdapter convention
 - [Phase 03]: SlidableAutoCloseBehavior wraps CustomScrollView for proper group close behavior
 
+## Roadmap Evolution
+
+- Phase 3.1 inserted after Phase 3: Regression Fix & Feature Audit (URGENT) — 18+ regressions discovered during user testing including removed features (Cash wallet, archive, account reorder), broken UI (RTL alignment, toast position, voice confirm layout), missing brand icons, AI language detection issues, and untouched CRUD screens.
+
 ## Known Issues
 
-None -- all pre-existing analyzer errors resolved (env.dart stub + SubscriptionRecords registration).
+18+ regressions from prior phases discovered during user testing. See Phase 6 CONTEXT.md deferred section for full list. Phase 3.1 created to address all issues before continuing with Phases 5-7.
 
 ## Session Continuity
 
-**Last session:** 2026-03-28T02:17:13.267Z
-**Stopped at:** Phase 6 context gathered
-**Resume file:** .planning/phases/06-performance-device-optimization/06-CONTEXT.md
+**Last session:** 2026-03-28T02:35:06.553Z
+**Stopped at:** Phase 3.1 context gathered (auto mode)
+**Resume file:** .planning/phases/03.1-regression-fix-feature-audit/03.1-CONTEXT.md
 
 ---
 *State initialized: 2026-03-27*
