@@ -19,6 +19,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
@@ -415,42 +416,48 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Title ─────────────────────────────────────────────────
-            AppTextField(
-              label: context.l10n.recurring_title_label,
-              hint: context.l10n.recurring_title_hint,
-              controller: _titleController,
-              onChanged: (_) => setState(() {}),
+            // ── Title & Type ──────────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextField(
+                    label: context.l10n.recurring_title_label,
+                    hint: context.l10n.recurring_title_hint,
+                    controller: _titleController,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  Text(
+                    context.l10n.recurring_type_label,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: cs.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(
+                        value: 'expense',
+                        label: Text(context.l10n.transaction_type_expense),
+                        icon: const Icon(AppIcons.expense),
+                      ),
+                      ButtonSegment(
+                        value: 'income',
+                        label: Text(context.l10n.transaction_type_income),
+                        icon: const Icon(AppIcons.income),
+                      ),
+                    ],
+                    selected: {_type},
+                    onSelectionChanged: (v) => setState(() {
+                      _type = v.first;
+                      _categoryId = null;
+                      _suggestedCategory = null;
+                    }),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Type toggle ───────────────────────────────────────────
-            Text(
-              context.l10n.recurring_type_label,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            SegmentedButton<String>(
-              segments: [
-                ButtonSegment(
-                  value: 'expense',
-                  label: Text(context.l10n.transaction_type_expense),
-                  icon: const Icon(AppIcons.expense),
-                ),
-                ButtonSegment(
-                  value: 'income',
-                  label: Text(context.l10n.transaction_type_income),
-                  icon: const Icon(AppIcons.income),
-                ),
-              ],
-              selected: {_type},
-              onSelectionChanged: (v) => setState(() {
-                _type = v.first;
-                _categoryId = null;
-                _suggestedCategory = null;
-              }),
-            ),
-            const SizedBox(height: AppSizes.lg),
+            const SizedBox(height: AppSizes.md),
 
             // ── Category picker ───────────────────────────────────────
             Text(

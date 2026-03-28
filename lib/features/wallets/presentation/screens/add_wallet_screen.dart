@@ -11,6 +11,7 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -198,104 +199,116 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Name
-            AppTextField(
-              label: context.l10n.wallet_name_label,
-              hint: context.l10n.wallet_name_hint_example,
-              controller: _nameController,
-              errorText: _nameError,
-              textInputAction: TextInputAction.next,
-              prefixIcon: const Icon(AppIcons.wallet),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Type
-            Text(
-              context.l10n.wallet_type_label,
-              style: context.textStyles.labelLarge?.copyWith(
-                color: cs.outline,
-              ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            if (_isSystemWallet) ...[
-              Text(
-                context.l10n.wallet_cannot_archive_system,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-            ] else
-              Wrap(
-                spacing: AppSizes.sm,
-                runSpacing: AppSizes.sm,
-                children: types.map((t) {
-                  final isSelected = t.value == _type;
-                  return FilterChip(
-                    selected: isSelected,
-                    avatar: Icon(t.icon, size: AppSizes.iconXs),
-                    label: Text(t.label),
-                    onSelected: (_) => setState(() => _type = t.value),
-                    showCheckmark: false,
-                  );
-                }).toList(),
-              ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Color
-            Text(
-              context.l10n.wallet_color_label,
-              style: context.textStyles.labelLarge?.copyWith(
-                color: cs.outline,
-              ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            Wrap(
-              spacing: AppSizes.sm,
-              runSpacing: AppSizes.sm,
-              children: _colorOptions.map((hex) {
-                final color = ColorUtils.fromHex(hex);
-                final isSelected = hex == _colorHex;
-                return Semantics(
-                  label: context.l10n.wallet_color_label,
-                  selected: isSelected,
-                  button: true,
-                  child: SizedBox(
-                    width: AppSizes.minTapTarget,
-                    height: AppSizes.minTapTarget,
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _colorHex = hex),
-                        child: Container(
-                          width: AppSizes.colorSwatchSize,
-                          height: AppSizes.colorSwatchSize,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            border: isSelected
-                                ? Border.all(
-                                    color: cs.primary,
-                                    width: AppSizes.colorSwatchBorder,
-                                  )
-                                : Border.all(
-                                    color: AppColors.transparent,
-                                    width: AppSizes.colorSwatchBorder,
-                                  ),
-                          ),
-                          child: isSelected
-                              ? Icon(
-                                  AppIcons.check,
-                                  color: ColorUtils.contrastColor(color),
-                                  size: AppSizes.iconXs,
-                                )
-                              : null,
-                        ),
-                      ),
+            // ── Name & Type ─────────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextField(
+                    label: context.l10n.wallet_name_label,
+                    hint: context.l10n.wallet_name_hint_example,
+                    controller: _nameController,
+                    errorText: _nameError,
+                    textInputAction: TextInputAction.next,
+                    prefixIcon: const Icon(AppIcons.wallet),
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  Text(
+                    context.l10n.wallet_type_label,
+                    style: context.textStyles.labelLarge?.copyWith(
+                      color: cs.outline,
                     ),
                   ),
-                );
-              }).toList(),
+                  const SizedBox(height: AppSizes.sm),
+                  if (_isSystemWallet)
+                    Text(
+                      context.l10n.wallet_cannot_archive_system,
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: cs.outline,
+                      ),
+                    )
+                  else
+                    Wrap(
+                      spacing: AppSizes.sm,
+                      runSpacing: AppSizes.sm,
+                      children: types.map((t) {
+                        final isSelected = t.value == _type;
+                        return FilterChip(
+                          selected: isSelected,
+                          avatar: Icon(t.icon, size: AppSizes.iconXs),
+                          label: Text(t.label),
+                          onSelected: (_) => setState(() => _type = t.value),
+                          showCheckmark: false,
+                        );
+                      }).toList(),
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSizes.lg),
+            const SizedBox(height: AppSizes.md),
+
+            // ── Color ────────────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.wallet_color_label,
+                    style: context.textStyles.labelLarge?.copyWith(
+                      color: cs.outline,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  Wrap(
+                    spacing: AppSizes.sm,
+                    runSpacing: AppSizes.sm,
+                    children: _colorOptions.map((hex) {
+                      final color = ColorUtils.fromHex(hex);
+                      final isSelected = hex == _colorHex;
+                      return Semantics(
+                        label: context.l10n.wallet_color_label,
+                        selected: isSelected,
+                        button: true,
+                        child: SizedBox(
+                          width: AppSizes.minTapTarget,
+                          height: AppSizes.minTapTarget,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _colorHex = hex),
+                              child: Container(
+                                width: AppSizes.colorSwatchSize,
+                                height: AppSizes.colorSwatchSize,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: cs.primary,
+                                          width: AppSizes.colorSwatchBorder,
+                                        )
+                                      : Border.all(
+                                          color: AppColors.transparent,
+                                          width: AppSizes.colorSwatchBorder,
+                                        ),
+                                ),
+                                child: isSelected
+                                    ? Icon(
+                                        AppIcons.check,
+                                        color: ColorUtils.contrastColor(color),
+                                        size: AppSizes.iconXs,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
 
             // Linked SMS Senders (hidden when kSmsEnabled=false)
             if (AppConfig.kSmsEnabled) ...[
@@ -350,27 +363,34 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
               const SizedBox(height: AppSizes.xl),
             ],
 
-            // Starting balance (add mode only)
-            if (!isEdit) ...[
-              Text(
-                context.l10n.wallet_starting_balance,
-                style: context.textStyles.labelLarge?.copyWith(
-                  color: cs.outline,
+            // ── Starting balance (add mode only) ─────────────────
+            if (!isEdit)
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.l10n.wallet_starting_balance,
+                      style: context.textStyles.labelLarge?.copyWith(
+                        color: cs.outline,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.xs),
+                    Text(
+                      context.l10n.wallet_starting_balance_hint,
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: cs.outline,
+                      ),
+                    ),
+                    const SizedBox(height: AppSizes.sm),
+                    AmountInput(
+                      onAmountChanged: (p) =>
+                          setState(() => _balancePiastres = p),
+                      autofocus: false,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: AppSizes.xs),
-              Text(
-                context.l10n.wallet_starting_balance_hint,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-              const SizedBox(height: AppSizes.sm),
-              AmountInput(
-                onAmountChanged: (p) => setState(() => _balancePiastres = p),
-                autofocus: false,
-              ),
-            ],
           ],
         ),
       ),

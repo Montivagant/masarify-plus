@@ -18,6 +18,7 @@ import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -208,59 +209,76 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Name
-            AppTextField(
-              label: context.l10n.goal_name_label,
-              hint: context.l10n.goal_name_hint,
-              controller: _nameController,
-              errorText: _nameError,
-              prefixIcon: const Icon(AppIcons.goals),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Target amount
-            Text(
-              context.l10n.goal_target,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            AmountInput(
-              initialPiastres: _targetPiastres,
-              onAmountChanged: (p) => setState(() => _targetPiastres = p),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Deadline
-            Text(
-              context.l10n.goal_deadline,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _pickDeadline,
-                    icon: const Icon(AppIcons.calendar, size: AppSizes.iconSm),
-                    label: Text(
-                      _deadline != null
-                          ? DateFormat.yMd(context.languageCode)
-                              .format(_deadline!)
-                          : context.l10n.goal_pick_date,
-                    ),
+            // ── Name & Target ───────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppTextField(
+                    label: context.l10n.goal_name_label,
+                    hint: context.l10n.goal_name_hint,
+                    controller: _nameController,
+                    errorText: _nameError,
+                    prefixIcon: const Icon(AppIcons.goals),
                   ),
-                ),
-                if (_deadline != null) ...[
-                  const SizedBox(width: AppSizes.sm),
-                  IconButton(
-                    icon: const Icon(AppIcons.close),
-                    tooltip: context.l10n.goal_remove_date,
-                    onPressed: () => setState(() => _deadline = null),
+                  const SizedBox(height: AppSizes.md),
+                  Text(
+                    context.l10n.goal_target,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: cs.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  AmountInput(
+                    initialPiastres: _targetPiastres,
+                    onAmountChanged: (p) => setState(() => _targetPiastres = p),
                   ),
                 ],
-              ],
+              ),
             ),
-            const SizedBox(height: AppSizes.lg),
+            const SizedBox(height: AppSizes.md),
+
+            // ── Deadline ────────────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.goal_deadline,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: cs.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _pickDeadline,
+                          icon: const Icon(
+                            AppIcons.calendar,
+                            size: AppSizes.iconSm,
+                          ),
+                          label: Text(
+                            _deadline != null
+                                ? DateFormat.yMd(context.languageCode)
+                                    .format(_deadline!)
+                                : context.l10n.goal_pick_date,
+                          ),
+                        ),
+                      ),
+                      if (_deadline != null) ...[
+                        const SizedBox(width: AppSizes.sm),
+                        IconButton(
+                          icon: const Icon(AppIcons.close),
+                          tooltip: context.l10n.goal_remove_date,
+                          onPressed: () => setState(() => _deadline = null),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
 
             // Keywords
             Text(
@@ -305,109 +323,120 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
             ),
             const SizedBox(height: AppSizes.lg),
 
-            // Color picker
-            Text(
-              context.l10n.goal_color_label,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            Wrap(
-              spacing: AppSizes.sm,
-              runSpacing: AppSizes.sm,
-              children: _colorOptions.map((hex) {
-                final color = ColorUtils.fromHex(hex);
-                final isSelected = hex == _colorHex;
-                return Semantics(
-                  label: context.l10n.goal_color_label,
-                  selected: isSelected,
-                  button: true,
-                  child: SizedBox(
-                    width: AppSizes.minTapTarget,
-                    height: AppSizes.minTapTarget,
-                    child: Center(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _colorHex = hex),
-                        child: Container(
-                          width: AppSizes.colorSwatchSize,
-                          height: AppSizes.colorSwatchSize,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                            border: isSelected
-                                ? Border.all(
-                                    color: cs.primary,
-                                    width: AppSizes.colorSwatchBorder,
-                                  )
-                                : Border.all(
-                                    color: AppColors.transparent,
-                                    width: AppSizes.colorSwatchBorder,
-                                  ),
+            // ── Appearance ───────────────────────────────────────
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.goal_color_label,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: cs.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  Wrap(
+                    spacing: AppSizes.sm,
+                    runSpacing: AppSizes.sm,
+                    children: _colorOptions.map((hex) {
+                      final color = ColorUtils.fromHex(hex);
+                      final isSelected = hex == _colorHex;
+                      return Semantics(
+                        label: context.l10n.goal_color_label,
+                        selected: isSelected,
+                        button: true,
+                        child: SizedBox(
+                          width: AppSizes.minTapTarget,
+                          height: AppSizes.minTapTarget,
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () => setState(() => _colorHex = hex),
+                              child: Container(
+                                width: AppSizes.colorSwatchSize,
+                                height: AppSizes.colorSwatchSize,
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  shape: BoxShape.circle,
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: cs.primary,
+                                          width: AppSizes.colorSwatchBorder,
+                                        )
+                                      : Border.all(
+                                          color: AppColors.transparent,
+                                          width: AppSizes.colorSwatchBorder,
+                                        ),
+                                ),
+                                child: isSelected
+                                    ? Icon(
+                                        AppIcons.check,
+                                        color: ColorUtils.contrastColor(color),
+                                        size: AppSizes.iconXs,
+                                      )
+                                    : null,
+                              ),
+                            ),
                           ),
-                          child: isSelected
-                              ? Icon(
-                                  AppIcons.check,
-                                  color: ColorUtils.contrastColor(color),
-                                  size: AppSizes.iconXs,
-                                )
-                              : null,
                         ),
-                      ),
-                    ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // Icon picker
-            Text(
-              context.l10n.goal_icon_label,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _icons.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                mainAxisSpacing: AppSizes.sm,
-                crossAxisSpacing: AppSizes.sm,
+                  const SizedBox(height: AppSizes.md),
+                  Text(
+                    context.l10n.goal_icon_label,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: cs.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _icons.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      mainAxisSpacing: AppSizes.sm,
+                      crossAxisSpacing: AppSizes.sm,
+                    ),
+                    itemBuilder: (_, i) {
+                      final item = _icons[i];
+                      final isSelected = item.name == _iconName;
+                      return Semantics(
+                        label: 'Icon: ${item.name}',
+                        button: true,
+                        selected: isSelected,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _iconName = item.name),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? selectedColor.withValues(
+                                      alpha: AppSizes.opacityLight,
+                                    )
+                                  : cs.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.borderRadiusSm,
+                              ),
+                              border: isSelected
+                                  ? Border.all(
+                                      color: selectedColor,
+                                      width: AppSizes.borderWidthFocus,
+                                    )
+                                  : null,
+                            ),
+                            child: Icon(
+                              CategoryIconMapper.fromName(item.name),
+                              color: isSelected
+                                  ? selectedColor
+                                  : cs.onSurfaceVariant,
+                              size: AppSizes.iconSm,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-              itemBuilder: (_, i) {
-                final item = _icons[i];
-                final isSelected = item.name == _iconName;
-                return Semantics(
-                  label: 'Icon: ${item.name}',
-                  button: true,
-                  selected: isSelected,
-                  child: GestureDetector(
-                    onTap: () => setState(() => _iconName = item.name),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? selectedColor.withValues(
-                                alpha: AppSizes.opacityLight,
-                              )
-                            : cs.surfaceContainerHighest,
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.borderRadiusSm),
-                        border: isSelected
-                            ? Border.all(
-                                color: selectedColor,
-                                width: AppSizes.borderWidthFocus,
-                              )
-                            : null,
-                      ),
-                      child: Icon(
-                        CategoryIconMapper.fromName(item.name),
-                        color: isSelected ? selectedColor : cs.onSurfaceVariant,
-                        size: AppSizes.iconSm,
-                      ),
-                    ),
-                  ),
-                );
-              },
             ),
           ],
         ),
