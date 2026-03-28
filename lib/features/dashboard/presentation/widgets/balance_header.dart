@@ -34,9 +34,8 @@ class BalanceHeader extends ConsumerWidget {
         ? totalBalance
         : wallets.where((w) => w.id == selectedId).firstOrNull?.balance ?? 0;
 
-    // Non-system, non-archived wallets for chips.
-    final userWallets =
-        wallets.where((w) => !w.isSystemWallet && !w.isArchived).toList();
+    // All non-archived wallets for chips (includes system Cash wallet per D-06).
+    final userWallets = wallets.where((w) => !w.isArchived).toList();
 
     final cs = context.colors;
     final theme = context.appTheme;
