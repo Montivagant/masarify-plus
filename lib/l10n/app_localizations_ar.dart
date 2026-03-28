@@ -806,6 +806,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_confirm_all => 'تأكيد الكل';
 
   @override
+  String get voice_confirm_accept_all => 'حفظ الكل';
+
+  @override
+  String get voice_confirm_all_saved => 'تم حفظ جميع المعاملات';
+
+  @override
   String get voice_remove => 'إزالة';
 
   @override

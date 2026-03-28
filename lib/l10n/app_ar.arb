@@ -283,6 +283,8 @@
   "voice_processing": "جار المعالجة...",
   "voice_confirm_title": "مراجعة المعاملات",
   "voice_confirm_all": "تأكيد الكل",
+  "voice_confirm_accept_all": "حفظ الكل",
+  "voice_confirm_all_saved": "تم حفظ جميع المعاملات",
   "voice_remove": "إزالة",
   "voice_unavailable": "الإدخال الصوتي غير متوفر على هذا الجهاز",
   "voice_error_no_service": "الإدخال الصوتي غير متاح. يرجى التحقق من اتصالك بالإنترنت.",

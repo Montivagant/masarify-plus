@@ -143,7 +143,6 @@ class VoiceTransactionDraft {
     this.categoryHint,
     this.walletHint,
     this.toWalletHint,
-    this.title,
     this.note,
     this.type = 'expense',
     this.dateOffset = 0,
@@ -160,23 +159,17 @@ class VoiceTransactionDraft {
   /// Used for fuzzy matching in VoiceConfirmScreen.
   final String? walletHint;
 
-  /// Destination wallet hint for transfers (e.g. "NBE").
-  /// Only set when [type] is 'transfer'.
+  /// Destination wallet hint for transfer-type drafts (D-15).
+  /// When a transfer references two accounts, this holds the "To" side.
   final String? toWalletHint;
-
-  /// Short AI-generated title (2-4 words, e.g. "KFC Meal", "Uber Ride").
-  final String? title;
 
   final String? note;
 
-  /// 'income', 'expense', 'cash_withdrawal', 'cash_deposit', or 'transfer'.
+  /// 'income', 'expense', 'cash_withdrawal', or 'cash_deposit'.
   final String type;
 
   /// Days offset from today (0 = today, -1 = yesterday).
   final int dateOffset;
-
-  /// Whether this draft represents an inter-account transfer.
-  bool get isTransfer => type == 'transfer';
 
   /// Computed transaction date.
   DateTime get transactionDate =>

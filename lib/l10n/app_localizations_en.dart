@@ -807,6 +807,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_confirm_all => 'Confirm All';
 
   @override
+  String get voice_confirm_accept_all => 'Save All';
+
+  @override
+  String get voice_confirm_all_saved => 'All transactions saved';
+
+  @override
   String get voice_remove => 'Remove';
 
   @override
