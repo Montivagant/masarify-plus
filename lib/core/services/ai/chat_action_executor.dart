@@ -255,6 +255,22 @@ class ChatActionExecutor {
     final wallet = _resolveWallet(wallets, m, selectedWalletId);
 
     final now = DateTime.now();
+
+    // M-9 fix: compute sensible nextDueDate based on frequency
+    final DateTime nextDueDate;
+    switch (action.frequency) {
+      case 'daily':
+        nextDueDate = now.add(const Duration(days: 1));
+      case 'weekly':
+        nextDueDate = now.add(const Duration(days: 7));
+      case 'monthly':
+        nextDueDate = DateTime(now.year, now.month + 1, now.day);
+      case 'yearly':
+        nextDueDate = DateTime(now.year + 1, now.month, now.day);
+      default: // 'once', 'custom', etc.
+        nextDueDate = now;
+    }
+
     await _recurringRepo.create(
       walletId: wallet.id,
       categoryId: matched.id,
@@ -263,7 +279,7 @@ class ChatActionExecutor {
       title: action.title,
       frequency: action.frequency,
       startDate: now,
-      nextDueDate: now,
+      nextDueDate: nextDueDate,
     );
 
     final formatted = MoneyFormatter.format(action.amountPiastres);

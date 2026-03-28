@@ -9,6 +9,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
@@ -81,6 +82,12 @@ class DashboardScreen extends ConsumerWidget {
           if (selectedWalletId != null) {
             ref.invalidate(activityByWalletProvider(selectedWalletId));
           }
+          // M-5 fix: invalidate all background AI insight providers
+          ref.invalidate(spendingPredictionsProvider);
+          ref.invalidate(detectedPatternsProvider);
+          ref.invalidate(budgetSuggestionsProvider);
+          ref.invalidate(budgetSavingsProvider);
+          ref.invalidate(upcomingBillsProvider);
           await ref.read(recentActivityProvider.future);
         },
         child: SlidableAutoCloseBehavior(

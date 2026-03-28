@@ -64,6 +64,11 @@ Future<void> main() async {
     ),
   );
 
+  // M-7 fix: ensure Cash wallet exists even after DB restore/corruption
+  unawaited(
+    container.read(walletRepositoryProvider).ensureSystemWalletExists(),
+  );
+
   // C-4 fix: wire notification tap callback for deep-link navigation
   NotificationService.onNotificationTap = (payload) {
     if (payload == null) return;
