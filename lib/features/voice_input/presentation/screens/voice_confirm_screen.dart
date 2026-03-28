@@ -631,9 +631,20 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             Expanded(
               child: ListView.builder(
                 controller: controller,
-                itemCount: wallets.length,
+                itemCount: wallets.length + 1,
                 itemBuilder: (_, i) {
-                  final w = wallets[i];
+                  // First item: "Create new account" with inline name entry.
+                  if (i == 0) {
+                    return _CreateAccountTile(
+                      hint: draft.unmatchedHint,
+                      onCreated: (newId) {
+                        setState(() => draft.walletId = newId);
+                        ctx.pop();
+                      },
+                      repo: ref.read(walletRepositoryProvider),
+                    );
+                  }
+                  final w = wallets[i - 1];
                   return ListTile(
                     leading: const Icon(AppIcons.wallet, size: AppSizes.iconMd),
                     title: Text(w.name),
@@ -1077,6 +1088,111 @@ class _DraftCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Inline "Create new account" tile inside the wallet picker (D-15/D-16).
+/// Shows an expandable text field for entering a new account name directly.
+class _CreateAccountTile extends StatefulWidget {
+  const _CreateAccountTile({
+    this.hint,
+    required this.onCreated,
+    required this.repo,
+  });
+
+  final String? hint;
+  final ValueChanged<int> onCreated;
+  final dynamic repo;
+
+  @override
+  State<_CreateAccountTile> createState() => _CreateAccountTileState();
+}
+
+class _CreateAccountTileState extends State<_CreateAccountTile> {
+  bool _expanded = false;
+  late final TextEditingController _controller;
+  bool _creating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.hint ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _create() async {
+    final name = _controller.text.trim();
+    if (name.isEmpty || _creating) return;
+    setState(() => _creating = true);
+    try {
+      final id = await widget.repo.create(
+        name: name,
+        type: 'bank',
+        initialBalance: 0,
+      );
+      widget.onCreated(id);
+    } catch (_) {
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.common_error_generic);
+        setState(() => _creating = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    if (!_expanded) {
+      return ListTile(
+        leading: Icon(AppIcons.add, size: AppSizes.iconMd, color: cs.primary),
+        title: Text(
+          context.l10n.wallet_add_title,
+          style: context.textStyles.bodyMedium?.copyWith(color: cs.primary),
+        ),
+        onTap: () => setState(() => _expanded = true),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: AppSizes.md,
+        vertical: AppSizes.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: context.l10n.wallet_name_hint,
+                isDense: true,
+                border: const OutlineInputBorder(),
+              ),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _create(),
+            ),
+          ),
+          const SizedBox(width: AppSizes.sm),
+          _creating
+              ? const SizedBox(
+                  width: AppSizes.iconMd,
+                  height: AppSizes.iconMd,
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
+                )
+              : IconButton(
+                  icon: Icon(AppIcons.check, color: cs.primary),
+                  onPressed: _create,
+                ),
+        ],
       ),
     );
   }

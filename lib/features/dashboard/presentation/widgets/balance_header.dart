@@ -55,20 +55,19 @@ class BalanceHeader extends ConsumerWidget {
         vertical: AppSizes.md,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Balance row with eye toggle ──────────────────────────────
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  hidden ? '------' : MoneyFormatter.format(displayBalance),
-                  style: context.textStyles.headlineLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: cs.onSurface,
-                  ),
+              Text(
+                hidden ? '------' : MoneyFormatter.format(displayBalance),
+                style: context.textStyles.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
                 ),
               ),
+              const SizedBox(width: AppSizes.xs),
               IconButton(
                 tooltip: hidden
                     ? context.l10n.balance_show
@@ -92,11 +91,13 @@ class BalanceHeader extends ConsumerWidget {
 
           // ── Account chips (horizontal scroll, D-02/D-03) + manage gear (D-08)
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
+              Flexible(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       AccountChip(
                         label: context.l10n.dashboard_all_accounts,
