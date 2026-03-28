@@ -2844,4 +2844,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trial_started_message => 'Your 7-day Pro trial has started!';
+
+  @override
+  String get wallet_archive_title => 'Archive Account';
+
+  @override
+  String get wallet_archive_info =>
+      'Archived accounts are hidden from your balance, transactions, and analytics.';
+
+  @override
+  String get wallet_archive_action => 'Archive';
+
+  @override
+  String wallet_archive_confirm(String name) {
+    return 'Are you sure you want to archive $name?';
+  }
+
+  @override
+  String get wallet_unarchive_action => 'Unarchive';
+
+  @override
+  String wallet_unarchive_confirm(String name) {
+    return 'Restore $name to your active accounts?';
+  }
+
+  @override
+  String get wallet_cannot_archive_default =>
+      'The default account cannot be archived.';
+
+  @override
+  String get wallet_manage_title => 'Manage Accounts';
+
+  @override
+  String get wallet_archived_section => 'Archived';
+
+  @override
+  String get wallet_starting_balance => 'Starting Balance';
+
+  @override
+  String get wallet_starting_balance_hint => '0';
+
+  @override
+  String get common_continue_label => 'Continue';
+
+  @override
+  String get common_transfer => 'Transfer';
+
+  @override
+  String get category_search_hint => 'Search categories...';
+
+  @override
+  String get settings_pin_hint => 'Enter 4-digit PIN';
+
+  @override
+  String get settings_daily_recap => 'Daily Spending Recap';
+
+  @override
+  String get settings_daily_recap_subtitle =>
+      'Get a daily notification to review your spending';
+
+  @override
+  String get settings_recap_time => 'Recap Time';
+
+  @override
+  String get recap_notification_title => 'How was your spending today?';
+
+  @override
+  String get recap_notification_body => 'Tap to tell me — I\'ll log it for you';
+
+  @override
+  String get onboarding_starting_balance_title => 'Starting Balance';
+
+  @override
+  String get onboarding_starting_balance_body =>
+      'Set your current account balance to start tracking accurately.';
+
+  @override
+  String get onboarding_starting_balance_set => 'Set Balance';
+
+  @override
+  String get transfer_delete_title => 'Delete Transfer';
+
+  @override
+  String get transfer_delete_confirm =>
+      'This will delete both legs of the transfer. Continue?';
+
+  @override
+  String get transfer_deleted_message => 'Transfer deleted';
+
+  @override
+  String budget_saved_last_month(String amount) {
+    return 'Saved $amount last month';
+  }
 }

@@ -1116,5 +1116,36 @@
       "category": {"type": "String"}
     }
   },
-  "trial_started_message": "Your 7-day Pro trial has started!"
+  "trial_started_message": "Your 7-day Pro trial has started!",
+
+  "wallet_archive_title": "Archive Account",
+  "wallet_archive_info": "Archived accounts are hidden from your balance, transactions, and analytics.",
+  "wallet_archive_action": "Archive",
+  "wallet_archive_confirm": "Are you sure you want to archive {name}?",
+  "@wallet_archive_confirm": {"placeholders": {"name": {"type": "String"}}},
+  "wallet_unarchive_action": "Unarchive",
+  "wallet_unarchive_confirm": "Restore {name} to your active accounts?",
+  "@wallet_unarchive_confirm": {"placeholders": {"name": {"type": "String"}}},
+  "wallet_cannot_archive_default": "The default account cannot be archived.",
+  "wallet_manage_title": "Manage Accounts",
+  "wallet_archived_section": "Archived",
+  "wallet_starting_balance": "Starting Balance",
+  "wallet_starting_balance_hint": "0",
+  "common_continue_label": "Continue",
+  "common_transfer": "Transfer",
+  "category_search_hint": "Search categories...",
+  "settings_pin_hint": "Enter 4-digit PIN",
+  "settings_daily_recap": "Daily Spending Recap",
+  "settings_daily_recap_subtitle": "Get a daily notification to review your spending",
+  "settings_recap_time": "Recap Time",
+  "recap_notification_title": "How was your spending today?",
+  "recap_notification_body": "Tap to tell me — I'll log it for you",
+  "onboarding_starting_balance_title": "Starting Balance",
+  "onboarding_starting_balance_body": "Set your current account balance to start tracking accurately.",
+  "onboarding_starting_balance_set": "Set Balance",
+  "transfer_delete_title": "Delete Transfer",
+  "transfer_delete_confirm": "This will delete both legs of the transfer. Continue?",
+  "transfer_deleted_message": "Transfer deleted",
+  "budget_saved_last_month": "Saved {amount} last month",
+  "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}}
 }

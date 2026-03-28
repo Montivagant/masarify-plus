@@ -69,7 +69,7 @@ class RecentTransactionsZone extends ConsumerWidget {
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   TextButton.icon(
-                    onPressed: () => context.go(AppRoutes.transactions),
+                    onPressed: () => context.go(AppRoutes.dashboard),
                     label: Text(context.l10n.dashboard_see_all),
                     icon: Icon(
                       context.isRtl

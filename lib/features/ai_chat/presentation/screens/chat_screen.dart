@@ -31,7 +31,10 @@ import '../widgets/message_bubble.dart';
 import '../widgets/typing_indicator.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.recapMode = false});
+
+  /// When true, auto-sends a recap priming message on first load.
+  final bool recapMode;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();

@@ -5342,6 +5342,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your 7-day Pro trial has started!'**
   String get trial_started_message;
+
+  /// No description provided for @wallet_archive_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Account'**
+  String get wallet_archive_title;
+
+  /// No description provided for @wallet_archive_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived accounts are hidden from your balance, transactions, and analytics.'**
+  String get wallet_archive_info;
+
+  /// No description provided for @wallet_archive_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get wallet_archive_action;
+
+  /// No description provided for @wallet_archive_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to archive {name}?'**
+  String wallet_archive_confirm(String name);
+
+  /// No description provided for @wallet_unarchive_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get wallet_unarchive_action;
+
+  /// No description provided for @wallet_unarchive_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore {name} to your active accounts?'**
+  String wallet_unarchive_confirm(String name);
+
+  /// No description provided for @wallet_cannot_archive_default.
+  ///
+  /// In en, this message translates to:
+  /// **'The default account cannot be archived.'**
+  String get wallet_cannot_archive_default;
+
+  /// No description provided for @wallet_manage_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Accounts'**
+  String get wallet_manage_title;
+
+  /// No description provided for @wallet_archived_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get wallet_archived_section;
+
+  /// No description provided for @wallet_starting_balance.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting Balance'**
+  String get wallet_starting_balance;
+
+  /// No description provided for @wallet_starting_balance_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'0'**
+  String get wallet_starting_balance_hint;
+
+  /// No description provided for @common_continue_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get common_continue_label;
+
+  /// No description provided for @common_transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get common_transfer;
+
+  /// No description provided for @category_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search categories...'**
+  String get category_search_hint;
+
+  /// No description provided for @settings_pin_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 4-digit PIN'**
+  String get settings_pin_hint;
+
+  /// No description provided for @settings_daily_recap.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Spending Recap'**
+  String get settings_daily_recap;
+
+  /// No description provided for @settings_daily_recap_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a daily notification to review your spending'**
+  String get settings_daily_recap_subtitle;
+
+  /// No description provided for @settings_recap_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Recap Time'**
+  String get settings_recap_time;
+
+  /// No description provided for @recap_notification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'How was your spending today?'**
+  String get recap_notification_title;
+
+  /// No description provided for @recap_notification_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to tell me — I\'ll log it for you'**
+  String get recap_notification_body;
+
+  /// No description provided for @onboarding_starting_balance_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting Balance'**
+  String get onboarding_starting_balance_title;
+
+  /// No description provided for @onboarding_starting_balance_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your current account balance to start tracking accurately.'**
+  String get onboarding_starting_balance_body;
+
+  /// No description provided for @onboarding_starting_balance_set.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Balance'**
+  String get onboarding_starting_balance_set;
+
+  /// No description provided for @transfer_delete_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Transfer'**
+  String get transfer_delete_title;
+
+  /// No description provided for @transfer_delete_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete both legs of the transfer. Continue?'**
+  String get transfer_delete_confirm;
+
+  /// No description provided for @transfer_deleted_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer deleted'**
+  String get transfer_deleted_message;
+
+  /// No description provided for @budget_saved_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {amount} last month'**
+  String budget_saved_last_month(String amount);
 }
 
 class _AppLocalizationsDelegate

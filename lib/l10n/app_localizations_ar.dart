@@ -2820,4 +2820,94 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trial_started_message => 'بدأت تجربتك المجانية لمدة 7 أيام!';
+
+  @override
+  String get wallet_archive_title => 'أرشفة الحساب';
+
+  @override
+  String get wallet_archive_info =>
+      'الحسابات المؤرشفة تكون مخفية من رصيدك ومعاملاتك وتحليلاتك.';
+
+  @override
+  String get wallet_archive_action => 'أرشفة';
+
+  @override
+  String wallet_archive_confirm(String name) {
+    return 'هل أنت متأكد من أرشفة $name؟';
+  }
+
+  @override
+  String get wallet_unarchive_action => 'إلغاء الأرشفة';
+
+  @override
+  String wallet_unarchive_confirm(String name) {
+    return 'استعادة $name إلى حساباتك النشطة؟';
+  }
+
+  @override
+  String get wallet_cannot_archive_default => 'لا يمكن أرشفة الحساب الافتراضي.';
+
+  @override
+  String get wallet_manage_title => 'إدارة الحسابات';
+
+  @override
+  String get wallet_archived_section => 'مؤرشفة';
+
+  @override
+  String get wallet_starting_balance => 'الرصيد الافتتاحي';
+
+  @override
+  String get wallet_starting_balance_hint => '٠';
+
+  @override
+  String get common_continue_label => 'متابعة';
+
+  @override
+  String get common_transfer => 'تحويل';
+
+  @override
+  String get category_search_hint => 'بحث في الفئات...';
+
+  @override
+  String get settings_pin_hint => 'أدخل رمز PIN من 4 أرقام';
+
+  @override
+  String get settings_daily_recap => 'ملخص الإنفاق اليومي';
+
+  @override
+  String get settings_daily_recap_subtitle =>
+      'احصل على إشعار يومي لمراجعة إنفاقك';
+
+  @override
+  String get settings_recap_time => 'وقت الملخص';
+
+  @override
+  String get recap_notification_title => 'كيف كان إنفاقك اليوم؟';
+
+  @override
+  String get recap_notification_body => 'اضغط لتخبرني — وأنا هسجلهالك';
+
+  @override
+  String get onboarding_starting_balance_title => 'الرصيد الافتتاحي';
+
+  @override
+  String get onboarding_starting_balance_body =>
+      'حدد رصيد حسابك الحالي لبدء التتبع بدقة.';
+
+  @override
+  String get onboarding_starting_balance_set => 'تحديد الرصيد';
+
+  @override
+  String get transfer_delete_title => 'حذف التحويل';
+
+  @override
+  String get transfer_delete_confirm => 'سيتم حذف طرفي التحويل. متابعة؟';
+
+  @override
+  String get transfer_deleted_message => 'تم حذف التحويل';
+
+  @override
+  String budget_saved_last_month(String amount) {
+    return 'وفرت $amount الشهر الماضي';
+  }
 }

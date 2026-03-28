@@ -11,7 +11,6 @@ import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/transaction_grouper.dart';
-import '../../../../domain/adapters/transfer_adapter.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -186,7 +185,7 @@ class WalletDetailScreen extends ConsumerWidget {
                               },
                               onTransactionDelete: (tx) async {
                                 if (tx.id < 0) {
-                                  final transferId = transferIdFromTxId(tx.id);
+                                  final transferId = tx.id.abs() ~/ 2;
                                   final confirmed =
                                       await ConfirmDialog.confirmDelete(
                                     context,
