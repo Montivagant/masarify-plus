@@ -107,6 +107,7 @@ Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Pha
 | 260328-omm | Fix 8 High-priority audit bugs H1-H8 | 2026-03-28 | e618d26 | [260328-omm-fix-high-priority-audit-bugs-wave-a-h1-h](./quick/260328-omm-fix-high-priority-audit-bugs-wave-a-h1-h/) |
 | 260328-p3k | Fix 8 High-priority audit bugs H9-H16 | 2026-03-28 | 0b643a5 | [260328-p3k-fix-high-priority-audit-bugs-wave-b-h9-h](./quick/260328-p3k-fix-high-priority-audit-bugs-wave-b-h9-h/) |
 | 260328-phz | Fix 10 Medium-priority audit bugs M1-M10 | 2026-03-28 | 6792473 | [260328-phz-fix-medium-priority-audit-bugs-wave-a-m1](./quick/260328-phz-fix-medium-priority-audit-bugs-wave-a-m1/) |
+| 260328-pwv | Fix 9 Medium-priority audit bugs M11-M19 | 2026-03-28 | 767925d | [260328-pwv-fix-medium-priority-audit-bugs-wave-b-m1](./quick/260328-pwv-fix-medium-priority-audit-bugs-wave-b-m1/) |
 
 ## Known Issues
 
@@ -115,9 +116,9 @@ Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Pha
 
 ## Session Continuity
 
-**Last session:** 2026-03-28T16:34:38.000Z
-**Stopped at:** Quick task 260328-phz complete — 10 medium-priority audit bugs fixed (M-1 through M-10). Data integrity cascades, voice robustness, dashboard refresh, startup resilience, AI recurring dates.
-**Resume file:** .planning/quick/260328-phz-fix-medium-priority-audit-bugs-wave-a-m1/260328-phz-SUMMARY.md
+**Last session:** 2026-03-28T16:58:45.000Z
+**Stopped at:** Quick task 260328-pwv complete — 9 medium-priority audit bugs fixed (M-11 through M-19). CSV transfers+localized headers+BOM, theme picker, firstDayOfMonth provider, Arabic PDF font, Drive file ID persist, post-restore subscription revalidation, cold-start notification routing.
+**Resume file:** .planning/quick/260328-pwv-fix-medium-priority-audit-bugs-wave-b-m1/260328-pwv-SUMMARY.md
 
 ---
 *State initialized: 2026-03-27*
