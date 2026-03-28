@@ -259,6 +259,16 @@ CRITICAL PATH: 1 → 2 → 3 → 5 → 6 → 7
                unless it finishes later than Phase 3)
 ```
 
+### Phase 8: Category System Overhaul
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 7
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 8 to break down)
+
 ---
 *Roadmap created: 2026-03-27*
 *Last updated: 2026-03-27 (Phase 02 Complete)*

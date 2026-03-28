@@ -97,6 +97,7 @@ Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Pha
 ## Roadmap Evolution
 
 - Phase 3.1 inserted after Phase 3: Regression Fix & Feature Audit (URGENT) — 18+ regressions discovered during user testing including removed features (Cash wallet, archive, account reorder), broken UI (RTL alignment, toast position, voice confirm layout), missing brand icons, AI language detection issues, and untouched CRUD screens.
+- Phase 8 added: Category System Overhaul — Complete revamp of category UI (glassmorphism), most-used tracking, bulk migration on deletion, default categories rethink, AI integration updates across all screens.
 
 ## Known Issues
 
