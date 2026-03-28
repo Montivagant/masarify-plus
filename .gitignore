@@ -64,3 +64,4 @@ app.*.map.json
 # Debug artifacts
 *.png
 !assets/**/*.png
+.claude/worktrees/
