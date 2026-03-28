@@ -136,6 +136,7 @@ class ValuePreviewSlide extends StatelessWidget {
     required this.subtitle,
     required this.demoWidget,
     required this.pageOffset,
+    this.footerWidget,
   });
 
   final IconData icon;
@@ -144,6 +145,7 @@ class ValuePreviewSlide extends StatelessWidget {
   final String subtitle;
   final Widget demoWidget;
   final double pageOffset;
+  final Widget? footerWidget;
 
   @override
   Widget build(BuildContext context) {
@@ -191,6 +193,10 @@ class ValuePreviewSlide extends StatelessWidget {
                 duration: AppDurations.listItemEntry,
               )
               .slideY(begin: 0.1, end: 0),
+          if (footerWidget != null) ...[
+            const SizedBox(height: AppSizes.md),
+            footerWidget!,
+          ],
           const Spacer(flex: 3),
         ],
       ),

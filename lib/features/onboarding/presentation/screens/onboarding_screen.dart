@@ -200,14 +200,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       demoWidget: const VoiceDemo(),
                       pageOffset: _offsetForPage(2),
                     ),
-                    // Page 3: SMS auto-detect
+                    // Page 3: AI Financial Advisor
                     ValuePreviewSlide(
-                      icon: AppIcons.sms,
-                      iconColor: cs.tertiary,
+                      icon: AppIcons.ai,
+                      iconColor: cs.primary,
                       title: context.l10n.onboarding_slide3_title,
                       subtitle: context.l10n.onboarding_slide3_body,
                       demoWidget: const SmsDemo(),
                       pageOffset: _offsetForPage(3),
+                      footerWidget: Text(
+                        context.l10n.disclaimer_financial,
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.outline,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     // Page 4: Account type picker
                     AccountTypePicker(

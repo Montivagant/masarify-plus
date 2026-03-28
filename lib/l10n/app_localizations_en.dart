@@ -2584,6 +2584,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_default_mobile_name => 'Mobile Wallet';
 
   @override
+  String get disclaimer_financial =>
+      'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.';
+
+  @override
   String get common_dismiss => 'Dismiss';
 
   @override

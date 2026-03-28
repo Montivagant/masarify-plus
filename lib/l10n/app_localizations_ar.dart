@@ -2563,6 +2563,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get onboarding_default_mobile_name => 'محفظة الموبايل';
 
   @override
+  String get disclaimer_financial =>
+      'مصاريفي يقدم إرشادات ميزانية فقط، وليس نصائح مالية أو استثمارية أو ضريبية منظمة.';
+
+  @override
   String get common_dismiss => 'إخفاء';
 
   @override

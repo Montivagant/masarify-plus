@@ -967,6 +967,8 @@
   "onboarding_default_bank_name": "حسابي البنكي",
   "onboarding_default_mobile_name": "محفظة الموبايل",
 
+  "disclaimer_financial": "مصاريفي يقدم إرشادات ميزانية فقط، وليس نصائح مالية أو استثمارية أو ضريبية منظمة.",
+
   "common_dismiss": "إخفاء",
 
   "insight_budget_risk_title": "ميزانية {category} في خطر",

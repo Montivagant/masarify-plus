@@ -4917,6 +4917,12 @@ abstract class AppLocalizations {
   /// **'Mobile Wallet'**
   String get onboarding_default_mobile_name;
 
+  /// No description provided for @disclaimer_financial.
+  ///
+  /// In en, this message translates to:
+  /// **'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.'**
+  String get disclaimer_financial;
+
   /// No description provided for @common_dismiss.
   ///
   /// In en, this message translates to:

@@ -987,6 +987,8 @@
   "onboarding_default_bank_name": "My Bank",
   "onboarding_default_mobile_name": "Mobile Wallet",
 
+  "disclaimer_financial": "Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.",
+
   "common_dismiss": "Dismiss",
 
   "insight_budget_risk_title": "{category} budget at risk",
