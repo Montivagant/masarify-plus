@@ -2567,6 +2567,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'مصاريفي يقدم إرشادات ميزانية فقط، وليس نصائح مالية أو استثمارية أو ضريبية منظمة.';
 
   @override
+  String get disclaimer_ai_content => 'محتوى مُنشأ بالذكاء الاصطناعي';
+
+  @override
   String get common_dismiss => 'إخفاء';
 
   @override

@@ -19,6 +19,7 @@ import '../../../../domain/entities/chat_message_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/chat_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -38,6 +39,7 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _controller = TextEditingController();
   bool _isSending = false;
+  bool _showDisclaimer = false;
 
   /// In-memory action status for the current session. On confirm or cancel,
   /// the message content is stripped of its JSON block in the DB (via
@@ -47,9 +49,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final Set<int> _executingActions = {};
 
   @override
+  void initState() {
+    super.initState();
+    _loadDisclaimerState();
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDisclaimerState() async {
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
+    if (!prefs.hasSeenAiDisclaimer) {
+      setState(() => _showDisclaimer = true);
+    }
+  }
+
+  Future<void> _dismissDisclaimer() async {
+    setState(() => _showDisclaimer = false);
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    await prefs.markAiDisclaimerSeen();
   }
 
   Future<void> _send() async {
@@ -294,6 +316,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   color: context.appTheme.expenseColor,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ),
+
+          // AI disclaimer banner (first visit only).
+          if (_showDisclaimer)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+                vertical: AppSizes.sm,
+              ),
+              color: context.colors.secondaryContainer.withValues(
+                alpha: AppSizes.opacityLight4,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.info,
+                    size: AppSizes.iconSm,
+                    color: context.colors.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Expanded(
+                    child: Text(
+                      context.l10n.disclaimer_financial,
+                      style: context.textStyles.labelSmall?.copyWith(
+                        color: context.colors.onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      AppIcons.close,
+                      size: AppSizes.iconXs,
+                      color: context.colors.onSecondaryContainer,
+                    ),
+                    onPressed: _dismissDisclaimer,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
             ),
 

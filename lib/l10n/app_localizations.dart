@@ -4923,6 +4923,12 @@ abstract class AppLocalizations {
   /// **'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.'**
   String get disclaimer_financial;
 
+  /// No description provided for @disclaimer_ai_content.
+  ///
+  /// In en, this message translates to:
+  /// **'AI-generated content'**
+  String get disclaimer_ai_content;
+
   /// No description provided for @common_dismiss.
   ///
   /// In en, this message translates to:

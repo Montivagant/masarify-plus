@@ -2588,6 +2588,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.';
 
   @override
+  String get disclaimer_ai_content => 'AI-generated content';
+
+  @override
   String get common_dismiss => 'Dismiss';
 
   @override
