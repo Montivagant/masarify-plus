@@ -2643,4 +2643,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
   }
+
+  @override
+  String get trial_started_message => 'Your 7-day Pro trial has started!';
 }

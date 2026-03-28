@@ -2623,4 +2623,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String voice_create_wallet_instead(String name) {
     return 'إنشاء \'\'$name\'\' بدلاً من ذلك؟';
   }
+
+  @override
+  String get trial_started_message => 'بدأت تجربتك المجانية لمدة 7 أيام!';
 }

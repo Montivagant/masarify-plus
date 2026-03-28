@@ -1018,5 +1018,7 @@
     "placeholders": {
       "name": {"type": "String"}
     }
-  }
+  },
+
+  "trial_started_message": "Your 7-day Pro trial has started!"
 }

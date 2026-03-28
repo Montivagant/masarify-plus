@@ -10,6 +10,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/subscription_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../widgets/onboarding_pages.dart';
 
@@ -107,6 +108,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final prefs = await ref.read(preferencesFutureProvider.future);
       await prefs.markOnboardingDone();
 
+      // Start the 7-day Pro trial (single call site — idempotent).
+      final subService = ref.read(subscriptionServiceProvider);
+      await subService.ensureTrialStarted();
+
       if (!mounted) return;
 
       // Brief success overlay.
@@ -117,6 +122,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         builder: (_) => const _SuccessOverlay(),
       );
       if (!mounted) return;
+      SnackHelper.showSuccess(context, context.l10n.trial_started_message);
       context.go(AppRoutes.dashboard);
     } catch (_) {
       if (!mounted) return;

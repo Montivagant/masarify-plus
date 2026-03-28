@@ -5006,6 +5006,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create \'\'{name}\'\' instead?'**
   String voice_create_wallet_instead(String name);
+
+  /// No description provided for @trial_started_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your 7-day Pro trial has started!'**
+  String get trial_started_message;
 }
 
 class _AppLocalizationsDelegate
