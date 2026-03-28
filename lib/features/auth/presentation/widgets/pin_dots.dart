@@ -26,7 +26,8 @@ class PinDots extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm),
           child: AnimatedContainer(
-            duration: context.reduceMotion ? Duration.zero : AppDurations.dotPulse,
+            duration:
+                context.reduceMotion ? Duration.zero : AppDurations.dotPulse,
             width: AppSizes.dotLg,
             height: AppSizes.dotLg,
             decoration: BoxDecoration(
@@ -34,7 +35,10 @@ class PinDots extends StatelessWidget {
               color: filled ? cs.primary : cs.surfaceContainerHighest,
               border: filled
                   ? null
-                  : Border.all(color: cs.outline, width: 1.5),
+                  : Border.all(
+                      color: cs.outline,
+                      width: AppSizes.borderWidthEmphasis,
+                    ),
             ),
           ),
         );
