@@ -9,6 +9,7 @@ import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import 'account_chip.dart';
+import 'account_manage_sheet.dart';
 import 'month_summary_inline.dart';
 
 /// Compact Wise/Revolut-style balance header with account chips (D-01 to D-05).
@@ -89,33 +90,51 @@ class BalanceHeader extends ConsumerWidget {
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
           const SizedBox(height: AppSizes.md),
 
-          // ── Account chips (horizontal scroll, D-02/D-03) ────────────
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                AccountChip(
-                  label: context.l10n.dashboard_all_accounts,
-                  balance: totalBalance,
-                  isSelected: selectedId == null,
-                  isAllAccounts: true,
-                  hidden: hidden,
-                  onTap: () =>
-                      ref.read(selectedAccountIdProvider.notifier).state = null,
-                ),
-                ...userWallets.map(
-                  (w) => AccountChip(
-                    label: w.name,
-                    balance: w.balance,
-                    isSelected: selectedId == w.id,
-                    hidden: hidden,
-                    onTap: () => ref
-                        .read(selectedAccountIdProvider.notifier)
-                        .state = w.id,
+          // ── Account chips (horizontal scroll, D-02/D-03) + manage gear (D-08)
+          Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      AccountChip(
+                        label: context.l10n.dashboard_all_accounts,
+                        balance: totalBalance,
+                        isSelected: selectedId == null,
+                        isAllAccounts: true,
+                        hidden: hidden,
+                        onTap: () => ref
+                            .read(selectedAccountIdProvider.notifier)
+                            .state = null,
+                      ),
+                      ...userWallets.map(
+                        (w) => AccountChip(
+                          label: w.name,
+                          balance: w.balance,
+                          isSelected: selectedId == w.id,
+                          hidden: hidden,
+                          onTap: () => ref
+                              .read(selectedAccountIdProvider.notifier)
+                              .state = w.id,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              // Manage accounts gear icon (D-08)
+              IconButton(
+                icon: Icon(
+                  AppIcons.settings,
+                  size: AppSizes.iconSm,
+                  color: cs.outline,
+                ),
+                tooltip: context.l10n.wallet_manage_title,
+                onPressed: () => AccountManageSheet.show(context),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
         ],
       ),
