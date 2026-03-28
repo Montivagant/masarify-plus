@@ -88,6 +88,11 @@ class CategoryRepositoryImpl implements ICategoryRepository {
         'UPDATE recurring_rules SET is_active = 0 WHERE category_id = ?',
         [id],
       );
+      // M-3 fix: purge stale learning data for archived category
+      await _db.customStatement(
+        'DELETE FROM category_mappings WHERE category_id = ?',
+        [id],
+      );
       // Delete budgets referencing this archived category
       await _db.customStatement(
         'DELETE FROM budgets WHERE category_id = ?',

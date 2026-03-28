@@ -14,7 +14,9 @@ import 'wallet_provider.dart';
 final recentActivityProvider = StreamProvider<List<TransactionEntity>>((ref) {
   final txRepo = ref.watch(transactionRepositoryProvider);
   final xferRepo = ref.watch(transferRepositoryProvider);
-  final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+  // M-1 fix: use allWalletsProvider so archived wallet names still resolve
+  // in transfer labels (e.g. "CIB -> NBE" even if NBE is archived).
+  final wallets = ref.watch(allWalletsProvider).valueOrNull ?? [];
 
   final walletNames = {for (final w in wallets) w.id: w.name};
 
@@ -41,7 +43,9 @@ final activityByWalletProvider =
     StreamProvider.family<List<TransactionEntity>, int>((ref, walletId) {
   final txRepo = ref.watch(transactionRepositoryProvider);
   final xferRepo = ref.watch(transferRepositoryProvider);
-  final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+  // M-1 fix: use allWalletsProvider so archived wallet names still resolve
+  // in transfer labels.
+  final wallets = ref.watch(allWalletsProvider).valueOrNull ?? [];
 
   final walletNames = {for (final w in wallets) w.id: w.name};
 

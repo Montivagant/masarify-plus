@@ -51,12 +51,13 @@ class RecurringRuleEntity {
   final DateTime? lastProcessedDate;
 
   /// True when the rule is due. For once-frequency (bills), also checks !isPaid.
+  /// M-4 fix: normalize to date-only comparison, matching isOverdue behavior.
   bool get isDue {
     final now = DateTime.now();
-    final due = nextDueDate.isBefore(now) ||
-        (nextDueDate.year == now.year &&
-            nextDueDate.month == now.month &&
-            nextDueDate.day == now.day);
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final dueDate =
+        DateTime(nextDueDate.year, nextDueDate.month, nextDueDate.day);
+    final due = !dueDate.isAfter(todayDate);
     if (frequency == 'once') return due && !isPaid;
     return due;
   }

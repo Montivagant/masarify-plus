@@ -116,7 +116,16 @@ class WalletRepositoryImpl implements IWalletRepository {
   }
 
   @override
-  Future<bool> archive(int id) => _dao.archive(id);
+  Future<bool> archive(int id) async {
+    return _db.transaction(() async {
+      // M-2 fix: cascade — deactivate recurring rules for this wallet
+      await _db.customStatement(
+        'UPDATE recurring_rules SET is_active = 0 WHERE wallet_id = ?',
+        [id],
+      );
+      return _dao.archive(id);
+    });
+  }
 
   @override
   Future<bool> unarchive(int id) => _dao.unarchive(id);
