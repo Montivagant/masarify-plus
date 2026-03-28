@@ -62,10 +62,9 @@ Future<void> main() async {
     ),
   );
 
-  // Initialize subscription service (IAP listener + trial).
+  // Initialize subscription service (IAP listener).
   final subService = container.read(subscriptionServiceProvider);
   unawaited(subService.initialize());
-  unawaited(subService.ensureTrialStarted());
 
   // CR-13 fix: run RecurringScheduler AFTER runApp() to avoid blocking splash.
   unawaited(
