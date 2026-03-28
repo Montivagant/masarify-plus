@@ -35,8 +35,7 @@ Declared values (all multiples of 4, matching existing `AppSizes`):
 
 | Token | Value | Usage in This Phase |
 |-------|-------|---------------------|
-| `AppSizes.xxs` | 2px | Compact badge internal padding |
-| `AppSizes.xs` | 4px | Grid item gaps, icon-to-label gap in picker tiles |
+| `AppSizes.xs` | 4px | Grid item gaps, icon-to-label gap in picker tiles, compact badge internal padding |
 | `AppSizes.sm` | 8px | Search bar vertical padding, section header gap, between chips |
 | `AppSizes.md` | 16px | Screen edge padding (`screenHPadding`), card internal padding, default GlassCard padding |
 | `AppSizes.lg` | 24px | Section header top margin, gap between "Most Used" and "All Categories" sections |
@@ -54,19 +53,14 @@ Exceptions:
 
 ## Typography
 
-All roles use `context.textStyles.*` from `AppTextStyles.sizeOverrides`. No new text styles are introduced.
+All roles use `context.textStyles.*` from `AppTextStyles.sizeOverrides`. No new text styles are introduced. Exactly 4 sizes and 2 weights.
 
 | Role | Token | Size | Weight | Line Height | Usage in This Phase |
 |------|-------|------|--------|-------------|---------------------|
-| Screen title | `headlineMedium` | 22sp | SemiBold (600) | 1.2 | "Categories" management screen title |
-| Section header | `titleMedium` + w600 | 16sp | SemiBold (600) | 1.5 | "Expense" / "Income" / "Most Used" / "All Categories" section labels |
-| Tile primary | `bodyLarge` | 16sp | Regular (400) | 1.5 | Category name in management list tile |
-| Tile secondary | `bodySmall` | 12sp | Regular (400) | 1.5 | Usage count badge text ("42 transactions") |
-| Picker tile label | `labelSmall` | 11sp | Regular (400) | 1.4 | Category name under grid icon in picker |
-| Button / chip | `labelLarge` | 14sp | Medium (500) | 1.4 | Merge/Delete action labels, filter chips |
-| Search hint | `bodyMedium` | 14sp | Regular (400) | 1.5 | "Search categories..." placeholder |
-| Impact count | `titleSmall` | 14sp | Medium (500) | 1.5 | "127 transactions will be moved" in delete flow step 1 |
-| Dialog title | `headlineSmall` | 20sp | SemiBold (600) | 1.2 | Delete confirmation, merge preview dialog titles |
+| Screen/dialog title | `headlineSmall` | 20sp | SemiBold (600) | 1.2 | "Categories" management screen title, delete confirmation title, merge preview dialog title |
+| Section header / tile primary | `titleMedium` / `bodyLarge` | 16sp | SemiBold (600) for headers, Regular (400) for tile primary | 1.5 | "Expense" / "Income" / "Most Used" / "All Categories" section labels; category name in management list tile |
+| Body / button / search | `bodyMedium` / `labelLarge` / `titleSmall` | 14sp | Regular (400) for search hint, SemiBold (600) for buttons, chips, impact count | 1.5 | Search placeholder, merge/delete action labels, filter chips, impact count ("127 transactions will be moved") |
+| Small label / badge | `bodySmall` / `labelSmall` | 12sp | Regular (400) | 1.5 | Usage count badge ("42 transactions"), category name under grid icon in picker |
 
 **Source:** Existing `AppTextStyles`, CLAUDE.md Rule #4 (Design tokens are LAW)
 
@@ -140,11 +134,11 @@ All colors reference existing tokens. No new hex values introduced.
 **Layout spec:**
 - `DraggableScrollableSheet` with `initialChildSize: AppSizes.sheetInitialSize` (0.6), `minChildSize: AppSizes.sheetSmallInitialSize` (0.4), `maxChildSize: AppSizes.sheetMaxSize` (0.85)
 - Glass card background using `GlassTier.background` for the sheet container
-- **Header:** Drag handle + "Select Category" title (`titleMedium`)
+- **Header:** Drag handle + "Select Category" title (`headlineSmall` at 20sp, SemiBold)
 - **Search bar:** `TextField` with `AppIcons.search` prefix, `borderRadiusFull` (100), `contentPadding: horizontal md, vertical sm`
 - **"Most Used" section:** Top 5 categories by `usageCount DESC` where `usageCount > 0`. Section header: "Most Used" with star icon in accent color. 4-column grid. Only shown when not searching.
 - **"All Categories" section:** Remaining categories grouped by type (Expense header, then Income header). 4-column grid. `crossAxisCount: 4`, `childAspectRatio: 0.85`, `crossAxisSpacing: AppSizes.xs`, `mainAxisSpacing: AppSizes.xs`.
-- **Grid tile:** `GlassCategoryIcon` (52px) + 4px gap + category name (`labelSmall`, centered, `maxLines: 1`, `overflow: TextOverflow.ellipsis`)
+- **Grid tile:** `GlassCategoryIcon` (52px) + 4px gap + category name (`bodySmall` at 12sp, centered, `maxLines: 1`, `overflow: TextOverflow.ellipsis`)
 - **Search filter:** Matches `name`, `nameAr`, and `iconName` (case-insensitive). When searching, flat list replaces sections.
 - **Empty search:** "No categories found" text (`bodySmall`, outline color, centered)
 
@@ -153,14 +147,14 @@ All colors reference existing tokens. No new hex values introduced.
 **Purpose:** 3-step progressive deletion dialog.
 
 **Step 1 --- Impact Preview:**
-- Dialog with `headlineSmall` title: "Delete {categoryName}?"
+- Dialog with `headlineSmall` title (20sp): "Delete {categoryName}?"
 - Impact rows using `Icon` + count text:
   - Transactions icon + "{n} transactions"
   - Budgets icon + "{n} budgets"
   - Subscriptions icon + "{n} subscriptions"
   - Learning patterns icon + "{n} learned patterns"
 - Only show rows where count > 0
-- Bottom: "Cancel" (text button) + "Continue" (filled button, destructive color)
+- Bottom: "Cancel" (text button) + "Review Options" (filled button, destructive color)
 - If ALL counts are zero: skip to 1-step confirm per D-04
 
 **Step 2 --- Archive Suggestion:**
@@ -183,7 +177,7 @@ All colors reference existing tokens. No new hex values introduced.
 - Title: "Merge {sourceName} into..."
 - Impact preview: "{n} transactions, {n} budgets, {n} subscriptions will be moved"
 - Category picker grid (excluding source category)
-- "Merge" button (filled, primary) --- disabled until target selected
+- "Merge Categories" button (filled, primary) --- disabled until target selected
 - Confirmation snackbar after success: "{sourceName} merged into {targetName}"
 
 ### Modified Widgets
@@ -192,6 +186,8 @@ All colors reference existing tokens. No new hex values introduced.
 **File:** `lib/features/categories/presentation/screens/categories_screen.dart`
 **Modification type:** Incremental --- add swipe actions, usage badges, drag-drop, remove groupType/isDefault UI
 
+**Focal point:** The primary visual focus of this screen is the category list tile --- each tile's `GlassCategoryIcon` (40px) paired with the category name and usage badge communicates at a glance which categories are active and how frequently they are used. The swipe actions provide secondary discovery through interaction.
+
 **Layout spec (post-modification):**
 - AppBar: "Categories" title + Add button (existing)
 - Body: `ListView` with two sections (Expense / Income), each with:
@@ -199,8 +195,8 @@ All colors reference existing tokens. No new hex values introduced.
   - Category tiles using `GlassCard` with `showShadow: true`
 - **Each tile contains:**
   - Leading: `GlassCategoryIcon` (40px via `AppSizes.iconContainerMd`)
-  - Title: category name (`bodyLarge`)
-  - Subtitle: usage count badge --- "{n} transactions" (`bodySmall`, `colors.outline`)
+  - Title: category name (`bodyLarge`, 16sp, Regular 400)
+  - Subtitle: usage count badge --- "{n} transactions" (`bodySmall`, 12sp, Regular 400, `colors.outline`)
   - Trailing: no "Default" chip, no delete icon button (replaced by swipe actions)
 - **Swipe actions** (via `Slidable` + `SlidableAutoCloseBehavior`):
   - Swipe start (leading in LTR / trailing in RTL): "Merge" action with primary color icon
@@ -253,8 +249,8 @@ All colors reference existing tokens. No new hex values introduced.
 |------|---------|-------------|
 | Pre-check | Swipe-end "Delete" tapped | Count connected data via `categoryDao.countConnectedData(id)` |
 | Branch: empty | All counts == 0 | 1-step confirm dialog. "Delete {name}? This cannot be undone." Confirm = hard delete. |
-| Step 1 | Any count > 0 | Show impact preview dialog with counts. "Continue" or "Cancel". |
-| Step 2 | User taps "Continue" | Show archive suggestion. "Archive" (safe) or "Delete Permanently" (dangerous). |
+| Step 1 | Any count > 0 | Show impact preview dialog with counts. "Review Options" or "Cancel". |
+| Step 2 | User taps "Review Options" | Show archive suggestion. "Archive" (safe) or "Delete Permanently" (dangerous). |
 | Step 3 | User taps "Delete Permanently" | Show migration picker. MUST select a target. "Confirm Migration" triggers atomic merge+delete in Drift transaction. |
 | Post-delete | Migration complete | Haptic feedback. Snackbar: "{name} deleted. {n} items moved to {targetName}." Duration: `snackbarDefault` (3s). |
 
@@ -264,8 +260,8 @@ All colors reference existing tokens. No new hex values introduced.
 |------|---------|-------------|
 | Open | Swipe-start "Merge" tapped | Open `CategoryMergeSheet` bottom sheet |
 | Preview | Sheet opens | Show source name, impact counts. Grid of target categories (excluding source). |
-| Select target | Tap a category in grid | Highlight with selected state. Enable "Merge" button. |
-| Confirm | Tap "Merge" button | Atomic Drift transaction: migrate all data, combine usageCount, hard delete source. |
+| Select target | Tap a category in grid | Highlight with selected state. Enable "Merge Categories" button. |
+| Confirm | Tap "Merge Categories" button | Atomic Drift transaction: migrate all data, combine usageCount, hard delete source. |
 | Post-merge | Transaction complete | Close sheet. Haptic feedback. Snackbar: "{source} merged into {target}." Duration: `snackbarDefault` (3s). |
 
 ---
@@ -313,6 +309,7 @@ All user-facing strings must be added to BOTH `app_en.arb` AND `app_ar.arb`.
 | **Delete: Step 1 row** | `category_delete_impact_budgets` (NEW) | "{count} budgets" | Impact row for budgets |
 | **Delete: Step 1 row** | `category_delete_impact_subscriptions` (NEW) | "{count} subscriptions" | Impact row for recurring rules |
 | **Delete: Step 1 row** | `category_delete_impact_patterns` (NEW) | "{count} learned patterns" | Impact row for category_mappings |
+| **Delete: Step 1 continue** | `category_delete_review_options` (NEW) | "Review Options" | Step 1 continue button (reveals archive/delete choices) |
 | **Delete: Step 2 body** | `category_delete_archive_suggestion` (NEW) | "Archiving hides this category without losing data. You can restore it later." | Archive suggestion body |
 | **Delete: Step 2 archive** | `category_delete_archive_action` (NEW) | "Archive Instead" | Archive button label |
 | **Delete: Step 2 delete** | `category_delete_permanent` (NEW) | "Delete Permanently" | Destructive continue button |
@@ -322,7 +319,7 @@ All user-facing strings must be added to BOTH `app_en.arb` AND `app_ar.arb`.
 | **Delete: success snackbar** | `category_deleted_success` (NEW) | "{name} deleted. {count} items moved to {target}." | Post-delete confirmation |
 | **Merge: title** | `category_merge_title` (NEW) | "Merge {name} into..." | Merge sheet title |
 | **Merge: impact** | `category_merge_impact` (NEW) | "{count} transactions, {budgets} budgets, {subscriptions} subscriptions will be moved" | Impact preview |
-| **Merge: confirm** | `category_merge_confirm` (NEW) | "Merge" | Merge button label |
+| **Merge: confirm** | `category_merge_confirm` (NEW) | "Merge Categories" | Merge button label |
 | **Merge: success** | `category_merged_success` (NEW) | "{source} merged into {target}" | Post-merge snackbar |
 | **Merge: swipe label** | `category_merge_action` (NEW) | "Merge" | Slidable action label |
 | **Archive: swipe label** | `category_archive_action` (NEW) | "Archive" | Slidable action label |
