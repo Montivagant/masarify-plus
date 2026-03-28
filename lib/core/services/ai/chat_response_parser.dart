@@ -46,7 +46,28 @@ class ChatResponseParser {
       if (match != null) matchedPattern = _bareJsonRegex;
     }
 
+    // Layer 3: Balanced-brace extraction for edge cases where JSON is
+    // embedded in markdown or malformed fences.
     if (match == null || matchedPattern == null) {
+      final braceResult = _extractBalancedBrace(rawContent);
+      if (braceResult != null) {
+        try {
+          final decoded = jsonDecode(braceResult) as Map<String, dynamic>;
+          final action = ChatAction.fromJson(decoded);
+          if (action != null) {
+            final textContent = rawContent
+                .replaceFirst(braceResult, '')
+                .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+                .trim();
+            return ParsedChatResponse(
+              textContent: _maybeSanitize(textContent),
+              action: action,
+            );
+          }
+        } catch (_) {
+          // Balanced brace found but not valid JSON — fall through.
+        }
+      }
       return ParsedChatResponse(textContent: _maybeSanitize(rawContent));
     }
 
@@ -80,6 +101,32 @@ class ChatResponseParser {
       return _sanitizeRemainingJson(text);
     }
     return text;
+  }
+
+  /// Extract the first balanced `{...}` block containing `"action"`.
+  /// Handles nested objects that regex alone misses.
+  static String? _extractBalancedBrace(String text) {
+    final actionIdx = text.indexOf('"action"');
+    if (actionIdx == -1) return null;
+
+    // Walk backwards to find the opening brace.
+    int start = -1;
+    for (int i = actionIdx - 1; i >= 0; i--) {
+      if (text[i] == '{') {
+        start = i;
+        break;
+      }
+    }
+    if (start == -1) return null;
+
+    // Walk forward from start to find the matching closing brace.
+    int depth = 0;
+    for (int i = start; i < text.length; i++) {
+      if (text[i] == '{') depth++;
+      if (text[i] == '}') depth--;
+      if (depth == 0) return text.substring(start, i + 1);
+    }
+    return null;
   }
 
   /// Final safety net: strip any remaining action-JSON fragments that

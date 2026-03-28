@@ -19,24 +19,31 @@ enum SortOrder { dateDesc, dateAsc, amountDesc, amountAsc }
 class HomeFilter {
   const HomeFilter({
     this.typeFilter = TransactionTypeFilter.all,
+    this.categoryId,
     this.searchQuery = '',
     this.sortOrder = SortOrder.dateDesc,
     this.isSearchActive = false,
   });
 
   final TransactionTypeFilter typeFilter;
+
+  /// When non-null, filters transactions to this category only.
+  final int? categoryId;
   final String searchQuery;
   final SortOrder sortOrder;
   final bool isSearchActive;
 
   HomeFilter copyWith({
     TransactionTypeFilter? typeFilter,
+    int? categoryId,
+    bool clearCategory = false,
     String? searchQuery,
     SortOrder? sortOrder,
     bool? isSearchActive,
   }) =>
       HomeFilter(
         typeFilter: typeFilter ?? this.typeFilter,
+        categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
         searchQuery: searchQuery ?? this.searchQuery,
         sortOrder: sortOrder ?? this.sortOrder,
         isSearchActive: isSearchActive ?? this.isSearchActive,
@@ -83,6 +90,12 @@ final filteredActivityProvider =
             return true;
         }
       }).toList();
+    }
+
+    // ── Category filter ───────────────────────────────────────────────
+    if (filter.categoryId != null) {
+      result =
+          result.where((tx) => tx.categoryId == filter.categoryId).toList();
     }
 
     // ── Search filter ─────────────────────────────────────────────────

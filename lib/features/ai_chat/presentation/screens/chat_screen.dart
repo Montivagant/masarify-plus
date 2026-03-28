@@ -255,6 +255,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
       if (!mounted) return;
       setState(() => _actionStates[messageId] = ChatActionStatus.confirmed);
+
+      // Show subscription suggestion if the created transaction looks recurring.
+      if (result.subscriptionSuggestion != null && mounted) {
+        final suggestion = result.subscriptionSuggestion!;
+        final suggestMsg =
+            context.l10n.chat_subscription_suggest(suggestion.title);
+        await repo.insert(
+          role: 'assistant',
+          content: suggestMsg,
+          tokenCount: AiChatService.estimateTokens(suggestMsg),
+        );
+      }
     } catch (e) {
       final errorMsg = e is ArgumentError ? e.message.toString() : errorGeneric;
       await repo.insert(
