@@ -5312,6 +5312,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved {amount} on {category}'**
   String insight_budget_savings_body(String amount, String category);
+
+  /// No description provided for @trial_started_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your 7-day Pro trial has started!'**
+  String get trial_started_message;
 }
 
 class _AppLocalizationsDelegate

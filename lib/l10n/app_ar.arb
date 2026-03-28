@@ -1079,5 +1079,6 @@
   "insight_upcoming_bills_title": "فواتير قادمة",
   "insight_upcoming_bills_body": "{count, plural, =1{فاتورة واحدة مستحقة هذا الأسبوع} other{{count} فواتير مستحقة هذا الأسبوع}}",
   "insight_budget_savings_title": "وفورات الميزانية",
-  "insight_budget_savings_body": "وفرت {amount} في {category}"
+  "insight_budget_savings_body": "وفرت {amount} في {category}",
+  "trial_started_message": "بدأت تجربتك المجانية لمدة 7 أيام!"
 }

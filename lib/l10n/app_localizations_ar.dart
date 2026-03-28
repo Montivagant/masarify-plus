@@ -2803,4 +2803,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String insight_budget_savings_body(String amount, String category) {
     return 'وفرت $amount في $category';
   }
+
+  @override
+  String get trial_started_message => 'بدأت تجربتك المجانية لمدة 7 أيام!';
 }

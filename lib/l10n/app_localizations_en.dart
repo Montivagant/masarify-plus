@@ -2826,4 +2826,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String insight_budget_savings_body(String amount, String category) {
     return 'Saved $amount on $category';
   }
+
+  @override
+  String get trial_started_message => 'Your 7-day Pro trial has started!';
 }

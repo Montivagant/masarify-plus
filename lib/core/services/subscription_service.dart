@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/database/daos/subscription_record_dao.dart';
-
 /// Product IDs — must match Google Play Console configuration.
 abstract final class SubscriptionIds {
   static const String monthlyPro = 'masarify_pro_monthly';
@@ -18,13 +16,12 @@ abstract final class SubscriptionIds {
 /// Exposes a [proStatusStream] that emits `true` when the user has
 /// an active Pro subscription or is within the free trial period.
 ///
-/// Trial logic: 7-day free trial from onboarding completion. Stored locally
+/// Trial logic: 7-day free trial starting after onboarding. Stored locally
 /// in SharedPreferences — not enforced server-side (acceptable for v1).
 class SubscriptionService {
-  SubscriptionService(this._prefs, {this.recordDao});
+  SubscriptionService(this._prefs);
 
   final SharedPreferences _prefs;
-  final SubscriptionRecordDao? recordDao;
 
   static const _kTrialStartDate = 'trial_start_date';
   static const _kProActive = 'pro_active';
@@ -111,7 +108,6 @@ class SubscriptionService {
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
           _activatePro();
-          _persistPurchaseRecord(purchase);
           if (purchase.pendingCompletePurchase) {
             _iap.completePurchase(purchase);
           }
@@ -129,25 +125,6 @@ class SubscriptionService {
   Future<void> _activatePro() async {
     await _prefs.setBool(_kProActive, true);
     _proController.add(true);
-  }
-
-  /// Persist purchase record to Drift for offline verification and
-  /// cancellation/grace period tracking.
-  Future<void> _persistPurchaseRecord(PurchaseDetails purchase) async {
-    final dao = recordDao;
-    if (dao == null) return;
-    try {
-      await dao.upsertRecord(
-        purchaseToken: purchase.purchaseID ?? '',
-        productId: purchase.productID,
-        purchaseDate: DateTime.fromMillisecondsSinceEpoch(
-          int.tryParse(purchase.transactionDate ?? '') ??
-              DateTime.now().millisecondsSinceEpoch,
-        ),
-      );
-    } catch (_) {
-      // Non-fatal — SharedPreferences is the fallback.
-    }
   }
 
   /// Dispose the purchase stream subscription.
