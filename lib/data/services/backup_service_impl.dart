@@ -12,7 +12,7 @@ import '../database/app_database.dart';
 
 /// Concrete implementation of [BackupService].
 ///
-/// - JSON export/import: all 13 DB tables + crash log + schema version.
+/// - JSON export/import: all 14 DB tables + crash log + schema version.
 /// - CSV export: monthly transactions with readable columns.
 class BackupServiceImpl implements BackupService {
   BackupServiceImpl(this._db);
@@ -21,7 +21,7 @@ class BackupServiceImpl implements BackupService {
 
   // Hardcoded to avoid creating a throwaway AppDatabase() instance (leaked connection).
   // Must be kept in sync with AppDatabase.schemaVersion.
-  static const int _schemaVersion = 13;
+  static const int _schemaVersion = 14;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -40,6 +40,7 @@ class BackupServiceImpl implements BackupService {
     final catMappings = await _db.select(_db.categoryMappings).get();
     final chatMessages = await _db.select(_db.chatMessages).get();
     final parsedEventGroups = await _db.select(_db.parsedEventGroups).get();
+    final subscriptionRecords = await _db.select(_db.subscriptionRecords).get();
 
     final crashLog = await CrashLogService.readLog();
 
@@ -61,6 +62,8 @@ class BackupServiceImpl implements BackupService {
         'chat_messages': chatMessages.map(_chatMessageToMap).toList(),
         'parsed_event_groups':
             parsedEventGroups.map(_parsedEventGroupToMap).toList(),
+        'subscription_records':
+            subscriptionRecords.map(_subscriptionRecordToMap).toList(),
       },
       if (crashLog != null) 'crash_log': crashLog,
     };
@@ -121,6 +124,7 @@ class BackupServiceImpl implements BackupService {
       await _db.customStatement('DELETE FROM exchange_rates');
       await _db.customStatement('DELETE FROM category_mappings');
       await _db.customStatement('DELETE FROM chat_messages');
+      await _db.customStatement('DELETE FROM subscription_records');
       await _db.customStatement('DELETE FROM wallets');
       await _db.customStatement('DELETE FROM categories');
 
@@ -185,6 +189,13 @@ class BackupServiceImpl implements BackupService {
         'chat_messages',
         _db.chatMessages,
         _mapToChatMessage,
+      );
+      // v14+ table — subscription purchase records
+      await _insertAll(
+        tables,
+        'subscription_records',
+        _db.subscriptionRecords,
+        _mapToSubscriptionRecord,
       );
 
       // Ensure system wallet and default account invariants after restore.
@@ -257,6 +268,12 @@ class BackupServiceImpl implements BackupService {
     _tryDeserializeAll(tables, 'chat_messages', _mapToChatMessage);
     // v8+ table
     _tryDeserializeAll(tables, 'parsed_event_groups', _mapToParsedEventGroup);
+    // v14+ table
+    _tryDeserializeAll(
+      tables,
+      'subscription_records',
+      _mapToSubscriptionRecord,
+    );
   }
 
   void _tryDeserializeAll<T>(
@@ -740,5 +757,31 @@ class BackupServiceImpl implements BackupService {
         eventType: Value(m['eventType'] as String? ?? 'transaction'),
         eventTime: Value(DateTime.parse(m['eventTime'] as String)),
         createdAt: Value(DateTime.parse(m['createdAt'] as String)),
+      );
+
+  // v14 table — subscription purchase records
+  Map<String, dynamic> _subscriptionRecordToMap(SubscriptionRecord r) => {
+        'id': r.id,
+        'purchaseToken': r.purchaseToken,
+        'productId': r.productId,
+        'purchaseDate': r.purchaseDate.toIso8601String(),
+        'expiryDate': r.expiryDate?.toIso8601String(),
+        'status': r.status,
+      };
+
+  SubscriptionRecordsCompanion _mapToSubscriptionRecord(
+    Map<String, dynamic> m,
+  ) =>
+      SubscriptionRecordsCompanion(
+        id: Value(_int(m['id'])),
+        purchaseToken: Value(m['purchaseToken'] as String),
+        productId: Value(m['productId'] as String),
+        purchaseDate: Value(DateTime.parse(m['purchaseDate'] as String)),
+        expiryDate: Value(
+          m['expiryDate'] != null
+              ? DateTime.parse(m['expiryDate'] as String)
+              : null,
+        ),
+        status: Value(m['status'] as String? ?? 'active'),
       );
 }

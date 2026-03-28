@@ -66,7 +66,14 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
     }
   }
 
+  /// C-3 fix: Revalidate subscription on app resume, but skip if PIN lock
+  /// screen is active to prevent Pro status flicker during authentication.
   void _silentRestore() {
+    // C-3: don't trigger restore while PIN lock is active
+    if (AppLockService.instance.requiresAuth &&
+        !AppLockService.instance.isUnlocked) {
+      return;
+    }
     // Throttle: at most once per hour to avoid Google Play rate limits.
     final now = DateTime.now();
     if (_lastRestoreAt != null &&
