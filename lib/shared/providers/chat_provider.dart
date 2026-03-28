@@ -5,6 +5,7 @@ import '../../core/services/ai/chat_action_executor.dart';
 import '../../core/utils/money_formatter.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import 'ai_provider.dart';
+import 'background_ai_provider.dart';
 import 'budget_provider.dart';
 import 'category_provider.dart';
 import 'goal_provider.dart';
@@ -160,5 +161,6 @@ final chatActionExecutorProvider = Provider<ChatActionExecutor>((ref) {
     recurringRepo: ref.watch(recurringRuleRepositoryProvider),
     walletRepo: ref.watch(walletRepositoryProvider),
     transferRepo: ref.watch(transferRepositoryProvider),
+    learningService: ref.watch(categorizationLearningServiceProvider),
   );
 });

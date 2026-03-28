@@ -232,8 +232,6 @@ abstract final class AppSizes {
 
   // ── Smart defaults / Quick Add ──────────────────────────────────────
   static const double borderWidthEmphasis = 1.5;
-  static const int quickAddMinOccurrences = 3;
-  static const int quickAddMaxItems = 3;
   static const int categoryChipMaxVisible = 6;
 
   // ── Chat ──────────────────────────────────────────────────────────────

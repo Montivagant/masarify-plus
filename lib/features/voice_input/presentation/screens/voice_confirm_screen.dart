@@ -18,6 +18,7 @@ import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../domain/repositories/i_transaction_repository.dart';
+import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -575,6 +576,17 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               )
               .toList(),
         );
+
+        // H-1: Wire category learning for voice transactions.
+        final learningService = ref.read(categorizationLearningServiceProvider);
+        for (final draft in txDrafts) {
+          if (draft.categoryId != null) {
+            final title = draft.noteController.text.trim().isNotEmpty
+                ? draft.noteController.text.trim()
+                : draft.rawText;
+            learningService.recordMapping(title, draft.categoryId!);
+          }
+        }
       }
 
       if (!mounted) return;

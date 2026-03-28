@@ -74,7 +74,6 @@ abstract final class AppDurations {
       Duration(milliseconds: 500);
 
   // Smart defaults
-  static const Duration quickAddLookback = Duration(days: 90);
   static const Duration transactionDedupeWindow = Duration(minutes: 10);
 
   // Chat

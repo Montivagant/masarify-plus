@@ -10,6 +10,7 @@ import '../../constants/voice_dictionary.dart';
 import '../../utils/money_formatter.dart';
 import '../../utils/subscription_detector.dart';
 import '../../utils/wallet_matcher.dart';
+import 'categorization_learning_service.dart';
 import 'chat_action.dart';
 import 'chat_action_messages.dart';
 
@@ -47,12 +48,14 @@ class ChatActionExecutor {
     required IRecurringRuleRepository recurringRepo,
     required IWalletRepository walletRepo,
     required ITransferRepository transferRepo,
+    required CategorizationLearningService learningService,
   })  : _goalRepo = goalRepo,
         _txRepo = txRepo,
         _budgetRepo = budgetRepo,
         _recurringRepo = recurringRepo,
         _walletRepo = walletRepo,
-        _transferRepo = transferRepo;
+        _transferRepo = transferRepo,
+        _learningService = learningService;
 
   final IGoalRepository _goalRepo;
   final ITransactionRepository _txRepo;
@@ -60,6 +63,7 @@ class ChatActionExecutor {
   final IRecurringRuleRepository _recurringRepo;
   final IWalletRepository _walletRepo;
   final ITransferRepository _transferRepo;
+  final CategorizationLearningService _learningService;
 
   /// Execute [action] and return an [ExecutionResult] with the success message
   /// and optional subscription suggestion.
@@ -162,6 +166,9 @@ class ChatActionExecutor {
       note: action.note,
       source: 'ai_chat',
     );
+
+    // H-1: Record category mapping for learning.
+    await _learningService.recordMapping(action.title, matched.id);
 
     // Detect subscription-like transactions for follow-up suggestion.
     SubscriptionSuggestion? suggestion;
