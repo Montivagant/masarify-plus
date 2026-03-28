@@ -134,6 +134,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final prefs = await ref.read(preferencesFutureProvider.future);
     if (!mounted) return;
     await prefs.setFirstDayOfMonth(day);
+    ref.invalidate(firstDayOfMonthProvider); // M-16 fix
   }
 
   Future<void> _togglePin(bool value) async {
@@ -601,6 +602,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           // ── Appearance ──────────────────────────────────────────────────
           _SectionHeader(title: l10n.settings_appearance),
 
+          // M-13 fix: theme mode picker
+          Builder(
+            builder: (context) {
+              final mode = ref.watch(themeModeProvider);
+              return _SettingsTile(
+                icon: AppIcons.theme,
+                label: l10n.settings_theme,
+                subtitle: switch (mode) {
+                  ThemeMode.light => l10n.settings_theme_light,
+                  ThemeMode.dark => l10n.settings_theme_dark,
+                  ThemeMode.system => l10n.settings_theme_system,
+                },
+                onTap: () => _showThemePicker(),
+              );
+            },
+          ),
+
           // ── Language ───────────────────────────────────────────────────
           Builder(
             builder: (context) {
@@ -857,6 +875,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                 _setLanguage('en');
                 ctx.pop();
               },
+            ),
+            const SizedBox(height: AppSizes.sm),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // M-13 fix: theme mode picker bottom sheet.
+  void _showThemePicker() {
+    final l10n = context.l10n;
+    final current = ref.read(themeModeProvider);
+    final options = [
+      (mode: ThemeMode.light, label: l10n.settings_theme_light),
+      (mode: ThemeMode.dark, label: l10n.settings_theme_dark),
+      (mode: ThemeMode.system, label: l10n.settings_theme_system),
+    ];
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSizes.md),
+              child: Text(
+                l10n.settings_theme,
+                style: ctx.textStyles.titleMedium,
+              ),
+            ),
+            ...options.map(
+              (o) => ListTile(
+                title: Text(o.label),
+                trailing: o.mode == current
+                    ? Icon(AppIcons.check, color: ctx.colors.primary)
+                    : null,
+                onTap: () {
+                  ref.read(themeModeProvider.notifier).setMode(o.mode);
+                  ctx.pop();
+                },
+              ),
             ),
             const SizedBox(height: AppSizes.sm),
           ],
