@@ -21,6 +21,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
@@ -204,107 +205,129 @@ class _RecurringCard extends ConsumerWidget {
     final isBill = rule.isBill;
     final isOverdue = rule.isOverdue;
 
-    return Slidable(
-      key: ValueKey(rule.id),
-      startActionPane: ActionPane(
-        motion: const BehindMotion(),
-        extentRatio: 0.25,
-        children: [
-          SlidableAction(
-            onPressed: (_) => context.push(
-              AppRoutes.recurringEdit.replaceFirst(':id', '${rule.id}'),
-            ),
-            backgroundColor: context.appTheme.transferColor,
-            foregroundColor: cs.onPrimary,
-            icon: AppIcons.edit,
-            label: context.l10n.common_edit,
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.screenHPadding,
+        vertical: AppSizes.xs,
       ),
-      endActionPane: ActionPane(
-        motion: const BehindMotion(),
-        extentRatio: 0.25,
-        children: [
-          SlidableAction(
-            onPressed: (_) => _confirmDelete(context, ref),
-            backgroundColor: context.appTheme.expenseColor,
-            foregroundColor: cs.onError,
-            icon: AppIcons.delete,
-            label: context.l10n.common_delete,
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => context.push(
-          AppRoutes.recurringEdit.replaceFirst(':id', '${rule.id}'),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.screenHPadding,
-            vertical: AppSizes.sm,
-          ),
-          child: Row(
+      child: GlassCard(
+        padding: EdgeInsets.zero,
+        child: Slidable(
+          key: ValueKey(rule.id),
+          startActionPane: ActionPane(
+            motion: const BehindMotion(),
+            extentRatio: 0.25,
             children: [
-              // Category icon — plain colored icon
-              Icon(
-                isBill ? AppIcons.bill : catIcon,
-                size: AppSizes.iconMd,
-                color: isOverdue ? context.appTheme.expenseColor : catColor,
-              ),
-              const SizedBox(width: AppSizes.md),
-              // Title + subtitle row
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      rule.title,
-                      style: context.textStyles.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        decoration:
-                            rule.isPaid ? TextDecoration.lineThrough : null,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: AppSizes.xxs),
-                    if (isBill)
-                      _buildBillSubtitle(context)
-                    else
-                      _buildRecurringSubtitle(context),
-                  ],
+              SlidableAction(
+                onPressed: (_) => context.push(
+                  AppRoutes.recurringEdit.replaceFirst(':id', '${rule.id}'),
                 ),
-              ),
-              const SizedBox(width: AppSizes.sm),
-              // Amount + action
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$prefix ${MoneyFormatter.formatAmount(rule.amount)}',
-                    style: context.textStyles.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: rule.isPaid ? cs.outline : typeColor,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.xxs),
-                  if (isBill && !rule.isPaid)
-                    _MarkPaidButton(rule: rule)
-                  else if (!isBill)
-                    SizedBox(
-                      height: AppSizes.iconMd,
-                      child: Switch.adaptive(
-                        value: rule.isActive,
-                        onChanged: (active) =>
-                            _confirmToggle(context, ref, active),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                ],
+                backgroundColor: context.appTheme.transferColor,
+                foregroundColor: cs.onPrimary,
+                icon: AppIcons.edit,
+                label: context.l10n.common_edit,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
               ),
             ],
+          ),
+          endActionPane: ActionPane(
+            motion: const BehindMotion(),
+            extentRatio: 0.25,
+            children: [
+              SlidableAction(
+                onPressed: (_) => _confirmDelete(context, ref),
+                backgroundColor: context.appTheme.expenseColor,
+                foregroundColor: cs.onError,
+                icon: AppIcons.delete,
+                label: context.l10n.common_delete,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+              ),
+            ],
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            onTap: () => context.push(
+              AppRoutes.recurringEdit.replaceFirst(':id', '${rule.id}'),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.sm,
+              ),
+              child: Row(
+                children: [
+                  // Category icon — colored circle container (matches detail screen)
+                  Container(
+                    width: AppSizes.iconContainerMd,
+                    height: AppSizes.iconContainerMd,
+                    decoration: BoxDecoration(
+                      color:
+                          (isOverdue ? context.appTheme.expenseColor : catColor)
+                              .withValues(alpha: AppSizes.opacityLight2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isBill ? AppIcons.bill : catIcon,
+                      size: AppSizes.iconSm,
+                      color:
+                          isOverdue ? context.appTheme.expenseColor : catColor,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.md),
+                  // Title + subtitle row
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          rule.title,
+                          style: context.textStyles.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            decoration:
+                                rule.isPaid ? TextDecoration.lineThrough : null,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSizes.xxs),
+                        if (isBill)
+                          _buildBillSubtitle(context)
+                        else
+                          _buildRecurringSubtitle(context),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  // Amount + action
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '$prefix ${MoneyFormatter.formatAmount(rule.amount)}',
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: rule.isPaid ? cs.outline : typeColor,
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.xxs),
+                      if (isBill && !rule.isPaid)
+                        _MarkPaidButton(rule: rule)
+                      else if (!isBill)
+                        SizedBox(
+                          height: AppSizes.iconMd,
+                          child: Switch.adaptive(
+                            value: rule.isActive,
+                            onChanged: (active) =>
+                                _confirmToggle(context, ref, active),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

@@ -298,7 +298,7 @@ class DraftCard extends StatelessWidget {
         children: [
           Text(
             '$_signPrefix${MoneyFormatter.format(draft.amountPiastres)}',
-            style: context.textStyles.displaySmall?.copyWith(
+            style: context.textStyles.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: typeColor,
             ),
