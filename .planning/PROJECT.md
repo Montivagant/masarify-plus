@@ -12,7 +12,7 @@ An offline-first personal finance tracker for Android (Play Store first, iOS sec
 
 ### Validated
 
-<!-- Shipped and confirmed working. Phases P0-P4 + P5 Phases 1-4. -->
+<!-- Shipped and confirmed working. Phases P0-P4 + P5 Phases 1-4 + Milestone Phases 1-5. -->
 
 - ✓ **TXN-01**: Record income/expense/transfer transactions with category, amount, date, notes — existing
 - ✓ **TXN-02**: Voice input via Gemini 2.5 Flash (audio transcription + JSON parsing) — existing
@@ -34,6 +34,12 @@ An offline-first personal finance tracker for Android (Play Store first, iOS sec
 - ✓ **BACKUP-01**: Google Drive backup with AES-256 encryption — existing
 - ✓ **ONBOARD-01**: 5-page onboarding with AI advisor intro — P5 Phase 4
 - ✓ **DATA-01**: 34 default categories, brand icon registry (30+ Egyptian brands) — P5 Phase 2B
+- ✓ **PAYWALL-01**: Free tier enforcement (2 budgets, 1 savings goal) — Milestone Phase 5
+- ✓ **PAYWALL-03**: Paywall UI (upgrade prompts, feature gating, subscription management) — Milestone Phase 5
+- ✓ **PAYWALL-06**: Restore purchases flow — Milestone Phase 5
+- ✓ **ONBOARD-01**: Remove account selection page, auto-create default — Milestone Phase 5
+- ✓ **ONBOARD-02**: Final onboarding polish (smooth transitions, skip/back, progress indicator) — Milestone Phase 5
+- ✓ **ONBOARD-03**: Financial disclaimer on onboarding and AI chat — Milestone Phase 5
 
 ### Active
 
@@ -42,11 +48,6 @@ An offline-first personal finance tracker for Android (Play Store first, iOS sec
 - [ ] **PERF-01**: App startup time under 2 seconds on mid-range Android devices
 - [ ] **PERF-02**: Smooth 60fps scrolling on transaction lists (500+ items)
 - [ ] **PERF-03**: Database query optimization for heavy users (1000+ transactions)
-- [ ] **PAYWALL-01**: Free tier enforcement (2 budgets, 1 savings goal)
-- [ ] **PAYWALL-02**: Pro subscription purchase flow via Google Play Billing
-- [ ] **PAYWALL-03**: Paywall UI (upgrade prompts, feature gating, subscription management)
-- [ ] **PAYWALL-04**: 7-day free trial for Pro features
-- [ ] **ONBOARD-02**: Final onboarding polish (smooth transitions, skip/back, progress indicator)
 - [ ] **STORE-01**: Play Store listing (title, description, screenshots, feature graphic)
 - [ ] **STORE-02**: Privacy policy and terms of service
 - [ ] **STORE-03**: App signing, release build, store submission
@@ -69,7 +70,7 @@ An offline-first personal finance tracker for Android (Play Store first, iOS sec
 - **Target Market:** Egyptian young professionals (25-35), English-preferred UI, Arabic for family users
 - **Monetization:** Subscription-only. Free: unlimited txns/categories/wallets, 2 budgets, 1 goal. Pro: 59-79 EGP/mo (7-day trial)
 - **AI-First Brand:** Positioned as "AI Financial Advisor", not "expense tracker". SMS parsing hidden, voice + AI chat are the hero features
-- **Current State:** P5 Phase 4 complete. 218 tests passing. Zero analyzer issues. DB schema v13. ~80 Dart files modified since last commit
+- **Current State:** Milestone Phase 5 complete (Monetization & Onboarding). Free tier enforcement, paywall UI, onboarding polish, trial activation, financial disclaimer all wired. 5 of 7 phases done.
 - **Platform:** RevenueCat considered but `in_app_purchase` already in pubspec.yaml — use Google Play Billing directly
 - **Distribution:** Play Store (AAB) primary. Sideload APK via Google Drive for beta testing. Never send APK via WhatsApp/Telegram (corrupts V2 signature)
 
@@ -112,4 +113,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-27 after initialization*
+*Last updated: 2026-03-28 after Phase 5 completion*
