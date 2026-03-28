@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 03.1
 status: executing
-stopped_at: Phase 3.1 context gathered (auto mode)
-last_updated: "2026-03-28T02:47:02.103Z"
+stopped_at: Phase 3.1 complete — all 3 plans done
+last_updated: "2026-03-28T03:35:00.000Z"
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 20
 ---
 
 # Masarify — Project State
@@ -32,7 +32,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 | 1 | Compliance & Billing Foundation | ● Complete | 3/3 |
 | 2 | Verification Sweep | ● Complete | 4/4 |
 | 3 | Home Screen Overhaul | ◑ In progress | 2/3 |
-| 3.1 | Regression Fix & Feature Audit | ◑ In progress | 1/3 |
+| 3.1 | Regression Fix & Feature Audit | ● Complete | 3/3 |
 | 4 | AI, Voice & Subscriptions Polish | ● Complete | 3/3 |
 | 5 | Monetization & Onboarding | ○ Pending | 0/4 |
 | 6 | Performance & Device Optimization | ○ Pending | 0/3 |
@@ -89,6 +89,10 @@ Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Pha
 - [Phase 03]: Flat _ListItem union type for interleaving date headers and transaction cards in SliverList
 - [Phase 03]: Transfer deletion extracts original ID via syntheticId ~/ 2 from TransferAdapter convention
 - [Phase 03]: SlidableAutoCloseBehavior wraps CustomScrollView for proper group close behavior
+- [Phase 03.1]: Code-level Arabizi detector (isArabizi) supplements prompt-level Franco-Arab instruction
+- [Phase 03.1]: Cash wallet included in AI FinancialContext walletList (was excluded by isSystemWallet filter)
+- [Phase 03.1]: Voice confirm _applyDefaults already searches all wallets for Cash matching (verified, no fix needed)
+- [Phase 03.1]: Brand icon pipeline verified: 60 brands, BrandRegistry.match() wired to TransactionCard via TransactionListSection
 
 ## Roadmap Evolution
 
@@ -96,13 +100,14 @@ Phase 1 → Phase 2 → Phase 3 → **Phase 3.1 (INSERTED)** → Phase 5 → Pha
 
 ## Known Issues
 
-18+ regressions from prior phases discovered during user testing. See Phase 6 CONTEXT.md deferred section for full list. Phase 3.1 created to address all issues before continuing with Phases 5-7.
+- No "set as default" UI for wallets (isDefaultAccount exists but no way to change via UI). Deferred.
+- Phase 3 Home Screen Overhaul plan 3 still pending (2/3 complete).
 
 ## Session Continuity
 
-**Last session:** 2026-03-28T02:35:06.553Z
-**Stopped at:** Phase 3.1 plan 2 complete (Voice Confirm Screen Fixes & Transaction Form Toggle)
-**Resume file:** .planning/phases/03.1-regression-fix-feature-audit/03.1-02-SUMMARY.md
+**Last session:** 2026-03-28T03:35:00.000Z
+**Stopped at:** Phase 3.1 complete — all 3 plans executed. Ready to proceed to Phase 5.
+**Resume file:** .planning/phases/03.1-regression-fix-feature-audit/03.1-03-SUMMARY.md
 
 ---
 *State initialized: 2026-03-27*
