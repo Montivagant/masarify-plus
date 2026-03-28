@@ -116,7 +116,7 @@
   "recurring_frequency_yearly": "سنوي",
   "recurring_frequency_custom": "مخصص",
   "recurring_next_due": "الموعد القادم",
-  "recurring_and_bills_title": "المتكررة والفواتير",
+  "recurring_and_bills_title": "الاشتراكات والفواتير",
   "recurring_overdue": "متأخرة",
   "recurring_upcoming_bills": "فواتير قادمة",
   "recurring_paid": "مدفوعة",
@@ -756,7 +756,7 @@
   "hub_planning_title": "التخطيط",
   "hub_section_accounts": "الحسابات",
   "hub_section_goals_budgets": "الميزانيات والأهداف",
-  "hub_section_recurring": "المتكرر والفواتير",
+  "hub_section_recurring": "الاشتراكات والفواتير",
 
   "nav_planning": "التخطيط",
 
