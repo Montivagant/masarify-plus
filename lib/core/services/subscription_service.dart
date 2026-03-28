@@ -30,9 +30,13 @@ class SubscriptionService {
   final _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSub;
   final _proController = StreamController<bool>.broadcast();
+  bool _isRestoring = false;
 
   /// Stream of Pro status changes.
   Stream<bool> get proStatusStream => _proController.stream;
+
+  /// Whether a restore operation is currently in progress.
+  bool get isRestoring => _isRestoring;
 
   /// Current Pro status (subscription OR trial).
   bool get isPro => _prefs.getBool(_kProActive) ?? false;
@@ -51,7 +55,11 @@ class SubscriptionService {
   bool get isInTrial => trialDaysRemaining > 0;
 
   /// Whether the user has any Pro access (subscription OR trial).
-  bool get hasProAccess => isPro || isInTrial;
+  /// C-2: Returns cached isPro during restore to prevent flicker.
+  bool get hasProAccess {
+    if (_isRestoring) return isPro;
+    return isPro || isInTrial;
+  }
 
   /// Start the trial if not already started.
   Future<void> ensureTrialStarted() async {
@@ -93,10 +101,15 @@ class SubscriptionService {
   }
 
   /// Restore previous purchases (e.g., after reinstall).
-  /// Resets Pro status first — re-enabled only if a valid purchase is found.
+  /// C-2 fix: removed preemptive false reset — Pro status will be set by
+  /// _handlePurchaseUpdates if a valid purchase exists.
   Future<void> _restorePurchases() async {
-    await _prefs.setBool(_kProActive, false);
-    await _iap.restorePurchases();
+    _isRestoring = true;
+    try {
+      await _iap.restorePurchases();
+    } finally {
+      _isRestoring = false;
+    }
   }
 
   /// Public restore for the settings/paywall "Restore" button.

@@ -7,6 +7,7 @@ import '../core/services/app_lock_service.dart';
 import '../core/utils/money_formatter.dart';
 import '../l10n/app_localizations.dart';
 import '../shared/providers/preferences_provider.dart';
+import '../shared/providers/subscription_provider.dart';
 import '../shared/providers/theme_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -41,7 +42,18 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
       _pausedAt = DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
       _checkAutoLock();
+      _silentRestore();
     }
+  }
+
+  /// C-3 fix: Revalidate subscription on app resume, but skip if PIN lock
+  /// screen is active to prevent Pro status flicker during authentication.
+  void _silentRestore() {
+    if (AppLockService.instance.requiresAuth &&
+        !AppLockService.instance.isUnlocked) {
+      return;
+    }
+    ref.read(subscriptionServiceProvider).restorePurchases();
   }
 
   Future<void> _checkAutoLock() async {
