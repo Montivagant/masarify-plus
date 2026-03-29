@@ -5,11 +5,13 @@ argument-hint: <'full' for all categories, or category number 1-9, or 'quick' fo
 
 # Codebase Audit Mode
 
-Run the Masarify surgical audit. See `.claude/ralph-loop.local.md` for the full audit specification.
+Run the Masarify surgical audit across all 9 categories.
 
 ## Audit Scope: $ARGUMENTS
 
 ### Full Audit (9 Categories)
+
+**Codebase stats:** 18 features, 32 screens, 14 DB tables, 13 DAOs, 24 providers, 34 default categories
 
 | # | Category | Primary Tool |
 |---|----------|-------------|

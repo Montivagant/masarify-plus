@@ -22,9 +22,9 @@ Use `sequential-thinking` MCP to decompose this problem into structured steps.
 - Migration planning (DB schema version bumps, dependency upgrades)
 
 ## Masarify Architecture Context
-- **Provider chain:** `database_provider` → `repository_providers` (7 repos) → feature `*_provider.dart` files
-- **Clean layers:** `domain/` (pure Dart) → `data/` (repos + DAOs) → `features/` (screens + widgets)
-- **DB:** Drift v6 schema, 12 tables, 11 DAOs
+- **Provider chain:** `database_provider` → `repository_providers` (9 repos) → 24 feature provider files
+- **Clean layers:** `domain/` (pure Dart, 11 entities) → `data/` (9 repos + 13 DAOs) → `features/` (18 features, 32 screens)
+- **DB:** Drift schema v14, 14 tables, 13 DAOs
 - **State:** Riverpod 2.x with `StreamProvider` for reactive DB queries
 
 ## Problem: $ARGUMENTS

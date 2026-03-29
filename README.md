@@ -1,16 +1,23 @@
-# masarify
+# Masarify (مصاريفي)
 
-A new Flutter project.
+Offline-first personal finance tracker for Android, targeting Egyptian young professionals.
+Track income, expenses, transfers, budgets, and savings goals — with an AI Financial Advisor powered by Gemini.
 
-## Getting Started
+**Stack:** Flutter/Dart | Riverpod 2.x | Drift (SQLite) | Material Design 3 | go_router
 
-This project is a starting point for a Flutter application.
+## Build
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze lib/
+flutter test
+flutter build appbundle --release          # Play Store
+bash scripts/build-release.sh              # Sideload APKs
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Architecture
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Clean Architecture (domain/data/presentation) with feature-first organization.
+All monetary values stored as integer piastres (100 EGP = 10000).
+100% offline — no internet required for core features.

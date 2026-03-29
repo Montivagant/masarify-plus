@@ -25,11 +25,11 @@ Generate a diagram for Masarify's architecture or features.
 4. **Export** to a usable format (PNG/SVG for docs, interactive for exploration)
 
 ## Masarify Key Structures to Diagram
-- **Provider dependency graph:** 21 Riverpod providers with watch/read chains
-- **DB schema ERD:** 12 tables with FK relationships and cascades
-- **Feature map:** 19 features under `lib/features/`
-- **Navigation flow:** 50+ routes in `app_router.dart`
-- **AI pipeline:** Voice (Gemini) → Parse → Review → Save; SMS → OpenRouter → Enrich
-- **Clean architecture layers:** Domain → Data → Features → Shared
+- **Provider dependency graph:** 24 Riverpod providers with watch/read chains
+- **DB schema ERD:** 14 tables with FK relationships and cascades
+- **Feature map:** 18 features under `lib/features/`, 32 screens
+- **Navigation flow:** 4-tab shell + 45+ routes in `app_router.dart`
+- **AI pipeline:** Voice (Gemini 2.5 Flash) → Parse → Review → Save; Chat (OpenRouter) → Actions
+- **Clean architecture layers:** Domain (11 entities) → Data (9 repos, 13 DAOs) → Features → Shared
 
 ## Request: $ARGUMENTS
