@@ -11,6 +11,7 @@
   "nav_budgets": "الميزانية",
   "nav_analytics": "التحليلات",
   "nav_more": "المزيد",
+  "nav_subscriptions": "الاشتراكات",
 
   "dashboard_title": "مصاريفي",
   "dashboard_net_balance": "الرصيد الكلي",
@@ -87,6 +88,10 @@
   "budgets_empty_sub": "حدد حدوداً شهرية للتحكم في الإنفاق",
   "budget_set": "تحديد ميزانية",
   "budget_limit": "الحد الشهري",
+  "budget_progress_a11y": "{category}: {percent}",
+  "@budget_progress_a11y": {
+    "placeholders": { "category": { "type": "String" }, "percent": { "type": "String" } }
+  },
   "budget_rollover": "ترحيل المبلغ المتبقي",
   "budget_spent": "المُنفَق",
   "budget_remaining": "المتبقي",
@@ -661,6 +666,10 @@
   "reports_total_expense": "إجمالي المصروف",
   "reports_net": "الصافي",
   "reports_daily_average": "المتوسط اليومي",
+  "reports_savings_rate": "معدل التوفير: {rate}% من الدخل",
+  "@reports_savings_rate": {
+    "placeholders": { "rate": { "type": "int" } }
+  },
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
 
@@ -841,6 +850,10 @@
   "voice_select_wallet": "اختر الحساب",
   "voice_confirm_count": "تأكيد ({count})",
   "@voice_confirm_count": {"placeholders": {"count": {"type": "int"}}},
+  "voice_saved_partial": "تم حفظ {saved} من {total} معاملة",
+  "@voice_saved_partial": {
+    "placeholders": { "saved": { "type": "int" }, "total": { "type": "int" } }
+  },
   "voice_select_all": "تحديد الكل",
   "voice_deselect_all": "إلغاء التحديد",
   "common_create": "إنشاء",
@@ -1147,6 +1160,39 @@
   "settings_recap_time": "وقت الملخص",
   "recap_notification_title": "كيف كان إنفاقك اليوم؟",
   "recap_notification_body": "اضغط لتخبرني — وأنا هسجلهالك",
+
+  "notif_bill_due_title": "{title} مستحق",
+  "@notif_bill_due_title": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "notif_bill_due_body": "{amount} — اضغط للدفع",
+  "@notif_bill_due_body": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "notif_budget_warning_title": "ميزانية {category} وصلت {percent}%",
+  "@notif_budget_warning_title": {
+    "placeholders": { "category": { "type": "String" }, "percent": { "type": "int" } }
+  },
+  "notif_budget_warning_body": "{spent} من {limit} تم إنفاقه",
+  "@notif_budget_warning_body": {
+    "placeholders": { "spent": { "type": "String" }, "limit": { "type": "String" } }
+  },
+  "notif_budget_exceeded_title": "ميزانية {category} تم تجاوزها",
+  "@notif_budget_exceeded_title": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notif_budget_exceeded_body": "{spent} تم إنفاقه — الحد {limit}",
+  "@notif_budget_exceeded_body": {
+    "placeholders": { "spent": { "type": "String" }, "limit": { "type": "String" } }
+  },
+  "notif_goal_milestone_title": "{name} — وصلت {percent}%!",
+  "@notif_goal_milestone_title": {
+    "placeholders": { "name": { "type": "String" }, "percent": { "type": "int" } }
+  },
+  "notif_goal_milestone_body": "{current} من {target} تم توفيره",
+  "@notif_goal_milestone_body": {
+    "placeholders": { "current": { "type": "String" }, "target": { "type": "String" } }
+  },
   "onboarding_starting_balance_title": "الرصيد الافتتاحي",
   "onboarding_starting_balance_body": "حدد رصيد حسابك الحالي لبدء التتبع بدقة.",
   "onboarding_starting_balance_set": "تحديد الرصيد",

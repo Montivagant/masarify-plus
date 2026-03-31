@@ -117,6 +117,8 @@ class BalanceHeader extends ConsumerWidget {
                           balance: w.balance,
                           isSelected: selectedId == w.id,
                           hidden: hidden,
+                          walletType: w.type,
+                          colorHex: w.colorHex,
                           onTap: () => ref
                               .read(selectedAccountIdProvider.notifier)
                               .state = w.id,

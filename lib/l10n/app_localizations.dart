@@ -152,6 +152,12 @@ abstract class AppLocalizations {
   /// **'More'**
   String get nav_more;
 
+  /// No description provided for @nav_subscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get nav_subscriptions;
+
   /// No description provided for @dashboard_title.
   ///
   /// In en, this message translates to:
@@ -577,6 +583,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Monthly Limit'**
   String get budget_limit;
+
+  /// No description provided for @budget_progress_a11y.
+  ///
+  /// In en, this message translates to:
+  /// **'{category}: {percent}'**
+  String budget_progress_a11y(String category, String percent);
 
   /// No description provided for @budget_rollover.
   ///
@@ -3668,6 +3680,12 @@ abstract class AppLocalizations {
   /// **'Daily Average'**
   String get reports_daily_average;
 
+  /// No description provided for @reports_savings_rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Savings rate: {rate}% of income'**
+  String reports_savings_rate(int rate);
+
   /// No description provided for @reports_category_rank.
   ///
   /// In en, this message translates to:
@@ -4501,6 +4519,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm ({count})'**
   String voice_confirm_count(int count);
+
+  /// No description provided for @voice_saved_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {saved} of {total} transactions'**
+  String voice_saved_partial(int saved, int total);
 
   /// No description provided for @voice_select_all.
   ///
@@ -5426,6 +5450,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap to tell me — I\'ll log it for you'**
   String get recap_notification_body;
+
+  /// No description provided for @notif_bill_due_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} is due'**
+  String notif_bill_due_title(String title);
+
+  /// No description provided for @notif_bill_due_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} — tap to mark as paid'**
+  String notif_bill_due_body(String amount);
+
+  /// No description provided for @notif_budget_warning_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} budget at {percent}%'**
+  String notif_budget_warning_title(String category, int percent);
+
+  /// No description provided for @notif_budget_warning_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {limit} spent'**
+  String notif_budget_warning_body(String spent, String limit);
+
+  /// No description provided for @notif_budget_exceeded_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} budget exceeded'**
+  String notif_budget_exceeded_title(String category);
+
+  /// No description provided for @notif_budget_exceeded_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} spent — {limit} limit'**
+  String notif_budget_exceeded_body(String spent, String limit);
+
+  /// No description provided for @notif_goal_milestone_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — {percent}% reached!'**
+  String notif_goal_milestone_title(String name, int percent);
+
+  /// No description provided for @notif_goal_milestone_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {target} saved'**
+  String notif_goal_milestone_body(String current, String target);
 
   /// No description provided for @onboarding_starting_balance_title.
   ///

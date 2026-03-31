@@ -28,7 +28,6 @@ class TransactionDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = context.colors;
     final theme = context.appTheme;
-    // M1 fix: use provider instead of FutureBuilder so data auto-refreshes
     final txAsync = ref.watch(transactionByIdProvider(id));
 
     return txAsync.when(
@@ -65,14 +64,19 @@ class TransactionDetailScreen extends ConsumerWidget {
         };
 
         final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
-        final cat =
-            categories.where((c) => c.id == tx.categoryId).firstOrNull;
+        final cat = categories.where((c) => c.id == tx.categoryId).firstOrNull;
         final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-        final wallet =
-            wallets.where((w) => w.id == tx.walletId).firstOrNull;
+        final wallet = wallets.where((w) => w.id == tx.walletId).firstOrNull;
 
         final catColor =
             cat != null ? ColorUtils.fromHex(cat.colorHex) : cs.outline;
+        final catIcon = cat != null
+            ? CategoryIconMapper.fromName(cat.iconName)
+            : switch (tx.type) {
+                'expense' => AppIcons.expense,
+                'income' => AppIcons.income,
+                _ => AppIcons.transfer,
+              };
 
         return Scaffold(
           appBar: AppAppBar(
@@ -91,52 +95,46 @@ class TransactionDetailScreen extends ConsumerWidget {
             ],
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
+            padding:
+                const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Hero: Amount + title + type ──────────────────────────
+                // ── Hero: Receipt-style amount card ───────────────────
                 GlassCard(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
-                  padding: const EdgeInsets.all(AppSizes.lg),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.lg,
+                    vertical: AppSizes.xl,
+                  ),
                   showShadow: true,
-                  tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                  tintColor:
+                      typeColor.withValues(alpha: AppSizes.opacitySubtle),
                   child: SizedBox(
                     width: double.infinity,
                     child: Column(
                       children: [
-                        // Category icon or type icon
-                        Container(
-                          width: AppSizes.iconXl,
-                          height: AppSizes.iconXl,
-                          decoration: BoxDecoration(
-                            color: catColor.withValues(alpha: AppSizes.opacityLight2),
-                            shape: BoxShape.circle,
+                        // Icon badge
+                        GlassCard(
+                          tier: GlassTier.inset,
+                          padding: EdgeInsets.zero,
+                          tintColor: catColor.withValues(
+                            alpha: AppSizes.opacityLight2,
                           ),
-                          child: Icon(
-                            cat != null
-                                ? CategoryIconMapper.fromName(cat.iconName)
-                                : switch (tx.type) {
-                                    'expense' => AppIcons.expense,
-                                    'income' => AppIcons.income,
-                                    _ => AppIcons.transfer,
-                                  },
-                            color: catColor,
-                            size: AppSizes.iconMd,
+                          borderRadius: BorderRadius.circular(
+                            AppSizes.borderRadiusFull,
+                          ),
+                          child: SizedBox(
+                            width: AppSizes.iconContainerXl,
+                            height: AppSizes.iconContainerXl,
+                            child: Icon(
+                              catIcon,
+                              color: catColor,
+                              size: AppSizes.iconLg,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: AppSizes.sm),
-                        // Transaction title
-                        Text(
-                          tx.title,
-                          style: context.textStyles.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSizes.xs),
+                        const SizedBox(height: AppSizes.md),
                         // Amount with sign
                         Text(
                           '$signPrefix${MoneyFormatter.format(tx.amount)}',
@@ -145,29 +143,46 @@ class TransactionDetailScreen extends ConsumerWidget {
                             color: typeColor,
                           ),
                         ),
-                        const SizedBox(height: AppSizes.sm),
-                        // Type chip
-                        Chip(
-                          label: Text(typeLabel),
-                          backgroundColor: typeColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          side: BorderSide(
-                            color: typeColor.withValues(
-                              alpha: AppSizes.opacityLight4,
+                        const SizedBox(height: AppSizes.xs),
+                        // Title
+                        Text(
+                          tx.title,
+                          style: context.textStyles.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: cs.onSurface.withValues(
+                              alpha: AppSizes.opacityStrong,
                             ),
                           ),
-                          labelStyle: context.textStyles.bodySmall?.copyWith(
-                            color: typeColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: AppSizes.sm),
+                        // Date + type row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _TypeBadge(
+                              label: typeLabel,
+                              color: typeColor,
+                            ),
+                            const SizedBox(width: AppSizes.sm),
+                            Text(
+                              DateFormat.yMMMd(context.languageCode)
+                                  .format(tx.transactionDate),
+                              style: context.textStyles.bodySmall?.copyWith(
+                                color: cs.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
 
-                // ── Details card ─────────────────────────────────────────
+                // ── Details card ──────────────────────────────────────
                 GlassCard(
                   margin: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
@@ -175,33 +190,26 @@ class TransactionDetailScreen extends ConsumerWidget {
                   padding: EdgeInsets.zero,
                   child: Column(
                     children: [
-                      _DetailTile(
-                        icon: cat != null
-                            ? CategoryIconMapper.fromName(cat.iconName)
-                            : AppIcons.category,
+                      _DetailRow(
+                        icon: catIcon,
                         iconColor: catColor,
                         label: context.l10n.transaction_category,
-                        value: cat?.displayName(context.languageCode) ?? '\u2014',
+                        value:
+                            cat?.displayName(context.languageCode) ?? '\u2014',
                       ),
-                      Divider(
-                        height: AppSizes.dividerHeight,
-                        color: cs.outlineVariant.withValues(
-                          alpha: AppSizes.opacityLight4,
-                        ),
-                      ),
-                      _DetailTile(
-                        icon: AppIcons.wallet,
-                        iconColor: cs.primary,
+                      _divider(cs),
+                      _DetailRow(
+                        icon: wallet != null
+                            ? AppIcons.walletType(wallet.type)
+                            : AppIcons.wallet,
+                        iconColor: wallet != null
+                            ? ColorUtils.fromHex(wallet.colorHex)
+                            : cs.primary,
                         label: context.l10n.transaction_wallet,
                         value: wallet?.name ?? '\u2014',
                       ),
-                      Divider(
-                        height: AppSizes.dividerHeight,
-                        color: cs.outlineVariant.withValues(
-                          alpha: AppSizes.opacityLight4,
-                        ),
-                      ),
-                      _DetailTile(
+                      _divider(cs),
+                      _DetailRow(
                         icon: AppIcons.calendar,
                         iconColor: cs.outline,
                         label: context.l10n.transaction_date,
@@ -210,13 +218,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                             .format(tx.transactionDate),
                       ),
                       if (tx.note != null && tx.note!.isNotEmpty) ...[
-                        Divider(
-                          height: AppSizes.dividerHeight,
-                          color: cs.outlineVariant.withValues(
-                            alpha: AppSizes.opacityLight4,
-                          ),
-                        ),
-                        _DetailTile(
+                        _divider(cs),
+                        _DetailRow(
                           icon: AppIcons.edit,
                           iconColor: cs.outline,
                           label: context.l10n.transaction_note,
@@ -224,13 +227,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                         ),
                       ],
                       if (tx.locationName != null) ...[
-                        Divider(
-                          height: AppSizes.dividerHeight,
-                          color: cs.outlineVariant.withValues(
-                            alpha: AppSizes.opacityLight4,
-                          ),
-                        ),
-                        _DetailTile(
+                        _divider(cs),
+                        _DetailRow(
                           icon: AppIcons.location,
                           iconColor: cs.outline,
                           label: context.l10n.transaction_location,
@@ -238,13 +236,8 @@ class TransactionDetailScreen extends ConsumerWidget {
                         ),
                       ],
                       if (tx.source != 'manual') ...[
-                        Divider(
-                          height: AppSizes.dividerHeight,
-                          color: cs.outlineVariant.withValues(
-                            alpha: AppSizes.opacityLight4,
-                          ),
-                        ),
-                        _DetailTile(
+                        _divider(cs),
+                        _DetailRow(
                           icon: _sourceIcon(tx.source),
                           iconColor: cs.outline,
                           label: context.l10n.transaction_source_label,
@@ -255,7 +248,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // ── Tags ─────────────────────────────────────────────────
+                // ── Tags ───────────────────────────────────────────────
                 if (tx.tagList.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -264,20 +257,21 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ),
                     child: Row(
                       children: [
-                        Icon(AppIcons.tag, size: AppSizes.iconSm, color: cs.outline),
+                        Icon(
+                          AppIcons.tag,
+                          size: AppSizes.iconSm,
+                          color: cs.outline,
+                        ),
                         const SizedBox(width: AppSizes.sm),
                         Expanded(
                           child: Wrap(
                             spacing: AppSizes.xs,
                             children: tx.tagList
                                 .map(
-                                  (t) => Semantics(
-                                    label: t,
-                                    child: Chip(
-                                      label: Text(t),
-                                      visualDensity: VisualDensity.compact,
-                                      padding: EdgeInsets.zero,
-                                    ),
+                                  (t) => Chip(
+                                    label: Text(t),
+                                    visualDensity: VisualDensity.compact,
+                                    padding: EdgeInsets.zero,
                                   ),
                                 )
                                 .toList(),
@@ -287,7 +281,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ),
                   ),
 
-                // ── Raw source text ──────────────────────────────────────
+                // ── Raw source text ────────────────────────────────────
                 if (tx.rawSourceText != null && tx.rawSourceText!.isNotEmpty)
                   GlassCard(
                     margin: const EdgeInsets.symmetric(
@@ -316,6 +310,11 @@ class TransactionDetailScreen extends ConsumerWidget {
     );
   }
 
+  static Widget _divider(ColorScheme cs) => Divider(
+        height: AppSizes.dividerHeight,
+        color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight4),
+      );
+
   void _confirmDelete(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     showDialog<void>(
@@ -337,10 +336,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 if (context.mounted) context.pop();
               } catch (e) {
                 if (context.mounted) {
-                  SnackHelper.showError(
-                    context,
-                    l10n.common_error_generic,
-                  );
+                  SnackHelper.showError(context, l10n.common_error_generic);
                 }
               }
             },
@@ -372,10 +368,43 @@ class TransactionDetailScreen extends ConsumerWidget {
       };
 }
 
-// ── Detail tile (used inside the grouped GlassCard) ──────────────────────
+// ── Type badge (small pill) ─────────────────────────────────────────────────
 
-class _DetailTile extends StatelessWidget {
-  const _DetailTile({
+class _TypeBadge extends StatelessWidget {
+  const _TypeBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: AppSizes.opacityLight2),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+        border: Border.all(
+          color: color.withValues(alpha: AppSizes.opacityLight4),
+        ),
+      ),
+      child: Text(
+        label,
+        style: context.textStyles.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Detail row (used inside the grouped GlassCard) ──────────────────────────
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
     required this.icon,
     required this.iconColor,
     required this.label,
@@ -396,7 +425,17 @@ class _DetailTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: AppSizes.iconSm, color: iconColor),
+          GlassCard(
+            tier: GlassTier.inset,
+            padding: EdgeInsets.zero,
+            tintColor: iconColor.withValues(alpha: AppSizes.opacitySubtle),
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+            child: SizedBox(
+              width: AppSizes.iconContainerMd,
+              height: AppSizes.iconContainerMd,
+              child: Icon(icon, size: AppSizes.iconSm, color: iconColor),
+            ),
+          ),
           const SizedBox(width: AppSizes.md),
           Expanded(
             child: Column(

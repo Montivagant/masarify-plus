@@ -5,47 +5,30 @@ argument-hint: <'full' for all categories, or category number 1-9, or 'quick' fo
 
 # Codebase Audit Mode
 
-Run the Masarify surgical audit across all 9 categories.
-
 ## Audit Scope: $ARGUMENTS
 
-### Full Audit (9 Categories)
+### 9 Categories
 
-**Codebase stats:** 18 features, 32 screens, 14 DB tables, 13 DAOs, 24 providers, 34 default categories
-
-| # | Category | Primary Tool |
-|---|----------|-------------|
+| # | Category | Tool |
+|---|----------|------|
 | 1 | Dead code & unused files | `bash scripts/analyze.sh dcm-unused` + Grep |
 | 2 | Unused dependencies | Grep `pubspec.yaml` vs `lib/` imports |
-| 3 | Hardcoded styles (non-tokenized) | Grep for `Color(0x`, `Colors.`, raw `EdgeInsets`, raw `TextStyle`, etc. |
+| 3 | Hardcoded styles (non-tokenized) | Grep for `Color(0x`, `Colors.`, raw `EdgeInsets`, etc. |
 | 4 | Hardcoded text (non-l10n) | Grep for Arabic chars, hardcoded English UI strings |
-| 5 | Architecture violations | Grep for `Navigator.push`, `setState` in ConsumerWidget, Flutter imports in `domain/` |
-| 6 | File & folder structure | Verify feature-first structure, import ordering |
-| 7 | Code quality | BuildContext after async, missing const, empty catch blocks |
-| 8 | `flutter analyze lib/` | Bash — zero issues required (dart MCP broken on Windows) |
-| 9 | `flutter test` | Run all tests, fix failures |
+| 5 | Architecture violations | Grep for `Navigator.push`, `setState`, Flutter imports in `domain/` |
+| 6 | File & folder structure | Feature-first structure, import ordering |
+| 7 | Code quality | BuildContext after async, missing const, empty catch |
+| 8 | `flutter analyze lib/` | Zero issues required |
+| 9 | `flutter test` | All tests pass |
 
-### Quick Sweep (categories 3, 5, 8 only)
-For iterations 4+, run only hardcoded values check, architecture violations, and analyzer.
+**Quick Sweep:** categories 3, 5, 8 only.
 
-### Execution Strategy
-- Run independent categories in **parallel** using agents where possible
-- Categories 1-2: can run in parallel
-- Categories 3-4: can run in parallel
-- Categories 5-7: can run in parallel
-- Category 8: run after fixes
-- Category 9: run last
-
-### Fix Rules
-- Fix issues **in place** — no new wrapper files
-- Use existing tokens: `AppSizes.*`, `AppColors.*`, `AppIcons.*`, `AppDurations.*`, `context.appTheme.*`, `context.l10n.*`
-- New l10n keys → add to BOTH `app_en.arb` AND `app_ar.arb`, then `flutter gen-l10n`
-- Run `flutter analyze lib/` after each fix batch
-- Run `build_runner` if modifying files with `.g.dart` counterparts
-- Commit each logical batch with a descriptive message
+### Execution
+- Run independent categories in parallel (1-2, 3-4, 5-7, then 8, then 9)
+- Fix in place, use existing tokens, commit each batch
 
 ### Exceptions (not violations)
-- Files: `app_colors.dart`, `app_sizes.dart`, `app_durations.dart`, `app_theme.dart`, `app_theme_extension.dart` (definitions)
+- Definition files: `app_colors.dart`, `app_sizes.dart`, `app_durations.dart`, `app_theme.dart`, `app_theme_extension.dart`
 - Generated: `*.g.dart`, `*.freezed.dart`, l10n files
-- Data: `egyptian_arabic_finance.json`, `egyptian_sms_patterns.dart`
-- Non-UI: log messages, route paths, enum values, JSON keys, asset paths, regex
+- Data: `egyptian_sms_patterns.dart`, `voice_dictionary.dart`
+- Non-UI: log messages, route paths, enum values, JSON keys, regex

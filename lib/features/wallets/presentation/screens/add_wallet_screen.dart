@@ -129,7 +129,7 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
         // On edit, allow keeping the same name (only block if it's a different wallet's name)
         final isSameName = widget.editId != null &&
             (await repo.getById(widget.editId!))?.name == name;
-        if (!isSameName) {
+        if (!isSameName && mounted) {
           setState(() {
             _nameError = context.l10n.wallet_name_duplicate;
             _loading = false;

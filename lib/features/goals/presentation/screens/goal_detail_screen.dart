@@ -189,7 +189,7 @@ class GoalDetailScreen extends ConsumerWidget {
                                 message: context
                                     .l10n.goal_delete_contribution_confirm,
                               );
-                              if (confirmed) {
+                              if (confirmed && context.mounted) {
                                 // CR-19 fix: await the async delete
                                 await ref
                                     .read(goalRepositoryProvider)
@@ -359,6 +359,17 @@ class GoalDetailScreen extends ConsumerWidget {
                           );
                         }
                         HapticFeedback.mediumImpact();
+                        // Fire goal milestone notification check
+                        final prevAmount = goal.currentAmount;
+                        final updatedGoal = await repo.getById(goal.id);
+                        if (updatedGoal != null) {
+                          ref
+                              .read(notificationTriggerServiceProvider)
+                              .checkGoalMilestone(
+                                goal: updatedGoal,
+                                previousAmount: prevAmount,
+                              );
+                        }
                         if (ctx.mounted) ctx.pop();
                       } catch (e) {
                         if (ctx.mounted) {

@@ -326,9 +326,17 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         effectiveNextDue = effectiveStartDate;
       }
 
+      final notifService = ref.read(notificationTriggerServiceProvider);
+
       if (widget.editId != null) {
         final existing = await repo.getById(widget.editId!);
         if (existing != null) {
+          final updatedNextDue = _isOnce
+              ? effectiveNextDue
+              : (_startDate != existing.startDate ||
+                      _frequency != existing.frequency
+                  ? effectiveStartDate
+                  : existing.nextDueDate);
           await repo.update(
             RecurringRuleEntity(
               id: existing.id,
@@ -341,12 +349,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               startDate: effectiveStartDate,
               endDate: effectiveEndDate,
               // C6 fix: reset nextDueDate if start date or frequency changed
-              nextDueDate: _isOnce
-                  ? effectiveNextDue
-                  : (_startDate != existing.startDate ||
-                          _frequency != existing.frequency
-                      ? effectiveStartDate
-                      : existing.nextDueDate),
+              nextDueDate: updatedNextDue,
               isPaid: existing.isPaid,
               paidAt: existing.paidAt,
               linkedTransactionId: existing.linkedTransactionId,
@@ -354,9 +357,16 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               lastProcessedDate: existing.lastProcessedDate,
             ),
           );
+          // Reschedule bill reminder with updated due date
+          await notifService.scheduleBillReminder(
+            ruleId: existing.id,
+            title: title,
+            amount: _amountPiastres,
+            dueDate: updatedNextDue,
+          );
         }
       } else {
-        await repo.create(
+        final newId = await repo.create(
           title: title,
           type: _type,
           amount: _amountPiastres,
@@ -366,6 +376,13 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           startDate: effectiveStartDate,
           nextDueDate: effectiveNextDue,
           endDate: effectiveEndDate,
+        );
+        // Schedule bill reminder notification
+        await notifService.scheduleBillReminder(
+          ruleId: newId,
+          title: title,
+          amount: _amountPiastres,
+          dueDate: effectiveNextDue,
         );
       }
 

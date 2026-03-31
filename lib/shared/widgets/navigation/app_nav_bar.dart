@@ -35,9 +35,8 @@ class AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
-    final langCode = context.languageCode;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    const dests = AppNavigation.destinations;
+    final dests = AppNavigation.destinations;
 
     // Map logical 4-tab index (0–3) → visual 5-destination index (0,1,_,3,4).
     final navIndex = currentIndex < 2 ? currentIndex : currentIndex + 1;
@@ -82,7 +81,7 @@ class AppNavBar extends StatelessWidget {
                 NavigationDestination(
                   icon: Icon(dests[i].icon),
                   selectedIcon: Icon(dests[i].activeIcon),
-                  label: dests[i].label(langCode),
+                  label: dests[i].label(context),
                 ),
               // Center spacer for FAB overlap.
               const NavigationDestination(
@@ -93,7 +92,7 @@ class AppNavBar extends StatelessWidget {
                 NavigationDestination(
                   icon: Icon(dests[i].icon),
                   selectedIcon: Icon(dests[i].activeIcon),
-                  label: dests[i].label(langCode),
+                  label: dests[i].label(context),
                 ),
             ],
           ),

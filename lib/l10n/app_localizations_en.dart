@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_more => 'More';
 
   @override
+  String get nav_subscriptions => 'Subscriptions';
+
+  @override
   String get dashboard_title => 'Masarify';
 
   @override
@@ -251,6 +254,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budget_limit => 'Monthly Limit';
+
+  @override
+  String budget_progress_a11y(String category, String percent) {
+    return '$category: $percent';
+  }
 
   @override
   String get budget_rollover => 'Rollover unused amount';
@@ -1883,6 +1891,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_daily_average => 'Daily Average';
 
   @override
+  String reports_savings_rate(int rate) {
+    return 'Savings rate: $rate% of income';
+  }
+
+  @override
   String reports_category_rank(int rank) {
     return '#$rank';
   }
@@ -2344,6 +2357,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String voice_confirm_count(int count) {
     return 'Confirm ($count)';
+  }
+
+  @override
+  String voice_saved_partial(int saved, int total) {
+    return 'Saved $saved of $total transactions';
   }
 
   @override
@@ -2915,6 +2933,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recap_notification_body => 'Tap to tell me — I\'ll log it for you';
+
+  @override
+  String notif_bill_due_title(String title) {
+    return '$title is due';
+  }
+
+  @override
+  String notif_bill_due_body(String amount) {
+    return '$amount — tap to mark as paid';
+  }
+
+  @override
+  String notif_budget_warning_title(String category, int percent) {
+    return '$category budget at $percent%';
+  }
+
+  @override
+  String notif_budget_warning_body(String spent, String limit) {
+    return '$spent of $limit spent';
+  }
+
+  @override
+  String notif_budget_exceeded_title(String category) {
+    return '$category budget exceeded';
+  }
+
+  @override
+  String notif_budget_exceeded_body(String spent, String limit) {
+    return '$spent spent — $limit limit';
+  }
+
+  @override
+  String notif_goal_milestone_title(String name, int percent) {
+    return '$name — $percent% reached!';
+  }
+
+  @override
+  String notif_goal_milestone_body(String current, String target) {
+    return '$current of $target saved';
+  }
 
   @override
   String get onboarding_starting_balance_title => 'Starting Balance';

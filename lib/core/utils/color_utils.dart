@@ -8,7 +8,7 @@ abstract final class ColorUtils {
   ///
   /// Accepts formats: "#RRGGBB", "#AARRGGBB", "RRGGBB", "AARRGGBB".
   /// Falls back to [fallback] if parsing fails.
-  static Color fromHex(String hex, {Color fallback = const Color(0xFF9E9E9E)}) {
+  static Color fromHex(String hex, {Color fallback = AppColors.fallbackGray}) {
     try {
       final clean = hex.replaceFirst('#', '');
       if (clean.length == 6) {

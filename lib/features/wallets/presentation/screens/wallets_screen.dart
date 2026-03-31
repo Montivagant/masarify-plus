@@ -347,10 +347,87 @@ class _WalletCard extends StatelessWidget {
               : nameStyle,
         ),
         subtitle: Text(_typeLabel(context, wallet.type)),
-        trailing: Text(
-          MoneyFormatter.format(wallet.balance),
-          style: context.textStyles.bodyMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              MoneyFormatter.format(wallet.balance),
+              style: context.textStyles.bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: AppSizes.xs),
+            PopupMenuButton<String>(
+              icon: Icon(
+                AppIcons.moreVert,
+                size: AppSizes.iconSm,
+                color: cs.onSurfaceVariant,
+              ),
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
+              ),
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    onEdit();
+                  case 'archive':
+                    onArchive?.call();
+                  case 'unarchive':
+                    onUnarchive?.call();
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      const Icon(AppIcons.edit, size: AppSizes.iconSm),
+                      const SizedBox(width: AppSizes.sm),
+                      Text(context.l10n.common_edit),
+                    ],
+                  ),
+                ),
+                if (!isArchived && onArchive != null)
+                  PopupMenuItem(
+                    value: 'archive',
+                    child: Row(
+                      children: [
+                        Icon(
+                          AppIcons.archive,
+                          size: AppSizes.iconSm,
+                          color: cs.error,
+                        ),
+                        const SizedBox(width: AppSizes.sm),
+                        Text(
+                          context.l10n.wallet_archive_action,
+                          style: context.textStyles.bodyMedium
+                              ?.copyWith(color: cs.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (isArchived && onUnarchive != null)
+                  PopupMenuItem(
+                    value: 'unarchive',
+                    child: Row(
+                      children: [
+                        Icon(
+                          AppIcons.unarchive,
+                          size: AppSizes.iconSm,
+                          color: cs.primary,
+                        ),
+                        const SizedBox(width: AppSizes.sm),
+                        Text(
+                          context.l10n.wallet_unarchive_action,
+                          style: context.textStyles.bodyMedium
+                              ?.copyWith(color: cs.primary),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
         ),
         onLongPress: onEdit,
       ),

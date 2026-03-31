@@ -11,6 +11,7 @@
   "nav_budgets": "Budgets",
   "nav_analytics": "Analytics",
   "nav_more": "More",
+  "nav_subscriptions": "Subscriptions",
 
   "dashboard_title": "Masarify",
   "dashboard_net_balance": "Net Balance",
@@ -87,6 +88,10 @@
   "budgets_empty_sub": "Set monthly limits to control spending",
   "budget_set": "Set Budget",
   "budget_limit": "Monthly Limit",
+  "budget_progress_a11y": "{category}: {percent}",
+  "@budget_progress_a11y": {
+    "placeholders": { "category": { "type": "String" }, "percent": { "type": "String" } }
+  },
   "budget_rollover": "Rollover unused amount",
   "budget_spent": "Spent",
   "budget_remaining": "Remaining",
@@ -667,6 +672,10 @@
   "reports_total_expense": "Total Expense",
   "reports_net": "Net",
   "reports_daily_average": "Daily Average",
+  "reports_savings_rate": "Savings rate: {rate}% of income",
+  "@reports_savings_rate": {
+    "placeholders": { "rate": { "type": "int" } }
+  },
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
 
@@ -861,6 +870,10 @@
   "voice_select_wallet": "Select account",
   "voice_confirm_count": "Confirm ({count})",
   "@voice_confirm_count": {"placeholders": {"count": {"type": "int"}}},
+  "voice_saved_partial": "Saved {saved} of {total} transactions",
+  "@voice_saved_partial": {
+    "placeholders": { "saved": { "type": "int" }, "total": { "type": "int" } }
+  },
   "voice_select_all": "Select All",
   "voice_deselect_all": "Deselect All",
   "common_create": "Create",
@@ -1178,6 +1191,39 @@
   "settings_recap_time": "Recap Time",
   "recap_notification_title": "How was your spending today?",
   "recap_notification_body": "Tap to tell me — I'll log it for you",
+
+  "notif_bill_due_title": "{title} is due",
+  "@notif_bill_due_title": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "notif_bill_due_body": "{amount} — tap to mark as paid",
+  "@notif_bill_due_body": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "notif_budget_warning_title": "{category} budget at {percent}%",
+  "@notif_budget_warning_title": {
+    "placeholders": { "category": { "type": "String" }, "percent": { "type": "int" } }
+  },
+  "notif_budget_warning_body": "{spent} of {limit} spent",
+  "@notif_budget_warning_body": {
+    "placeholders": { "spent": { "type": "String" }, "limit": { "type": "String" } }
+  },
+  "notif_budget_exceeded_title": "{category} budget exceeded",
+  "@notif_budget_exceeded_title": {
+    "placeholders": { "category": { "type": "String" } }
+  },
+  "notif_budget_exceeded_body": "{spent} spent — {limit} limit",
+  "@notif_budget_exceeded_body": {
+    "placeholders": { "spent": { "type": "String" }, "limit": { "type": "String" } }
+  },
+  "notif_goal_milestone_title": "{name} — {percent}% reached!",
+  "@notif_goal_milestone_title": {
+    "placeholders": { "name": { "type": "String" }, "percent": { "type": "int" } }
+  },
+  "notif_goal_milestone_body": "{current} of {target} saved",
+  "@notif_goal_milestone_body": {
+    "placeholders": { "current": { "type": "String" }, "target": { "type": "String" } }
+  },
   "onboarding_starting_balance_title": "Starting Balance",
   "onboarding_starting_balance_body": "Set your current account balance to start tracking accurately.",
   "onboarding_starting_balance_set": "Set Balance",

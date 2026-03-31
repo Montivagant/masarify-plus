@@ -36,6 +36,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_more => 'المزيد';
 
   @override
+  String get nav_subscriptions => 'الاشتراكات';
+
+  @override
   String get dashboard_title => 'مصاريفي';
 
   @override
@@ -248,6 +251,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get budget_limit => 'الحد الشهري';
+
+  @override
+  String budget_progress_a11y(String category, String percent) {
+    return '$category: $percent';
+  }
 
   @override
   String get budget_rollover => 'ترحيل المبلغ المتبقي';
@@ -1866,6 +1874,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_daily_average => 'المتوسط اليومي';
 
   @override
+  String reports_savings_rate(int rate) {
+    return 'معدل التوفير: $rate% من الدخل';
+  }
+
+  @override
   String reports_category_rank(int rank) {
     return '#$rank';
   }
@@ -2326,6 +2339,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String voice_confirm_count(int count) {
     return 'تأكيد ($count)';
+  }
+
+  @override
+  String voice_saved_partial(int saved, int total) {
+    return 'تم حفظ $saved من $total معاملة';
   }
 
   @override
@@ -2889,6 +2907,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recap_notification_body => 'اضغط لتخبرني — وأنا هسجلهالك';
+
+  @override
+  String notif_bill_due_title(String title) {
+    return '$title مستحق';
+  }
+
+  @override
+  String notif_bill_due_body(String amount) {
+    return '$amount — اضغط للدفع';
+  }
+
+  @override
+  String notif_budget_warning_title(String category, int percent) {
+    return 'ميزانية $category وصلت $percent%';
+  }
+
+  @override
+  String notif_budget_warning_body(String spent, String limit) {
+    return '$spent من $limit تم إنفاقه';
+  }
+
+  @override
+  String notif_budget_exceeded_title(String category) {
+    return 'ميزانية $category تم تجاوزها';
+  }
+
+  @override
+  String notif_budget_exceeded_body(String spent, String limit) {
+    return '$spent تم إنفاقه — الحد $limit';
+  }
+
+  @override
+  String notif_goal_milestone_title(String name, int percent) {
+    return '$name — وصلت $percent%!';
+  }
+
+  @override
+  String notif_goal_milestone_body(String current, String target) {
+    return '$current من $target تم توفيره';
+  }
 
   @override
   String get onboarding_starting_balance_title => 'الرصيد الافتتاحي';

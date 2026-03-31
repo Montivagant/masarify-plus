@@ -84,7 +84,10 @@ class BudgetProgressCard extends StatelessWidget {
           const SizedBox(height: AppSizes.sm),
           RepaintBoundary(
             child: Semantics(
-              label: '$categoryName: ${MoneyFormatter.formatPercent(pct)}',
+              label: context.l10n.budget_progress_a11y(
+                categoryName,
+                MoneyFormatter.formatPercent(pct),
+              ),
               child: TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0, end: _fraction.clamp(0.0, 1.0)),
                 duration:

@@ -135,7 +135,7 @@ class _CategoryHorizontalBarChart extends StatelessWidget {
                   : '';
               return BarTooltipItem(
                 '$name\n${MoneyFormatter.format(rod.toY.round())}',
-                context.textStyles.bodySmall!.copyWith(
+                (context.textStyles.bodySmall ?? const TextStyle()).copyWith(
                   color: context.colors.onSurface,
                   fontWeight: FontWeight.w600,
                 ),

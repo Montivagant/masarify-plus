@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_theme_extension.dart';
 import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
+
+/// Global key wired to MaterialApp.router's scaffoldMessengerKey.
+/// This ensures snackbars always render at the root level — above the
+/// bottom nav bar — regardless of which nested Scaffold triggers them.
+final rootMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 /// Centralised SnackBar helpers.
 /// Usage: SnackHelper.showSuccess(context, 'Transaction saved');
@@ -20,8 +24,7 @@ abstract final class SnackHelper {
       context,
       message: message,
       icon: AppIcons.checkCircle,
-      color: context.appTheme.incomeColor,
-      onColor: AppColors.white,
+      semanticColor: context.appTheme.incomeColor,
       action: action,
       duration: duration,
     );
@@ -37,8 +40,7 @@ abstract final class SnackHelper {
       context,
       message: message,
       icon: AppIcons.errorCircle,
-      color: context.appTheme.expenseColor,
-      onColor: AppColors.white,
+      semanticColor: context.appTheme.expenseColor,
       action: action,
       duration: duration,
     );
@@ -66,8 +68,7 @@ abstract final class SnackHelper {
       context,
       message: message,
       icon: AppIcons.infoFilled,
-      color: context.colors.primary,
-      onColor: context.colors.onPrimary,
+      semanticColor: context.colors.primary,
       action: action,
       duration: duration,
     );
@@ -83,17 +84,16 @@ abstract final class SnackHelper {
     SnackBarAction? action,
     Duration duration = AppDurations.snackbarDefault,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
+    final messenger = _messengerOrNull ?? ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     return messenger.showSnackBar(
-      buildSnackBar(
+      _buildSnackBar(
+        context,
         message: message,
         icon: AppIcons.checkCircle,
-        color: context.appTheme.incomeColor,
-        onColor: AppColors.white,
+        semanticColor: context.appTheme.incomeColor,
         action: action,
         duration: duration,
-        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }
@@ -108,46 +108,65 @@ abstract final class SnackHelper {
     SnackBarAction? action,
     Duration duration = AppDurations.snackbarDefault,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
+    final messenger = _messengerOrNull ?? ScaffoldMessenger.of(context);
     messenger.hideCurrentSnackBar();
     return messenger.showSnackBar(
-      buildSnackBar(
+      _buildSnackBar(
+        context,
         message: message,
         icon: AppIcons.infoFilled,
-        color: context.colors.primary,
-        onColor: context.colors.onPrimary,
+        semanticColor: context.colors.primary,
         action: action,
         duration: duration,
-        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }
 
-  /// Build a styled [SnackBar] without showing it.
-  ///
-  /// Used by callers that need the [ScaffoldFeatureController] returned
-  /// by [ScaffoldMessengerState.showSnackBar] (e.g. for `.closed` callback).
-  static SnackBar buildSnackBar({
+  /// Root ScaffoldMessenger — bypasses nested Scaffolds.
+  /// Returns null if called before MaterialApp mounts (graceful no-op).
+  static ScaffoldMessengerState? get _messengerOrNull =>
+      rootMessengerKey.currentState;
+
+  static SnackBar _buildSnackBar(
+    BuildContext context, {
     required String message,
     required IconData icon,
-    required Color color,
-    required Color onColor,
+    required Color semanticColor,
     SnackBarAction? action,
     Duration duration = AppDurations.snackbarDefault,
-    double bottomMargin = AppSizes.snackbarBottomMargin,
   }) {
+    final theme = context.appTheme;
+    final cs = context.colors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Glassmorphic surface: theme-tinted translucent background
+    final bgColor = isDark
+        ? theme.glassCardSurface
+        : Color.alphaBlend(
+            semanticColor.withValues(alpha: AppSizes.opacitySubtle),
+            theme.glassCardSurface,
+          );
+
+    final textColor = cs.onSurface;
+    final iconColor = semanticColor;
+
     return SnackBar(
       content: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: onColor, size: AppSizes.iconSm),
+          Container(
+            padding: const EdgeInsets.all(AppSizes.xs),
+            decoration: BoxDecoration(
+              color: semanticColor.withValues(alpha: AppSizes.opacityLight2),
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+            ),
+            child: Icon(icon, color: iconColor, size: AppSizes.iconSm),
+          ),
           const SizedBox(width: AppSizes.sm),
           Flexible(
             child: Text(
               message,
-              style: TextStyle(
-                color: onColor,
-                fontSize: AppSizes.snackTextSize,
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: textColor,
                 fontWeight: FontWeight.w500,
               ),
               maxLines: 2,
@@ -156,54 +175,53 @@ abstract final class SnackHelper {
           ),
         ],
       ),
-      backgroundColor: color,
+      backgroundColor: bgColor,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSizes.snackBorderRadius),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
+        side: BorderSide(color: theme.glassCardBorder),
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.md,
         vertical: AppSizes.snackVerticalPadding,
       ),
-      margin: EdgeInsets.only(
+      margin: const EdgeInsets.only(
         left: AppSizes.snackHorizontalMargin,
         right: AppSizes.snackHorizontalMargin,
-        bottom: bottomMargin,
+        bottom: AppSizes.snackbarBottomMargin,
       ),
       elevation: AppSizes.snackElevation,
       duration: duration,
       dismissDirection: DismissDirection.horizontal,
-      action: action,
+      action: action != null
+          ? SnackBarAction(
+              label: action.label,
+              onPressed: action.onPressed,
+              textColor: semanticColor,
+            )
+          : null,
     );
-  }
-
-  /// Bottom margin adapts to keyboard state: small when keyboard is visible
-  /// (form screens), full 72dp when hidden (clears the floating nav bar).
-  static double _adaptiveBottomMargin(BuildContext context) {
-    final keyboardUp = MediaQuery.viewInsetsOf(context).bottom > 0;
-    return keyboardUp ? AppSizes.sm : AppSizes.snackbarBottomMargin;
   }
 
   static void _show(
     BuildContext context, {
     required String message,
     required IconData icon,
-    required Color color,
-    required Color onColor,
+    required Color semanticColor,
     SnackBarAction? action,
     required Duration duration,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
+    final messenger = _messengerOrNull;
+    if (messenger == null) return;
     messenger.hideCurrentSnackBar();
     messenger.showSnackBar(
-      buildSnackBar(
+      _buildSnackBar(
+        context,
         message: message,
         icon: icon,
-        color: color,
-        onColor: onColor,
+        semanticColor: semanticColor,
         action: action,
         duration: duration,
-        bottomMargin: _adaptiveBottomMargin(context),
       ),
     );
   }

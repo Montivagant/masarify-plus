@@ -60,8 +60,7 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
         // ── Chart ──────────────────────────────────────────────
         Expanded(
           child: dailyAsync.when(
-            loading: () =>
-                const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, __) => Center(
               child: Text(context.l10n.common_error_generic),
             ),
@@ -108,7 +107,7 @@ class _SpendingLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxAmount = data.fold<int>(0, (s, e) => e.amount > s ? e.amount : s);
-    final maxY = maxAmount > 0 ? maxAmount * 1.2 : 10000.0; // 100 EGP floor in piastres
+    final maxY = maxAmount > 0 ? maxAmount * 1.2 : 100000.0; // 10 EGP floor
 
     final spots = List.generate(data.length, (i) {
       return FlSpot(i.toDouble(), data[i].amount.toDouble());
@@ -125,7 +124,8 @@ class _SpendingLineChart extends StatelessWidget {
               return touchedSpots.map((spot) {
                 final idx = spot.spotIndex;
                 final d = data[idx];
-                final baseStyle = context.textStyles.bodySmall ?? const TextStyle();
+                final baseStyle =
+                    context.textStyles.bodySmall ?? const TextStyle();
                 return LineTooltipItem(
                   '${DateFormat.MMMd(context.languageCode).format(d.date)}\n',
                   baseStyle.copyWith(color: tooltipColor),
@@ -154,9 +154,9 @@ class _SpendingLineChart extends StatelessWidget {
                 return Text(
                   MoneyFormatter.formatCompact(value.toInt()),
                   style: context.textStyles.bodySmall?.copyWith(
-                        fontSize: AppSizes.chartLabelSize,
-                        color: context.colors.onSurfaceVariant,
-                      ),
+                    fontSize: AppSizes.chartLabelSize,
+                    color: context.colors.onSurfaceVariant,
+                  ),
                 );
               },
             ),
@@ -176,9 +176,9 @@ class _SpendingLineChart extends StatelessWidget {
                     DateFormat('d/M', context.languageCode)
                         .format(data[idx].date),
                     style: context.textStyles.bodySmall?.copyWith(
-                          fontSize: AppSizes.chartLabelSize,
-                          color: context.colors.onSurfaceVariant,
-                        ),
+                      fontSize: AppSizes.chartLabelSize,
+                      color: context.colors.onSurfaceVariant,
+                    ),
                   ),
                 );
               },
@@ -202,14 +202,14 @@ class _SpendingLineChart extends StatelessWidget {
             color: context.appTheme.expenseColor,
             barWidth: AppSizes.chartLineWidth, // WS-9: thicker line
             shadow: Shadow(
-              color: context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityLight4),
+              color: context.appTheme.expenseColor
+                  .withValues(alpha: AppSizes.opacityLight4),
               blurRadius: AppSizes.chartShadowBlur,
               offset: const Offset(0, AppSizes.chartShadowOffsetY),
             ),
             dotData: FlDotData(
               show: days <= 7,
-              getDotPainter: (spot, percent, bar, index) =>
-                  FlDotCirclePainter(
+              getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
                 radius: AppSizes.chartDotRadius,
                 color: context.appTheme.expenseColor,
                 strokeWidth: AppSizes.chartDotStrokeWidth,
@@ -223,8 +223,10 @@ class _SpendingLineChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityQuarter),
-                  context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityNone),
+                  context.appTheme.expenseColor
+                      .withValues(alpha: AppSizes.opacityQuarter),
+                  context.appTheme.expenseColor
+                      .withValues(alpha: AppSizes.opacityNone),
                 ],
               ),
             ),

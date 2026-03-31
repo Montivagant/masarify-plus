@@ -55,6 +55,7 @@ abstract final class AppSizes {
   static const double colorSwatchSize = 36;
   static const double iconContainerMd = 40;
   static const double iconContainerLg = 44;
+  static const double iconContainerXl = 56;
   static const double categoryChipSize = 52;
 
   // ── Progress rings ──────────────────────────────────────────────────

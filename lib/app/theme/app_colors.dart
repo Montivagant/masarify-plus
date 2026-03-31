@@ -90,6 +90,9 @@ abstract final class AppColors {
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
 
+  /// Neutral gray fallback for missing/invalid color hex values.
+  static const Color fallbackGray = Color(0xFF9E9E9E);
+
   /// Default color hex for goals, wallets, etc. (first picker option).
   static const String defaultColorHex = '#1A6B5E';
 

@@ -55,9 +55,7 @@ class PdfExportService {
   static pw.Font? _cachedArabicFont;
 
   /// Load Arabic-capable font from bundled assets.
-  /// Returns null if the font file is not bundled yet (graceful fallback).
-  /// TODO(M-14): Download NotoSansArabic-Regular.ttf from Google Fonts and
-  /// place at assets/fonts/NotoSansArabic-Regular.ttf for Arabic PDF support.
+  /// Returns null if the font file cannot be loaded (graceful fallback).
   static Future<pw.Font?> _loadArabicFont() async {
     if (_cachedArabicFont != null) return _cachedArabicFont;
     try {

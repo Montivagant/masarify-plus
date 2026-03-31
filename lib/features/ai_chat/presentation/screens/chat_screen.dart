@@ -177,7 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       setState(() {
         _actionStates.clear();
         _executingActions.clear();
@@ -186,9 +186,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  /// Compound key for action status tracking: '${messageId}_$actionIndex'.
-  String _actionKey(int messageId, int actionIndex) =>
-      '${messageId}_$actionIndex';
+  /// Stable key for action status tracking based on action content.
+  /// Uses action's JSON hashCode so keys don't shift when sibling actions
+  /// are stripped from the message.
+  String _actionKey(int messageId, ChatAction action) =>
+      '${messageId}_${action.toJson().toString().hashCode}';
 
   Widget _buildActionCard(
     int messageId,
@@ -196,7 +198,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatAction action,
     String rawContent,
   ) {
-    final key = _actionKey(messageId, actionIndex);
+    final key = _actionKey(messageId, action);
     final status = _actionStates[key] ?? ChatActionStatus.pending;
     return ActionCard(
       action: action,
@@ -206,7 +208,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ? () => _onConfirmAction(messageId, actionIndex, action, rawContent)
           : null,
       onCancel: status == ChatActionStatus.pending
-          ? () => _onCancelAction(messageId, actionIndex, rawContent)
+          ? () => _onCancelAction(messageId, actionIndex, action, rawContent)
           : null,
     );
   }
@@ -217,7 +219,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatAction action,
     String rawContent,
   ) async {
-    final key = _actionKey(messageId, actionIndex);
+    final key = _actionKey(messageId, action);
     if (_executingActions.contains(key)) return;
     setState(() => _executingActions.add(key));
 
@@ -335,9 +337,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> _onCancelAction(
     int messageId,
     int actionIndex,
+    ChatAction action,
     String rawContent,
   ) async {
-    final key = _actionKey(messageId, actionIndex);
+    final key = _actionKey(messageId, action);
     setState(() => _actionStates[key] = ChatActionStatus.cancelled);
     // Strip only THIS action's JSON block, preserving others.
     try {

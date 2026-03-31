@@ -7,11 +7,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
@@ -371,6 +371,35 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
     return null;
   }
 
+  /// Fire-and-forget budget threshold notification check after saving an expense.
+  /// Captures providers synchronously before the async gap to avoid using
+  /// a disposed WidgetRef after navigation.
+  void _checkBudgetNotification(int categoryId, String categoryName) {
+    final amount = _amountPiastres;
+    final txDate = _date;
+    final budgetRepo = ref.read(budgetRepositoryProvider);
+    final notifService = ref.read(notificationTriggerServiceProvider);
+    Future<void>(() async {
+      try {
+        final budget = await budgetRepo.getByCategoryAndMonth(
+          categoryId,
+          txDate.year,
+          txDate.month,
+        );
+        if (budget == null) return;
+        final previousSpent =
+            (budget.spentAmount - amount).clamp(0, budget.spentAmount);
+        await notifService.checkBudgetThreshold(
+          budget: budget,
+          previousSpent: previousSpent,
+          categoryName: categoryName,
+        );
+      } catch (e, stack) {
+        CrashLogService.log(e, stack);
+      }
+    });
+  }
+
   Future<void> _save() async {
     // I13 fix: prevent double-tap race condition
     if (_loading) return;
@@ -378,6 +407,7 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
     final walletId = _walletId;
     if (_amountPiastres <= 0 || categoryId == null || walletId == null) return;
 
+    final lang = context.languageCode;
     setState(() => _loading = true);
     try {
       final repo = ref.read(transactionRepositoryProvider);
@@ -447,6 +477,11 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
         await ref
             .read(categorizationLearningServiceProvider)
             .recordMapping(title, categoryId);
+
+        // Check budget threshold for expense transactions
+        if (_type == 'expense') {
+          _checkBudgetNotification(categoryId, cat.displayName(lang));
+        }
       }
 
       HapticFeedback.heavyImpact();
@@ -456,15 +491,9 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
       final match = _matchGoalWithName(title, note);
       if (match != null) {
         final l10n = context.l10n;
-        // Pre-build error SnackBar while context is still valid
-        // (onPressed fires after pop, so context is defunct).
-        final errorSnack = SnackHelper.buildSnackBar(
-          message: l10n.common_error_generic,
-          icon: AppIcons.errorCircle,
-          color: context.appTheme.expenseColor,
-          onColor: AppColors.white,
-        );
-        final messenger = ScaffoldMessenger.of(context);
+        // Capture error message while context is valid — the onPressed
+        // callback fires after pop, so context may be defunct.
+        final errorMsg = l10n.common_error_generic;
         SnackHelper.showInfoAndReturn(
           context,
           l10n.goal_link_prompt(match.goalName),
@@ -478,7 +507,11 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
                   await repo.update(tx.copyWith(goalId: match.goalId));
                 }
               } catch (_) {
-                messenger.showSnackBar(errorSnack);
+                // Use root messenger directly — context is defunct after pop.
+                rootMessengerKey.currentState?.hideCurrentSnackBar();
+                rootMessengerKey.currentState?.showSnackBar(
+                  SnackBar(content: Text(errorMsg)),
+                );
               }
             },
           ),

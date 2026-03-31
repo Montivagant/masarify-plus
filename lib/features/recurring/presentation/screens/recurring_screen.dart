@@ -458,6 +458,9 @@ class _RecurringCard extends ConsumerWidget {
       if (!confirmed) return;
       try {
         await ref.read(recurringRuleRepositoryProvider).delete(rule.id);
+        await ref
+            .read(notificationTriggerServiceProvider)
+            .cancelBillReminder(rule.id);
         HapticFeedback.mediumImpact();
       } catch (e) {
         if (context.mounted) {
@@ -525,6 +528,10 @@ class _MarkPaidButtonState extends ConsumerState<_MarkPaidButton> {
             type: rule.type,
             title: rule.title,
           );
+      // Cancel the old bill reminder (bill is paid)
+      await ref
+          .read(notificationTriggerServiceProvider)
+          .cancelBillReminder(rule.id);
       if (!context.mounted) return;
       ref.invalidate(recurringRulesProvider);
       SnackHelper.showSuccess(

@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/notification_trigger_service.dart';
+import '../../core/services/preferences_service.dart';
 import '../../data/repositories/budget_repository_impl.dart';
 import '../../data/repositories/category_repository_impl.dart';
 import '../../data/repositories/chat_message_repository_impl.dart';
@@ -21,6 +23,14 @@ import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_transfer_repository.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
 import 'database_provider.dart';
+import 'theme_provider.dart';
+
+final notificationTriggerServiceProvider =
+    Provider<NotificationTriggerService>((ref) {
+  return NotificationTriggerService(
+    PreferencesService(ref.watch(sharedPreferencesProvider)),
+  );
+});
 
 final walletRepositoryProvider = Provider<IWalletRepository>(
   (ref) => WalletRepositoryImpl(

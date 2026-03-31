@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/analytics_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
-/// Overview tab — income vs expense bar chart with configurable period.
+/// Overview tab — income vs expense bar chart with summary cards and insights.
 class OverviewTab extends ConsumerStatefulWidget {
   const OverviewTab({super.key});
 
@@ -43,8 +45,18 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
           );
         }
 
-        // Current month summary
         final current = totals.last;
+        final previous = totals.length >= 2 ? totals[totals.length - 2] : null;
+
+        // Savings rate for current month
+        final savingsRate = current.income > 0
+            ? ((current.income - current.expense) * 100) ~/ current.income
+            : 0;
+
+        // Daily average: use days elapsed this month
+        final daysElapsed = DateTime.now().day;
+        final dailyAvg =
+            current.expense > 0 ? current.expense ~/ daysElapsed : 0;
 
         return ListView(
           padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
@@ -57,9 +69,18 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
               ),
               child: SegmentedButton<int>(
                 segments: [
-                  ButtonSegment(value: 3, label: Text(context.l10n.period_3_months)),
-                  ButtonSegment(value: 6, label: Text(context.l10n.period_6_months)),
-                  ButtonSegment(value: 12, label: Text(context.l10n.period_1_year)),
+                  ButtonSegment(
+                    value: 3,
+                    label: Text(context.l10n.period_3_months),
+                  ),
+                  ButtonSegment(
+                    value: 6,
+                    label: Text(context.l10n.period_6_months),
+                  ),
+                  ButtonSegment(
+                    value: 12,
+                    label: Text(context.l10n.period_1_year),
+                  ),
                 ],
                 selected: {_months},
                 onSelectionChanged: (v) => setState(() => _months = v.first),
@@ -71,37 +92,120 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
             // ── Summary cards ──────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.all(AppSizes.screenHPadding),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
               child: Row(
                 children: [
                   Expanded(
-                    child: _SummaryTile(
+                    child: _SummaryCard(
                       label: context.l10n.reports_total_income,
                       amount: current.income,
                       color: context.appTheme.incomeColor,
+                      icon: AppIcons.income,
+                      change: _percentChange(
+                        current.income,
+                        previous?.income,
+                      ),
                     ),
                   ),
                   const SizedBox(width: AppSizes.sm),
                   Expanded(
-                    child: _SummaryTile(
+                    child: _SummaryCard(
                       label: context.l10n.reports_total_expense,
                       amount: current.expense,
                       color: context.appTheme.expenseColor,
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: _SummaryTile(
-                      label: context.l10n.reports_net,
-                      amount: current.net.abs(),
-                      color: current.net >= 0
-                          ? context.appTheme.incomeColor
-                          : context.appTheme.expenseColor,
+                      icon: AppIcons.expense,
+                      change: _percentChange(
+                        current.expense,
+                        previous?.expense,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Net + Savings Rate row ─────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _SummaryCard(
+                      label: context.l10n.reports_net,
+                      amount: current.net.abs(),
+                      color: current.net >= 0
+                          ? context.appTheme.incomeColor
+                          : context.appTheme.expenseColor,
+                      icon: current.net >= 0
+                          ? AppIcons.trendingUp
+                          : AppIcons.trendingDown,
+                      prefix: current.net >= 0 ? '+' : '\u2212',
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Expanded(
+                    child: _SummaryCard(
+                      label: context.l10n.reports_daily_average,
+                      amount: dailyAvg,
+                      color: context.colors.primary,
+                      icon: AppIcons.calendar,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Savings rate insight ────────────────────────────────
+            if (current.income > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.screenHPadding,
+                  AppSizes.sm,
+                  AppSizes.screenHPadding,
+                  0,
+                ),
+                child: GlassCard(
+                  tier: GlassTier.inset,
+                  tintColor: savingsRate >= 20
+                      ? context.appTheme.incomeColor
+                          .withValues(alpha: AppSizes.opacitySubtle)
+                      : context.appTheme.expenseColor
+                          .withValues(alpha: AppSizes.opacitySubtle),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.md,
+                    vertical: AppSizes.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        savingsRate >= 20
+                            ? AppIcons.checkCircle
+                            : AppIcons.warning,
+                        size: AppSizes.iconSm,
+                        color: savingsRate >= 20
+                            ? context.appTheme.incomeColor
+                            : context.appTheme.expenseColor,
+                      ),
+                      const SizedBox(width: AppSizes.sm),
+                      Expanded(
+                        child: Text(
+                          context.l10n.reports_savings_rate(savingsRate),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: AppSizes.lg),
 
             // ── Bar chart header ───────────────────────────────────
             Padding(
@@ -128,78 +232,101 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
                 ),
               ),
             ),
-
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Daily average ──────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: _DailyAverageRow(
-                label: context.l10n.reports_daily_average,
-                amount: current.expense > 0
-                    ? current.expense ~/
-                        DateTime.now().day // days elapsed this month
-                    : 0,
-              ),
-            ),
           ],
         );
       },
     );
   }
+
+  /// Calculate percent change between current and previous period.
+  int? _percentChange(int current, int? previous) {
+    if (previous == null || previous == 0) return null;
+    return (((current - previous) * 100) / previous).round();
+  }
 }
 
-// ── Summary tile ──────────────────────────────────────────────────────────
+// ── Summary card (glassmorphic) ─────────────────────────────────────────────
 
-class _SummaryTile extends StatelessWidget {
-  const _SummaryTile({
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
     required this.label,
     required this.amount,
     required this.color,
+    required this.icon,
+    this.change,
+    this.prefix,
   });
 
   final String label;
   final int amount;
   final Color color;
+  final IconData icon;
+
+  /// Month-over-month percent change (null = no previous data).
+  final int? change;
+
+  /// Optional prefix for amount (e.g. '+' or '−').
+  final String? prefix;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.sm),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: AppSizes.opacitySubtle),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-      ),
+    return GlassCard(
+      tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
+      padding: const EdgeInsets.all(AppSizes.sm + AppSizes.xxs),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: context.textStyles.bodySmall?.copyWith(
-                  color: color,
+          Row(
+            children: [
+              Icon(icon, size: AppSizes.iconXs, color: color),
+              const SizedBox(width: AppSizes.xs),
+              Expanded(
+                child: Text(
+                  label,
+                  style: context.textStyles.bodySmall?.copyWith(color: color),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
           const SizedBox(height: AppSizes.xs),
           Text(
-            MoneyFormatter.formatAmount(amount),
+            '${prefix ?? ''}${MoneyFormatter.formatAmount(amount)}',
             style: context.textStyles.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          // Month-over-month change indicator
+          if (change != null) ...[
+            const SizedBox(height: AppSizes.xxs),
+            Row(
+              children: [
+                Icon(
+                  change! >= 0 ? AppIcons.trendingUp : AppIcons.trendingDown,
+                  size: AppSizes.iconXxs2,
+                  color: context.colors.outline,
+                ),
+                const SizedBox(width: AppSizes.xxs),
+                Text(
+                  '${change! >= 0 ? '+' : ''}$change%',
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.colors.outline,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-// ── Income vs Expense bar chart ───────────────────────────────────────────
+// ── Income vs Expense bar chart ─────────────────────────────────────────────
 
 class _IncomeExpenseBarChart extends StatelessWidget {
   const _IncomeExpenseBarChart({required this.totals});
@@ -215,7 +342,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
         return m > prev ? m : prev;
       },
     );
-    final maxY = maxVal > 0 ? maxVal * 1.2 : 10000.0; // 100 EGP floor in piastres
+    final maxY = maxVal > 0 ? maxVal * 1.2 : 100000.0;
 
     return BarChart(
       BarChartData(
@@ -224,13 +351,15 @@ class _IncomeExpenseBarChart extends StatelessWidget {
           enabled: true,
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIdx, rod, rodIdx) {
-              final label = rodIdx == 0 ? context.l10n.dashboard_income : context.l10n.dashboard_expense;
+              final label = rodIdx == 0
+                  ? context.l10n.dashboard_income
+                  : context.l10n.dashboard_expense;
               return BarTooltipItem(
                 '$label\n${MoneyFormatter.format(rod.toY.round())}',
-                context.textStyles.bodySmall!.copyWith(
-                      color: context.colors.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
+                (context.textStyles.bodySmall ?? const TextStyle()).copyWith(
+                  color: context.colors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
               );
             },
           ),
@@ -251,9 +380,9 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   child: Text(
                     MoneyFormatter.formatCompact(value.toInt()),
                     style: context.textStyles.bodySmall?.copyWith(
-                          color: context.colors.onSurfaceVariant,
-                          fontSize: AppSizes.chartLabelSize,
-                        ),
+                      color: context.colors.onSurfaceVariant,
+                      fontSize: AppSizes.chartLabelSize,
+                    ),
                   ),
                 );
               },
@@ -273,9 +402,9 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                     DateFormat('M/yy', context.languageCode)
                         .format(DateTime(totals[idx].year, totals[idx].month)),
                     style: context.textStyles.bodySmall?.copyWith(
-                          fontSize: AppSizes.chartLabelSize,
-                          color: context.colors.outline,
-                        ),
+                      fontSize: AppSizes.chartLabelSize,
+                      color: context.colors.outline,
+                    ),
                   ),
                 );
               },
@@ -286,8 +415,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
           drawVerticalLine: false,
           getDrawingHorizontalLine: (value) => FlLine(
             color: context.colors.outlineVariant.withValues(
-                  alpha: AppSizes.opacityMedium,
-                ),
+              alpha: AppSizes.opacityMedium,
+            ),
             strokeWidth: 1,
           ),
         ),
@@ -300,12 +429,12 @@ class _IncomeExpenseBarChart extends StatelessWidget {
             barRods: [
               BarChartRodData(
                 toY: t.income.toDouble(),
-                // WS-9: gradient fill bottom→top
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.incomeColor.withValues(alpha: AppSizes.opacityMedium2),
+                    context.appTheme.incomeColor
+                        .withValues(alpha: AppSizes.opacityMedium2),
                     context.appTheme.incomeColor,
                   ],
                 ),
@@ -320,7 +449,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.expenseColor.withValues(alpha: AppSizes.opacityMedium2),
+                    context.appTheme.expenseColor
+                        .withValues(alpha: AppSizes.opacityMedium2),
                     context.appTheme.expenseColor,
                   ],
                 ),
@@ -332,43 +462,6 @@ class _IncomeExpenseBarChart extends StatelessWidget {
             ],
           );
         }),
-      ),
-    );
-  }
-}
-
-// ── Daily average row ─────────────────────────────────────────────────────
-
-class _DailyAverageRow extends StatelessWidget {
-  const _DailyAverageRow({required this.label, required this.amount});
-
-  final String label;
-  final int amount;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSizes.md),
-      decoration: BoxDecoration(
-        color: context.colors.surfaceContainerHighest.withValues(
-              alpha: AppSizes.opacityLight5,
-            ),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: context.textStyles.bodyMedium,
-          ),
-          Text(
-            MoneyFormatter.format(amount),
-            style: context.textStyles.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
       ),
     );
   }

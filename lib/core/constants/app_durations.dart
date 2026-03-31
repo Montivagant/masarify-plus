@@ -65,6 +65,7 @@ abstract final class AppDurations {
 
   // Service delays
   static const Duration listenerBindDelay = Duration(seconds: 3);
+  static const Duration notificationLaunchDelay = Duration(milliseconds: 500);
 
   // Temp file cleanup
   static const Duration tempFileCleanupDelay = Duration(seconds: 2);

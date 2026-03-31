@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_icons.dart';
@@ -112,7 +113,7 @@ class MessageBubble extends StatelessWidget {
               title: Text(ctx.l10n.chat_copy_message),
               onTap: () {
                 Clipboard.setData(ClipboardData(text: message.content));
-                Navigator.pop(ctx);
+                ctx.pop();
                 SnackHelper.showSuccess(context, context.l10n.chat_copied);
               },
             ),
@@ -120,7 +121,7 @@ class MessageBubble extends StatelessWidget {
               leading: const Icon(AppIcons.chevronRight),
               title: Text(ctx.l10n.chat_share_message),
               onTap: () {
-                Navigator.pop(ctx);
+                ctx.pop();
                 Share.share(message.content);
               },
             ),

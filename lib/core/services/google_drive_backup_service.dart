@@ -38,6 +38,9 @@ class GoogleDriveBackupService {
   static const _backupPrefix = 'masarify_backup_';
   static const _backupSuffix = '.enc';
 
+  /// C-7 fix: key file stored in Drive appDataFolder for recovery after reinstall.
+  static const _driveKeyFileName = 'masarify_encryption_key.dat';
+
   final _googleSignIn = GoogleSignIn(
     scopes: [drive.DriveApi.driveAppdataScope],
     serverClientId:
@@ -77,12 +80,85 @@ class GoogleDriveBackupService {
     return drive.DriveApi(httpClient);
   }
 
+  // ── Key Sync (C-7 fix) ───────────────────────────────────────────────
+
+  /// Upload encryption key to Drive appDataFolder so it survives reinstall.
+  /// Uses create-or-update: finds existing key file and overwrites, or creates new.
+  Future<void> _syncKeyToDrive(drive.DriveApi driveApi) async {
+    final key = await _getOrCreateKey();
+    final keyBytes = Uint8List.fromList(key.bytes);
+
+    // Check if key file already exists.
+    final existing = await driveApi.files.list(
+      spaces: 'appDataFolder',
+      q: "name = '$_driveKeyFileName'",
+      $fields: 'files(id)',
+    );
+
+    final media = drive.Media(Stream.value(keyBytes), keyBytes.length);
+
+    if (existing.files != null && existing.files!.isNotEmpty) {
+      // Update existing key file.
+      await driveApi.files.update(
+        drive.File(),
+        existing.files!.first.id!,
+        uploadMedia: media,
+      );
+    } else {
+      // Create new key file.
+      final file = drive.File()
+        ..name = _driveKeyFileName
+        ..parents = ['appDataFolder'];
+      await driveApi.files.create(file, uploadMedia: media);
+    }
+    dev.log('Encryption key synced to Drive', name: 'DriveBackup');
+  }
+
+  /// Restore encryption key from Drive appDataFolder (after reinstall).
+  /// Returns true if key was restored, false if no key found on Drive.
+  Future<bool> restoreKeyFromDrive() async {
+    try {
+      final driveApi = await _getDriveApi();
+      final result = await driveApi.files.list(
+        spaces: 'appDataFolder',
+        q: "name = '$_driveKeyFileName'",
+        $fields: 'files(id)',
+      );
+
+      if (result.files == null || result.files!.isEmpty) return false;
+
+      final media = await driveApi.files.get(
+        result.files!.first.id!,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
+
+      final chunks = <List<int>>[];
+      await for (final chunk in media.stream) {
+        chunks.add(chunk);
+      }
+      final bytes = chunks.expand((c) => c).toList();
+      if (bytes.length != 32) return false; // AES-256 key must be 32 bytes
+
+      final key = enc.Key(Uint8List.fromList(bytes));
+      await _secureStorage.write(key: _keyStorageKey, value: key.base64);
+      dev.log('Encryption key restored from Drive', name: 'DriveBackup');
+      return true;
+    } catch (e) {
+      dev.log('Key restore failed: $e', name: 'DriveBackup');
+      return false;
+    }
+  }
+
   // ── Upload ────────────────────────────────────────────────────────────
 
   /// Encrypt and upload [jsonData] to Google Drive appDataFolder.
+  /// Also syncs the encryption key to Drive for recovery after reinstall (C-7).
   /// Returns the file ID.
   Future<String> uploadBackup(String jsonData) async {
     final driveApi = await _getDriveApi();
+
+    // C-7: sync encryption key to Drive alongside backup.
+    await _syncKeyToDrive(driveApi);
 
     // Encrypt
     final encrypted = await _encrypt(jsonData);
@@ -139,8 +215,15 @@ class GoogleDriveBackupService {
   // ── Download ──────────────────────────────────────────────────────────
 
   /// Download and decrypt a backup file. Returns the JSON string.
+  /// C-7: attempts key restoration from Drive if local key is missing (reinstall).
   Future<String> downloadBackup(String fileId) async {
     final driveApi = await _getDriveApi();
+
+    // C-7: if no local key, try restoring from Drive before decryption.
+    final localKey = await _secureStorage.read(key: _keyStorageKey);
+    if (localKey == null) {
+      await restoreKeyFromDrive();
+    }
 
     final media = await driveApi.files.get(
       fileId,

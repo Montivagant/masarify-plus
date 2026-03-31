@@ -44,19 +44,19 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
   String? _nameError;
   bool _loading = false;
 
-  static const _icons = [
-    (name: 'goals', labelAr: 'أهداف'),
-    (name: 'travel', labelAr: 'سفر'),
-    (name: 'housing', labelAr: 'سكن'),
-    (name: 'education', labelAr: 'تعليم'),
-    (name: 'health', labelAr: 'صحة'),
-    (name: 'shopping', labelAr: 'تسوق'),
-    (name: 'business', labelAr: 'أعمال'),
-    (name: 'investment', labelAr: 'استثمار'),
-    (name: 'gifts', labelAr: 'هدايا'),
-    (name: 'wallet', labelAr: 'محفظة'),
-    (name: 'entertainment', labelAr: 'ترفيه'),
-    (name: 'salary', labelAr: 'راتب'),
+  static const _iconNames = [
+    'goals',
+    'travel',
+    'housing',
+    'education',
+    'health',
+    'shopping',
+    'business',
+    'investment',
+    'gifts',
+    'wallet',
+    'entertainment',
+    'salary',
   ];
 
   static const _colorOptions = AppColors.pickerOptions;
@@ -390,7 +390,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _icons.length,
+                    itemCount: _iconNames.length,
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 5,
@@ -398,14 +398,14 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                       crossAxisSpacing: AppSizes.sm,
                     ),
                     itemBuilder: (_, i) {
-                      final item = _icons[i];
-                      final isSelected = item.name == _iconName;
+                      final iconName = _iconNames[i];
+                      final isSelected = iconName == _iconName;
                       return Semantics(
-                        label: 'Icon: ${item.name}',
+                        label: '${context.l10n.category_icon}: $iconName',
                         button: true,
                         selected: isSelected,
                         child: GestureDetector(
-                          onTap: () => setState(() => _iconName = item.name),
+                          onTap: () => setState(() => _iconName = iconName),
                           child: Container(
                             decoration: BoxDecoration(
                               color: isSelected
@@ -424,7 +424,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
                                   : null,
                             ),
                             child: Icon(
-                              CategoryIconMapper.fromName(item.name),
+                              CategoryIconMapper.fromName(iconName),
                               color: isSelected
                                   ? selectedColor
                                   : cs.onSurfaceVariant,

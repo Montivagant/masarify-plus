@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../shared/providers/preferences_provider.dart';
 import '../shared/providers/subscription_provider.dart';
 import '../shared/providers/theme_provider.dart';
+import '../shared/widgets/feedback/snack_helper.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -96,6 +97,7 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
     MoneyFormatter.setLocale(resolvedLang);
 
     return MaterialApp.router(
+      scaffoldMessengerKey: rootMessengerKey,
       onGenerateTitle: (context) =>
           AppLocalizations.of(context)?.appName ?? 'Masarify',
       debugShowCheckedModeBanner: false,

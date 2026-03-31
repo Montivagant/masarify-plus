@@ -19,6 +19,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/sheets/drag_handle.dart';
 import 'voice_wave_bars.dart';
@@ -38,9 +39,10 @@ class VoiceInputSheet extends ConsumerStatefulWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: context.appTheme.glassSheetSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.borderRadiusMd),
+          top: Radius.circular(AppSizes.borderRadiusLg),
         ),
       ),
       builder: (_) => const VoiceInputSheet(),
@@ -292,7 +294,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       try {
         final file = File(_tempFilePath!);
         if (file.existsSync()) await file.delete();
-      } catch (_) {} // Best-effort cleanup — failure is non-critical.
+      } catch (_) {/* Best-effort cleanup */}
       _tempFilePath = null;
     }
   }
@@ -308,6 +310,19 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
+    final theme = context.appTheme;
+
+    // Mic button color based on state
+    final micColor = switch (_state) {
+      _VoiceState.recording => cs.primary,
+      _VoiceState.error => cs.error,
+      _ => cs.primaryContainer,
+    };
+    final micIconColor = switch (_state) {
+      _VoiceState.recording => cs.onPrimary,
+      _VoiceState.error => cs.onError,
+      _ => cs.onPrimaryContainer,
+    };
 
     return Padding(
       padding: EdgeInsetsDirectional.only(
@@ -347,9 +362,9 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
             state: _voiceWaveState,
             amplitude: _currentAmplitude,
           ),
-          const SizedBox(height: AppSizes.sm),
+          const SizedBox(height: AppSizes.md),
 
-          // -- Mic button --
+          // -- Mic button (glassmorphic) --
           Semantics(
             button: true,
             label: _state == _VoiceState.idle
@@ -368,20 +383,26 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
                 height: AppSizes.voiceMicSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _state == _VoiceState.recording
-                      ? cs.primary
-                      : _state == _VoiceState.error
-                          ? cs.error
-                          : cs.primaryContainer,
+                  color: micColor,
+                  boxShadow: _state == _VoiceState.recording
+                      ? [
+                          BoxShadow(
+                            color: cs.primary
+                                .withValues(alpha: AppSizes.opacityLight4),
+                            blurRadius: AppSizes.xl,
+                            spreadRadius: AppSizes.xs,
+                          ),
+                        ]
+                      : null,
+                  border: Border.all(
+                    color: theme.glassCardBorder,
+                    width: AppSizes.glassBorderWidthSubtle,
+                  ),
                 ),
                 child: Icon(
                   _state == _VoiceState.error ? AppIcons.close : AppIcons.mic,
                   size: AppSizes.iconLg,
-                  color: _state == _VoiceState.recording
-                      ? cs.onPrimary
-                      : _state == _VoiceState.error
-                          ? cs.onError
-                          : cs.onPrimaryContainer,
+                  color: micIconColor,
                 ),
               ),
             ),
@@ -391,17 +412,27 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
           // -- Status text --
           Text(
             _statusText(context),
-            style: context.textStyles.bodyMedium?.copyWith(color: cs.outline),
+            style: context.textStyles.bodyMedium?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
           ),
 
           // -- Recording duration counter --
           if (_state == _VoiceState.recording) ...[
             const SizedBox(height: AppSizes.sm),
-            Text(
-              _formatDuration(_recordingSeconds),
-              style: context.textStyles.headlineSmall?.copyWith(
-                color: cs.primary,
-                fontFeatures: [const FontFeature.tabularFigures()],
+            GlassCard(
+              tier: GlassTier.inset,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.xs,
+              ),
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+              child: Text(
+                _formatDuration(_recordingSeconds),
+                style: context.textStyles.headlineSmall?.copyWith(
+                  color: cs.primary,
+                  fontFeatures: [const FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ],

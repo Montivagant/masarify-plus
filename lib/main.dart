@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'app/router/app_router.dart';
+import 'core/constants/app_durations.dart';
 import 'core/constants/app_routes.dart';
 import 'core/services/crash_log_service.dart';
 import 'core/services/glass_config_service.dart';
@@ -71,17 +72,19 @@ Future<void> main() async {
 
   // C-4 fix: wire notification tap callback for deep-link navigation
   NotificationService.onNotificationTap = (payload) {
-    if (payload == null) return;
-    if (payload == 'recap') {
-      appRouter.go(AppRoutes.chat);
-    } else if (payload.startsWith('recurring:')) {
-      appRouter.go(AppRoutes.recurring);
-    }
+    if (payload != null) _handleNotificationPayload(payload);
   };
 
   // Initialize subscription service (IAP listener).
   final subService = container.read(subscriptionServiceProvider);
   unawaited(subService.initialize());
+
+  // Reschedule daily recap notification if user enabled it (survives app kill / reboot).
+  unawaited(
+    container
+        .read(notificationTriggerServiceProvider)
+        .rescheduleRecapIfEnabled(),
+  );
 
   // CR-13 fix: run RecurringScheduler AFTER runApp() to avoid blocking splash.
   unawaited(
@@ -102,13 +105,23 @@ Future<void> main() async {
   final launchPayload = await NotificationService.getLaunchPayload();
   if (launchPayload != null) {
     // Delay slightly to let the router initialize after splash.
-    Future<void>.delayed(const Duration(milliseconds: 500), () {
-      if (launchPayload == 'recap') {
-        appRouter.go(AppRoutes.chat);
-      } else if (launchPayload.startsWith('recurring:')) {
-        appRouter.go(AppRoutes.recurring);
-      }
+    Future<void>.delayed(AppDurations.notificationLaunchDelay, () {
+      _handleNotificationPayload(launchPayload);
     });
+  }
+}
+
+/// Shared notification payload → route mapping.
+/// Used by both warm-start tap callback and cold-start launch handler.
+void _handleNotificationPayload(String payload) {
+  if (payload == 'recap') {
+    appRouter.go(AppRoutes.chat);
+  } else if (payload.startsWith('recurring:')) {
+    appRouter.go(AppRoutes.recurring);
+  } else if (payload.startsWith('budget:')) {
+    appRouter.go(AppRoutes.analytics);
+  } else if (payload.startsWith('goal:')) {
+    appRouter.go(AppRoutes.hub);
   }
 }
 

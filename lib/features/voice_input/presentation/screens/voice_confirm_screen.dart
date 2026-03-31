@@ -17,6 +17,7 @@ import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
+import '../../../../domain/repositories/i_wallet_repository.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
@@ -619,7 +620,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       // Partial success — inform user.
       SnackHelper.showInfo(
         context,
-        'Saved $totalSuccess of ${totalSuccess + totalFail} transactions',
+        l10n.voice_saved_partial(totalSuccess, totalSuccess + totalFail),
       );
     } else {
       // All succeeded — check for goal match.
@@ -962,12 +963,13 @@ class _DraftCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
+    final theme = context.appTheme;
     final isCash =
         draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
     final typeColor = switch (draft.type) {
-      'income' => context.appTheme.incomeColor,
-      'cash_withdrawal' || 'cash_deposit' => context.appTheme.transferColor,
-      _ => context.appTheme.expenseColor,
+      'income' => theme.incomeColor,
+      'cash_withdrawal' || 'cash_deposit' => theme.transferColor,
+      _ => theme.expenseColor,
     };
 
     return Opacity(
@@ -977,12 +979,14 @@ class _DraftCard extends StatelessWidget {
           horizontal: AppSizes.screenHPadding,
           vertical: AppSizes.xs,
         ),
+        tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header: checkbox + raw text ───────────────────────
+            // ── Header: amount (prominent) + checkbox ──────────
             Row(
               children: [
+                // Include/exclude toggle
                 SizedBox(
                   width: AppSizes.iconContainerSm,
                   height: AppSizes.iconContainerSm,
@@ -992,23 +996,125 @@ class _DraftCard extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                 ),
-                const SizedBox(width: AppSizes.sm),
-                Expanded(
+                const Spacer(),
+                // Raw AI transcript (subtle)
+                Flexible(
+                  flex: 3,
                   child: Text(
                     draft.rawText,
                     style: context.textStyles.bodySmall?.copyWith(
                       color: cs.outline,
                       fontStyle: FontStyle.italic,
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
                   ),
                 ),
               ],
             ),
+
+            // ── Amount (hero) ────────────────────────────────────
+            IgnorePointer(
+              ignoring: !isIncluded,
+              child: AmountInput(
+                initialPiastres: draft.amountPiastres,
+                onAmountChanged: onAmountChanged,
+                autofocus: false,
+                compact: true,
+              ),
+            ),
             const SizedBox(height: AppSizes.sm),
 
-            // ── Editable title field ─────────────────────────────
+            // ── Type + Category badges row ────────────────────
+            IgnorePointer(
+              ignoring: !isIncluded,
+              child: Wrap(
+                spacing: AppSizes.sm,
+                runSpacing: AppSizes.xs,
+                children: [
+                  // Type badge
+                  _ChipBadge(
+                    icon: switch (draft.type) {
+                      'income' => AppIcons.income,
+                      'cash_withdrawal' || 'cash_deposit' => AppIcons.transfer,
+                      _ => AppIcons.expense,
+                    },
+                    label: switch (draft.type) {
+                      'income' => context.l10n.transaction_type_income,
+                      'cash_withdrawal' =>
+                        context.l10n.transaction_type_cash_withdrawal_short,
+                      'cash_deposit' =>
+                        context.l10n.transaction_type_cash_deposit_short,
+                      _ => context.l10n.transaction_type_expense,
+                    },
+                    color: typeColor,
+                    onTap: isCash ? null : onTypeToggle,
+                    dimmed: isCash,
+                  ),
+                  // Category badge — hidden for cash types
+                  if (!isCash)
+                    _ChipBadge(
+                      icon: categoryIcon,
+                      label: categoryName ?? context.l10n.transaction_category,
+                      color: categoryColor,
+                      onTap: onCategoryTap,
+                    ),
+                  // Wallet badge
+                  _ChipBadge(
+                    icon: AppIcons.wallet,
+                    label: walletName ?? context.l10n.voice_select_wallet,
+                    color: cs.primary,
+                    onTap: onWalletTap,
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Unmatched wallet hints ──────────────────────────
+            if (draft.unmatchedHint != null)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(top: AppSizes.xs),
+                child: TextButton.icon(
+                  onPressed: onCreateWalletFromHint,
+                  icon: const Icon(AppIcons.add, size: AppSizes.iconXxs2),
+                  label: Text(
+                    context.l10n.voice_create_wallet_instead(
+                      draft.unmatchedHint!,
+                    ),
+                    style: context.textStyles.bodySmall,
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.sm,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+            if (draft.unmatchedToHint != null)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(top: AppSizes.xs),
+                child: TextButton.icon(
+                  onPressed: onCreateToWalletFromHint,
+                  icon: const Icon(AppIcons.add, size: AppSizes.iconXxs2),
+                  label: Text(
+                    context.l10n.voice_create_wallet_instead(
+                      draft.unmatchedToHint!,
+                    ),
+                    style: context.textStyles.bodySmall,
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.sm,
+                    ),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ),
+
+            // ── Editable title ──────────────────────────────────
+            const SizedBox(height: AppSizes.sm),
             IgnorePointer(
               ignoring: !isIncluded,
               child: TextField(
@@ -1028,236 +1134,23 @@ class _DraftCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: AppSizes.sm),
 
-            // ── Type toggle + Category picker ──────────────────
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: Row(
-                children: [
-                  // Type chip — not tappable for cash types
-                  Opacity(
-                    opacity: isCash ? AppSizes.opacityMedium : 1.0,
-                    child: GestureDetector(
-                      onTap: isCash ? null : onTypeToggle,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSizes.md,
-                          vertical: AppSizes.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: typeColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.borderRadiusSm),
-                        ),
-                        child: Text(
-                          switch (draft.type) {
-                            'income' => context.l10n.transaction_type_income,
-                            'cash_withdrawal' => context
-                                .l10n.transaction_type_cash_withdrawal_short,
-                            'cash_deposit' =>
-                              context.l10n.transaction_type_cash_deposit_short,
-                            _ => context.l10n.transaction_type_expense,
-                          },
-                          style: context.textStyles.bodySmall?.copyWith(
-                            color: typeColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-
-                  // Category chip — hidden for cash types
-                  if (!isCash)
-                    GestureDetector(
-                      onTap: onCategoryTap,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSizes.md,
-                          vertical: AppSizes.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: categoryColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          borderRadius:
-                              BorderRadius.circular(AppSizes.borderRadiusSm),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              categoryIcon,
-                              size: AppSizes.iconXxs2,
-                              color: categoryColor,
-                            ),
-                            const SizedBox(width: AppSizes.xs),
-                            Text(
-                              categoryName ?? context.l10n.transaction_category,
-                              style: context.textStyles.bodySmall?.copyWith(
-                                color: categoryColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Wallet picker chip ──────────────────────────────
-            const SizedBox(height: AppSizes.sm),
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: onWalletTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.md,
-                        vertical: AppSizes.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        color: cs.secondaryContainer
-                            .withValues(alpha: AppSizes.opacityLight2),
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.borderRadiusSm),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            AppIcons.wallet,
-                            size: AppSizes.iconXxs2,
-                            color: cs.onSecondaryContainer,
-                          ),
-                          const SizedBox(width: AppSizes.xs),
-                          Text(
-                            walletName ?? context.l10n.voice_select_wallet,
-                            style: context.textStyles.bodySmall?.copyWith(
-                              color: cs.onSecondaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  // ── Inline "Create instead?" for unmatched From hints ──
-                  if (draft.unmatchedHint != null)
-                    Padding(
-                      padding:
-                          const EdgeInsetsDirectional.only(start: AppSizes.sm),
-                      child: TextButton(
-                        onPressed: onCreateWalletFromHint,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSizes.sm,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: Text(
-                          context.l10n.voice_create_wallet_instead(
-                            draft.unmatchedHint!,
-                          ),
-                          style: context.textStyles.bodySmall?.copyWith(
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // ── Inline "Create instead?" for unmatched To hints (D-15) ──
-                  if (draft.unmatchedToHint != null)
-                    Padding(
-                      padding:
-                          const EdgeInsetsDirectional.only(start: AppSizes.sm),
-                      child: TextButton(
-                        onPressed: onCreateToWalletFromHint,
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSizes.sm,
-                          ),
-                          visualDensity: VisualDensity.compact,
-                        ),
-                        child: Text(
-                          context.l10n.voice_create_wallet_instead(
-                            draft.unmatchedToHint!,
-                          ),
-                          style: context.textStyles.bodySmall?.copyWith(
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            // ── Goal suggestion note ────────────────────────────
+            // ── Contextual suggestions ─────────────────────────
             if (matchedGoalName != null) ...[
               const SizedBox(height: AppSizes.sm),
-              Row(
-                children: [
-                  Icon(
-                    AppIcons.goals,
-                    size: AppSizes.iconXxs2,
-                    color: cs.tertiary,
-                  ),
-                  const SizedBox(width: AppSizes.xs),
-                  Flexible(
-                    child: Text(
-                      context.l10n.goal_link_prompt(matchedGoalName!),
-                      style: context.textStyles.bodySmall?.copyWith(
-                        color: cs.tertiary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+              _InfoBanner(
+                icon: AppIcons.goals,
+                text: context.l10n.goal_link_prompt(matchedGoalName!),
+                color: cs.tertiary,
               ),
             ],
-
-            // ── Subscription suggestion / confirmation ─────────
             if (subscriptionAdded) ...[
               const SizedBox(height: AppSizes.sm),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.sm,
-                  vertical: AppSizes.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: cs.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      AppIcons.checkCircle,
-                      size: AppSizes.iconXs,
-                      color: cs.onTertiaryContainer,
-                    ),
-                    const SizedBox(width: AppSizes.xs),
-                    Expanded(
-                      child: Text(
-                        context.l10n.voice_confirm_subscription_added,
-                        style: context.textStyles.bodySmall?.copyWith(
-                          color: cs.onTertiaryContainer,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
+              _InfoBanner(
+                icon: AppIcons.checkCircle,
+                text: context.l10n.voice_confirm_subscription_added,
+                color: cs.onTertiaryContainer,
+                backgroundColor: cs.tertiaryContainer,
               ),
             ] else if (draft.isSubscriptionLike &&
                 onCreateSubscription != null) ...[
@@ -1265,53 +1158,110 @@ class _DraftCard extends StatelessWidget {
               InkWell(
                 borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
                 onTap: onCreateSubscription,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.sm,
-                    vertical: AppSizes.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: cs.tertiaryContainer,
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusSm),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        AppIcons.recurring,
-                        size: AppSizes.iconXs,
-                        color: cs.onTertiaryContainer,
-                      ),
-                      const SizedBox(width: AppSizes.xs),
-                      Expanded(
-                        child: Text(
-                          context.l10n.voice_confirm_subscription_suggest,
-                          style: context.textStyles.bodySmall?.copyWith(
-                            color: cs.onTertiaryContainer,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                child: _InfoBanner(
+                  icon: AppIcons.recurring,
+                  text: context.l10n.voice_confirm_subscription_suggest,
+                  color: cs.onTertiaryContainer,
+                  backgroundColor: cs.tertiaryContainer,
                 ),
               ),
             ],
-
-            // ── Tappable amount editor ───────────────────────────
-            const SizedBox(height: AppSizes.sm),
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: AmountInput(
-                initialPiastres: draft.amountPiastres,
-                onAmountChanged: onAmountChanged,
-                autofocus: false,
-                compact: true,
-              ),
-            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Tappable chip badge used for type/category/wallet selectors in draft cards.
+class _ChipBadge extends StatelessWidget {
+  const _ChipBadge({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.onTap,
+    this.dimmed = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool dimmed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: dimmed ? AppSizes.opacityMedium : 1.0,
+      child: GestureDetector(
+        onTap: onTap,
+        child: GlassCard(
+          tier: GlassTier.inset,
+          tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.sm,
+            vertical: AppSizes.xxs,
+          ),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: AppSizes.iconXxs2, color: color),
+              const SizedBox(width: AppSizes.xs),
+              Text(
+                label,
+                style: context.textStyles.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small informational banner used for goal/subscription suggestions.
+class _InfoBanner extends StatelessWidget {
+  const _InfoBanner({
+    required this.icon,
+    required this.text,
+    required this.color,
+    this.backgroundColor,
+  });
+
+  final IconData icon;
+  final String text;
+  final Color color;
+  final Color? backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xs,
+      ),
+      decoration: BoxDecoration(
+        color:
+            backgroundColor ?? color.withValues(alpha: AppSizes.opacitySubtle),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: AppSizes.iconXs, color: color),
+          const SizedBox(width: AppSizes.xs),
+          Expanded(
+            child: Text(
+              text,
+              style: context.textStyles.bodySmall?.copyWith(color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1328,7 +1278,7 @@ class _CreateAccountTile extends StatefulWidget {
 
   final String? hint;
   final ValueChanged<int> onCreated;
-  final dynamic repo;
+  final IWalletRepository repo;
 
   @override
   State<_CreateAccountTile> createState() => _CreateAccountTileState();

@@ -65,10 +65,11 @@ class FilterBar extends ConsumerWidget {
                           );
                         },
                         selectedColor: cs.primary,
-                        labelStyle: TextStyle(
-                          color: isActive ? cs.onPrimary : cs.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        labelStyle:
+                            Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  color: isActive ? cs.onPrimary : cs.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
                         showCheckmark: false,
                         visualDensity: VisualDensity.compact,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -138,10 +139,11 @@ class FilterBar extends ConsumerWidget {
                               : filter.copyWith(categoryId: cat.id);
                         },
                         selectedColor: catColor,
-                        labelStyle: TextStyle(
-                          color: isActive ? cs.onPrimary : cs.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        labelStyle:
+                            Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  color: isActive ? cs.onPrimary : cs.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
                         showCheckmark: false,
                         visualDensity: VisualDensity.compact,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

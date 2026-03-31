@@ -131,7 +131,7 @@ class CategoriesScreen extends ConsumerWidget {
           .category_delete_confirm(category.displayName(context.languageCode)),
     );
 
-    if (confirmed) {
+    if (confirmed && context.mounted) {
       await ref.read(categoryRepositoryProvider).archive(category.id);
       HapticFeedback.mediumImpact();
     }

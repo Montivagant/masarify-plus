@@ -1081,9 +1081,9 @@ class _AppVersionTile extends StatelessWidget {
     return FutureBuilder<PackageInfo>(
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
-        final version = snapshot.data != null
-            ? '${snapshot.data!.version} (${snapshot.data!.buildNumber})'
-            : '—';
+        final info = snapshot.data;
+        final version =
+            info != null ? '${info.version} (${info.buildNumber})' : '—';
         return ListTile(
           leading: GlassCard(
             tier: GlassTier.inset,
