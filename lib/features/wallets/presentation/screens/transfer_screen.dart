@@ -11,6 +11,7 @@ import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -238,21 +239,28 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
               placeholder: context.l10n.transfer_select_wallet,
               onTap: () => _showWalletPicker(isFrom: false),
             ),
-            const SizedBox(height: AppSizes.xl),
-            Text(
-              context.l10n.transfer_amount_label,
-              style: context.textStyles.labelLarge
-                  ?.copyWith(color: context.colors.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            AmountInput(
-              onAmountChanged: (p) => setState(() => _amountPiastres = p),
-            ),
             const SizedBox(height: AppSizes.lg),
-            AppTextField(
-              label: context.l10n.transfer_note_label,
-              controller: _noteController,
-              maxLines: 2,
+            GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.l10n.transfer_amount_label,
+                    style: context.textStyles.labelLarge
+                        ?.copyWith(color: context.colors.outline),
+                  ),
+                  const SizedBox(height: AppSizes.sm),
+                  AmountInput(
+                    onAmountChanged: (p) => setState(() => _amountPiastres = p),
+                  ),
+                  const SizedBox(height: AppSizes.lg),
+                  AppTextField(
+                    label: context.l10n.transfer_note_label,
+                    controller: _noteController,
+                    maxLines: 2,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -292,15 +300,7 @@ class _WalletSelector extends StatelessWidget {
     final cs = context.colors;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.md,
-          vertical: AppSizes.md,
-        ),
-        decoration: BoxDecoration(
-          border: Border.all(color: cs.outline),
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-        ),
+      child: GlassCard(
         child: Row(
           children: [
             const Icon(AppIcons.wallet, size: AppSizes.iconSm),

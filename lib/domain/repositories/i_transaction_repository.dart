@@ -18,7 +18,9 @@ abstract interface class ITransactionRepository {
   Future<List<TransactionEntity>> getByDateRange(DateTime start, DateTime end);
 
   /// Returns total income/expense piastres for a month.
-  Future<int> sumByTypeAndMonth(String type, int year, int month);
+  /// Optionally filter by [walletId].
+  Future<int> sumByTypeAndMonth(String type, int year, int month,
+      {int? walletId,});
 
   Future<int> sumByCategoryAndMonth(int categoryId, int year, int month);
 

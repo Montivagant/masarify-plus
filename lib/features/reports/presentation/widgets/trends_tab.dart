@@ -9,6 +9,10 @@ import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/analytics_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
+/// Whether the chart should use income color instead of expense.
+bool _isIncomeFilter(WidgetRef ref) =>
+    ref.watch(reportsTypeFilterProvider) == 'income';
+
 /// Trends tab — line chart with 7d / 30d / 90d toggle.
 class TrendsTab extends ConsumerStatefulWidget {
   const TrendsTab({super.key});
@@ -82,6 +86,7 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
                   child: _SpendingLineChart(
                     data: dailyData,
                     days: _selectedDays,
+                    isIncome: _isIncomeFilter(ref),
                   ),
                 ),
               );
@@ -99,13 +104,17 @@ class _SpendingLineChart extends StatelessWidget {
   const _SpendingLineChart({
     required this.data,
     required this.days,
+    this.isIncome = false,
   });
 
   final List<DailySpending> data;
   final int days;
+  final bool isIncome;
 
   @override
   Widget build(BuildContext context) {
+    final chartColor =
+        isIncome ? context.appTheme.incomeColor : context.appTheme.expenseColor;
     final maxAmount = data.fold<int>(0, (s, e) => e.amount > s ? e.amount : s);
     final maxY = maxAmount > 0 ? maxAmount * 1.2 : 100000.0; // 10 EGP floor
 
@@ -199,11 +208,10 @@ class _SpendingLineChart extends StatelessWidget {
             spots: spots,
             isCurved: true,
             preventCurveOverShooting: true,
-            color: context.appTheme.expenseColor,
+            color: chartColor,
             barWidth: AppSizes.chartLineWidth, // WS-9: thicker line
             shadow: Shadow(
-              color: context.appTheme.expenseColor
-                  .withValues(alpha: AppSizes.opacityLight4),
+              color: chartColor.withValues(alpha: AppSizes.opacityLight4),
               blurRadius: AppSizes.chartShadowBlur,
               offset: const Offset(0, AppSizes.chartShadowOffsetY),
             ),
@@ -211,7 +219,7 @@ class _SpendingLineChart extends StatelessWidget {
               show: days <= 7,
               getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
                 radius: AppSizes.chartDotRadius,
-                color: context.appTheme.expenseColor,
+                color: chartColor,
                 strokeWidth: AppSizes.chartDotStrokeWidth,
                 strokeColor: context.colors.surface,
               ),
@@ -223,10 +231,8 @@ class _SpendingLineChart extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  context.appTheme.expenseColor
-                      .withValues(alpha: AppSizes.opacityQuarter),
-                  context.appTheme.expenseColor
-                      .withValues(alpha: AppSizes.opacityNone),
+                  chartColor.withValues(alpha: AppSizes.opacityQuarter),
+                  chartColor.withValues(alpha: AppSizes.opacityNone),
                 ],
               ),
             ),

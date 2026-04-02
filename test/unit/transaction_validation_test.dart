@@ -4,7 +4,7 @@ import 'package:masarify/core/services/ai/chat_action.dart';
 void main() {
   group('ChatAction.fromJson() — Transaction Parsing', () {
     // Helper to build a valid create_transaction JSON map.
-    Map<String, dynamic> _validTxJson({
+    Map<String, dynamic> validTxJson({
       String title = 'Lunch',
       dynamic amount = 150.50,
       String type = 'expense',
@@ -24,14 +24,12 @@ void main() {
 
     group('valid transactions', () {
       test('parses a valid expense with all fields', () {
-        final action = ChatAction.fromJson(_validTxJson(
+        final action = ChatAction.fromJson(validTxJson(
           title: 'Coffee',
           amount: 25,
-          type: 'expense',
-          category: 'Food',
           date: '2026-03-20',
           note: 'Morning coffee',
-        ));
+        ),);
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -44,12 +42,12 @@ void main() {
       });
 
       test('parses a valid income transaction', () {
-        final action = ChatAction.fromJson(_validTxJson(
+        final action = ChatAction.fromJson(validTxJson(
           title: 'Salary',
           amount: 5000,
           type: 'income',
           category: 'Salary',
-        ));
+        ),);
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -58,7 +56,7 @@ void main() {
       });
 
       test('EGP→piastres conversion: 150.50 → 15050', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 150.50));
+        final action = ChatAction.fromJson(validTxJson());
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -66,7 +64,7 @@ void main() {
       });
 
       test('accepts amount as string "250"', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: '250'));
+        final action = ChatAction.fromJson(validTxJson(amount: '250'));
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -74,7 +72,7 @@ void main() {
       });
 
       test('accepts amount as int 100', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 100));
+        final action = ChatAction.fromJson(validTxJson(amount: 100));
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -84,22 +82,22 @@ void main() {
 
     group('zero and negative amounts', () {
       test('zero amount returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 0));
+        final action = ChatAction.fromJson(validTxJson(amount: 0));
         expect(action, isNull);
       });
 
       test('negative amount returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: -50));
+        final action = ChatAction.fromJson(validTxJson(amount: -50));
         expect(action, isNull);
       });
 
       test('string zero amount returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: '0'));
+        final action = ChatAction.fromJson(validTxJson(amount: '0'));
         expect(action, isNull);
       });
 
       test('negative string amount returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: '-100'));
+        final action = ChatAction.fromJson(validTxJson(amount: '-100'));
         expect(action, isNull);
       });
     });
@@ -109,7 +107,7 @@ void main() {
         // 100,000,000 EGP = 10,000,000,000 piastres = _kMaxPiastres
         // The code checks piastres > _kMaxPiastres, so exactly at boundary
         // should be accepted.
-        final action = ChatAction.fromJson(_validTxJson(amount: 100000000));
+        final action = ChatAction.fromJson(validTxJson(amount: 100000000));
 
         expect(action, isA<CreateTransactionAction>());
         final tx = action! as CreateTransactionAction;
@@ -117,34 +115,34 @@ void main() {
       });
 
       test('amount exceeding 100M EGP returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 100000001));
+        final action = ChatAction.fromJson(validTxJson(amount: 100000001));
         expect(action, isNull);
       });
 
       test('very large amount returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 999999999));
+        final action = ChatAction.fromJson(validTxJson(amount: 999999999));
         expect(action, isNull);
       });
     });
 
     group('invalid transaction type', () {
       test('type "transfer" is rejected', () {
-        final action = ChatAction.fromJson(_validTxJson(type: 'transfer'));
+        final action = ChatAction.fromJson(validTxJson(type: 'transfer'));
         expect(action, isNull);
       });
 
       test('type "refund" is rejected', () {
-        final action = ChatAction.fromJson(_validTxJson(type: 'refund'));
+        final action = ChatAction.fromJson(validTxJson(type: 'refund'));
         expect(action, isNull);
       });
 
       test('empty type is rejected', () {
-        final action = ChatAction.fromJson(_validTxJson(type: ''));
+        final action = ChatAction.fromJson(validTxJson(type: ''));
         expect(action, isNull);
       });
 
       test('uppercase "INCOME" is rejected (case sensitive)', () {
-        final action = ChatAction.fromJson(_validTxJson(type: 'INCOME'));
+        final action = ChatAction.fromJson(validTxJson(type: 'INCOME'));
         expect(action, isNull);
       });
     });
@@ -161,33 +159,33 @@ void main() {
       });
 
       test('missing title returns null', () {
-        final json = _validTxJson();
+        final json = validTxJson();
         json.remove('title');
         final action = ChatAction.fromJson(json);
         expect(action, isNull);
       });
 
       test('empty title returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(title: ''));
+        final action = ChatAction.fromJson(validTxJson(title: ''));
         expect(action, isNull);
       });
 
       test('missing amount returns null', () {
-        final json = _validTxJson();
+        final json = validTxJson();
         json.remove('amount');
         final action = ChatAction.fromJson(json);
         expect(action, isNull);
       });
 
       test('missing type returns null', () {
-        final json = _validTxJson();
+        final json = validTxJson();
         json.remove('type');
         final action = ChatAction.fromJson(json);
         expect(action, isNull);
       });
 
       test('missing category returns null', () {
-        final json = _validTxJson();
+        final json = validTxJson();
         json.remove('category');
         final action = ChatAction.fromJson(json);
         expect(action, isNull);
@@ -206,7 +204,7 @@ void main() {
 
     group('toJson round-trip', () {
       test('transaction toJson converts piastres back to EGP', () {
-        final tx = const CreateTransactionAction(
+        const tx = CreateTransactionAction(
           title: 'Test',
           amountPiastres: 15050,
           type: 'expense',
@@ -218,11 +216,9 @@ void main() {
       });
 
       test('fromJson → toJson → fromJson round-trip preserves data', () {
-        final original = _validTxJson(
+        final original = validTxJson(
           title: 'Dinner',
           amount: 250.75,
-          type: 'expense',
-          category: 'Food',
           note: 'With friends',
         );
         final action =
@@ -240,17 +236,17 @@ void main() {
 
     group('non-numeric amount edge cases', () {
       test('non-parseable string amount treated as zero → returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: 'abc'));
+        final action = ChatAction.fromJson(validTxJson(amount: 'abc'));
         expect(action, isNull);
       });
 
       test('boolean amount treated as zero → returns null', () {
-        final action = ChatAction.fromJson(_validTxJson(amount: true));
+        final action = ChatAction.fromJson(validTxJson(amount: true));
         expect(action, isNull);
       });
 
       test('null amount returns null', () {
-        final json = _validTxJson();
+        final json = validTxJson();
         json['amount'] = null;
         final action = ChatAction.fromJson(json);
         expect(action, isNull);

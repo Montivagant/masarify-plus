@@ -29,6 +29,15 @@ class ChatActionMessages {
     required this.goalNotFound,
     required this.recurringDeleted,
     required this.recurringNotFound,
+    required this.walletUpdated,
+    required this.goalUpdated,
+    required this.recurringUpdated,
+    required this.categoryUpdated,
+    required this.categoryCreated,
+    required this.walletArchived,
+    required this.categoryNotUpdatable,
+    required this.categoryExists,
+    required this.walletHasReferences,
   });
 
   // ── Errors (simple strings) ───────────────────────────────────────────
@@ -62,4 +71,17 @@ class ChatActionMessages {
   final String Function(String name) goalNotFound;
   final String Function(String title) recurringDeleted;
   final String Function(String title) recurringNotFound;
+
+  // ── Success (new actions) ──────────────────────────────────────────
+  final String Function(String name) walletUpdated;
+  final String Function(String name) goalUpdated;
+  final String Function(String title) recurringUpdated;
+  final String Function(String name) categoryUpdated;
+  final String Function(String name) categoryCreated;
+  final String Function(String name) walletArchived;
+
+  // ── Errors (new actions) ───────────────────────────────────────────
+  final String categoryNotUpdatable;
+  final String Function(String name) categoryExists;
+  final String Function(String name) walletHasReferences;
 }

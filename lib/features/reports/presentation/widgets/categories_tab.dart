@@ -1,7 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
@@ -26,9 +28,8 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final now = DateTime.now();
-    final breakdownAsync =
-        ref.watch(categoryBreakdownProvider((now.year, now.month)));
+    final selectedMonth = ref.watch(reportsCategoryMonthProvider);
+    final breakdownAsync = ref.watch(categoryBreakdownProvider(selectedMonth));
 
     return breakdownAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -48,6 +49,46 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
         return ListView(
           padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
           children: [
+            // ── Month selector ─────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+                vertical: AppSizes.xs,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(AppIcons.chevronLeft),
+                    onPressed: () {
+                      final (y, m) = selectedMonth;
+                      final prev = m == 1 ? (y - 1, 12) : (y, m - 1);
+                      ref.read(reportsCategoryMonthProvider.notifier).state =
+                          prev;
+                    },
+                  ),
+                  Text(
+                    DateFormat.yMMMM(context.languageCode).format(
+                      DateTime(selectedMonth.$1, selectedMonth.$2),
+                    ),
+                    style: context.textStyles.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  IconButton(
+                    icon: const Icon(AppIcons.chevronRight),
+                    onPressed: () {
+                      final now = DateTime.now();
+                      final (y, m) = selectedMonth;
+                      if (y >= now.year && m >= now.month) return;
+                      final next = m == 12 ? (y + 1, 1) : (y, m + 1);
+                      ref.read(reportsCategoryMonthProvider.notifier).state =
+                          next;
+                    },
+                  ),
+                ],
+              ),
+            ),
+
             // ── Header ─────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.all(AppSizes.screenHPadding),

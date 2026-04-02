@@ -25,7 +25,6 @@ void main() {
     group('effectiveLimit', () {
       test('effectiveLimit equals limitAmount (rollover removed)', () {
         final budget = makeBudget(
-          limitAmount: 100000, // 1000 EGP
           rolloverAmount: 20000, // ignored — rollover removed
         );
 
@@ -35,7 +34,6 @@ void main() {
       test('effectiveLimit with zero rollover equals limitAmount', () {
         final budget = makeBudget(
           limitAmount: 50000,
-          rolloverAmount: 0,
         );
 
         expect(budget.effectiveLimit, 50000);
@@ -43,7 +41,6 @@ void main() {
 
       test('effectiveLimit ignores rollover', () {
         final budget = makeBudget(
-          limitAmount: 100000,
           rolloverAmount: 500000, // ignored
         );
 
@@ -54,8 +51,7 @@ void main() {
     group('progressFraction', () {
       test('0% — no spending', () {
         final budget = makeBudget(
-          limitAmount: 100000,
-          spentAmount: 0,
+          
         );
 
         expect(budget.progressFraction, 0.0);
@@ -63,7 +59,6 @@ void main() {
 
       test('50% — half spent', () {
         final budget = makeBudget(
-          limitAmount: 100000,
           spentAmount: 50000,
         );
 
@@ -72,7 +67,6 @@ void main() {
 
       test('100% — fully spent', () {
         final budget = makeBudget(
-          limitAmount: 100000,
           spentAmount: 100000,
         );
 
@@ -81,7 +75,6 @@ void main() {
 
       test('> 100% — over-budget (not clamped)', () {
         final budget = makeBudget(
-          limitAmount: 100000,
           spentAmount: 150000, // spent 1500 EGP on 1000 EGP budget
         );
 
@@ -91,7 +84,6 @@ void main() {
 
       test('200% — double over-budget', () {
         final budget = makeBudget(
-          limitAmount: 100000,
           spentAmount: 200000,
         );
 
@@ -101,7 +93,6 @@ void main() {
       test('zero effectiveLimit → 0.0 (no division by zero)', () {
         final budget = makeBudget(
           limitAmount: 0,
-          rolloverAmount: 0,
           spentAmount: 50000,
         );
 
@@ -111,7 +102,6 @@ void main() {
 
       test('progressFraction ignores rollover (rollover removed)', () {
         final budget = makeBudget(
-          limitAmount: 100000, // 1000 EGP
           rolloverAmount: 100000, // ignored
           spentAmount: 100000, // spent 1000 EGP
         );
@@ -153,7 +143,7 @@ void main() {
 
     group('equality', () {
       test('same id → equal', () {
-        final b1 = BudgetEntity(
+        const b1 = BudgetEntity(
           id: 1,
           categoryId: 10,
           month: 3,
@@ -163,7 +153,7 @@ void main() {
           rolloverAmount: 0,
           spentAmount: 50000,
         );
-        final b2 = BudgetEntity(
+        const b2 = BudgetEntity(
           id: 1,
           categoryId: 20, // different category
           month: 4, // different month
@@ -171,7 +161,6 @@ void main() {
           limitAmount: 200000, // different limit
           rollover: true,
           rolloverAmount: 10000,
-          spentAmount: 0,
         );
 
         expect(b1, equals(b2));
@@ -180,7 +169,7 @@ void main() {
 
       test('different id → not equal', () {
         final b1 = makeBudget();
-        final b2 = BudgetEntity(
+        const b2 = BudgetEntity(
           id: 2,
           categoryId: 10,
           month: 3,

@@ -3,7 +3,7 @@ import 'package:masarify/core/utils/voice_transaction_parser.dart';
 
 void main() {
   group('VoiceTransactionParser', () {
-    final parser = const VoiceTransactionParser();
+    const parser = VoiceTransactionParser();
 
     group('parse() — single transaction', () {
       test('"دفعت مية على الأكل" → expense with food category hint', () {

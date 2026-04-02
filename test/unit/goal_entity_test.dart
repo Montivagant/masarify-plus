@@ -18,15 +18,14 @@ void main() {
         currencyCode: 'EGP',
         isCompleted: false,
         keywords: '[]',
-        createdAt: DateTime(2026, 1, 1),
+        createdAt: DateTime(2026),
       );
     }
 
     group('progressFraction', () {
       test('0% — no contributions', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
-          currentAmount: 0,
+          
         );
 
         expect(goal.progressFraction, 0.0);
@@ -34,7 +33,6 @@ void main() {
 
       test('50% — half saved', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 500000,
         );
 
@@ -43,7 +41,6 @@ void main() {
 
       test('100% — completed', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 1000000,
         );
 
@@ -52,7 +49,6 @@ void main() {
 
       test('clamped to 1.0 when over-contributed', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 1500000, // saved more than target
         );
 
@@ -82,7 +78,6 @@ void main() {
       test('both zero → 0% progress', () {
         final goal = makeGoal(
           targetAmount: 0,
-          currentAmount: 0,
         );
 
         expect(goal.progressFraction, 0.0);
@@ -101,8 +96,7 @@ void main() {
     group('remainingAmount', () {
       test('full remaining when no contributions', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
-          currentAmount: 0,
+          
         );
 
         expect(goal.remainingAmount, 1000000);
@@ -110,7 +104,6 @@ void main() {
 
       test('partial remaining', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 400000,
         );
 
@@ -119,7 +112,6 @@ void main() {
 
       test('zero remaining when completed', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 1000000,
         );
 
@@ -128,7 +120,6 @@ void main() {
 
       test('clamped to 0 when over-contributed', () {
         final goal = makeGoal(
-          targetAmount: 1000000,
           currentAmount: 1500000,
         );
 
@@ -171,7 +162,7 @@ void main() {
 
     group('equality', () {
       test('same id → equal', () {
-        final g1 = makeGoal(targetAmount: 100000, currentAmount: 0);
+        final g1 = makeGoal(targetAmount: 100000);
         final g2 = SavingsGoalEntity(
           id: 1, // same id
           name: 'Different Name',
@@ -182,7 +173,7 @@ void main() {
           currencyCode: 'USD',
           isCompleted: true,
           keywords: '["test"]',
-          createdAt: DateTime(2025, 1, 1),
+          createdAt: DateTime(2025),
         );
 
         expect(g1, equals(g2));
@@ -201,7 +192,7 @@ void main() {
           currencyCode: 'EGP',
           isCompleted: false,
           keywords: '[]',
-          createdAt: DateTime(2026, 1, 1),
+          createdAt: DateTime(2026),
         );
 
         expect(g1, isNot(equals(g2)));
@@ -222,7 +213,6 @@ void main() {
       test('1 piastre target', () {
         final goal = makeGoal(
           targetAmount: 1,
-          currentAmount: 0,
         );
 
         expect(goal.progressFraction, 0.0);

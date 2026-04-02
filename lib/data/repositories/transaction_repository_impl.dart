@@ -67,8 +67,9 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<int> sumByTypeAndMonth(String type, int year, int month) =>
-      _dao.sumByTypeAndMonth(type, year, month);
+  Future<int> sumByTypeAndMonth(String type, int year, int month,
+          {int? walletId,}) =>
+      _dao.sumByTypeAndMonth(type, year, month, walletId: walletId);
 
   @override
   Future<int> sumByCategoryAndMonth(int categoryId, int year, int month) =>

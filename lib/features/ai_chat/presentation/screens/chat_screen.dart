@@ -268,6 +268,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       goalNotFound: l10n.chat_action_goal_not_found,
       recurringDeleted: l10n.chat_action_recurring_deleted,
       recurringNotFound: l10n.chat_action_recurring_not_found,
+      walletUpdated: l10n.chat_action_wallet_updated,
+      goalUpdated: l10n.chat_action_goal_updated,
+      recurringUpdated: l10n.chat_action_recurring_updated,
+      categoryUpdated: l10n.chat_action_category_updated,
+      categoryCreated: l10n.chat_action_category_created,
+      walletArchived: l10n.chat_action_wallet_archived,
+      categoryNotUpdatable: l10n.chat_action_category_not_updatable,
+      categoryExists: l10n.chat_action_category_exists,
+      walletHasReferences: l10n.chat_action_wallet_has_references,
     );
 
     try {

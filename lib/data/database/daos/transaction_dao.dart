@@ -68,19 +68,23 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   /// Total income or expense for a given month (in piastres).
   /// Excludes transactions on archived wallets for consistency with
   /// [sumByCategoryAndMonth].
-  Future<int> sumByTypeAndMonth(String type, int year, int month) async {
+  Future<int> sumByTypeAndMonth(String type, int year, int month,
+      {int? walletId,}) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
+    final walletClause = walletId != null ? 'AND t.wallet_id = ? ' : '';
     final result = await customSelect(
       'SELECT COALESCE(SUM(t.amount), 0) AS total '
       'FROM transactions t '
       'JOIN wallets w ON t.wallet_id = w.id '
       'WHERE t.type = ? AND t.transaction_date >= ? '
-      'AND t.transaction_date < ? AND w.is_archived = 0',
+      'AND t.transaction_date < ? AND w.is_archived = 0 '
+      '$walletClause',
       variables: [
         Variable.withString(type),
         Variable.withDateTime(start),
         Variable.withDateTime(end),
+        if (walletId != null) Variable.withInt(walletId),
       ],
       readsFrom: {transactions, attachedDatabase.wallets},
     ).getSingle();

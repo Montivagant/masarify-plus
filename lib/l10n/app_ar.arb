@@ -135,6 +135,7 @@
   "reports_overview": "نظرة عامة",
   "reports_categories": "التصنيفات",
   "reports_trends": "الاتجاهات",
+  "reports_all_accounts": "كل الحسابات",
   "reports_empty_title": "بيانات غير كافية",
   "reports_empty_sub": "أضف معاملات لترى الإحصائيات",
 
@@ -995,6 +996,45 @@
     "placeholders": {
       "title": {"type": "String"}
     }
+  },
+  "chat_action_update_wallet_title": "تعديل الحساب",
+  "chat_action_update_goal_title": "تعديل الهدف",
+  "chat_action_update_recurring_title": "تعديل الاشتراك",
+  "chat_action_update_category_title": "تعديل الفئة",
+  "chat_action_create_category_title": "إنشاء فئة",
+  "chat_action_delete_wallet_title": "أرشفة الحساب",
+  "chat_action_wallet_updated": "تم تعديل الحساب \"{name}\"!",
+  "@chat_action_wallet_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_goal_updated": "تم تعديل الهدف \"{name}\"!",
+  "@chat_action_goal_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_recurring_updated": "تم تعديل الاشتراك \"{title}\"!",
+  "@chat_action_recurring_updated": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "chat_action_category_updated": "تم تعديل الفئة \"{name}\"!",
+  "@chat_action_category_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_category_created": "تم إنشاء الفئة \"{name}\"!",
+  "@chat_action_category_created": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_wallet_archived": "تم أرشفة الحساب \"{name}\"!",
+  "@chat_action_wallet_archived": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_category_not_updatable": "لا يمكن تعديل الفئات الافتراضية",
+  "chat_action_category_exists": "فئة باسم \"{name}\" موجودة بالفعل",
+  "@chat_action_category_exists": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_wallet_has_references": "الحساب \"{name}\" لديه معاملات — سيتم أرشفته بدلاً من حذفه",
+  "@chat_action_wallet_has_references": {
+    "placeholders": { "name": { "type": "String" } }
   },
   "recap_prime_message": "إزاي كان صرفي النهارده؟",
   "chat_copy_message": "نسخ الرسالة",

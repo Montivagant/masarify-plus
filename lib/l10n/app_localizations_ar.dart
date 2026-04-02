@@ -376,6 +376,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_trends => 'الاتجاهات';
 
   @override
+  String get reports_all_accounts => 'كل الحسابات';
+
+  @override
   String get reports_empty_title => 'بيانات غير كافية';
 
   @override
@@ -2489,6 +2492,68 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String chat_action_recurring_not_found(String title) {
     return 'مفيش اشتراك اسمه \"$title\"';
+  }
+
+  @override
+  String get chat_action_update_wallet_title => 'تعديل الحساب';
+
+  @override
+  String get chat_action_update_goal_title => 'تعديل الهدف';
+
+  @override
+  String get chat_action_update_recurring_title => 'تعديل الاشتراك';
+
+  @override
+  String get chat_action_update_category_title => 'تعديل الفئة';
+
+  @override
+  String get chat_action_create_category_title => 'إنشاء فئة';
+
+  @override
+  String get chat_action_delete_wallet_title => 'أرشفة الحساب';
+
+  @override
+  String chat_action_wallet_updated(String name) {
+    return 'تم تعديل الحساب \"$name\"!';
+  }
+
+  @override
+  String chat_action_goal_updated(String name) {
+    return 'تم تعديل الهدف \"$name\"!';
+  }
+
+  @override
+  String chat_action_recurring_updated(String title) {
+    return 'تم تعديل الاشتراك \"$title\"!';
+  }
+
+  @override
+  String chat_action_category_updated(String name) {
+    return 'تم تعديل الفئة \"$name\"!';
+  }
+
+  @override
+  String chat_action_category_created(String name) {
+    return 'تم إنشاء الفئة \"$name\"!';
+  }
+
+  @override
+  String chat_action_wallet_archived(String name) {
+    return 'تم أرشفة الحساب \"$name\"!';
+  }
+
+  @override
+  String get chat_action_category_not_updatable =>
+      'لا يمكن تعديل الفئات الافتراضية';
+
+  @override
+  String chat_action_category_exists(String name) {
+    return 'فئة باسم \"$name\" موجودة بالفعل';
+  }
+
+  @override
+  String chat_action_wallet_has_references(String name) {
+    return 'الحساب \"$name\" لديه معاملات — سيتم أرشفته بدلاً من حذفه';
   }
 
   @override

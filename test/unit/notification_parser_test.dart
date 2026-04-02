@@ -6,7 +6,7 @@ import 'package:masarify/core/services/notification_transaction_parser.dart';
 
 void main() {
   group('NotificationTransactionParser', () {
-    final now = DateTime(2026, 3, 20, 12, 0, 0);
+    final now = DateTime(2026, 3, 20, 12);
 
     group('parse() — expense SMS', () {
       test('"تم خصم 500 ج.م" → type=expense, amount=50000 piastres', () {
@@ -209,7 +209,7 @@ void main() {
       test('"MyApp Notifications" → false', () {
         expect(
           NotificationTransactionParser.isFinancialSender(
-              'MyApp Notifications'),
+              'MyApp Notifications',),
           isFalse,
         );
       });

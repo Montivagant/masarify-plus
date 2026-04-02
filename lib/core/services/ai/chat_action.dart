@@ -39,6 +39,18 @@ sealed class ChatAction {
         return _parseDeleteGoal(json);
       case 'delete_recurring':
         return _parseDeleteRecurring(json);
+      case 'update_wallet':
+        return _parseUpdateWallet(json);
+      case 'update_goal':
+        return _parseUpdateGoal(json);
+      case 'update_recurring':
+        return _parseUpdateRecurring(json);
+      case 'update_category':
+        return _parseUpdateCategory(json);
+      case 'create_category':
+        return _parseCreateCategory(json);
+      case 'delete_wallet':
+        return _parseDeleteWallet(json);
       default:
         return null;
     }
@@ -272,6 +284,84 @@ sealed class ChatAction {
     if (title == null || title.isEmpty) return null;
 
     return DeleteRecurringAction(title: title);
+  }
+
+  static UpdateWalletAction? _parseUpdateWallet(Map<String, dynamic> json) {
+    final name = json['name'] as String?;
+    if (name == null || name.isEmpty) return null;
+    return UpdateWalletAction(
+      name: name,
+      newName: json['new_name'] as String?,
+      newType: json['new_type'] as String?,
+    );
+  }
+
+  static UpdateGoalAction? _parseUpdateGoal(Map<String, dynamic> json) {
+    final name = json['name'] as String?;
+    if (name == null || name.isEmpty) return null;
+    final rawNewTarget = json['new_target_amount'];
+    final newTargetPiastres =
+        rawNewTarget != null ? (_toDouble(rawNewTarget) * 100).round() : null;
+    return UpdateGoalAction(
+      name: name,
+      newName: json['new_name'] as String?,
+      newTargetAmountPiastres:
+          newTargetPiastres != null && newTargetPiastres > 0
+              ? newTargetPiastres
+              : null,
+      newDeadline: json['new_deadline'] as String?,
+    );
+  }
+
+  static UpdateRecurringAction? _parseUpdateRecurring(
+    Map<String, dynamic> json,
+  ) {
+    final title = json['title'] as String?;
+    if (title == null || title.isEmpty) return null;
+    final rawNewAmount = json['new_amount'];
+    final newPiastres =
+        rawNewAmount != null ? (_toDouble(rawNewAmount) * 100).round() : null;
+    return UpdateRecurringAction(
+      title: title,
+      newTitle: json['new_title'] as String?,
+      newAmountPiastres:
+          newPiastres != null && newPiastres > 0 ? newPiastres : null,
+      newFrequency: json['new_frequency'] as String?,
+    );
+  }
+
+  static UpdateCategoryAction? _parseUpdateCategory(
+    Map<String, dynamic> json,
+  ) {
+    final name = json['name'] as String?;
+    if (name == null || name.isEmpty) return null;
+    return UpdateCategoryAction(
+      name: name,
+      newName: json['new_name'] as String?,
+      newNameAr: json['new_name_ar'] as String?,
+    );
+  }
+
+  static CreateCategoryAction? _parseCreateCategory(
+    Map<String, dynamic> json,
+  ) {
+    final name = json['name'] as String?;
+    final type = json['type'] as String?;
+    if (name == null || name.isEmpty || type == null) return null;
+    if (type != 'income' && type != 'expense' && type != 'both') return null;
+    return CreateCategoryAction(
+      name: name,
+      nameAr: json['name_ar'] as String? ?? name,
+      type: type,
+      iconName: json['icon'] as String? ?? 'category',
+      colorHex: json['color'] as String? ?? '#9E9E9E',
+    );
+  }
+
+  static DeleteWalletAction? _parseDeleteWallet(Map<String, dynamic> json) {
+    final name = json['name'] as String?;
+    if (name == null || name.isEmpty) return null;
+    return DeleteWalletAction(name: name);
   }
 
   static double _toDouble(dynamic value) {
@@ -607,6 +697,137 @@ class DeleteRecurringAction extends ChatAction {
   Map<String, dynamic> toJson() => {
         'action': 'delete_recurring',
         'title': title,
+      };
+}
+
+/// Action to update a wallet/account by name.
+class UpdateWalletAction extends ChatAction {
+  const UpdateWalletAction({
+    required this.name,
+    this.newName,
+    this.newType,
+  });
+
+  final String name;
+  final String? newName;
+  final String? newType;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_wallet',
+        'name': name,
+        if (newName != null) 'new_name': newName,
+        if (newType != null) 'new_type': newType,
+      };
+}
+
+/// Action to update a savings goal by name.
+class UpdateGoalAction extends ChatAction {
+  const UpdateGoalAction({
+    required this.name,
+    this.newName,
+    this.newTargetAmountPiastres,
+    this.newDeadline,
+  });
+
+  final String name;
+  final String? newName;
+  final int? newTargetAmountPiastres;
+  final String? newDeadline;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_goal',
+        'name': name,
+        if (newName != null) 'new_name': newName,
+        if (newTargetAmountPiastres != null)
+          'new_target_amount': newTargetAmountPiastres! / 100,
+        if (newDeadline != null) 'new_deadline': newDeadline,
+      };
+}
+
+/// Action to update a recurring rule by title.
+class UpdateRecurringAction extends ChatAction {
+  const UpdateRecurringAction({
+    required this.title,
+    this.newTitle,
+    this.newAmountPiastres,
+    this.newFrequency,
+  });
+
+  final String title;
+  final String? newTitle;
+  final int? newAmountPiastres;
+  final String? newFrequency;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_recurring',
+        'title': title,
+        if (newTitle != null) 'new_title': newTitle,
+        if (newAmountPiastres != null) 'new_amount': newAmountPiastres! / 100,
+        if (newFrequency != null) 'new_frequency': newFrequency,
+      };
+}
+
+/// Action to update a category's name/nameAr.
+class UpdateCategoryAction extends ChatAction {
+  const UpdateCategoryAction({
+    required this.name,
+    this.newName,
+    this.newNameAr,
+  });
+
+  final String name;
+  final String? newName;
+  final String? newNameAr;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'update_category',
+        'name': name,
+        if (newName != null) 'new_name': newName,
+        if (newNameAr != null) 'new_name_ar': newNameAr,
+      };
+}
+
+/// Action to create a custom category.
+class CreateCategoryAction extends ChatAction {
+  const CreateCategoryAction({
+    required this.name,
+    required this.nameAr,
+    required this.type,
+    required this.iconName,
+    required this.colorHex,
+  });
+
+  final String name;
+  final String nameAr;
+  final String type;
+  final String iconName;
+  final String colorHex;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'create_category',
+        'name': name,
+        'name_ar': nameAr,
+        'type': type,
+        'icon': iconName,
+        'color': colorHex,
+      };
+}
+
+/// Action to archive (delete) a wallet by name.
+class DeleteWalletAction extends ChatAction {
+  const DeleteWalletAction({required this.name});
+
+  final String name;
+
+  @override
+  Map<String, dynamic> toJson() => {
+        'action': 'delete_wallet',
+        'name': name,
       };
 }
 

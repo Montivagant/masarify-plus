@@ -162,5 +162,6 @@ final chatActionExecutorProvider = Provider<ChatActionExecutor>((ref) {
     walletRepo: ref.watch(walletRepositoryProvider),
     transferRepo: ref.watch(transferRepositoryProvider),
     learningService: ref.watch(categorizationLearningServiceProvider),
+    categoryRepo: ref.watch(categoryRepositoryProvider),
   );
 });

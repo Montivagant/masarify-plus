@@ -94,6 +94,36 @@ class ActionCard extends StatelessWidget {
           context.l10n.chat_action_delete_recurring_title,
           theme.expenseColor,
         ),
+      UpdateWalletAction() => (
+          AppIcons.wallet,
+          context.l10n.chat_action_update_wallet_title,
+          cs.primary,
+        ),
+      UpdateGoalAction() => (
+          AppIcons.goals,
+          context.l10n.chat_action_update_goal_title,
+          cs.primary,
+        ),
+      UpdateRecurringAction() => (
+          AppIcons.recurring,
+          context.l10n.chat_action_update_recurring_title,
+          cs.secondary,
+        ),
+      UpdateCategoryAction() => (
+          AppIcons.edit,
+          context.l10n.chat_action_update_category_title,
+          cs.tertiary,
+        ),
+      CreateCategoryAction() => (
+          AppIcons.add,
+          context.l10n.chat_action_create_category_title,
+          cs.tertiary,
+        ),
+      DeleteWalletAction() => (
+          AppIcons.delete,
+          context.l10n.chat_action_delete_wallet_title,
+          theme.expenseColor,
+        ),
     };
 
     return Align(
@@ -422,6 +452,143 @@ class ActionCard extends StatelessWidget {
           _DetailLine(
             label: context.l10n.transaction_title_label,
             value: title,
+            labelStyle: labelS,
+            valueStyle:
+                valueStyle?.copyWith(color: context.appTheme.expenseColor),
+          ),
+        ],
+      UpdateWalletAction(:final name, :final newName, :final newType) => [
+          _DetailLine(
+            label: context.l10n.wallet_name_label,
+            value: name,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          if (newName != null)
+            _DetailLine(
+              label: '→ ${context.l10n.wallet_name_label}',
+              value: newName,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newType != null)
+            _DetailLine(
+              label: '→ ${context.l10n.wallet_type_label}',
+              value: _localizeWalletType(context, newType),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+        ],
+      UpdateGoalAction(
+        :final name,
+        :final newName,
+        :final newTargetAmountPiastres,
+        :final newDeadline,
+      ) =>
+        [
+          _DetailLine(
+            label: context.l10n.transaction_title_label,
+            value: name,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          if (newName != null)
+            _DetailLine(
+              label: '→ ${context.l10n.transaction_title_label}',
+              value: newName,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newTargetAmountPiastres != null)
+            _DetailLine(
+              label: '→ ${context.l10n.goal_target_label}',
+              value: MoneyFormatter.format(newTargetAmountPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newDeadline != null)
+            _DetailLine(
+              label: '→ ${context.l10n.goal_deadline}',
+              value: _formatDeadline(context, newDeadline),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+        ],
+      UpdateRecurringAction(
+        :final title,
+        :final newTitle,
+        :final newAmountPiastres,
+        :final newFrequency,
+      ) =>
+        [
+          _DetailLine(
+            label: context.l10n.transaction_title_label,
+            value: title,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          if (newTitle != null)
+            _DetailLine(
+              label: '→ ${context.l10n.transaction_title_label}',
+              value: newTitle,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newAmountPiastres != null)
+            _DetailLine(
+              label: '→ ${context.l10n.common_amount}',
+              value: MoneyFormatter.format(newAmountPiastres),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newFrequency != null)
+            _DetailLine(
+              label: '→ ${context.l10n.recurring_frequency_label}',
+              value: _localizeFrequency(context, newFrequency),
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+        ],
+      UpdateCategoryAction(:final name, :final newName, :final newNameAr) => [
+          _DetailLine(
+            label: context.l10n.transaction_category,
+            value: name,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          if (newName != null)
+            _DetailLine(
+              label: '→ ${context.l10n.transaction_category}',
+              value: newName,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+          if (newNameAr != null)
+            _DetailLine(
+              label: '→ AR',
+              value: newNameAr,
+              labelStyle: labelS,
+              valueStyle: valueStyle?.copyWith(color: cs.primary),
+            ),
+        ],
+      CreateCategoryAction(:final name, :final nameAr, :final type) => [
+          _DetailLine(
+            label: context.l10n.transaction_category,
+            value: '$name ($nameAr)',
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+          _DetailLine(
+            label: context.l10n.wallet_type_label,
+            value: type,
+            labelStyle: labelS,
+            valueStyle: valueStyle,
+          ),
+        ],
+      DeleteWalletAction(:final name) => [
+          _DetailLine(
+            label: context.l10n.wallet_name_label,
+            value: name,
             labelStyle: labelS,
             valueStyle:
                 valueStyle?.copyWith(color: context.appTheme.expenseColor),

@@ -1,8 +1,10 @@
 import '../../../domain/entities/budget_entity.dart';
 import '../../../domain/entities/category_entity.dart';
+import '../../../domain/entities/savings_goal_entity.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../../domain/entities/wallet_entity.dart';
 import '../../../domain/repositories/i_budget_repository.dart';
+import '../../../domain/repositories/i_category_repository.dart';
 import '../../../domain/repositories/i_goal_repository.dart';
 import '../../../domain/repositories/i_recurring_rule_repository.dart';
 import '../../../domain/repositories/i_transaction_repository.dart';
@@ -51,13 +53,15 @@ class ChatActionExecutor {
     required IWalletRepository walletRepo,
     required ITransferRepository transferRepo,
     required CategorizationLearningService learningService,
+    required ICategoryRepository categoryRepo,
   })  : _goalRepo = goalRepo,
         _txRepo = txRepo,
         _budgetRepo = budgetRepo,
         _recurringRepo = recurringRepo,
         _walletRepo = walletRepo,
         _transferRepo = transferRepo,
-        _learningService = learningService;
+        _learningService = learningService,
+        _categoryRepo = categoryRepo;
 
   final IGoalRepository _goalRepo;
   final ITransactionRepository _txRepo;
@@ -66,6 +70,7 @@ class ChatActionExecutor {
   final IWalletRepository _walletRepo;
   final ITransferRepository _transferRepo;
   final CategorizationLearningService _learningService;
+  final ICategoryRepository _categoryRepo;
 
   /// Execute [action] and return an [ExecutionResult] with the success message
   /// and optional subscription suggestion.
@@ -111,6 +116,14 @@ class ChatActionExecutor {
         _executeDeleteBudget(action, categories, messages),
       DeleteGoalAction() => _executeDeleteGoal(action, messages),
       DeleteRecurringAction() => _executeDeleteRecurring(action, messages),
+      UpdateWalletAction() => _executeUpdateWallet(action, wallets, messages),
+      UpdateGoalAction() => _executeUpdateGoal(action, messages),
+      UpdateRecurringAction() => _executeUpdateRecurring(action, messages),
+      UpdateCategoryAction() =>
+        _executeUpdateCategory(action, categories, messages),
+      CreateCategoryAction() =>
+        _executeCreateCategory(action, categories, messages),
+      DeleteWalletAction() => _executeDeleteWallet(action, wallets, messages),
     };
   }
 
@@ -166,9 +179,7 @@ class ChatActionExecutor {
         : _resolveWallet(wallets, m, selectedWalletId);
 
     // Date parsing.
-    final date = action.date != null
-        ? DateTime.tryParse(action.date!) ?? DateTime.now()
-        : DateTime.now();
+    final date = _parseDate(action.date) ?? DateTime.now();
 
     await _txRepo.create(
       walletId: wallet.id,
@@ -271,14 +282,12 @@ class ChatActionExecutor {
     final now = DateTime.now();
 
     // Use AI-provided startDate if valid, otherwise default to now.
-    final startDate = action.startDate != null
-        ? (DateTime.tryParse(action.startDate!) ?? now)
-        : now;
+    final startDate = _parseDate(action.startDate) ?? now;
 
     // Use AI-provided nextDueDate if valid, otherwise compute from frequency.
     final DateTime nextDueDate;
     if (action.nextDueDate != null) {
-      nextDueDate = DateTime.tryParse(action.nextDueDate!) ?? now;
+      nextDueDate = _parseDate(action.nextDueDate) ?? now;
     } else {
       // M-9 fix: compute sensible nextDueDate based on frequency
       switch (action.frequency) {
@@ -357,12 +366,10 @@ class ChatActionExecutor {
   ) async {
     // Find matching transaction by title + amount, optionally narrowing by date.
     final now = DateTime.now();
-    final searchStart = action.date != null
-        ? DateTime.tryParse(action.date!) ??
-            now.subtract(const Duration(days: 30))
-        : now.subtract(const Duration(days: 30));
-    final searchEnd = action.date != null
-        ? (DateTime.tryParse(action.date!) ?? now).add(const Duration(days: 1))
+    final parsedDate = _parseDate(action.date);
+    final searchStart = parsedDate ?? now.subtract(const Duration(days: 30));
+    final searchEnd = parsedDate != null
+        ? parsedDate.add(const Duration(days: 1))
         : now.add(const Duration(days: 1));
 
     final txs = await _txRepo.getByDateRange(searchStart, searchEnd);
@@ -431,9 +438,7 @@ class ChatActionExecutor {
     }
 
     // Date parsing.
-    final date = action.date != null
-        ? DateTime.tryParse(action.date!) ?? DateTime.now()
-        : DateTime.now();
+    final date = _parseDate(action.date) ?? DateTime.now();
 
     await _transferRepo.create(
       fromWalletId: fromWallet.id,
@@ -618,7 +623,190 @@ class ChatActionExecutor {
     return ExecutionResult(m.recurringDeleted(match.title));
   }
 
+  Future<ExecutionResult> _executeUpdateWallet(
+    UpdateWalletAction action,
+    List<WalletEntity> wallets,
+    ChatActionMessages m,
+  ) async {
+    final active =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+    final match = WalletMatcher.match(action.name, active);
+    if (match == null) {
+      throw ArgumentError(m.walletNotFound(action.name));
+    }
+
+    if (action.newName != null && action.newName != match.name) {
+      final exists =
+          await _walletRepo.existsByName(action.newName!, excludeId: match.id);
+      if (exists) throw ArgumentError(m.walletExists);
+    }
+
+    const validTypes = {
+      'physical_cash',
+      'bank',
+      'mobile_wallet',
+      'credit_card',
+      'prepaid_card',
+      'investment',
+    };
+    final updated = WalletEntity(
+      id: match.id,
+      name: action.newName ?? match.name,
+      type: action.newType != null && validTypes.contains(action.newType)
+          ? action.newType!
+          : match.type,
+      balance: match.balance,
+      currencyCode: match.currencyCode,
+      iconName: match.iconName,
+      colorHex: match.colorHex,
+      isArchived: match.isArchived,
+      displayOrder: match.displayOrder,
+      createdAt: match.createdAt,
+      linkedSenders: match.linkedSenders,
+      isSystemWallet: match.isSystemWallet,
+      isDefaultAccount: match.isDefaultAccount,
+      sortOrder: match.sortOrder,
+    );
+    await _walletRepo.update(updated);
+    return ExecutionResult(m.walletUpdated(updated.name));
+  }
+
+  Future<ExecutionResult> _executeUpdateGoal(
+    UpdateGoalAction action,
+    ChatActionMessages m,
+  ) async {
+    final goals = await _goalRepo.watchActive().first;
+    final query = action.name.toLowerCase();
+    final match =
+        goals.where((g) => g.name.toLowerCase().contains(query)).firstOrNull;
+    if (match == null) {
+      throw ArgumentError(m.goalNotFound(action.name));
+    }
+
+    DateTime? newDeadline;
+    if (action.newDeadline != null) {
+      newDeadline = DateTime.tryParse(action.newDeadline!);
+    }
+
+    final updated = SavingsGoalEntity(
+      id: match.id,
+      name: action.newName ?? match.name,
+      iconName: match.iconName,
+      colorHex: match.colorHex,
+      targetAmount: action.newTargetAmountPiastres ?? match.targetAmount,
+      currentAmount: match.currentAmount,
+      currencyCode: match.currencyCode,
+      deadline: newDeadline ?? match.deadline,
+      isCompleted: match.isCompleted,
+      keywords: match.keywords,
+      walletId: match.walletId,
+      createdAt: match.createdAt,
+    );
+    await _goalRepo.updateGoal(updated);
+    return ExecutionResult(m.goalUpdated(updated.name));
+  }
+
+  Future<ExecutionResult> _executeUpdateRecurring(
+    UpdateRecurringAction action,
+    ChatActionMessages m,
+  ) async {
+    final rules = await _recurringRepo.getAll();
+    final query = action.title.toLowerCase();
+    final match =
+        rules.where((r) => r.title.toLowerCase().contains(query)).firstOrNull;
+    if (match == null) {
+      throw ArgumentError(m.recurringNotFound(action.title));
+    }
+
+    final newFreq = action.newFrequency;
+    const validFreqs = {'once', 'daily', 'weekly', 'monthly', 'yearly'};
+
+    final updated = match.copyWith(
+      title: action.newTitle ?? match.title,
+      amount: action.newAmountPiastres ?? match.amount,
+      frequency: newFreq != null && validFreqs.contains(newFreq)
+          ? newFreq
+          : match.frequency,
+    );
+    await _recurringRepo.update(updated);
+    return ExecutionResult(m.recurringUpdated(updated.title));
+  }
+
+  Future<ExecutionResult> _executeUpdateCategory(
+    UpdateCategoryAction action,
+    List<CategoryEntity> categories,
+    ChatActionMessages m,
+  ) async {
+    final matched = _matchCategory(
+      action.name,
+      categories.where((c) => !c.isArchived).toList(),
+      m,
+    );
+
+    if (matched.isDefault) {
+      throw ArgumentError(m.categoryNotUpdatable);
+    }
+
+    final updated = matched.copyWith(
+      name: action.newName ?? matched.name,
+      nameAr: action.newNameAr ?? matched.nameAr,
+    );
+    await _categoryRepo.update(updated);
+    return ExecutionResult(m.categoryUpdated(updated.name));
+  }
+
+  Future<ExecutionResult> _executeCreateCategory(
+    CreateCategoryAction action,
+    List<CategoryEntity> categories,
+    ChatActionMessages m,
+  ) async {
+    final exists = categories.any(
+      (c) =>
+          !c.isArchived &&
+          (c.name.toLowerCase() == action.name.toLowerCase() ||
+              c.nameAr.toLowerCase() == action.nameAr.toLowerCase()),
+    );
+    if (exists) {
+      throw ArgumentError(m.categoryExists(action.name));
+    }
+
+    await _categoryRepo.create(
+      name: action.name,
+      nameAr: action.nameAr,
+      iconName: action.iconName,
+      colorHex: action.colorHex,
+      type: action.type,
+    );
+    return ExecutionResult(m.categoryCreated(action.name));
+  }
+
+  Future<ExecutionResult> _executeDeleteWallet(
+    DeleteWalletAction action,
+    List<WalletEntity> wallets,
+    ChatActionMessages m,
+  ) async {
+    final active =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+    final match = WalletMatcher.match(action.name, active);
+    if (match == null) {
+      throw ArgumentError(m.walletNotFound(action.name));
+    }
+
+    await _walletRepo.archive(match.id);
+    return ExecutionResult(m.walletArchived(match.name));
+  }
+
   /// Build a date range for transaction search.
+  /// Parse a date string, rejecting clearly nonsensical values instead of
+  /// silently falling back to DateTime.now().
+  DateTime? _parseDate(String? dateStr) {
+    if (dateStr == null) return null;
+    final parsed = DateTime.tryParse(dateStr);
+    if (parsed == null) return null;
+    if (parsed.year < 2020 || parsed.year > 2100) return null;
+    return parsed;
+  }
+
   ({DateTime start, DateTime end}) _buildDateRange(String? dateStr) {
     if (dateStr != null) {
       final parsed = DateTime.tryParse(dateStr);

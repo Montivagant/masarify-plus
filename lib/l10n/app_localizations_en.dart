@@ -379,6 +379,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_trends => 'Trends';
 
   @override
+  String get reports_all_accounts => 'All Accounts';
+
+  @override
   String get reports_empty_title => 'Not enough data';
 
   @override
@@ -2509,6 +2512,68 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chat_action_recurring_not_found(String title) {
     return 'No subscription found matching \"$title\"';
+  }
+
+  @override
+  String get chat_action_update_wallet_title => 'Update Account';
+
+  @override
+  String get chat_action_update_goal_title => 'Update Goal';
+
+  @override
+  String get chat_action_update_recurring_title => 'Update Subscription';
+
+  @override
+  String get chat_action_update_category_title => 'Update Category';
+
+  @override
+  String get chat_action_create_category_title => 'Create Category';
+
+  @override
+  String get chat_action_delete_wallet_title => 'Archive Account';
+
+  @override
+  String chat_action_wallet_updated(String name) {
+    return 'Account \"$name\" updated!';
+  }
+
+  @override
+  String chat_action_goal_updated(String name) {
+    return 'Goal \"$name\" updated!';
+  }
+
+  @override
+  String chat_action_recurring_updated(String title) {
+    return 'Subscription \"$title\" updated!';
+  }
+
+  @override
+  String chat_action_category_updated(String name) {
+    return 'Category \"$name\" updated!';
+  }
+
+  @override
+  String chat_action_category_created(String name) {
+    return 'Category \"$name\" created!';
+  }
+
+  @override
+  String chat_action_wallet_archived(String name) {
+    return 'Account \"$name\" archived!';
+  }
+
+  @override
+  String get chat_action_category_not_updatable =>
+      'Default categories cannot be renamed';
+
+  @override
+  String chat_action_category_exists(String name) {
+    return 'A category named \"$name\" already exists';
+  }
+
+  @override
+  String chat_action_wallet_has_references(String name) {
+    return 'Account \"$name\" has transactions — it will be archived instead of deleted';
   }
 
   @override

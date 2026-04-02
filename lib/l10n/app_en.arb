@@ -135,6 +135,7 @@
   "reports_overview": "Overview",
   "reports_categories": "Categories",
   "reports_trends": "Trends",
+  "reports_all_accounts": "All Accounts",
   "reports_empty_title": "Not enough data",
   "reports_empty_sub": "Add some transactions to see insights",
 
@@ -1015,6 +1016,45 @@
     "placeholders": {
       "title": {"type": "String"}
     }
+  },
+  "chat_action_update_wallet_title": "Update Account",
+  "chat_action_update_goal_title": "Update Goal",
+  "chat_action_update_recurring_title": "Update Subscription",
+  "chat_action_update_category_title": "Update Category",
+  "chat_action_create_category_title": "Create Category",
+  "chat_action_delete_wallet_title": "Archive Account",
+  "chat_action_wallet_updated": "Account \"{name}\" updated!",
+  "@chat_action_wallet_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_goal_updated": "Goal \"{name}\" updated!",
+  "@chat_action_goal_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_recurring_updated": "Subscription \"{title}\" updated!",
+  "@chat_action_recurring_updated": {
+    "placeholders": { "title": { "type": "String" } }
+  },
+  "chat_action_category_updated": "Category \"{name}\" updated!",
+  "@chat_action_category_updated": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_category_created": "Category \"{name}\" created!",
+  "@chat_action_category_created": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_wallet_archived": "Account \"{name}\" archived!",
+  "@chat_action_wallet_archived": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_category_not_updatable": "Default categories cannot be renamed",
+  "chat_action_category_exists": "A category named \"{name}\" already exists",
+  "@chat_action_category_exists": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "chat_action_wallet_has_references": "Account \"{name}\" has transactions — it will be archived instead of deleted",
+  "@chat_action_wallet_has_references": {
+    "placeholders": { "name": { "type": "String" } }
   },
   "recap_prime_message": "How was my spending today?",
   "chat_copy_message": "Copy message",

@@ -812,6 +812,12 @@ abstract class AppLocalizations {
   /// **'Trends'**
   String get reports_trends;
 
+  /// No description provided for @reports_all_accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All Accounts'**
+  String get reports_all_accounts;
+
   /// No description provided for @reports_empty_title.
   ///
   /// In en, this message translates to:
@@ -4730,6 +4736,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No subscription found matching \"{title}\"'**
   String chat_action_recurring_not_found(String title);
+
+  /// No description provided for @chat_action_update_wallet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Account'**
+  String get chat_action_update_wallet_title;
+
+  /// No description provided for @chat_action_update_goal_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Goal'**
+  String get chat_action_update_goal_title;
+
+  /// No description provided for @chat_action_update_recurring_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Subscription'**
+  String get chat_action_update_recurring_title;
+
+  /// No description provided for @chat_action_update_category_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Category'**
+  String get chat_action_update_category_title;
+
+  /// No description provided for @chat_action_create_category_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Category'**
+  String get chat_action_create_category_title;
+
+  /// No description provided for @chat_action_delete_wallet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive Account'**
+  String get chat_action_delete_wallet_title;
+
+  /// No description provided for @chat_action_wallet_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" updated!'**
+  String chat_action_wallet_updated(String name);
+
+  /// No description provided for @chat_action_goal_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal \"{name}\" updated!'**
+  String chat_action_goal_updated(String name);
+
+  /// No description provided for @chat_action_recurring_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription \"{title}\" updated!'**
+  String chat_action_recurring_updated(String title);
+
+  /// No description provided for @chat_action_category_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Category \"{name}\" updated!'**
+  String chat_action_category_updated(String name);
+
+  /// No description provided for @chat_action_category_created.
+  ///
+  /// In en, this message translates to:
+  /// **'Category \"{name}\" created!'**
+  String chat_action_category_created(String name);
+
+  /// No description provided for @chat_action_wallet_archived.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" archived!'**
+  String chat_action_wallet_archived(String name);
+
+  /// No description provided for @chat_action_category_not_updatable.
+  ///
+  /// In en, this message translates to:
+  /// **'Default categories cannot be renamed'**
+  String get chat_action_category_not_updatable;
+
+  /// No description provided for @chat_action_category_exists.
+  ///
+  /// In en, this message translates to:
+  /// **'A category named \"{name}\" already exists'**
+  String chat_action_category_exists(String name);
+
+  /// No description provided for @chat_action_wallet_has_references.
+  ///
+  /// In en, this message translates to:
+  /// **'Account \"{name}\" has transactions — it will be archived instead of deleted'**
+  String chat_action_wallet_has_references(String name);
 
   /// No description provided for @recap_prime_message.
   ///
