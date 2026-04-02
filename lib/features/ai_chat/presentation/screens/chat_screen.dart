@@ -24,6 +24,7 @@ import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_icon_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/guards/pro_feature_guard.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
@@ -395,33 +396,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             // Offline banner.
             if (!isOnline)
-              Container(
-                width: double.infinity,
+              GlassCard(
+                tier: GlassTier.inset,
+                tintColor: context.appTheme.expenseColor
+                    .withValues(alpha: AppSizes.opacitySubtle),
+                borderRadius: BorderRadius.zero,
+                margin: EdgeInsets.zero,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                   vertical: AppSizes.sm,
                 ),
-                color: context.appTheme.expenseColor
-                    .withValues(alpha: AppSizes.opacityLight),
-                child: Text(
-                  context.l10n.chat_offline,
-                  style: context.textStyles.labelSmall?.copyWith(
-                    color: context.appTheme.expenseColor,
-                  ),
-                  textAlign: TextAlign.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      AppIcons.warning,
+                      size: AppSizes.iconXs,
+                      color: context.appTheme.expenseColor,
+                    ),
+                    const SizedBox(width: AppSizes.sm),
+                    Text(
+                      context.l10n.chat_offline,
+                      style: context.textStyles.labelSmall?.copyWith(
+                        color: context.appTheme.expenseColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
             // AI disclaimer banner (first visit only).
             if (_showDisclaimer)
-              Container(
-                width: double.infinity,
+              GlassCard(
+                tier: GlassTier.inset,
+                tintColor: context.colors.secondaryContainer
+                    .withValues(alpha: AppSizes.opacitySubtle),
+                borderRadius: BorderRadius.zero,
+                margin: EdgeInsets.zero,
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                   vertical: AppSizes.sm,
-                ),
-                color: context.colors.secondaryContainer.withValues(
-                  alpha: AppSizes.opacityLight4,
                 ),
                 child: Row(
                   children: [
@@ -484,13 +498,44 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     itemBuilder: (context, index) {
                       // Index 0 = bottom of reversed list.
                       if (_isSending && index == 0) {
-                        return const Align(
+                        return Align(
                           alignment: AlignmentDirectional.centerStart,
                           child: Padding(
-                            padding: EdgeInsets.only(
+                            padding: const EdgeInsets.only(
                               bottom: AppSizes.sm,
                             ),
-                            child: TypingIndicator(),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                CircleAvatar(
+                                  radius: AppSizes.iconXs,
+                                  backgroundColor: context
+                                      .colors.primaryContainer
+                                      .withValues(
+                                    alpha: AppSizes.opacityLight4,
+                                  ),
+                                  child: Icon(
+                                    AppIcons.ai,
+                                    size: AppSizes.iconXs,
+                                    color: context.colors.onPrimaryContainer,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSizes.xs),
+                                GlassCard(
+                                  tintColor: context
+                                      .colors.surfaceContainerHighest
+                                      .withValues(
+                                    alpha: AppSizes.opacityLight4,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSizes.md,
+                                    vertical: AppSizes.sm + AppSizes.xs,
+                                  ),
+                                  child: const TypingIndicator(),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }
@@ -538,16 +583,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
 
             // Input bar.
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: context.colors.outlineVariant
-                        .withValues(alpha: AppSizes.opacityLight4),
-                  ),
-                ),
-                color: context.colors.surface,
-              ),
+            GlassCard(
+              tier: GlassTier.inset,
+              borderRadius: BorderRadius.zero,
+              margin: EdgeInsets.zero,
+              showBorder: false,
               padding: EdgeInsetsDirectional.only(
                 start: AppSizes.screenHPadding,
                 end: AppSizes.xs,

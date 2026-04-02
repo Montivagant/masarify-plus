@@ -9,7 +9,9 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
+import '../../../../domain/entities/budget_entity.dart';
 import '../../../../shared/providers/analytics_provider.dart';
+import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Categories tab — horizontal bar chart + ranked list of expense categories.
@@ -30,6 +32,9 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
     super.build(context);
     final selectedMonth = ref.watch(reportsCategoryMonthProvider);
     final breakdownAsync = ref.watch(categoryBreakdownProvider(selectedMonth));
+    final budgets =
+        ref.watch(budgetsByMonthProvider(selectedMonth)).valueOrNull ?? [];
+    final budgetByCategoryId = {for (final b in budgets) b.categoryId: b};
 
     return breakdownAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -141,6 +146,7 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
               return _CategoryRow(
                 rank: i + 1,
                 spending: cat,
+                budget: budgetByCategoryId[cat.categoryId],
               );
             }),
           ],
@@ -243,14 +249,23 @@ class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.rank,
     required this.spending,
+    this.budget,
   });
 
   final int rank;
   final CategorySpending spending;
+  final BudgetEntity? budget;
 
   @override
   Widget build(BuildContext context) {
     final color = ColorUtils.fromHex(spending.colorHex);
+    final hasBudget = budget != null;
+    final overBudget = hasBudget && spending.amount > budget!.limitAmount;
+    // When a budget exists, show spent/budget ratio instead of category fraction.
+    final barValue = hasBudget
+        ? (spending.amount / budget!.limitAmount).clamp(0.0, 1.0)
+        : spending.fraction;
+    final barColor = overBudget ? context.appTheme.expenseColor : color;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -288,14 +303,13 @@ class _CategoryRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSizes.xxs),
-                // Progress bar
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.borderRadiusXs),
                   child: LinearProgressIndicator(
-                    value: spending.fraction,
+                    value: barValue,
                     backgroundColor: context.colors.outlineVariant
                         .withValues(alpha: AppSizes.opacityLight3),
-                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                    valueColor: AlwaysStoppedAnimation<Color>(barColor),
                     minHeight: AppSizes.progressBarHeightSm,
                   ),
                 ),
@@ -310,14 +324,23 @@ class _CategoryRow extends StatelessWidget {
                 MoneyFormatter.formatAmount(spending.amount),
                 style: context.textStyles.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w700,
+                  color: overBudget ? context.appTheme.expenseColor : null,
                 ),
               ),
-              Text(
-                '${(spending.fraction * 100).round()}%',
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: context.colors.outline,
+              if (hasBudget)
+                Text(
+                  '/ ${MoneyFormatter.formatCompact(budget!.limitAmount)}',
+                  style: context.textStyles.bodySmall?.copyWith(
+                    color: context.colors.outline,
+                  ),
+                )
+              else
+                Text(
+                  '${(spending.fraction * 100).round()}%',
+                  style: context.textStyles.bodySmall?.copyWith(
+                    color: context.colors.outline,
+                  ),
                 ),
-              ),
             ],
           ),
         ],

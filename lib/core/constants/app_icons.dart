@@ -37,6 +37,8 @@ abstract final class AppIcons {
   static const IconData chevronRight = PhosphorIconsRegular.caretRight;
   static const IconData chevronLeft = PhosphorIconsRegular.caretLeft;
   static const IconData refresh = PhosphorIconsRegular.arrowsClockwise;
+  static const IconData copy = PhosphorIconsRegular.copy;
+  static const IconData share = PhosphorIconsRegular.shareFat;
 
   // ── Transaction types ─────────────────────────────────────────────────
   static const IconData expense = PhosphorIconsBold.arrowDown;

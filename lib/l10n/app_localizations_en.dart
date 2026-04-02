@@ -1904,6 +1904,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reports_projected_total(String amount) {
+    return 'On track to spend $amount this month';
+  }
+
+  @override
+  String reports_top_spending(String category, String amount) {
+    return 'Top: $category at $amount';
+  }
+
+  @override
   String get balance_show => 'Show';
 
   @override

@@ -679,6 +679,17 @@
   },
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
+  "reports_projected_total": "On track to spend {amount} this month",
+  "@reports_projected_total": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "reports_top_spending": "Top: {category} at {amount}",
+  "@reports_top_spending": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
 
   "balance_show": "Show",
   "balance_hide": "Hide",

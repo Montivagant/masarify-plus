@@ -3698,6 +3698,18 @@ abstract class AppLocalizations {
   /// **'#{rank}'**
   String reports_category_rank(int rank);
 
+  /// No description provided for @reports_projected_total.
+  ///
+  /// In en, this message translates to:
+  /// **'On track to spend {amount} this month'**
+  String reports_projected_total(String amount);
+
+  /// No description provided for @reports_top_spending.
+  ///
+  /// In en, this message translates to:
+  /// **'Top: {category} at {amount}'**
+  String reports_top_spending(String category, String amount);
+
   /// No description provided for @balance_show.
   ///
   /// In en, this message translates to:

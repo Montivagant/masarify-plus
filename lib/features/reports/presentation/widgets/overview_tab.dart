@@ -205,6 +205,12 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
                 ),
               ),
 
+            // ── Spending highlights ────────────────────────────────
+            _SpendingHighlights(
+              expense: current.expense,
+              dailyAvg: dailyAvg,
+            ),
+
             const SizedBox(height: AppSizes.lg),
 
             // ── Bar chart header ───────────────────────────────────
@@ -462,6 +468,112 @@ class _IncomeExpenseBarChart extends StatelessWidget {
             ],
           );
         }),
+      ),
+    );
+  }
+}
+
+// ── Spending highlights ─────────────────────────────────────────────────────
+
+class _SpendingHighlights extends ConsumerWidget {
+  const _SpendingHighlights({
+    required this.expense,
+    required this.dailyAvg,
+  });
+
+  final int expense;
+  final int dailyAvg;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (expense == 0) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final daysLeft = daysInMonth - now.day;
+    final projectedTotal = expense + (dailyAvg * daysLeft);
+
+    // Top category for current month
+    final breakdown =
+        ref.watch(categoryBreakdownProvider((now.year, now.month))).valueOrNull;
+    final topCategory =
+        breakdown != null && breakdown.isNotEmpty ? breakdown.first : null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSizes.screenHPadding,
+        AppSizes.sm,
+        AppSizes.screenHPadding,
+        0,
+      ),
+      child: Column(
+        children: [
+          // Projected month-end spending
+          if (daysLeft > 0)
+            GlassCard(
+              tier: GlassTier.inset,
+              tintColor: context.colors.primary
+                  .withValues(alpha: AppSizes.opacitySubtle),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.sm,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.trendingUp,
+                    size: AppSizes.iconSm,
+                    color: context.colors.primary,
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Expanded(
+                    child: Text(
+                      context.l10n.reports_projected_total(
+                        MoneyFormatter.formatCompact(projectedTotal),
+                      ),
+                      style: context.textStyles.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Top spending category
+          if (topCategory != null) ...[
+            const SizedBox(height: AppSizes.xs),
+            GlassCard(
+              tier: GlassTier.inset,
+              tintColor: context.appTheme.expenseColor
+                  .withValues(alpha: AppSizes.opacitySubtle),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.md,
+                vertical: AppSizes.sm,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.expense,
+                    size: AppSizes.iconSm,
+                    color: context.appTheme.expenseColor,
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Expanded(
+                    child: Text(
+                      context.l10n.reports_top_spending(
+                        topCategory.categoryName,
+                        MoneyFormatter.formatCompact(topCategory.amount),
+                      ),
+                      style: context.textStyles.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

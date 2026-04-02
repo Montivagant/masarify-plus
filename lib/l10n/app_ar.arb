@@ -673,6 +673,17 @@
   },
   "reports_category_rank": "#{rank}",
   "@reports_category_rank": {"placeholders": {"rank": {"type": "int"}}},
+  "reports_projected_total": "متوقع تصرف {amount} الشهر ده",
+  "@reports_projected_total": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "reports_top_spending": "الأعلى: {category} بـ {amount}",
+  "@reports_top_spending": {
+    "placeholders": {
+      "category": { "type": "String" },
+      "amount": { "type": "String" }
+    }
+  },
 
   "balance_show": "إظهار",
   "balance_hide": "إخفاء",

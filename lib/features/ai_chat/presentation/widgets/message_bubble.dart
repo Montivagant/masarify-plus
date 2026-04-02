@@ -109,7 +109,7 @@ class MessageBubble extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(AppIcons.edit),
+              leading: const Icon(AppIcons.copy),
               title: Text(ctx.l10n.chat_copy_message),
               onTap: () {
                 Clipboard.setData(ClipboardData(text: message.content));
@@ -118,7 +118,7 @@ class MessageBubble extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(AppIcons.chevronRight),
+              leading: const Icon(AppIcons.share),
               title: Text(ctx.l10n.chat_share_message),
               onTap: () {
                 ctx.pop();

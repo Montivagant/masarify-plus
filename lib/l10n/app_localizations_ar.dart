@@ -1887,6 +1887,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reports_projected_total(String amount) {
+    return 'متوقع تصرف $amount الشهر ده';
+  }
+
+  @override
+  String reports_top_spending(String category, String amount) {
+    return 'الأعلى: $category بـ $amount';
+  }
+
+  @override
   String get balance_show => 'إظهار';
 
   @override
