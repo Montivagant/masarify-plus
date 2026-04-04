@@ -22,14 +22,6 @@ abstract final class AiConfig {
       'mistralai/mistral-small-3.1-24b-instruct:free';
   static const String modelQwen3_4b = 'qwen/qwen3-4b:free';
 
-  /// Priority-ordered fallback chain for SMS enrichment (Auto mode).
-  /// Gemini Flash (paid) first, then free models as backstop.
-  static const List<String> fallbackChain = [
-    modelGeminiFlash,
-    modelGemma27b,
-    modelQwen3_4b,
-  ];
-
   /// Timeout for API calls in seconds.
   static const int apiTimeoutSeconds = 15;
 

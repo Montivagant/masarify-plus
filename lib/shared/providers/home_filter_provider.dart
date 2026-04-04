@@ -110,6 +110,7 @@ final filteredActivityProvider =
         // Match on resolved category name.
         final cat = categories.where((c) => c.id == tx.categoryId).firstOrNull;
         if (cat != null && cat.name.toLowerCase().contains(q)) return true;
+        if (cat != null && cat.nameAr.toLowerCase().contains(q)) return true;
 
         return false;
       }).toList();

@@ -81,6 +81,7 @@ class GoalRepositoryImpl implements IGoalRepository {
   }
 
   /// M10 fix: delete contributions before deleting goal to avoid orphans.
+  /// B1 fix: restore wallet balances for contributions that had wallet deductions.
   @override
   Future<bool> deleteGoal(int id) async {
     return _db.transaction(() async {
@@ -89,7 +90,14 @@ class GoalRepositoryImpl implements IGoalRepository {
         'UPDATE transactions SET goal_id = NULL WHERE goal_id = ?',
         [id],
       );
-      // Delete all contributions for this goal
+      // Restore wallet balances for contributions that had wallet deductions,
+      // then delete the contributions.
+      final contributions = await _dao.getContributionsByGoal(id);
+      for (final c in contributions) {
+        if (c.walletId != null) {
+          await _walletDao.adjustBalance(c.walletId!, c.amount);
+        }
+      }
       await _db.customStatement(
         'DELETE FROM goal_contributions WHERE goal_id = ?',
         [id],

@@ -17,9 +17,7 @@ class PreferencesService {
   static const _kFirstDayOfMonth = 'first_day_of_month';
   static const _kBiometricEnabled = 'biometric_enabled';
   static const _kAutoLockTimeout = 'auto_lock_timeout';
-  static const _kHideBalances = 'hide_balances';
   static const _kSmsParserEnabled = 'sms_parser_enabled';
-  static const _kAiModel = 'ai_model';
   static const _kLastBackupDate = 'last_backup_date';
   static const _kDriveFileId = 'drive_file_id';
 
@@ -87,12 +85,6 @@ class PreferencesService {
   Future<void> setAutoLockTimeoutMs(int ms) =>
       _prefs.setInt(_kAutoLockTimeout, ms);
 
-  // ── Hide balances ──────────────────────────────────────────────────────
-  bool get hideBalances => _prefs.getBool(_kHideBalances) ?? false;
-
-  Future<void> setHideBalances(bool value) =>
-      _prefs.setBool(_kHideBalances, value);
-
   // ── Currency ──────────────────────────────────────────────────────────────
   String get currencyCode => _prefs.getString(_kCurrency) ?? 'EGP';
 
@@ -117,14 +109,6 @@ class PreferencesService {
 
   // ── SMS Parser ──────────────────────────────────────────────────────────────
   bool get isSmsParserEnabled => _prefs.getBool(_kSmsParserEnabled) ?? false;
-
-  Future<void> setSmsParserEnabled(bool value) =>
-      _prefs.setBool(_kSmsParserEnabled, value);
-
-  // ── AI Model ──────────────────────────────────────────────────────────────
-  String get aiModel => _prefs.getString(_kAiModel) ?? 'auto';
-
-  Future<void> setAiModel(String model) => _prefs.setString(_kAiModel, model);
 
   // ── Notification preferences ──────────────────────────────────────────────
   bool get notifyBudgetWarning => _prefs.getBool(_kNotifyBudgetWarning) ?? true;

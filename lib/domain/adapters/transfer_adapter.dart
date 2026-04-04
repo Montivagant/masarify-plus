@@ -17,9 +17,6 @@ const String kTransferReceiverTag = 'role:receiver';
 /// Returns true if [tags] indicate a sender (outgoing) transfer entry.
 bool isTransferSender(String tags) => tags.contains(kTransferSenderTag);
 
-/// Returns true if [tags] indicate a receiver (incoming) transfer entry.
-bool isTransferReceiver(String tags) => tags.contains(kTransferReceiverTag);
-
 /// Extracts the counterpart wallet ID from a synthetic transfer entry's tags.
 /// Returns null if the tag is missing or malformed.
 int? counterpartWalletId(String tags) {

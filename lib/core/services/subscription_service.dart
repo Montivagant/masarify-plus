@@ -41,9 +41,6 @@ class SubscriptionService {
   /// Stream of Pro status changes.
   Stream<bool> get proStatusStream => _proController.stream;
 
-  /// Whether a restore operation is currently in progress.
-  bool get isRestoring => _isRestoring;
-
   /// Current Pro status (subscription OR trial).
   bool get isPro => _prefs.getBool(_kProActive) ?? false;
 

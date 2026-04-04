@@ -42,11 +42,13 @@ abstract interface class IWalletRepository {
   /// Adjust balance by [deltaPiastres] within a Drift transaction.
   Future<void> adjustBalance(int id, int deltaPiastres);
 
-  /// Total balance across all non-archived wallets (piastres).
-  Future<int> getTotalBalance();
+  /// Total balance across all non-archived wallets for a given currency (piastres).
+  /// Defaults to EGP.
+  Future<int> getTotalBalance({String currencyCode = 'EGP'});
 
-  /// Reactive stream of total balance across all non-archived wallets.
-  Stream<int> watchTotalBalance();
+  /// Reactive stream of total balance for a given currency across non-archived wallets.
+  /// Defaults to EGP.
+  Stream<int> watchTotalBalance({String currencyCode = 'EGP'});
 
   /// WS3d: Add a sender address to a wallet's linkedSenders (if not present).
   Future<void> addLinkedSender(int walletId, String sender);
@@ -75,8 +77,4 @@ abstract interface class IWalletRepository {
 
   /// All wallets INCLUDING archived — one-shot Future variant.
   Future<List<WalletEntity>> getAllIncludingArchived();
-
-  /// Ensure a default bank account exists. Returns its id.
-  /// [localizedName] overrides the default English name for l10n support.
-  Future<int> ensureDefaultAccountExists({String? localizedName});
 }

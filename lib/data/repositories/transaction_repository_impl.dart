@@ -49,15 +49,6 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<List<TransactionEntity>> getByCategory(
-    int categoryId, {
-    int limit = 50,
-  }) async {
-    final rows = await _dao.getByCategory(categoryId, limit: limit);
-    return rows.map(_toEntity).toList();
-  }
-
-  @override
   Future<List<TransactionEntity>> getByDateRange(
     DateTime start,
     DateTime end,
@@ -67,8 +58,12 @@ class TransactionRepositoryImpl implements ITransactionRepository {
   }
 
   @override
-  Future<int> sumByTypeAndMonth(String type, int year, int month,
-          {int? walletId,}) =>
+  Future<int> sumByTypeAndMonth(
+    String type,
+    int year,
+    int month, {
+    int? walletId,
+  }) =>
       _dao.sumByTypeAndMonth(type, year, month, walletId: walletId);
 
   @override
@@ -219,96 +214,6 @@ class TransactionRepositoryImpl implements ITransactionRepository {
           existing.type == 'income' ? -existing.amount : existing.amount;
       await _walletDao.adjustBalance(existing.walletId, reverseDelta);
       return _dao.deleteById(id);
-    });
-  }
-
-  // H12 fix: restore a deleted transaction with its original ID
-  @override
-  Future<void> restore(TransactionEntity tx) async {
-    return _db.transaction(() async {
-      // CR-12 fix: check for duplicate ID (double-undo safety)
-      final existing = await _dao.getById(tx.id);
-      if (existing != null) return; // already restored — idempotent
-      // Verify wallet still exists before restoring
-      final wallet = await _walletDao.getById(tx.walletId);
-      if (wallet == null) {
-        throw StateError(
-          'Cannot restore: wallet ${tx.walletId} no longer exists',
-        );
-      }
-      await _dao.insertTransaction(
-        TransactionsCompanion(
-          id: Value(tx.id),
-          walletId: Value(tx.walletId),
-          categoryId: Value(tx.categoryId),
-          amount: Value(tx.amount),
-          type: Value(tx.type),
-          currencyCode: Value(tx.currencyCode),
-          title: Value(tx.title),
-          note: Value(tx.note),
-          transactionDate: Value(tx.transactionDate),
-          receiptImagePath: Value(tx.receiptImagePath),
-          tags: Value(tx.tags),
-          latitude: Value(tx.latitude),
-          longitude: Value(tx.longitude),
-          locationName: Value(tx.locationName),
-          source: Value(tx.source),
-          rawSourceText: Value(tx.rawSourceText),
-          isRecurring: Value(tx.isRecurring),
-          recurringRuleId: Value(tx.recurringRuleId),
-          goalId: Value(tx.goalId),
-          createdAt: Value(tx.createdAt),
-          updatedAt: Value(tx.updatedAt),
-        ),
-      );
-      // Re-apply wallet balance effect
-      final delta = tx.type == 'income' ? tx.amount : -tx.amount;
-      await _walletDao.adjustBalance(tx.walletId, delta);
-    });
-  }
-
-  @override
-  Future<List<int>> createBatch(List<CreateTransactionParams> params) async {
-    return _db.transaction(() async {
-      final ids = <int>[];
-      for (int i = 0; i < params.length; i++) {
-        final p = params[i];
-        // Same validation as create() — prevent invalid batch entries
-        if (p.amount <= 0) {
-          throw ArgumentError('Batch item $i: amount must be positive');
-        }
-        if (p.type != 'income' && p.type != 'expense') {
-          throw ArgumentError('Batch item $i: type must be income or expense');
-        }
-        final cat = await _categoryDao.getById(p.categoryId);
-        if (cat != null && cat.type != 'both' && cat.type != p.type) {
-          throw ArgumentError(
-            'Batch item $i: category type "${cat.type}" does not match transaction type "${p.type}"',
-          );
-        }
-        final wallet = await _walletDao.getById(p.walletId);
-        if (wallet == null || wallet.isArchived) {
-          throw ArgumentError('Batch item $i: invalid or archived wallet');
-        }
-        final id = await _dao.insertTransaction(
-          TransactionsCompanion.insert(
-            walletId: p.walletId,
-            categoryId: p.categoryId,
-            amount: p.amount,
-            type: p.type,
-            title: p.title,
-            transactionDate: p.transactionDate,
-            source: Value(p.source),
-            rawSourceText: Value(p.rawSourceText),
-            note: Value(p.note),
-            goalId: Value(p.goalId),
-          ),
-        );
-        final delta = p.type == 'income' ? p.amount : -p.amount;
-        await _walletDao.adjustBalance(p.walletId, delta);
-        ids.add(id);
-      }
-      return ids;
     });
   }
 

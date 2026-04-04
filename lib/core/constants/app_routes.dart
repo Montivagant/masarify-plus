@@ -17,7 +17,6 @@ abstract final class AppRoutes {
   static const String budgetEdit = '/budgets/:id/edit';
   static const String goals = '/goals';
   static const String goalAdd = '/goals/add';
-  static const String goalEdit = '/goals/:id/edit';
   static const String goalDetail = '/goals/:id';
   static const String hub = '/more';
 
@@ -59,10 +58,7 @@ abstract final class AppRoutes {
 
   // ── Parametric helpers ──────────────────────────────────────────────────
   static String walletDetailPath(int id) => '/wallets/$id';
-  static String editWalletPath(int id) => '/wallets/$id/edit';
   static String transactionDetailPath(int id) => '/transactions/$id';
   static String transferDetailPath(int id) => '/transfers/$id';
-  static String editCategoryPath(int id) => '/categories/$id/edit';
   static String goalDetailPath(int id) => '/goals/$id';
-  static String editGoalPath(int id) => '/goals/$id/edit';
 }

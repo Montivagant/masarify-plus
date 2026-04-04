@@ -12,17 +12,15 @@ class GoalDao extends DatabaseAccessor<AppDatabase> with _$GoalDaoMixin {
 
   // ── Goals ─────────────────────────────────────────────────────────────────
 
-  Stream<List<SavingsGoal>> watchAll() =>
-      (select(savingsGoals)
-            ..where((g) => g.isCompleted.not())
-            ..orderBy([(g) => OrderingTerm.asc(g.createdAt)]))
-          .watch();
+  Stream<List<SavingsGoal>> watchAll() => (select(savingsGoals)
+        ..where((g) => g.isCompleted.not())
+        ..orderBy([(g) => OrderingTerm.asc(g.createdAt)]))
+      .watch();
 
-  Stream<List<SavingsGoal>> watchCompleted() =>
-      (select(savingsGoals)
-            ..where((g) => g.isCompleted.equals(true))
-            ..orderBy([(g) => OrderingTerm.desc(g.createdAt)]))
-          .watch();
+  Stream<List<SavingsGoal>> watchCompleted() => (select(savingsGoals)
+        ..where((g) => g.isCompleted.equals(true))
+        ..orderBy([(g) => OrderingTerm.desc(g.createdAt)]))
+      .watch();
 
   Future<SavingsGoal?> getById(int id) =>
       (select(savingsGoals)..where((g) => g.id.equals(id))).getSingleOrNull();
@@ -72,6 +70,10 @@ class GoalDao extends DatabaseAccessor<AppDatabase> with _$GoalDaoMixin {
             ..where((c) => c.goalId.equals(goalId))
             ..orderBy([(c) => OrderingTerm.desc(c.date)]))
           .watch();
+
+  /// One-shot list of contributions for a goal (used for balance restoration on delete).
+  Future<List<GoalContribution>> getContributionsByGoal(int goalId) =>
+      (select(goalContributions)..where((c) => c.goalId.equals(goalId))).get();
 
   Future<int> insertContribution(GoalContributionsCompanion entry) =>
       into(goalContributions).insert(entry);

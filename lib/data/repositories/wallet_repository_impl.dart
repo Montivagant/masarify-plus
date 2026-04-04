@@ -71,6 +71,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           'WHERE is_default_account = 1',
         );
       }
+      final nextSort = await _dao.getNextSortOrder();
       return _dao.insertWallet(
         WalletsCompanion.insert(
           name: name,
@@ -82,6 +83,7 @@ class WalletRepositoryImpl implements IWalletRepository {
           displayOrder: Value(displayOrder),
           linkedSenders: Value(jsonEncode(linkedSenders)),
           isDefaultAccount: Value(isDefaultAccount),
+          sortOrder: Value(nextSort),
         ),
       );
     });
@@ -176,30 +178,16 @@ class WalletRepositoryImpl implements IWalletRepository {
       _dao.watchDefaultAccount().map((w) => w != null ? _toEntity(w) : null);
 
   @override
-  Future<int> ensureDefaultAccountExists({String? localizedName}) async {
-    return _db.transaction(() async {
-      final existing = await _dao.getDefaultAccount();
-      if (existing != null) return existing.id;
-      return _dao.insertWallet(
-        WalletsCompanion.insert(
-          name: localizedName ?? 'Default',
-          type: 'bank',
-          balance: const Value(0),
-          isDefaultAccount: const Value(true),
-        ),
-      );
-    });
-  }
-
-  @override
   Future<void> adjustBalance(int id, int deltaPiastres) =>
       _dao.adjustBalance(id, deltaPiastres);
 
   @override
-  Future<int> getTotalBalance() => _dao.getTotalBalance();
+  Future<int> getTotalBalance({String currencyCode = 'EGP'}) =>
+      _dao.getTotalBalance(currencyCode: currencyCode);
 
   @override
-  Stream<int> watchTotalBalance() => _dao.watchTotalBalance();
+  Stream<int> watchTotalBalance({String currencyCode = 'EGP'}) =>
+      _dao.watchTotalBalance(currencyCode: currencyCode);
 
   @override
   Future<void> updateSortOrders(List<({int id, int sortOrder})> updates) =>

@@ -239,13 +239,6 @@ class GoogleDriveBackupService {
     return _decrypt(Uint8List.fromList(bytes));
   }
 
-  // ── Delete ────────────────────────────────────────────────────────────
-
-  Future<void> deleteBackup(String fileId) async {
-    final driveApi = await _getDriveApi();
-    await driveApi.files.delete(fileId);
-  }
-
   // ── Encryption ────────────────────────────────────────────────────────
 
   Future<enc.Key> _getOrCreateKey() async {

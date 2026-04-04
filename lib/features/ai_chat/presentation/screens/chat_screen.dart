@@ -190,8 +190,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// Stable key for action status tracking based on action content.
   /// Uses action's JSON hashCode so keys don't shift when sibling actions
   /// are stripped from the message.
-  String _actionKey(int messageId, ChatAction action) =>
-      '${messageId}_${action.toJson().toString().hashCode}';
+  String _actionKey(int messageId, int actionIndex, ChatAction action) =>
+      '${messageId}_${actionIndex}_${action.toJson().toString().hashCode}';
 
   Widget _buildActionCard(
     int messageId,
@@ -199,7 +199,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatAction action,
     String rawContent,
   ) {
-    final key = _actionKey(messageId, action);
+    final key = _actionKey(messageId, actionIndex, action);
     final status = _actionStates[key] ?? ChatActionStatus.pending;
     return ActionCard(
       action: action,
@@ -220,7 +220,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatAction action,
     String rawContent,
   ) async {
-    final key = _actionKey(messageId, action);
+    final key = _actionKey(messageId, actionIndex, action);
     if (_executingActions.contains(key)) return;
     setState(() => _executingActions.add(key));
 
@@ -350,7 +350,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     ChatAction action,
     String rawContent,
   ) async {
-    final key = _actionKey(messageId, action);
+    final key = _actionKey(messageId, actionIndex, action);
     setState(() => _actionStates[key] = ChatActionStatus.cancelled);
     // Strip only THIS action's JSON block, preserving others.
     try {

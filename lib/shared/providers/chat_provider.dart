@@ -64,7 +64,8 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
   final budgetStatus = <String>[];
   for (final b in budgets) {
     final cat = catMap[b.categoryId];
-    final name = cat?.displayName(lang) ?? 'Unknown';
+    final name =
+        cat?.displayName(lang) ?? (lang == 'ar' ? 'غير معروف' : 'Unknown');
     final pct = (b.progressFraction * 100).round();
     budgetStatus.add('$name: $pct%');
   }
@@ -85,7 +86,8 @@ final financialContextProvider = Provider<FinancialContext>((ref) {
   final topCategories = <String>[];
   for (final entry in sortedEntries.take(3)) {
     final cat = catMap[entry.key];
-    final name = cat?.displayName(lang) ?? 'Unknown';
+    final name =
+        cat?.displayName(lang) ?? (lang == 'ar' ? 'غير معروف' : 'Unknown');
     final formatted = MoneyFormatter.formatCompact(entry.value);
     topCategories.add('$name: $formatted');
   }

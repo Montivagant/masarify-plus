@@ -356,6 +356,8 @@ class TransactionDetailScreen extends ConsumerWidget {
         'sms' => AppIcons.phone,
         'notification' => AppIcons.notification,
         'import' => AppIcons.import_,
+        'ai_chat' => AppIcons.ai,
+        'recurring' => AppIcons.recurring,
         _ => AppIcons.edit,
       };
 
@@ -365,6 +367,8 @@ class TransactionDetailScreen extends ConsumerWidget {
         'sms' => context.l10n.transaction_source_sms,
         'notification' => context.l10n.transaction_source_notification,
         'import' => context.l10n.transaction_source_import,
+        'ai_chat' => context.l10n.transaction_source_ai_chat,
+        'recurring' => context.l10n.transaction_source_recurring,
         _ => context.l10n.transaction_source_manual,
       };
 }

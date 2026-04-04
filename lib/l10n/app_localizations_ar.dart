@@ -159,6 +159,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transaction_source_import => 'استيراد';
 
   @override
+  String get transaction_source_ai_chat => 'المساعد الذكي';
+
+  @override
+  String get transaction_source_recurring => 'قاعدة متكررة';
+
+  @override
   String get wallets_title => 'الحسابات';
 
   @override
@@ -3080,4 +3086,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get hint_swipe_left => 'اسحب يسارًا لتخطي';
+
+  @override
+  String get action_card_arabic_name => '→ الاسم العربي';
 }

@@ -54,6 +54,8 @@
   "transaction_source_sms": "رسالة",
   "transaction_source_notification": "إشعار",
   "transaction_source_import": "استيراد",
+  "transaction_source_ai_chat": "المساعد الذكي",
+  "transaction_source_recurring": "قاعدة متكررة",
 
   "wallets_title": "الحسابات",
   "wallets_add": "إضافة حساب",
@@ -1262,5 +1264,6 @@
   "notif_permission_denied": "تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات.",
   "hint_fab": "اضغط + لإضافة معاملات بسرعة — صوت أو يدوي",
   "hint_swipe_right": "اسحب يمينًا للموافقة",
-  "hint_swipe_left": "اسحب يسارًا لتخطي"
+  "hint_swipe_left": "اسحب يسارًا لتخطي",
+  "action_card_arabic_name": "\u2192 الاسم العربي"
 }

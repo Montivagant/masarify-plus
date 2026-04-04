@@ -54,6 +54,8 @@
   "transaction_source_sms": "SMS",
   "transaction_source_notification": "Notification",
   "transaction_source_import": "Import",
+  "transaction_source_ai_chat": "AI Assistant",
+  "transaction_source_recurring": "Recurring Rule",
 
   "wallets_title": "Accounts",
   "wallets_add": "Add Account",
@@ -1293,5 +1295,6 @@
   "notif_permission_denied": "Notification permission denied. Enable it in Settings to receive alerts.",
   "hint_fab": "Tap + to quickly add transactions \u2014 Voice or Manual",
   "hint_swipe_right": "Swipe right to approve",
-  "hint_swipe_left": "Swipe left to skip"
+  "hint_swipe_left": "Swipe left to skip",
+  "action_card_arabic_name": "\u2192 Arabic Name"
 }

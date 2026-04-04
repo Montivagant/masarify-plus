@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_sizes.dart';
@@ -138,7 +139,7 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
     // Wait for the first frame + a short delay so the UI is fully rendered.
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 500), () {
+      Future.delayed(AppDurations.fabHintDelay, () {
         if (mounted) setState(() => _showFabHint = true);
       });
     });

@@ -11,8 +11,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.expenseColor,
     required this.transferColor,
     required this.warningColor,
-    required this.previousPeriodColor,
-    required this.previousPeriodColorAlt,
     required this.heroGradient,
     required this.onTransferColor,
     required this.glassCardSurface,
@@ -28,8 +26,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color expenseColor;
   final Color transferColor;
   final Color warningColor;
-  final Color previousPeriodColor;
-  final Color previousPeriodColorAlt;
   final LinearGradient heroGradient;
   final Color onTransferColor;
 
@@ -47,8 +43,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     expenseColor: AppColors.expenseRed,
     transferColor: AppColors.transferBlue,
     warningColor: AppColors.warning, // #92400E — AA 7.2:1
-    previousPeriodColor: AppColors.lastMonthGray, // Slate 400
-    previousPeriodColorAlt: AppColors.lastMonthGrayLight, // Slate 300
     heroGradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -69,8 +63,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     expenseColor: AppColors.expenseRedDark, // Red 300 — 4.6:1 on navy
     transferColor: AppColors.transferBlueDark, // Blue 400
     warningColor: AppColors.warningDark, // Amber 400
-    previousPeriodColor: AppColors.lastMonthGrayDark, // Slate 400 (brighter)
-    previousPeriodColorAlt: AppColors.lastMonthGrayLightDark, // Slate 500
     heroGradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -92,8 +84,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? expenseColor,
     Color? transferColor,
     Color? warningColor,
-    Color? previousPeriodColor,
-    Color? previousPeriodColorAlt,
     LinearGradient? heroGradient,
     Color? onTransferColor,
     Color? glassCardSurface,
@@ -109,9 +99,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
         expenseColor: expenseColor ?? this.expenseColor,
         transferColor: transferColor ?? this.transferColor,
         warningColor: warningColor ?? this.warningColor,
-        previousPeriodColor: previousPeriodColor ?? this.previousPeriodColor,
-        previousPeriodColorAlt:
-            previousPeriodColorAlt ?? this.previousPeriodColorAlt,
         heroGradient: heroGradient ?? this.heroGradient,
         onTransferColor: onTransferColor ?? this.onTransferColor,
         glassCardSurface: glassCardSurface ?? this.glassCardSurface,
@@ -134,10 +121,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       expenseColor: Color.lerp(expenseColor, other.expenseColor, t)!,
       transferColor: Color.lerp(transferColor, other.transferColor, t)!,
       warningColor: Color.lerp(warningColor, other.warningColor, t)!,
-      previousPeriodColor:
-          Color.lerp(previousPeriodColor, other.previousPeriodColor, t)!,
-      previousPeriodColorAlt:
-          Color.lerp(previousPeriodColorAlt, other.previousPeriodColorAlt, t)!,
       heroGradient: t < 0.5 ? heroGradient : other.heroGradient,
       onTransferColor: Color.lerp(onTransferColor, other.onTransferColor, t)!,
       glassCardSurface:

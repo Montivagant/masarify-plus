@@ -109,9 +109,17 @@ class GeminiAudioService {
     );
 
     if (response.statusCode != 200) {
+      // Sanitize: only log status code and error category,
+      // never the raw body which may echo request content (voice audio).
+      final category = response.statusCode == 429
+          ? 'rate_limit'
+          : response.statusCode == 401
+              ? 'unauthorized'
+              : response.statusCode >= 500
+                  ? 'server_error'
+                  : 'client_error';
       dev.log(
-        'Gemini error ${response.statusCode}: '
-        '${response.body.substring(0, response.body.length.clamp(0, 500))}',
+        'Gemini error: $category (${response.statusCode})',
         name: 'GeminiAudioService',
       );
       final errorBody = _tryParseError(response.body);

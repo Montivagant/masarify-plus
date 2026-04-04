@@ -398,6 +398,18 @@ abstract class AppLocalizations {
   /// **'Import'**
   String get transaction_source_import;
 
+  /// No description provided for @transaction_source_ai_chat.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get transaction_source_ai_chat;
+
+  /// No description provided for @transaction_source_recurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Rule'**
+  String get transaction_source_recurring;
+
   /// No description provided for @wallets_title.
   ///
   /// In en, this message translates to:
@@ -5714,6 +5726,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Swipe left to skip'**
   String get hint_swipe_left;
+
+  /// No description provided for @action_card_arabic_name.
+  ///
+  /// In en, this message translates to:
+  /// **'→ Arabic Name'**
+  String get action_card_arabic_name;
 }
 
 class _AppLocalizationsDelegate

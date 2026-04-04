@@ -244,9 +244,10 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: primaryColor.withValues(alpha: 0.15),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
+                      color:
+                          primaryColor.withValues(alpha: AppSizes.opacityLight),
+                      blurRadius: AppSizes.fabShadowBlur,
+                      offset: const Offset(0, AppSizes.fabShadowOffsetY),
                     ),
                   ],
                 ),

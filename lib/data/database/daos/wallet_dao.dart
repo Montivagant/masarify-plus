@@ -142,12 +142,13 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     );
   }
 
-  /// Total balance across all non-archived wallets (in piastres).
-  /// Includes the Cash system wallet — physical cash is real money.
-  Future<int> getTotalBalance() async {
+  /// Total balance across all non-archived wallets for a given currency (in piastres).
+  /// Defaults to EGP. Includes Cash system wallet — physical cash is real money.
+  Future<int> getTotalBalance({String currencyCode = 'EGP'}) async {
     final result = await customSelect(
       'SELECT COALESCE(SUM(balance), 0) AS total '
-      'FROM wallets WHERE is_archived = 0',
+      'FROM wallets WHERE is_archived = 0 AND currency_code = ?',
+      variables: [Variable.withString(currencyCode)],
       readsFrom: {wallets},
     ).getSingle();
     return result.read<int>('total');
@@ -178,6 +179,15 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     return result.read<int>('has_refs') == 1;
   }
 
+  /// Next sortOrder value for new wallets (max + 1).
+  Future<int> getNextSortOrder() async {
+    final result = await customSelect(
+      'SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_order FROM wallets',
+      readsFrom: {wallets},
+    ).getSingle();
+    return result.read<int>('next_order');
+  }
+
   /// Batch-update sort orders for carousel drag-and-drop reordering.
   Future<void> updateSortOrders(List<({int id, int sortOrder})> updates) async {
     await batch((b) {
@@ -191,11 +201,12 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
     });
   }
 
-  /// Reactive stream of total balance across all non-archived wallets.
-  /// Includes Cash system wallet — physical cash is real money.
-  Stream<int> watchTotalBalance() => customSelect(
+  /// Reactive stream of total balance for a given currency across non-archived wallets.
+  /// Defaults to EGP. Includes Cash system wallet.
+  Stream<int> watchTotalBalance({String currencyCode = 'EGP'}) => customSelect(
         'SELECT COALESCE(SUM(balance), 0) AS total '
-        'FROM wallets WHERE is_archived = 0',
+        'FROM wallets WHERE is_archived = 0 AND currency_code = ?',
+        variables: [Variable.withString(currencyCode)],
         readsFrom: {wallets},
       ).watchSingle().map((row) => row.read<int>('total'));
 }

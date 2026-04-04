@@ -393,7 +393,7 @@ class _SpendingLineChart extends StatelessWidget {
             ),
             belowBarData: BarAreaData(
               show: true,
-              color: chartColor.withValues(alpha: 0.05),
+              color: chartColor.withValues(alpha: AppSizes.opacityXLight2),
             ),
           ),
         ],

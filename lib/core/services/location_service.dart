@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:geocoding/geocoding.dart' as geo;
 import 'package:geolocator/geolocator.dart';
 
@@ -29,7 +31,8 @@ abstract final class LocationService {
           timeLimit: AppDurations.locationTimeout,
         ),
       );
-    } catch (_) {
+    } catch (e) {
+      dev.log('Location lookup failed: $e', name: 'LocationService');
       return null;
     }
   }
@@ -42,10 +45,12 @@ abstract final class LocationService {
     double longitude,
   ) async {
     try {
-      final placemarks = await geo.placemarkFromCoordinates(
-        latitude,
-        longitude,
-      ).timeout(AppDurations.geocodeTimeout);
+      final placemarks = await geo
+          .placemarkFromCoordinates(
+            latitude,
+            longitude,
+          )
+          .timeout(AppDurations.geocodeTimeout);
       if (placemarks.isEmpty) return null;
 
       final p = placemarks.first;
@@ -54,8 +59,9 @@ abstract final class LocationService {
         if (p.subLocality != null && p.subLocality!.isNotEmpty) p.subLocality!,
         if (p.locality != null && p.locality!.isNotEmpty) p.locality!,
       ];
-      return parts.isEmpty ? p.name : parts.join('، ');
-    } catch (_) {
+      return parts.isEmpty ? p.name : parts.join(', ');
+    } catch (e) {
+      dev.log('Location lookup failed: $e', name: 'LocationService');
       return null;
     }
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -70,7 +71,7 @@ class AccountChip extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
         child: Material(
-          color: Colors.transparent,
+          color: AppColors.transparent,
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),

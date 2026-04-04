@@ -565,7 +565,7 @@ class ActionCard extends StatelessWidget {
             ),
           if (newNameAr != null)
             _DetailLine(
-              label: '→ AR',
+              label: context.l10n.action_card_arabic_name,
               value: newNameAr,
               labelStyle: labelS,
               valueStyle: valueStyle?.copyWith(color: cs.primary),
@@ -580,7 +580,11 @@ class ActionCard extends StatelessWidget {
           ),
           _DetailLine(
             label: context.l10n.wallet_type_label,
-            value: type,
+            value: type == 'expense'
+                ? context.l10n.transaction_type_expense
+                : type == 'income'
+                    ? context.l10n.transaction_type_income
+                    : type,
             labelStyle: labelS,
             valueStyle: valueStyle,
           ),

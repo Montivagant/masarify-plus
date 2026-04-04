@@ -20,7 +20,7 @@ Drift ORM (SQLite) with type-safe DAOs, reactive streams, and versioned migratio
 | 8 | `RecurringRules` | id, walletId, categoryId, amount, frequency, nextDueDate, autoLog, isBill | Bills merged here in v4 migration |
 | 9 | `SmsParserLogs` | id, smsHash, sender, body, parsedAmount, status, aiEnrichmentJson | Dedup via SHA-256 hash |
 | 10 | `ExchangeRates` | id, fromCurrency, toCurrency, rate, fetchedAt | Cached for offline use |
-| 11 | `CategoryMappings` | id, title, categoryId, frequency | Auto-categorization learning table (v12) |
+| 11 | `CategoryMappings` | id, title, categoryId, frequency | Auto-categorization learning table (v5) |
 | 12 | `ChatMessages` | id, role, content, actionJson, timestamp | AI chat history |
 | 13 | `ParsedEventGroups` | id, groupHash, status | SMS batch deduplication |
 | 14 | `SubscriptionRecords` | id, productId, purchaseToken, status, expiryDate, validatedAt | IAP tracking (v14) |
@@ -57,7 +57,7 @@ Drift ORM (SQLite) with type-safe DAOs, reactive streams, and versioned migratio
 | v1 | Initial schema (10 tables) |
 | v2 | `aiEnrichmentJson` column added to SmsParserLogs |
 | v4 | Bills table merged into RecurringRules (`isBill` flag added) |
-| v12 | CategoryMappings table added (auto-categorization learning) |
+| v5 | CategoryMappings table added (auto-categorization learning) |
 | v13 | `sortOrder` column added to Wallets (drag-and-drop reordering) |
 | v14 | SubscriptionRecords table added (IAP tracking) |
 

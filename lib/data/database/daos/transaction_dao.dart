@@ -68,8 +68,12 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
   /// Total income or expense for a given month (in piastres).
   /// Excludes transactions on archived wallets for consistency with
   /// [sumByCategoryAndMonth].
-  Future<int> sumByTypeAndMonth(String type, int year, int month,
-      {int? walletId,}) async {
+  Future<int> sumByTypeAndMonth(
+    String type,
+    int year,
+    int month, {
+    int? walletId,
+  }) async {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
     final walletClause = walletId != null ? 'AND t.wallet_id = ? ' : '';
@@ -128,8 +132,6 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
           .go()
           .then((count) => count > 0);
 
-  Future<void> truncate() => delete(transactions).go();
-
   /// WS3: Find similar transactions for cross-table dedup.
   /// Returns true if a transaction with the same wallet, amount, type exists
   /// within ±10 minutes of [aroundDate].
@@ -156,15 +158,5 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       readsFrom: {transactions},
     ).getSingle();
     return result.read<int>('cnt') > 0;
-  }
-
-  /// H9 fix: count transactions for a given wallet.
-  Future<int> countByWallet(int walletId) async {
-    final result = await customSelect(
-      'SELECT COUNT(*) AS cnt FROM transactions WHERE wallet_id = ?',
-      variables: [Variable.withInt(walletId)],
-      readsFrom: {transactions},
-    ).getSingle();
-    return result.read<int>('cnt');
   }
 }

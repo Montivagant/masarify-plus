@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -264,7 +265,7 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
     if (_detectingLocation) return;
 
     try {
-      // Per AGENTS.md Rule 6: show rationale BEFORE requesting permission.
+      // Show rationale BEFORE requesting permission.
       final permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.deniedForever) {
         if (!mounted) return;
@@ -296,6 +297,7 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
         SnackHelper.showError(context, context.l10n.location_failed);
       }
     } catch (e) {
+      dev.log('Save failed: $e', name: 'AddTransactionScreen');
       if (!mounted) return;
       setState(() => _detectingLocation = false);
       SnackHelper.showError(context, context.l10n.location_failed);
@@ -364,6 +366,7 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
       SnackHelper.showSuccess(context, context.l10n.transfer_success);
       context.pop();
     } catch (e) {
+      dev.log('Save failed: $e', name: 'AddTransactionScreen');
       if (!mounted) return;
       setState(() => _loading = false);
       SnackHelper.showError(context, context.l10n.common_error_generic);
@@ -541,6 +544,7 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
 
       context.pop();
     } catch (e) {
+      dev.log('Save failed: $e', name: 'AddTransactionScreen');
       if (!mounted) return;
       setState(() => _loading = false);
       SnackHelper.showError(context, context.l10n.common_error_generic);

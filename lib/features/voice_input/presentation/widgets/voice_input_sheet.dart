@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
@@ -42,7 +43,7 @@ class VoiceInputSheet extends ConsumerStatefulWidget {
       context: context,
       barrierDismissible: true,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      barrierColor: Colors.black.withValues(alpha: AppSizes.opacityMedium),
+      barrierColor: AppColors.black.withValues(alpha: AppSizes.opacityMedium),
       transitionDuration: AppDurations.overlayExpand,
       pageBuilder: (_, __, ___) => const VoiceInputSheet(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {

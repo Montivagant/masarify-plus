@@ -28,6 +28,8 @@ class RecurringScheduler {
         _walletRepo = walletRepository,
         _categoryRepo = categoryRepository;
 
+  static const int _notificationIdOffset = 100000;
+
   final IRecurringRuleRepository _ruleRepo;
   final IWalletRepository _walletRepo;
   final ICategoryRepository _categoryRepo;
@@ -131,9 +133,9 @@ class RecurringScheduler {
       // If prefs fail, allow notification through (fail-open).
     }
 
-    // Use rule.id + 100000 offset to avoid notification id collisions.
+    // Use rule.id + offset to avoid notification id collisions.
     await NotificationService.show(
-      id: rule.id + 100000,
+      id: rule.id + _notificationIdOffset,
       title: rule.title,
       body: MoneyFormatter.format(rule.amount),
       payload: 'recurring:${rule.id}',

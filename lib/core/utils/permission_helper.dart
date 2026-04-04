@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart'
-    as ph show openAppSettings;
+import 'package:permission_handler/permission_handler.dart' as ph
+    show openAppSettings;
 
 import '../extensions/build_context_extensions.dart';
 
 /// Centralized permission helper.
 ///
-/// Per AGENTS.md Rule 6: every sensitive permission must show a rationale
+/// Every sensitive permission must show a rationale
 /// dialog BEFORE requesting the system prompt. This class enforces that.
 abstract final class PermissionHelper {
   /// Show a rationale dialog and return `true` if the user tapped "Allow".

@@ -125,11 +125,9 @@ final categoryBreakdownProvider =
     final walletId = ref.watch(reportsWalletFilterProvider);
     final typeFilter = ref.watch(reportsTypeFilterProvider);
     return txAsync.whenData((transactions) {
-      var filtered = typeFilter != null
-          ? transactions.where((tx) => tx.type == typeFilter)
-          : transactions.where(
-              (tx) => tx.type == 'expense' || tx.type == 'income',
-            );
+      var filtered = transactions.where(
+        (tx) => tx.type == (typeFilter ?? 'expense'),
+      );
       if (walletId != null) {
         filtered = filtered.where((tx) => tx.walletId == walletId);
       }
@@ -186,7 +184,7 @@ final dailySpendingProvider =
   }
 
   for (final tx in txns) {
-    final matchesType = typeFilter == null || tx.type == typeFilter;
+    final matchesType = tx.type == (typeFilter ?? 'expense');
     if (matchesType) {
       final matchesWallet = walletId == null || tx.walletId == walletId;
       if (matchesWallet) {

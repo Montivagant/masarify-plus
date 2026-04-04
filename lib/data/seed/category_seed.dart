@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../data/database/app_database.dart';
+import '../database/app_database.dart';
 
 /// All 34 default categories to seed on first launch.
 /// Called by CategoryRepository when the categories table is empty.

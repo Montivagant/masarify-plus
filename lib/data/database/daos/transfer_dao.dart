@@ -41,18 +41,4 @@ class TransferDao extends DatabaseAccessor<AppDatabase>
       (delete(transfers)..where((t) => t.id.equals(id)))
           .go()
           .then((count) => count > 0);
-
-  /// H10 fix: count transfers involving this wallet (as source or dest).
-  Future<int> countByWallet(int walletId) async {
-    final result = await customSelect(
-      'SELECT COUNT(*) AS cnt FROM transfers '
-      'WHERE from_wallet_id = ? OR to_wallet_id = ?',
-      variables: [
-        Variable.withInt(walletId),
-        Variable.withInt(walletId),
-      ],
-      readsFrom: {transfers},
-    ).getSingle();
-    return result.read<int>('cnt');
-  }
 }

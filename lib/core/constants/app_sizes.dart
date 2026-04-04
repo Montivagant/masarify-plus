@@ -185,6 +185,8 @@ abstract final class AppSizes {
 
   // ── FAB (Speed Dial) ─────────────────────────────────────────────────
   static const double fabRotationAngle = math.pi / 4;
+  static const double fabShadowBlur = 24.0;
+  static const double fabShadowOffsetY = 8.0;
 
   // ── Nav bar ───────────────────────────────────────────────────────
   static const double navShadowBlur = 16.0;

@@ -10,17 +10,16 @@ abstract interface class ITransactionRepository {
 
   Future<TransactionEntity?> getById(int id);
 
-  Future<List<TransactionEntity>> getByCategory(
-    int categoryId, {
-    int limit = 50,
-  });
-
   Future<List<TransactionEntity>> getByDateRange(DateTime start, DateTime end);
 
   /// Returns total income/expense piastres for a month.
   /// Optionally filter by [walletId].
-  Future<int> sumByTypeAndMonth(String type, int year, int month,
-      {int? walletId,});
+  Future<int> sumByTypeAndMonth(
+    String type,
+    int year,
+    int month, {
+    int? walletId,
+  });
 
   Future<int> sumByCategoryAndMonth(int categoryId, int year, int month);
 
@@ -51,39 +50,4 @@ abstract interface class ITransactionRepository {
 
   /// Deletes the transaction AND reverses its wallet balance effect atomically.
   Future<bool> delete(int id);
-
-  /// H12 fix: restores a previously deleted transaction with its original ID.
-  /// Used by undo-delete to preserve ID references (budgets, goals).
-  Future<void> restore(TransactionEntity transaction);
-
-  /// Creates multiple transactions atomically in a single DB transaction.
-  /// All succeed or none are written.
-  Future<List<int>> createBatch(List<CreateTransactionParams> params);
-}
-
-/// Parameters for batch transaction creation.
-class CreateTransactionParams {
-  const CreateTransactionParams({
-    required this.walletId,
-    required this.categoryId,
-    required this.amount,
-    required this.type,
-    required this.title,
-    required this.transactionDate,
-    this.source = 'manual',
-    this.rawSourceText,
-    this.note,
-    this.goalId,
-  });
-
-  final int walletId;
-  final int categoryId;
-  final int amount;
-  final String type;
-  final String title;
-  final DateTime transactionDate;
-  final String source;
-  final String? rawSourceText;
-  final String? note;
-  final int? goalId;
 }

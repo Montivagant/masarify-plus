@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
@@ -27,7 +28,7 @@ class FirstTimeHint extends StatelessWidget {
       onTap: onDismiss,
       behavior: HitTestBehavior.translucent,
       child: Container(
-        color: Colors.black.withValues(alpha: AppSizes.opacityLight2),
+        color: AppColors.black.withValues(alpha: AppSizes.opacityLight2),
         child: Align(
           alignment: alignment,
           child: Container(
@@ -38,9 +39,9 @@ class FirstTimeHint extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
               boxShadow: [
                 BoxShadow(
-                  color: cs.primary.withValues(alpha: 0.1),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: cs.primary.withValues(alpha: AppSizes.opacityXLight),
+                  blurRadius: AppSizes.fabShadowBlur,
+                  offset: const Offset(0, AppSizes.fabShadowOffsetY),
                 ),
               ],
             ),
