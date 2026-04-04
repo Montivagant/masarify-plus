@@ -50,6 +50,37 @@ class NotificationService {
       ),
       onDidReceiveNotificationResponse: _onResponse,
     );
+
+    // Create Android notification channels (required for Android 8.0+).
+    // Without this, notifications silently fail on API 26+.
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'masarify_default',
+          'Masarify',
+          description: 'Masarify notifications',
+          importance: Importance.high,
+        ),
+      );
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'masarify_recap',
+          'Daily Recap',
+          description: 'Daily spending recap reminder',
+        ),
+      );
+      await androidPlugin.createNotificationChannel(
+        const AndroidNotificationChannel(
+          'masarify_bills',
+          'Bill Reminders',
+          description: 'Upcoming bill and subscription reminders',
+          importance: Importance.high,
+        ),
+      );
+    }
+
     _initialized = true;
   }
 

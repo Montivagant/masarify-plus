@@ -11,7 +11,7 @@
   "nav_budgets": "Budgets",
   "nav_analytics": "Analytics",
   "nav_more": "More",
-  "nav_subscriptions": "Subscriptions",
+  "nav_subscriptions": "Recurring",
 
   "dashboard_title": "Masarify",
   "dashboard_net_balance": "Net Balance",
@@ -673,6 +673,9 @@
   "reports_total_expense": "Total Expense",
   "reports_net": "Net",
   "reports_daily_average": "Daily Average",
+  "reports_total_spending": "Total Spending",
+  "reports_highest_day": "Highest Day",
+  "reports_vs_previous": "vs previous period",
   "reports_savings_rate": "Savings rate: {rate}% of income",
   "@reports_savings_rate": {
     "placeholders": { "rate": { "type": "int" } }
@@ -1287,5 +1290,8 @@
   "budget_saved_last_month": "Saved {amount} last month",
   "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}},
   "notif_coming_soon": " (Coming Soon)",
-  "notif_permission_denied": "Notification permission denied. Enable it in Settings to receive alerts."
+  "notif_permission_denied": "Notification permission denied. Enable it in Settings to receive alerts.",
+  "hint_fab": "Tap + to quickly add transactions \u2014 Voice or Manual",
+  "hint_swipe_right": "Swipe right to approve",
+  "hint_swipe_left": "Swipe left to skip"
 }

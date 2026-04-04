@@ -667,6 +667,9 @@
   "reports_total_expense": "إجمالي المصروف",
   "reports_net": "الصافي",
   "reports_daily_average": "المتوسط اليومي",
+  "reports_total_spending": "إجمالي الإنفاق",
+  "reports_highest_day": "أعلى يوم",
+  "reports_vs_previous": "مقارنة بالفترة السابقة",
   "reports_savings_rate": "معدل التوفير: {rate}% من الدخل",
   "@reports_savings_rate": {
     "placeholders": { "rate": { "type": "int" } }
@@ -1256,5 +1259,8 @@
   "budget_saved_last_month": "وفرت {amount} الشهر الماضي",
   "@budget_saved_last_month": {"placeholders": {"amount": {"type": "String"}}},
   "notif_coming_soon": " (قريبًا)",
-  "notif_permission_denied": "تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات."
+  "notif_permission_denied": "تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات.",
+  "hint_fab": "اضغط + لإضافة معاملات بسرعة — صوت أو يدوي",
+  "hint_swipe_right": "اسحب يمينًا للموافقة",
+  "hint_swipe_left": "اسحب يسارًا لتخطي"
 }

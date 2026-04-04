@@ -36,7 +36,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_more => 'More';
 
   @override
-  String get nav_subscriptions => 'Subscriptions';
+  String get nav_subscriptions => 'Recurring';
 
   @override
   String get dashboard_title => 'Masarify';
@@ -1894,6 +1894,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_daily_average => 'Daily Average';
 
   @override
+  String get reports_total_spending => 'Total Spending';
+
+  @override
+  String get reports_highest_day => 'Highest Day';
+
+  @override
+  String get reports_vs_previous => 'vs previous period';
+
+  @override
   String reports_savings_rate(int rate) {
     return 'Savings rate: $rate% of income';
   }
@@ -3089,4 +3098,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get notif_permission_denied =>
       'Notification permission denied. Enable it in Settings to receive alerts.';
+
+  @override
+  String get hint_fab => 'Tap + to quickly add transactions — Voice or Manual';
+
+  @override
+  String get hint_swipe_right => 'Swipe right to approve';
+
+  @override
+  String get hint_swipe_left => 'Swipe left to skip';
 }

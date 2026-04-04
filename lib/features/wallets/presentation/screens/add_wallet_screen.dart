@@ -11,7 +11,6 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
@@ -19,12 +18,59 @@ import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Add/Edit wallet screen.
 ///
-/// Add mode: name, type, color, opening balance.
-/// Edit mode: name, type, color only (balance changes via transfers/transactions).
+/// Add mode: presented as bottom sheet via [show()].
+/// Edit mode: full-screen route with name, type, color.
 class AddWalletScreen extends ConsumerStatefulWidget {
-  const AddWalletScreen({super.key, this.editId});
+  const AddWalletScreen({super.key, this.editId, this.isSheet = false});
 
   final int? editId;
+
+  /// Whether this widget is rendered inside a bottom sheet.
+  final bool isSheet;
+
+  /// Show the add-wallet form as a modal bottom sheet.
+  static Future<void> show(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        minChildSize: AppSizes.sheetMinSize,
+        maxChildSize: AppSizes.sheetMaxSize,
+        expand: false,
+        builder: (sheetCtx, controller) => const AddWalletScreen(isSheet: true),
+      ),
+    );
+  }
+
+  /// Show the edit-wallet form as a modal bottom sheet.
+  static Future<void> showEdit(BuildContext context, int editId) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        minChildSize: AppSizes.sheetMinSize,
+        maxChildSize: AppSizes.sheetMaxSize,
+        expand: false,
+        builder: (_, __) => AddWalletScreen(editId: editId, isSheet: true),
+      ),
+    );
+  }
 
   @override
   ConsumerState<AddWalletScreen> createState() => _AddWalletScreenState();
@@ -178,10 +224,10 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.editId != null;
-    final cs = context.colors;
-    final types = _walletTypes(context);
+    if (widget.isSheet) return _buildSheetBody(context);
 
+    // Fallback full-page for route navigation (both add and edit).
+    final isEdit = widget.editId != null;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
@@ -196,220 +242,275 @@ class _AddWalletScreenState extends ConsumerState<AddWalletScreen> {
           AppSizes.screenHPadding,
           AppSizes.bottomScrollPadding,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Name & Type ─────────────────────────────────────────
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppTextField(
-                    label: context.l10n.wallet_name_label,
-                    hint: context.l10n.wallet_name_hint_example,
-                    controller: _nameController,
-                    errorText: _nameError,
-                    textInputAction: TextInputAction.next,
-                    prefixIcon: const Icon(AppIcons.wallet),
-                  ),
-                  const SizedBox(height: AppSizes.md),
-                  Text(
-                    context.l10n.wallet_type_label,
-                    style: context.textStyles.labelLarge?.copyWith(
-                      color: cs.outline,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.sm),
-                  if (_isSystemWallet)
-                    Text(
-                      context.l10n.wallet_cannot_archive_system,
-                      style: context.textStyles.bodySmall?.copyWith(
-                        color: cs.outline,
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: AppSizes.sm,
-                      runSpacing: AppSizes.sm,
-                      children: types.map((t) {
-                        final isSelected = t.value == _type;
-                        return FilterChip(
-                          selected: isSelected,
-                          avatar: Icon(t.icon, size: AppSizes.iconXs),
-                          label: Text(t.label),
-                          onSelected: (_) => setState(() => _type = t.value),
-                          showCheckmark: false,
-                        );
-                      }).toList(),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // ── Color ────────────────────────────────────────────
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.wallet_color_label,
-                    style: context.textStyles.labelLarge?.copyWith(
-                      color: cs.outline,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.sm),
-                  Wrap(
-                    spacing: AppSizes.sm,
-                    runSpacing: AppSizes.sm,
-                    children: _colorOptions.map((hex) {
-                      final color = ColorUtils.fromHex(hex);
-                      final isSelected = hex == _colorHex;
-                      return Semantics(
-                        label: context.l10n.wallet_color_label,
-                        selected: isSelected,
-                        button: true,
-                        child: SizedBox(
-                          width: AppSizes.minTapTarget,
-                          height: AppSizes.minTapTarget,
-                          child: Center(
-                            child: GestureDetector(
-                              onTap: () => setState(() => _colorHex = hex),
-                              child: Container(
-                                width: AppSizes.colorSwatchSize,
-                                height: AppSizes.colorSwatchSize,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  shape: BoxShape.circle,
-                                  border: isSelected
-                                      ? Border.all(
-                                          color: cs.primary,
-                                          width: AppSizes.colorSwatchBorder,
-                                        )
-                                      : Border.all(
-                                          color: AppColors.transparent,
-                                          width: AppSizes.colorSwatchBorder,
-                                        ),
-                                ),
-                                child: isSelected
-                                    ? Icon(
-                                        AppIcons.check,
-                                        color: ColorUtils.contrastColor(color),
-                                        size: AppSizes.iconXs,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // Linked SMS Senders (hidden when kSmsEnabled=false)
-            if (AppConfig.kSmsEnabled) ...[
-              Text(
-                context.l10n.wallet_linked_senders_label,
-                style: context.textStyles.labelLarge?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-              const SizedBox(height: AppSizes.xs),
-              Text(
-                context.l10n.wallet_linked_senders_subtitle,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-              const SizedBox(height: AppSizes.sm),
-              Wrap(
-                spacing: AppSizes.sm,
-                runSpacing: AppSizes.sm,
-                children: [
-                  ..._linkedSenders.map(
-                    (s) => InputChip(
-                      label: Text(s),
-                      onDeleted: () => setState(
-                        () => _linkedSenders.remove(s),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (_linkedSenders.isNotEmpty)
-                const SizedBox(height: AppSizes.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppTextField(
-                      label: '',
-                      controller: _senderController,
-                      hint: context.l10n.wallet_linked_senders_hint,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: (_) => _addSender(),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  IconButton.filled(
-                    onPressed: _addSender,
-                    icon: const Icon(AppIcons.add),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSizes.xl),
-            ],
-
-            // ── Starting balance (add mode only) ─────────────────
-            if (!isEdit)
-              GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.l10n.wallet_starting_balance,
-                      style: context.textStyles.labelLarge?.copyWith(
-                        color: cs.outline,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.xs),
-                    Text(
-                      context.l10n.wallet_starting_balance_hint,
-                      style: context.textStyles.bodySmall?.copyWith(
-                        color: cs.outline,
-                      ),
-                    ),
-                    const SizedBox(height: AppSizes.sm),
-                    AmountInput(
-                      onAmountChanged: (p) =>
-                          setState(() => _balancePiastres = p),
-                      autofocus: false,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
+        child: _buildFormFields(context, isEdit: isEdit),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            AppSizes.screenHPadding,
-            AppSizes.sm,
-            AppSizes.screenHPadding,
-            AppSizes.md,
+      bottomNavigationBar: _buildBottomButton(context, isEdit: isEdit),
+    );
+  }
+
+  /// Bottom-sheet body — used for both add and edit modes.
+  Widget _buildSheetBody(BuildContext context) {
+    final cs = context.colors;
+    final isEdit = widget.editId != null;
+    return Column(
+      children: [
+        // ── Handle + title ────────────────────────────────────────
+        const SizedBox(height: AppSizes.sm),
+        Container(
+          width: AppSizes.dragHandleWidth,
+          height: AppSizes.dragHandleHeight,
+          decoration: BoxDecoration(
+            color: cs.outlineVariant,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
           ),
-          child: AppButton(
-            label: isEdit
-                ? context.l10n.common_save_changes
-                : context.l10n.wallet_add_button,
-            onPressed: _loading ? null : _save,
-            isLoading: _loading,
-            icon: AppIcons.check,
+        ),
+        const SizedBox(height: AppSizes.md),
+        Text(
+          isEdit
+              ? context.l10n.wallet_edit_title
+              : context.l10n.wallet_add_title,
+          style: context.textStyles.headlineMedium,
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Scrollable content ────────────────────────────────────
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.screenHPadding,
+            ),
+            child: _buildFormFields(context, isEdit: isEdit),
           ),
+        ),
+
+        // ── Bottom button ─────────────────────────────────────────
+        _buildBottomButton(context, isEdit: isEdit),
+      ],
+    );
+  }
+
+  /// Shared form fields — reordered for add mode (balance first).
+  Widget _buildFormFields(BuildContext context, {required bool isEdit}) {
+    final cs = context.colors;
+    final types = _walletTypes(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Starting balance FIRST (add mode hero) ──────────────
+        if (!isEdit) ...[
+          Center(
+            child: Text(
+              context.l10n.wallet_starting_balance,
+              style: context.textStyles.labelLarge?.copyWith(
+                color: cs.outline,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+          AmountInput(
+            onAmountChanged: (p) => setState(() => _balancePiastres = p),
+            autofocus: false,
+            compact: true,
+          ),
+          const SizedBox(height: AppSizes.lg),
+        ],
+
+        // ── Account name ────────────────────────────────────────
+        AppTextField(
+          label: context.l10n.wallet_name_label,
+          hint: context.l10n.wallet_name_hint_example,
+          controller: _nameController,
+          errorText: _nameError,
+          textInputAction: TextInputAction.next,
+          prefixIcon: const Icon(AppIcons.wallet),
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Account type ────────────────────────────────────────
+        Text(
+          context.l10n.wallet_type_label,
+          style: context.textStyles.labelLarge?.copyWith(
+            color: cs.outline,
+          ),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        if (_isSystemWallet)
+          Text(
+            context.l10n.wallet_cannot_archive_system,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.outline,
+            ),
+          )
+        else
+          Wrap(
+            spacing: AppSizes.sm,
+            runSpacing: AppSizes.sm,
+            children: types.map((t) {
+              final isSelected = t.value == _type;
+              return FilterChip(
+                selected: isSelected,
+                avatar: Icon(t.icon, size: AppSizes.iconXs),
+                label: Text(t.label),
+                onSelected: (_) => setState(() => _type = t.value),
+                showCheckmark: false,
+              );
+            }).toList(),
+          ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Color ───────────────────────────────────────────────
+        Text(
+          context.l10n.wallet_color_label,
+          style: context.textStyles.labelLarge?.copyWith(
+            color: cs.outline,
+          ),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        Wrap(
+          spacing: AppSizes.sm,
+          runSpacing: AppSizes.sm,
+          children: _colorOptions.map((hex) {
+            final color = ColorUtils.fromHex(hex);
+            final isSelected = hex == _colorHex;
+            return Semantics(
+              label: context.l10n.wallet_color_label,
+              selected: isSelected,
+              button: true,
+              child: SizedBox(
+                width: AppSizes.minTapTarget,
+                height: AppSizes.minTapTarget,
+                child: Center(
+                  child: GestureDetector(
+                    onTap: () => setState(() => _colorHex = hex),
+                    child: Container(
+                      width: AppSizes.colorSwatchSize,
+                      height: AppSizes.colorSwatchSize,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                        border: isSelected
+                            ? Border.all(
+                                color: cs.primary,
+                                width: AppSizes.colorSwatchBorder,
+                              )
+                            : Border.all(
+                                color: AppColors.transparent,
+                                width: AppSizes.colorSwatchBorder,
+                              ),
+                      ),
+                      child: isSelected
+                          ? Icon(
+                              AppIcons.check,
+                              color: ColorUtils.contrastColor(color),
+                              size: AppSizes.iconXs,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+
+        // ── Linked SMS Senders (hidden when kSmsEnabled=false) ──
+        if (AppConfig.kSmsEnabled) ...[
+          const SizedBox(height: AppSizes.lg),
+          Text(
+            context.l10n.wallet_linked_senders_label,
+            style: context.textStyles.labelLarge?.copyWith(
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: AppSizes.xs),
+          Text(
+            context.l10n.wallet_linked_senders_subtitle,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+          Wrap(
+            spacing: AppSizes.sm,
+            runSpacing: AppSizes.sm,
+            children: _linkedSenders
+                .map(
+                  (s) => InputChip(
+                    label: Text(s),
+                    onDeleted: () => setState(
+                      () => _linkedSenders.remove(s),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          if (_linkedSenders.isNotEmpty) const SizedBox(height: AppSizes.sm),
+          Row(
+            children: [
+              Expanded(
+                child: AppTextField(
+                  label: '',
+                  controller: _senderController,
+                  hint: context.l10n.wallet_linked_senders_hint,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _addSender(),
+                ),
+              ),
+              const SizedBox(width: AppSizes.sm),
+              IconButton.filled(
+                onPressed: _addSender,
+                icon: const Icon(AppIcons.add),
+              ),
+            ],
+          ),
+        ],
+
+        // ── Starting balance (edit mode — at bottom) ────────────
+        if (isEdit) ...[
+          const SizedBox(height: AppSizes.lg),
+          Text(
+            context.l10n.wallet_starting_balance,
+            style: context.textStyles.labelLarge?.copyWith(
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: AppSizes.xs),
+          Text(
+            context.l10n.wallet_starting_balance_hint,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+          AmountInput(
+            initialPiastres: _balancePiastres,
+            onAmountChanged: (p) => setState(() => _balancePiastres = p),
+            autofocus: false,
+          ),
+        ],
+
+        const SizedBox(height: AppSizes.lg),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context, {required bool isEdit}) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(
+          AppSizes.screenHPadding,
+          AppSizes.sm,
+          AppSizes.screenHPadding,
+          AppSizes.md,
+        ),
+        child: AppButton(
+          label: isEdit
+              ? context.l10n.common_save_changes
+              : context.l10n.wallet_add_button,
+          onPressed: _loading ? null : _save,
+          isLoading: _loading,
+          icon: AppIcons.check,
         ),
       ),
     );

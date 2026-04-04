@@ -26,6 +26,7 @@ import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_recurring_screen.dart';
 
 class RecurringScreen extends ConsumerWidget {
   const RecurringScreen({super.key});
@@ -42,7 +43,7 @@ class RecurringScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(AppIcons.add),
             tooltip: context.l10n.recurring_add,
-            onPressed: () => context.push(AppRoutes.recurringAdd),
+            onPressed: () => AddRecurringScreen.show(context),
           ),
         ],
       ),
@@ -57,7 +58,7 @@ class RecurringScreen extends ConsumerWidget {
               title: context.l10n.recurring_and_bills_title,
               subtitle: context.l10n.recurring_empty_sub,
               ctaLabel: context.l10n.recurring_add,
-              onCta: () => context.push(AppRoutes.recurringAdd),
+              onCta: () => AddRecurringScreen.show(context),
             );
           }
 

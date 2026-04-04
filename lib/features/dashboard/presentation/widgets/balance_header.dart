@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
+import '../../../../features/wallets/presentation/screens/add_wallet_screen.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -147,7 +146,7 @@ class BalanceHeader extends ConsumerWidget {
                             ),
                           ),
                           backgroundColor: cs.surface,
-                          onPressed: () => context.push(AppRoutes.walletAdd),
+                          onPressed: () => AddWalletScreen.show(context),
                         ),
                       ),
                     ],

@@ -127,6 +127,11 @@ abstract final class AppIcons {
   static const IconData moreVert = PhosphorIconsRegular.dotsThreeVertical;
   static const IconData dragHandle = PhosphorIconsRegular.dotsSixVertical;
   static const IconData sliders = PhosphorIconsBold.sliders;
+  static const IconData listView = PhosphorIconsRegular.list;
+  static const IconData cardStack = PhosphorIconsRegular.stack;
+
+  // ── Hint / gesture ────────────────────────────────────────────────────
+  static const IconData handPointing = PhosphorIconsFill.handPointing;
 
   // ── Trend indicators ───────────────────────────────────────────────────
   static const IconData trendingUp = PhosphorIconsBold.trendUp;

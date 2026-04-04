@@ -178,7 +178,7 @@ class _SpeedDialFabState extends State<SpeedDialFab>
     });
 
     final scrimColor = Theme.of(context).colorScheme.scrim.withValues(
-          alpha: AppSizes.opacityLight4,
+          alpha: AppSizes.opacityLight2,
         );
 
     // Insert a full-screen overlay containing BOTH the scrim AND the arc
@@ -217,6 +217,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = context.colors.primary;
+
     // Action buttons are now rendered inside the OverlayEntry (see
     // _buildOverlayContent) so they sit above the scrim and receive taps.
     return SizedBox(
@@ -237,12 +239,35 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                   child: child,
                 );
               },
-              child: FloatingActionButton(
-                key: _fabKey,
-                heroTag: 'nav_fab',
-                onPressed: _toggle,
-                elevation: AppSizes.elevationHigh,
-                child: const Icon(AppIcons.add),
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withValues(alpha: 0.15),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  key: _fabKey,
+                  heroTag: 'nav_fab',
+                  onPressed: _toggle,
+                  elevation: 0,
+                  highlightElevation: 0,
+                  backgroundColor: _isExpanded ? context.colors.surface : null,
+                  shape: _isExpanded
+                      ? CircleBorder(
+                          side: BorderSide(color: primaryColor),
+                        )
+                      : null,
+                  child: Icon(
+                    AppIcons.add,
+                    color:
+                        _isExpanded ? primaryColor : context.colors.onPrimary,
+                  ),
+                ),
               ),
             ),
           ),
@@ -340,14 +365,11 @@ class _SpeedDialFabState extends State<SpeedDialFab>
               children: [
                 // Circular icon button with ink splash
                 Material(
-                  color: Color.alphaBlend(
-                    accentColor.withValues(alpha: AppSizes.opacityLight),
-                    cs.surface,
-                  ),
+                  color: cs.surface,
                   shape: CircleBorder(
                     side: BorderSide(
                       color: accentColor.withValues(
-                        alpha: AppSizes.opacityLight3,
+                        alpha: AppSizes.opacityLight4,
                       ),
                     ),
                   ),

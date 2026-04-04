@@ -1877,6 +1877,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_daily_average => 'المتوسط اليومي';
 
   @override
+  String get reports_total_spending => 'إجمالي الإنفاق';
+
+  @override
+  String get reports_highest_day => 'أعلى يوم';
+
+  @override
+  String get reports_vs_previous => 'مقارنة بالفترة السابقة';
+
+  @override
   String reports_savings_rate(int rate) {
     return 'معدل التوفير: $rate% من الدخل';
   }
@@ -3062,4 +3071,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get notif_permission_denied =>
       'تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات.';
+
+  @override
+  String get hint_fab => 'اضغط + لإضافة معاملات بسرعة — صوت أو يدوي';
+
+  @override
+  String get hint_swipe_right => 'اسحب يمينًا للموافقة';
+
+  @override
+  String get hint_swipe_left => 'اسحب يسارًا لتخطي';
 }

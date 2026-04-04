@@ -7,13 +7,15 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/analytics_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Whether the chart should use income color instead of expense.
 bool _isIncomeFilter(WidgetRef ref) =>
     ref.watch(reportsTypeFilterProvider) == 'income';
 
-/// Trends tab — line chart with 7d / 30d / 90d toggle.
+/// Trends tab — line chart with 7d / 30d / 90d pill chip toggle,
+/// hero total, and summary cards.
 class TrendsTab extends ConsumerStatefulWidget {
   const TrendsTab({super.key});
 
@@ -32,36 +34,41 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
   Widget build(BuildContext context) {
     super.build(context);
     final dailyAsync = ref.watch(dailySpendingProvider(_selectedDays));
+    final isIncome = _isIncomeFilter(ref);
 
     return Column(
       children: [
-        // ── Period selector ─────────────────────────────────────
+        // ── Period selector (pill chips) ──────────────────────────────
         Padding(
           padding: const EdgeInsets.all(AppSizes.screenHPadding),
-          child: SegmentedButton<int>(
-            segments: [
-              ButtonSegment(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _PeriodChip(
+                label: context.l10n.reports_period_7d,
                 value: 7,
-                label: Text(context.l10n.reports_period_7d),
+                selected: _selectedDays == 7,
+                onSelected: () => setState(() => _selectedDays = 7),
               ),
-              ButtonSegment(
+              const SizedBox(width: AppSizes.sm),
+              _PeriodChip(
+                label: context.l10n.reports_period_30d,
                 value: 30,
-                label: Text(context.l10n.reports_period_30d),
+                selected: _selectedDays == 30,
+                onSelected: () => setState(() => _selectedDays = 30),
               ),
-              ButtonSegment(
+              const SizedBox(width: AppSizes.sm),
+              _PeriodChip(
+                label: context.l10n.reports_period_90d,
                 value: 90,
-                label: Text(context.l10n.reports_period_90d),
+                selected: _selectedDays == 90,
+                onSelected: () => setState(() => _selectedDays = 90),
               ),
             ],
-            selected: {_selectedDays},
-            onSelectionChanged: (val) {
-              setState(() => _selectedDays = val.first);
-            },
-            showSelectedIcon: false,
           ),
         ),
 
-        // ── Chart ──────────────────────────────────────────────
+        // ── Content ──────────────────────────────────────────────────
         Expanded(
           child: dailyAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
@@ -76,23 +83,195 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
                 );
               }
 
-              return Padding(
-                padding: const EdgeInsetsDirectional.only(
-                  start: AppSizes.screenHPadding,
-                  end: AppSizes.screenHPadding,
-                  bottom: AppSizes.bottomScrollPadding,
-                ),
-                child: RepaintBoundary(
-                  child: _SpendingLineChart(
-                    data: dailyData,
-                    days: _selectedDays,
-                    isIncome: _isIncomeFilter(ref),
-                  ),
-                ),
+              return _TrendsContent(
+                data: dailyData,
+                days: _selectedDays,
+                isIncome: isIncome,
               );
             },
           ),
         ),
+      ],
+    );
+  }
+}
+
+// ── Period chip ────────────────────────────────────────────────────────────
+
+class _PeriodChip extends StatelessWidget {
+  const _PeriodChip({
+    required this.label,
+    required this.value,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String label;
+  final int value;
+  final bool selected;
+  final VoidCallback onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onSelected(),
+      showCheckmark: false,
+      visualDensity: VisualDensity.compact,
+      selectedColor: context.colors.primary,
+      labelStyle: context.textStyles.labelMedium?.copyWith(
+        color: selected ? context.colors.onPrimary : context.colors.onSurface,
+      ),
+      backgroundColor: context.colors.surfaceContainerHighest,
+    );
+  }
+}
+
+// ── Trends content (hero + chart + summary cards) ─────────────────────────
+
+class _TrendsContent extends StatelessWidget {
+  const _TrendsContent({
+    required this.data,
+    required this.days,
+    required this.isIncome,
+  });
+
+  final List<DailySpending> data;
+  final int days;
+  final bool isIncome;
+
+  @override
+  Widget build(BuildContext context) {
+    final lineColor =
+        isIncome ? context.appTheme.incomeColor : context.appTheme.expenseColor;
+
+    // Compute aggregate values.
+    final total = data.fold<int>(0, (sum, d) => sum + d.amount);
+    final maxDay = data.reduce((a, b) => a.amount >= b.amount ? a : b);
+
+    // Compute previous-period comparison.
+    // The previous period is the [days] days immediately before the current
+    // range.  Since the provider only returns the current window, we
+    // approximate by splitting the data in half: second half is "current",
+    // first half is "previous".
+    final halfLen = data.length ~/ 2;
+    final prevTotal =
+        data.sublist(0, halfLen).fold<int>(0, (s, d) => s + d.amount);
+    final currTotal =
+        data.sublist(halfLen).fold<int>(0, (s, d) => s + d.amount);
+
+    // Percentage change: positive = increase, negative = decrease.
+    final double changePct;
+    if (prevTotal > 0) {
+      changePct = ((currTotal - prevTotal) / prevTotal) * 100;
+    } else {
+      changePct = currTotal > 0 ? 100 : 0;
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsetsDirectional.only(
+        start: AppSizes.screenHPadding,
+        end: AppSizes.screenHPadding,
+        bottom: AppSizes.bottomScrollPadding,
+      ),
+      child: Column(
+        children: [
+          // ── Hero section ────────────────────────────────────────
+          _HeroSection(
+            total: total,
+            changePct: changePct,
+            lineColor: lineColor,
+            isIncome: isIncome,
+          ),
+          const SizedBox(height: AppSizes.md),
+
+          // ── Line chart ─────────────────────────────────────────
+          RepaintBoundary(
+            child: SizedBox(
+              height: AppSizes.chartHeightMd,
+              child: _SpendingLineChart(
+                data: data,
+                days: days,
+                isIncome: isIncome,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.md),
+
+          // ── Summary cards ──────────────────────────────────────
+          _SummaryCards(
+            total: total,
+            days: days,
+            maxDay: maxDay,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Hero section ──────────────────────────────────────────────────────────
+
+class _HeroSection extends StatelessWidget {
+  const _HeroSection({
+    required this.total,
+    required this.changePct,
+    required this.lineColor,
+    required this.isIncome,
+  });
+
+  final int total;
+  final double changePct;
+  final Color lineColor;
+  final bool isIncome;
+
+  @override
+  Widget build(BuildContext context) {
+    // For expenses: increase (positive %) is worse (red), decrease is better (green).
+    // For income: increase is better (green), decrease is worse (red).
+    final isPositiveChange = changePct >= 0;
+    final isBetter = isIncome ? isPositiveChange : !isPositiveChange;
+    final badgeColor =
+        isBetter ? context.appTheme.incomeColor : context.appTheme.expenseColor;
+    final arrow = isPositiveChange ? '\u2191' : '\u2193';
+
+    return Column(
+      children: [
+        Text(
+          context.l10n.reports_total_spending,
+          style: context.textStyles.labelLarge?.copyWith(
+            color: context.colors.outline,
+          ),
+        ),
+        const SizedBox(height: AppSizes.xs),
+        Text(
+          MoneyFormatter.format(total),
+          style: context.textStyles.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: lineColor,
+          ),
+        ),
+        if (changePct != 0) ...[
+          const SizedBox(height: AppSizes.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.sm,
+              vertical: AppSizes.xs,
+            ),
+            decoration: BoxDecoration(
+              color: badgeColor.withValues(alpha: AppSizes.opacityLight2),
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+            ),
+            child: Text(
+              '$arrow ${changePct.abs().toStringAsFixed(0)}% ${context.l10n.reports_vs_previous}',
+              style: context.textStyles.labelSmall?.copyWith(
+                color: badgeColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -121,6 +300,11 @@ class _SpendingLineChart extends StatelessWidget {
     final spots = List.generate(data.length, (i) {
       return FlSpot(i.toDouble(), data[i].amount.toDouble());
     });
+
+    final lastIndex = data.length - 1;
+
+    // Compute 2 evenly-spaced horizontal grid line values.
+    final gridInterval = maxY / 3;
 
     return LineChart(
       LineChartData(
@@ -152,28 +336,11 @@ class _SpendingLineChart extends StatelessWidget {
         titlesData: FlTitlesData(
           topTitles: const AxisTitles(),
           rightTitles: const AxisTitles(),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: AppSizes.chartAxisReservedSm,
-              getTitlesWidget: (value, meta) {
-                if (value == meta.max || value == meta.min) {
-                  return const SizedBox.shrink();
-                }
-                return Text(
-                  MoneyFormatter.formatCompact(value.toInt()),
-                  style: context.textStyles.bodySmall?.copyWith(
-                    fontSize: AppSizes.chartLabelSize,
-                    color: context.colors.onSurfaceVariant,
-                  ),
-                );
-              },
-            ),
-          ),
+          leftTitles: const AxisTitles(),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: days <= 7 ? 1 : (days <= 30 ? 7 : 15),
+              interval: 7,
               getTitlesWidget: (value, _) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= data.length) {
@@ -182,10 +349,9 @@ class _SpendingLineChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
-                    DateFormat('d/M', context.languageCode)
+                    DateFormat('MMM d', context.languageCode)
                         .format(data[idx].date),
-                    style: context.textStyles.bodySmall?.copyWith(
-                      fontSize: AppSizes.chartLabelSize,
+                    style: context.textStyles.labelSmall?.copyWith(
                       color: context.colors.onSurfaceVariant,
                     ),
                   ),
@@ -196,10 +362,17 @@ class _SpendingLineChart extends StatelessWidget {
         ),
         gridData: FlGridData(
           drawVerticalLine: false,
-          getDrawingHorizontalLine: (value) => FlLine(
-            color: context.colors.outlineVariant
-                .withValues(alpha: AppSizes.opacityMedium),
-            strokeWidth: 1,
+          horizontalInterval: gridInterval > 0 ? gridInterval : null,
+          checkToShowHorizontalLine: (value) {
+            // Show only the 2 middle lines (1/3 and 2/3).
+            if (gridInterval <= 0) return false;
+            final normalized = value / gridInterval;
+            return (normalized - 1).abs() < 0.01 ||
+                (normalized - 2).abs() < 0.01;
+          },
+          getDrawingHorizontalLine: (_) => FlLine(
+            color: context.colors.outlineVariant,
+            strokeWidth: 0.5,
           ),
         ),
         borderData: FlBorderData(show: false),
@@ -209,36 +382,103 @@ class _SpendingLineChart extends StatelessWidget {
             isCurved: true,
             preventCurveOverShooting: true,
             color: chartColor,
-            barWidth: AppSizes.chartLineWidth, // WS-9: thicker line
-            shadow: Shadow(
-              color: chartColor.withValues(alpha: AppSizes.opacityLight4),
-              blurRadius: AppSizes.chartShadowBlur,
-              offset: const Offset(0, AppSizes.chartShadowOffsetY),
-            ),
             dotData: FlDotData(
-              show: days <= 7,
+              checkToShowDot: (spot, barData) => spot.x.toInt() == lastIndex,
               getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
-                radius: AppSizes.chartDotRadius,
+                radius: AppSizes.chartDotRadius + 1,
                 color: chartColor,
                 strokeWidth: AppSizes.chartDotStrokeWidth,
                 strokeColor: context.colors.surface,
               ),
             ),
-            // WS-9: gradient area fill (0.25→0.0 alpha)
             belowBarData: BarAreaData(
               show: true,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  chartColor.withValues(alpha: AppSizes.opacityQuarter),
-                  chartColor.withValues(alpha: AppSizes.opacityNone),
-                ],
-              ),
+              color: chartColor.withValues(alpha: 0.05),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Summary cards ─────────────────────────────────────────────────────────
+
+class _SummaryCards extends StatelessWidget {
+  const _SummaryCards({
+    required this.total,
+    required this.days,
+    required this.maxDay,
+  });
+
+  final int total;
+  final int days;
+  final DailySpending maxDay;
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyAverage = days > 0 ? total ~/ days : 0;
+
+    return Row(
+      children: [
+        // ── Daily Average card ────────────────────────────────────
+        Expanded(
+          child: GlassCard(
+            tier: GlassTier.inset,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.reports_daily_average,
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xs),
+                Text(
+                  MoneyFormatter.format(dailyAverage),
+                  style: context.textStyles.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSizes.sm),
+
+        // ── Highest Day card ─────────────────────────────────────
+        Expanded(
+          child: GlassCard(
+            tier: GlassTier.inset,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.reports_highest_day,
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xs),
+                Text(
+                  MoneyFormatter.format(maxDay.amount),
+                  style: context.textStyles.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xxs),
+                Text(
+                  DateFormat.MMMd(context.languageCode).format(maxDay.date),
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.colors.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

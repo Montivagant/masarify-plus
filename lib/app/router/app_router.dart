@@ -258,12 +258,6 @@ final appRouter = GoRouter(
       ),
     ),
     GoRoute(
-      path: AppRoutes.goalEdit,
-      redirect: (_, state) =>
-          _parseId(state) == null ? AppRoutes.dashboard : null,
-      builder: (context, state) => AddGoalScreen(editId: _parseId(state)!),
-    ),
-    GoRoute(
       path: AppRoutes.goalDetail,
       redirect: (_, state) =>
           _parseId(state) == null ? AppRoutes.dashboard : null,

@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @nav_subscriptions.
   ///
   /// In en, this message translates to:
-  /// **'Subscriptions'**
+  /// **'Recurring'**
   String get nav_subscriptions;
 
   /// No description provided for @dashboard_title.
@@ -3686,6 +3686,24 @@ abstract class AppLocalizations {
   /// **'Daily Average'**
   String get reports_daily_average;
 
+  /// No description provided for @reports_total_spending.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Spending'**
+  String get reports_total_spending;
+
+  /// No description provided for @reports_highest_day.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest Day'**
+  String get reports_highest_day;
+
+  /// No description provided for @reports_vs_previous.
+  ///
+  /// In en, this message translates to:
+  /// **'vs previous period'**
+  String get reports_vs_previous;
+
   /// No description provided for @reports_savings_rate.
   ///
   /// In en, this message translates to:
@@ -5678,6 +5696,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notification permission denied. Enable it in Settings to receive alerts.'**
   String get notif_permission_denied;
+
+  /// No description provided for @hint_fab.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to quickly add transactions — Voice or Manual'**
+  String get hint_fab;
+
+  /// No description provided for @hint_swipe_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe right to approve'**
+  String get hint_swipe_right;
+
+  /// No description provided for @hint_swipe_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe left to skip'**
+  String get hint_swipe_left;
 }
 
 class _AppLocalizationsDelegate

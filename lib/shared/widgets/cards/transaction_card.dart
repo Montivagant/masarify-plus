@@ -216,11 +216,15 @@ class _CardContent extends StatelessWidget {
                         if (walletName != null) ...[
                           if (transaction.title.isNotEmpty)
                             const SizedBox(width: AppSizes.xs),
-                          Text(
-                            walletName!,
-                            style: context.textStyles.labelSmall?.copyWith(
-                              color: context.colors.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
+                          Flexible(
+                            child: Text(
+                              walletName!,
+                              style: context.textStyles.labelSmall?.copyWith(
+                                color: context.colors.onSurfaceVariant,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -249,6 +253,8 @@ class _CardContent extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: amountColor,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

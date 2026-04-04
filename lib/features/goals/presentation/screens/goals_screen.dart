@@ -18,6 +18,7 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_goal_screen.dart';
 
 class GoalsScreen extends ConsumerWidget {
   const GoalsScreen({super.key});
@@ -43,7 +44,7 @@ class GoalsScreen extends ConsumerWidget {
               if (!hasPro && (activeAsync.valueOrNull?.length ?? 0) >= 1) {
                 context.push(AppRoutes.paywall);
               } else {
-                context.push(AppRoutes.goalAdd);
+                AddGoalScreen.show(context);
               }
             },
           ),
@@ -57,7 +58,7 @@ class GoalsScreen extends ConsumerWidget {
               title: context.l10n.goals_empty_title,
               subtitle: context.l10n.goals_empty_sub_long,
               ctaLabel: context.l10n.goal_add,
-              onCta: () => context.push(AppRoutes.goalAdd),
+              onCta: () => AddGoalScreen.show(context),
             );
           }
           return ListView(

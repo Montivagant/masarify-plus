@@ -156,6 +156,7 @@ class TransactionSliverList extends ConsumerWidget {
               }
             }
 
+            final isTransfer = tx.id < 0;
             return TransactionCard(
               transaction: tx,
               categoryIcon: resolved.icon,
@@ -164,7 +165,7 @@ class TransactionSliverList extends ConsumerWidget {
               transferCounterpartIcon: transferCounterpartIcon,
               walletName: showWalletName ? walletNames[tx.walletId] : null,
               onTap: onTap != null ? () => onTap!(tx) : null,
-              onEdit: onEdit != null ? () => onEdit!(tx) : null,
+              onEdit: !isTransfer && onEdit != null ? () => onEdit!(tx) : null,
               onDelete: onDelete != null ? () => onDelete!(tx) : null,
             );
           },

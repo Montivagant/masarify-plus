@@ -24,6 +24,7 @@ import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'set_budget_screen.dart';
 
 class BudgetsScreen extends ConsumerStatefulWidget {
   const BudgetsScreen({super.key});
@@ -113,9 +114,10 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
               if (!hasPro && (budgetsAsync.valueOrNull?.length ?? 0) >= 2) {
                 context.push(AppRoutes.paywall);
               } else {
-                context.push(
-                  AppRoutes.budgetSet,
-                  extra: {'year': _year, 'month': _month},
+                SetBudgetScreen.show(
+                  context,
+                  initialYear: _year,
+                  initialMonth: _month,
                 );
               }
             },
@@ -137,9 +139,10 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                     title: context.l10n.budgets_empty_title,
                     subtitle: context.l10n.budgets_empty_sub_long,
                     ctaLabel: context.l10n.budget_set,
-                    onCta: () => context.push(
-                      AppRoutes.budgetSet,
-                      extra: {'year': _year, 'month': _month},
+                    onCta: () => SetBudgetScreen.show(
+                      context,
+                      initialYear: _year,
+                      initialMonth: _month,
                     ),
                   );
                 }
@@ -205,9 +208,11 @@ class _BudgetsScreenState extends ConsumerState<BudgetsScreen> {
                                         MoneyFormatter.format(lastMonthSaved),
                                       )
                                     : null,
-                                onTap: () => context.push(
-                                  '/budgets/${budget.id}/edit',
-                                  extra: {'year': _year, 'month': _month},
+                                onTap: () => SetBudgetScreen.showEdit(
+                                  context,
+                                  budget.id,
+                                  initialYear: _year,
+                                  initialMonth: _month,
                                 ),
                               );
                             }(),

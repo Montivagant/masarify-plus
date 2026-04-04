@@ -11,7 +11,8 @@ import '../../../../shared/providers/analytics_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
-/// Overview tab — income vs expense bar chart with summary cards and insights.
+/// Overview tab — hero total, pill period selector, income vs expense bar chart,
+/// 2x2 summary grid, and savings insight banner.
 class OverviewTab extends ConsumerStatefulWidget {
   const OverviewTab({super.key});
 
@@ -58,162 +59,36 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
         final dailyAvg =
             current.expense > 0 ? current.expense ~/ daysElapsed : 0;
 
+        // Expense comparison percentage
+        final int? expenseChangePercent;
+        if (previous != null && previous.expense > 0) {
+          expenseChangePercent =
+              (((current.expense - previous.expense) * 100) / previous.expense)
+                  .round();
+        } else {
+          expenseChangePercent = null;
+        }
+
         return ListView(
           padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
           children: [
-            // ── Period selector ─────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-                vertical: AppSizes.sm,
-              ),
-              child: SegmentedButton<int>(
-                segments: [
-                  ButtonSegment(
-                    value: 3,
-                    label: Text(context.l10n.period_3_months),
-                  ),
-                  ButtonSegment(
-                    value: 6,
-                    label: Text(context.l10n.period_6_months),
-                  ),
-                  ButtonSegment(
-                    value: 12,
-                    label: Text(context.l10n.period_1_year),
-                  ),
-                ],
-                selected: {_months},
-                onSelectionChanged: (v) => setState(() => _months = v.first),
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                ),
-              ),
-            ),
+            const SizedBox(height: AppSizes.md),
 
-            // ── Summary cards ──────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _SummaryCard(
-                      label: context.l10n.reports_total_income,
-                      amount: current.income,
-                      color: context.appTheme.incomeColor,
-                      icon: AppIcons.income,
-                      change: _percentChange(
-                        current.income,
-                        previous?.income,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: _SummaryCard(
-                      label: context.l10n.reports_total_expense,
-                      amount: current.expense,
-                      color: context.appTheme.expenseColor,
-                      icon: AppIcons.expense,
-                      change: _percentChange(
-                        current.expense,
-                        previous?.expense,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-
-            // ── Net + Savings Rate row ─────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _SummaryCard(
-                      label: context.l10n.reports_net,
-                      amount: current.net.abs(),
-                      color: current.net >= 0
-                          ? context.appTheme.incomeColor
-                          : context.appTheme.expenseColor,
-                      icon: current.net >= 0
-                          ? AppIcons.trendingUp
-                          : AppIcons.trendingDown,
-                      prefix: current.net >= 0 ? '+' : '\u2212',
-                    ),
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: _SummaryCard(
-                      label: context.l10n.reports_daily_average,
-                      amount: dailyAvg,
-                      color: context.colors.primary,
-                      icon: AppIcons.calendar,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Savings rate insight ────────────────────────────────
-            if (current.income > 0)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSizes.screenHPadding,
-                  AppSizes.sm,
-                  AppSizes.screenHPadding,
-                  0,
-                ),
-                child: GlassCard(
-                  tier: GlassTier.inset,
-                  tintColor: savingsRate >= 20
-                      ? context.appTheme.incomeColor
-                          .withValues(alpha: AppSizes.opacitySubtle)
-                      : context.appTheme.expenseColor
-                          .withValues(alpha: AppSizes.opacitySubtle),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.md,
-                    vertical: AppSizes.sm,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        savingsRate >= 20
-                            ? AppIcons.checkCircle
-                            : AppIcons.warning,
-                        size: AppSizes.iconSm,
-                        color: savingsRate >= 20
-                            ? context.appTheme.incomeColor
-                            : context.appTheme.expenseColor,
-                      ),
-                      const SizedBox(width: AppSizes.sm),
-                      Expanded(
-                        child: Text(
-                          context.l10n.reports_savings_rate(savingsRate),
-                          style: context.textStyles.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // ── Spending highlights ────────────────────────────────
-            _SpendingHighlights(
+            // ── Hero section ──────────────────────────────────────────
+            _HeroSection(
               expense: current.expense,
-              dailyAvg: dailyAvg,
+              changePercent: expenseChangePercent,
             ),
-
             const SizedBox(height: AppSizes.lg),
 
-            // ── Bar chart header ───────────────────────────────────
+            // ── Period selector (pill chips) ──────────────────────────
+            _PeriodSelector(
+              months: _months,
+              onChanged: (v) => setState(() => _months = v),
+            ),
+            const SizedBox(height: AppSizes.lg),
+
+            // ── Bar chart header ──────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.screenHPadding,
@@ -226,9 +101,9 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
             ),
             const SizedBox(height: AppSizes.md),
 
-            // ── Bar chart ──────────────────────────────────────────
+            // ── Bar chart ─────────────────────────────────────────────
             SizedBox(
-              height: AppSizes.chartHeightLg,
+              height: AppSizes.chartHeightMd,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
@@ -238,101 +113,216 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
                 ),
               ),
             ),
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Chart legend ──────────────────────────────────────────
+            const _ChartLegend(),
+            const SizedBox(height: AppSizes.lg),
+
+            // ── 2x2 Summary cards ─────────────────────────────────────
+            _SummaryGrid(
+              current: current,
+              dailyAvg: dailyAvg,
+            ),
+
+            // ── Insight banner ────────────────────────────────────────
+            if (savingsRate > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSizes.screenHPadding,
+                  AppSizes.md,
+                  AppSizes.screenHPadding,
+                  0,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSizes.sm),
+                  decoration: BoxDecoration(
+                    color: context.colors.surfaceContainerLow,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusMdSm),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppIcons.reports,
+                        size: AppSizes.iconXs,
+                        color: context.colors.primary,
+                      ),
+                      const SizedBox(width: AppSizes.xs),
+                      Expanded(
+                        child: Text(
+                          context.l10n.reports_savings_rate(savingsRate),
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: context.colors.outline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         );
       },
     );
   }
-
-  /// Calculate percent change between current and previous period.
-  int? _percentChange(int current, int? previous) {
-    if (previous == null || previous == 0) return null;
-    return (((current - previous) * 100) / previous).round();
-  }
 }
 
-// ── Summary card (glassmorphic) ─────────────────────────────────────────────
+// ── Hero section ──────────────────────────────────────────────────────────────
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.label,
-    required this.amount,
-    required this.color,
-    required this.icon,
-    this.change,
-    this.prefix,
+class _HeroSection extends StatelessWidget {
+  const _HeroSection({
+    required this.expense,
+    required this.changePercent,
   });
 
-  final String label;
-  final int amount;
-  final Color color;
-  final IconData icon;
-
-  /// Month-over-month percent change (null = no previous data).
-  final int? change;
-
-  /// Optional prefix for amount (e.g. '+' or '−').
-  final String? prefix;
+  final int expense;
+  final int? changePercent;
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
-      padding: const EdgeInsets.all(AppSizes.sm + AppSizes.xxs),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: AppSizes.iconXs, color: color),
-              const SizedBox(width: AppSizes.xs),
-              Expanded(
-                child: Text(
-                  label,
-                  style: context.textStyles.bodySmall?.copyWith(color: color),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    final cs = context.colors;
+    final expenseColor = context.appTheme.expenseColor;
+
+    return Column(
+      children: [
+        // "Total Expenses" label
+        Text(
+          context.l10n.reports_total_expense,
+          style: context.textStyles.labelLarge?.copyWith(
+            color: cs.outline,
           ),
-          const SizedBox(height: AppSizes.xs),
-          Text(
-            '${prefix ?? ''}${MoneyFormatter.formatAmount(amount)}',
-            style: context.textStyles.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: AppSizes.xs),
+        // Large hero number
+        Text(
+          MoneyFormatter.format(expense),
+          style: context.textStyles.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: expenseColor,
           ),
-          // Month-over-month change indicator
-          if (change != null) ...[
-            const SizedBox(height: AppSizes.xxs),
-            Row(
-              children: [
-                Icon(
-                  change! >= 0 ? AppIcons.trendingUp : AppIcons.trendingDown,
-                  size: AppSizes.iconXxs2,
-                  color: context.colors.outline,
-                ),
-                const SizedBox(width: AppSizes.xxs),
-                Text(
-                  '${change! >= 0 ? '+' : ''}$change%',
-                  style: context.textStyles.labelSmall?.copyWith(
-                    color: context.colors.outline,
-                  ),
-                ),
-              ],
-            ),
-          ],
+        ),
+        // Comparison badge
+        if (changePercent != null) ...[
+          const SizedBox(height: AppSizes.sm),
+          _ComparisonBadge(changePercent: changePercent!),
         ],
+      ],
+    );
+  }
+}
+
+// ── Comparison badge pill ─────────────────────────────────────────────────────
+
+class _ComparisonBadge extends StatelessWidget {
+  const _ComparisonBadge({required this.changePercent});
+
+  final int changePercent;
+
+  @override
+  Widget build(BuildContext context) {
+    // Green if expenses decreased (good), red if increased (bad)
+    final decreased = changePercent <= 0;
+    final color = decreased
+        ? context.appTheme.incomeColor
+        : context.appTheme.expenseColor;
+    final arrow = decreased ? '\u2193' : '\u2191'; // ↓ or ↑
+    final absPercent = changePercent.abs();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: AppSizes.opacityLight2),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+      ),
+      child: Text(
+        '$arrow $absPercent% ${context.l10n.reports_vs_last_month}',
+        style: context.textStyles.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 }
 
-// ── Income vs Expense bar chart ─────────────────────────────────────────────
+// ── Period selector (pill chips) ──────────────────────────────────────────────
+
+class _PeriodSelector extends StatelessWidget {
+  const _PeriodSelector({
+    required this.months,
+    required this.onChanged,
+  });
+
+  final int months;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _PillChip(
+          label: context.l10n.period_3_months,
+          selected: months == 3,
+          onTap: () => onChanged(3),
+        ),
+        const SizedBox(width: AppSizes.sm),
+        _PillChip(
+          label: context.l10n.period_6_months,
+          selected: months == 6,
+          onTap: () => onChanged(6),
+        ),
+        const SizedBox(width: AppSizes.sm),
+        _PillChip(
+          label: context.l10n.period_1_year,
+          selected: months == 12,
+          onTap: () => onChanged(12),
+        ),
+      ],
+    );
+  }
+}
+
+class _PillChip extends StatelessWidget {
+  const _PillChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      showCheckmark: false,
+      selectedColor: cs.primary,
+      backgroundColor: cs.surfaceContainerHighest,
+      labelStyle: context.textStyles.labelMedium?.copyWith(
+        color: selected ? cs.onPrimary : cs.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+      ),
+      side: BorderSide.none,
+      visualDensity: VisualDensity.compact,
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.sm),
+    );
+  }
+}
+
+// ── Income vs Expense bar chart ───────────────────────────────────────────────
 
 class _IncomeExpenseBarChart extends StatelessWidget {
   const _IncomeExpenseBarChart({required this.totals});
@@ -341,6 +331,9 @@ class _IncomeExpenseBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.colors;
+    final theme = context.appTheme;
+
     final maxVal = totals.fold<int>(
       0,
       (prev, t) {
@@ -349,6 +342,11 @@ class _IncomeExpenseBarChart extends StatelessWidget {
       },
     );
     final maxY = maxVal > 0 ? maxVal * 1.2 : 100000.0;
+
+    // Horizontal grid interval — show ~3 lines
+    final gridInterval = maxY / 4;
+
+    final lastIndex = totals.length - 1;
 
     return BarChart(
       BarChartData(
@@ -363,7 +361,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
               return BarTooltipItem(
                 '$label\n${MoneyFormatter.format(rod.toY.round())}',
                 (context.textStyles.bodySmall ?? const TextStyle()).copyWith(
-                  color: context.colors.onSurface,
+                  color: cs.onSurface,
                   fontWeight: FontWeight.w600,
                 ),
               );
@@ -373,27 +371,7 @@ class _IncomeExpenseBarChart extends StatelessWidget {
         titlesData: FlTitlesData(
           topTitles: const AxisTitles(),
           rightTitles: const AxisTitles(),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 48,
-              getTitlesWidget: (value, meta) {
-                if (value == meta.max || value == meta.min) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 4),
-                  child: Text(
-                    MoneyFormatter.formatCompact(value.toInt()),
-                    style: context.textStyles.bodySmall?.copyWith(
-                      color: context.colors.onSurfaceVariant,
-                      fontSize: AppSizes.chartLabelSize,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          leftTitles: const AxisTitles(),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -405,11 +383,10 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
-                    DateFormat('M/yy', context.languageCode)
+                    DateFormat.MMM(context.languageCode)
                         .format(DateTime(totals[idx].year, totals[idx].month)),
-                    style: context.textStyles.bodySmall?.copyWith(
-                      fontSize: AppSizes.chartLabelSize,
-                      color: context.colors.outline,
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: cs.outline,
                     ),
                   ),
                 );
@@ -419,16 +396,20 @@ class _IncomeExpenseBarChart extends StatelessWidget {
         ),
         gridData: FlGridData(
           drawVerticalLine: false,
+          horizontalInterval: gridInterval > 0 ? gridInterval : null,
           getDrawingHorizontalLine: (value) => FlLine(
-            color: context.colors.outlineVariant.withValues(
-              alpha: AppSizes.opacityMedium,
-            ),
-            strokeWidth: 1,
+            color: cs.outlineVariant,
+            strokeWidth: 0.5,
           ),
         ),
         borderData: FlBorderData(show: false),
         barGroups: List.generate(totals.length, (i) {
           final t = totals[i];
+          final isCurrentMonth = i == lastIndex;
+          final barWidth = isCurrentMonth
+              ? AppSizes.barChartWidth + 2
+              : AppSizes.barChartWidth;
+
           return BarChartGroupData(
             x: i,
             barsSpace: 4,
@@ -439,14 +420,15 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.incomeColor
+                    theme.incomeColor
                         .withValues(alpha: AppSizes.opacityMedium2),
-                    context.appTheme.incomeColor,
+                    theme.incomeColor,
                   ],
                 ),
-                width: AppSizes.barChartWidth,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.borderRadiusSm),
+                width: barWidth,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
                 ),
               ),
               BarChartRodData(
@@ -455,14 +437,15 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    context.appTheme.expenseColor
+                    theme.expenseColor
                         .withValues(alpha: AppSizes.opacityMedium2),
-                    context.appTheme.expenseColor,
+                    theme.expenseColor,
                   ],
                 ),
-                width: AppSizes.barChartWidth,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSizes.borderRadiusSm),
+                width: barWidth,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(4),
+                  topRight: Radius.circular(4),
                 ),
               ),
             ],
@@ -473,106 +456,172 @@ class _IncomeExpenseBarChart extends StatelessWidget {
   }
 }
 
-// ── Spending highlights ─────────────────────────────────────────────────────
+// ── Chart legend ──────────────────────────────────────────────────────────────
 
-class _SpendingHighlights extends ConsumerWidget {
-  const _SpendingHighlights({
-    required this.expense,
+class _ChartLegend extends StatelessWidget {
+  const _ChartLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    final ts = context.textStyles.labelSmall?.copyWith(
+      color: context.colors.onSurfaceVariant,
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _LegendDot(color: theme.incomeColor),
+        const SizedBox(width: AppSizes.xs),
+        Text(context.l10n.dashboard_income, style: ts),
+        const SizedBox(width: AppSizes.md),
+        _LegendDot(color: theme.expenseColor),
+        const SizedBox(width: AppSizes.xs),
+        Text(context.l10n.dashboard_expense, style: ts),
+      ],
+    );
+  }
+}
+
+class _LegendDot extends StatelessWidget {
+  const _LegendDot({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: AppSizes.dotSm,
+      height: AppSizes.dotSm,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
+// ── 2x2 Summary grid ─────────────────────────────────────────────────────────
+
+class _SummaryGrid extends StatelessWidget {
+  const _SummaryGrid({
+    required this.current,
     required this.dailyAvg,
   });
 
-  final int expense;
+  final MonthlyTotal current;
   final int dailyAvg;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (expense == 0) return const SizedBox.shrink();
-
-    final now = DateTime.now();
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    final daysLeft = daysInMonth - now.day;
-    final projectedTotal = expense + (dailyAvg * daysLeft);
-
-    // Top category for current month
-    final breakdown =
-        ref.watch(categoryBreakdownProvider((now.year, now.month))).valueOrNull;
-    final topCategory =
-        breakdown != null && breakdown.isNotEmpty ? breakdown.first : null;
+  Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    final cs = context.colors;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSizes.screenHPadding,
-        AppSizes.sm,
-        AppSizes.screenHPadding,
-        0,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.screenHPadding,
       ),
       child: Column(
         children: [
-          // Projected month-end spending
-          if (daysLeft > 0)
-            GlassCard(
-              tier: GlassTier.inset,
-              tintColor: context.colors.primary
-                  .withValues(alpha: AppSizes.opacitySubtle),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.md,
-                vertical: AppSizes.sm,
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryGridCard(
+                  icon: AppIcons.income,
+                  label: context.l10n.dashboard_income,
+                  value: MoneyFormatter.formatAmount(current.income),
+                  color: theme.incomeColor,
+                ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.trendingUp,
-                    size: AppSizes.iconSm,
-                    color: context.colors.primary,
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: Text(
-                      context.l10n.reports_projected_total(
-                        MoneyFormatter.formatCompact(projectedTotal),
-                      ),
-                      style: context.textStyles.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: _SummaryGridCard(
+                  icon: AppIcons.expense,
+                  label: context.l10n.dashboard_expense,
+                  value: MoneyFormatter.formatAmount(current.expense),
+                  color: theme.expenseColor,
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.sm),
+          Row(
+            children: [
+              Expanded(
+                child: _SummaryGridCard(
+                  icon: AppIcons.wallet,
+                  label: context.l10n.reports_net,
+                  value: MoneyFormatter.formatAmount(current.net.abs()),
+                  color: cs.primary,
+                  prefix: current.net >= 0 ? '+' : '\u2212',
+                ),
+              ),
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: _SummaryGridCard(
+                  icon: AppIcons.calendar,
+                  label: context.l10n.reports_daily_average,
+                  value: MoneyFormatter.formatAmount(dailyAvg),
+                  color: cs.outline,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryGridCard extends StatelessWidget {
+  const _SummaryGridCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+    this.prefix,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+  final String? prefix;
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      tier: GlassTier.inset,
+      padding: const EdgeInsets.all(AppSizes.borderRadiusMdSm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: AppSizes.iconXs, color: context.colors.outline),
+              const SizedBox(width: AppSizes.xs),
+              Expanded(
+                child: Text(
+                  label,
+                  style: context.textStyles.labelSmall?.copyWith(
+                    color: context.colors.outline,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.xs),
+          Text(
+            '${prefix ?? ''}$value',
+            style: context.textStyles.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
-          // Top spending category
-          if (topCategory != null) ...[
-            const SizedBox(height: AppSizes.xs),
-            GlassCard(
-              tier: GlassTier.inset,
-              tintColor: context.appTheme.expenseColor
-                  .withValues(alpha: AppSizes.opacitySubtle),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.md,
-                vertical: AppSizes.sm,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    AppIcons.expense,
-                    size: AppSizes.iconSm,
-                    color: context.appTheme.expenseColor,
-                  ),
-                  const SizedBox(width: AppSizes.sm),
-                  Expanded(
-                    child: Text(
-                      context.l10n.reports_top_spending(
-                        topCategory.categoryName,
-                        MoneyFormatter.formatCompact(topCategory.amount),
-                      ),
-                      style: context.textStyles.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

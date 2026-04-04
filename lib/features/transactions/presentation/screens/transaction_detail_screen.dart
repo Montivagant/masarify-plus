@@ -18,6 +18,7 @@ import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_transaction_screen.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   const TransactionDetailScreen({super.key, required this.id});
@@ -85,7 +86,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(AppIcons.edit),
                 tooltip: context.l10n.common_edit,
-                onPressed: () => context.push('/transactions/${tx.id}/edit'),
+                onPressed: () => AddTransactionScreen.showEdit(context, tx.id),
               ),
               IconButton(
                 icon: const Icon(AppIcons.delete),

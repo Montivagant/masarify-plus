@@ -20,32 +20,45 @@ import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
-import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/sheets/drag_handle.dart';
 import 'voice_wave_bars.dart';
 
 /// Voice input states.
 enum _VoiceState { idle, recording, processing, error }
 
-/// Bottom sheet for AI voice input using audio recording + Gemini API.
+/// Modal overlay for AI voice input using audio recording + Gemini API.
 ///
 /// Records audio via [AudioRecorder], sends WAV bytes to Gemini for
 /// transcription + transaction parsing in a single API call.
+///
+/// Displayed as a glassmorphic overlay covering the bottom ~65% of the screen,
+/// with hold-to-record and tap-to-toggle recording support.
 class VoiceInputSheet extends ConsumerStatefulWidget {
   const VoiceInputSheet({super.key});
 
-  /// Show the voice input sheet as a modal bottom sheet.
+  /// Show the voice input overlay as a general dialog.
   static Future<void> show(BuildContext context) {
-    return showModalBottomSheet<void>(
+    return showGeneralDialog<void>(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: context.appTheme.glassSheetSurface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppSizes.borderRadiusLg),
-        ),
-      ),
-      builder: (_) => const VoiceInputSheet(),
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withValues(alpha: AppSizes.opacityMedium),
+      transitionDuration: AppDurations.overlayExpand,
+      pageBuilder: (_, __, ___) => const VoiceInputSheet(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: child,
+        );
+      },
     );
   }
 
@@ -59,6 +72,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   _VoiceState _state = _VoiceState.idle;
   String? _tempFilePath;
   bool _isMicPermissionError = false;
+  String? _errorMessage;
 
   /// Synchronous guard against concurrent `_stopAndProcess` calls.
   bool _isStopping = false;
@@ -70,7 +84,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
   int _recordingSeconds = 0;
   Timer? _durationTimer;
 
-  /// Normalized amplitude (0.0 – 1.0) fed to [VoiceWaveBars].
+  /// Normalized amplitude (0.0 - 1.0) fed to [VoiceWaveBars].
   double _currentAmplitude = 0.0;
   StreamSubscription<Amplitude>? _amplitudeSubscription;
 
@@ -97,6 +111,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         setState(() {
           _isMicPermissionError = true;
           _state = _VoiceState.error;
+          _errorMessage = null;
         });
         return;
       }
@@ -144,11 +159,14 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       });
 
       setState(() => _state = _VoiceState.recording);
-      dev.log('Recording started → $_tempFilePath', name: 'VoiceInputSheet');
+      dev.log('Recording started -> $_tempFilePath', name: 'VoiceInputSheet');
     } catch (e) {
       dev.log('Recording start failed: $e', name: 'VoiceInputSheet');
       if (mounted) {
-        setState(() => _state = _VoiceState.error);
+        setState(() {
+          _state = _VoiceState.error;
+          _errorMessage = null;
+        });
       }
     }
   }
@@ -165,12 +183,12 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
 
     try {
       final path = await _recorder.stop();
-      dev.log('Recording stopped → $path', name: 'VoiceInputSheet');
+      dev.log('Recording stopped -> $path', name: 'VoiceInputSheet');
 
       if (path == null || path.isEmpty) {
         await _cleanupTempFile();
         if (!mounted) return;
-        _popAndShowInfo(context.l10n.voice_no_results);
+        _showErrorState(context.l10n.voice_no_results);
         return;
       }
 
@@ -179,7 +197,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       if (!file.existsSync()) {
         await _cleanupTempFile();
         if (!mounted) return;
-        _popAndShowInfo(context.l10n.voice_no_results);
+        _showErrorState(context.l10n.voice_no_results);
         return;
       }
 
@@ -194,7 +212,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       // ~1 second of 16kHz mono WAV — reject sub-second noise.
       if (audioBytes.length < 32000) {
         if (!mounted) return;
-        _popAndShowInfo(context.l10n.voice_no_results);
+        _showErrorState(context.l10n.voice_no_results);
         return;
       }
 
@@ -206,7 +224,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       );
       if (!online) {
         if (!mounted) return;
-        _popAndShowInfo(context.l10n.voice_error_no_service);
+        _showErrorState(context.l10n.voice_error_no_service);
         return;
       }
 
@@ -235,7 +253,7 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       );
 
       if (drafts.isEmpty) {
-        _popAndShowInfo(context.l10n.voice_ai_error);
+        _showErrorState(context.l10n.voice_no_results);
         return;
       }
 
@@ -252,19 +270,19 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         name: 'VoiceInputSheet',
       );
       if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_ai_error);
+      _showErrorState(context.l10n.voice_ai_error);
     } on TimeoutException {
       dev.log('Gemini request timed out', name: 'VoiceInputSheet');
       if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_ai_error);
+      _showErrorState(context.l10n.voice_ai_error);
     } on SocketException {
       dev.log('Network lost during Gemini call', name: 'VoiceInputSheet');
       if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_error_no_service);
+      _showErrorState(context.l10n.voice_error_no_service);
     } catch (e) {
       dev.log('Voice processing failed: $e', name: 'VoiceInputSheet');
       if (!mounted) return;
-      _popAndShowInfo(context.l10n.voice_ai_error);
+      _showErrorState(context.l10n.voice_ai_error);
     } finally {
       _isStopping = false;
     }
@@ -283,9 +301,27 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
         _VoiceState.error => VoiceWaveState.error,
       };
 
-  void _popAndShowInfo(String message) {
+  /// Transition to error state and display the given message in the overlay.
+  void _showErrorState(String message) {
     if (!mounted) return;
-    SnackHelper.showInfo(context, message);
+    setState(() {
+      _state = _VoiceState.error;
+      _errorMessage = message;
+    });
+  }
+
+  /// Close the overlay, stopping recording if active.
+  Future<void> _close() async {
+    if (_state == _VoiceState.recording) {
+      _durationTimer?.cancel();
+      _amplitudeSubscription?.cancel();
+      _amplitudeSubscription = null;
+      await _recorder.stop();
+    }
+    if (_state == _VoiceState.processing) {
+      _cancelled = true;
+    }
+    if (!mounted) return;
     context.pop();
   }
 
@@ -305,14 +341,138 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
     return '$m:$s';
   }
 
+  // ── Mic button handlers ────────────────────────────────────────────────
+
+  void _onMicTap() {
+    if (_state == _VoiceState.idle) {
+      _startRecording();
+    } else if (_state == _VoiceState.recording) {
+      _stopAndProcess();
+    }
+  }
+
+  void _onMicLongPressStart() {
+    if (_state == _VoiceState.idle) {
+      _startRecording();
+    }
+  }
+
+  void _onMicLongPressEnd() {
+    if (_state == _VoiceState.recording) {
+      _stopAndProcess();
+    }
+  }
+
   // ── UI ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
     final theme = context.appTheme;
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
-    // Mic button color based on state
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: GlassCard(
+        tier: GlassTier.background,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+        padding: EdgeInsets.zero,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: screenHeight * AppSizes.voiceOverlayMinHeight,
+            maxHeight: screenHeight * AppSizes.voiceOverlayMaxHeight,
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsetsDirectional.only(
+                start: AppSizes.screenHPadding,
+                end: AppSizes.screenHPadding,
+                top: AppSizes.sm,
+                bottom: MediaQuery.viewInsetsOf(context).bottom + AppSizes.lg,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // -- Drag handle --
+                  const DragHandle(),
+
+                  // -- Close button (top-right) --
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: IconButton(
+                      icon: const Icon(AppIcons.close, size: AppSizes.iconSm),
+                      onPressed: _close,
+                      visualDensity: VisualDensity.compact,
+                      tooltip: context.l10n.common_close,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // -- Mic button (glassmorphic, circular) --
+                  _buildMicButton(cs, theme),
+                  const SizedBox(height: AppSizes.lg),
+
+                  // -- Voice wave bars --
+                  VoiceWaveBars(
+                    state: _voiceWaveState,
+                    amplitude: _currentAmplitude,
+                  ),
+                  const SizedBox(height: AppSizes.md),
+
+                  // -- Duration badge --
+                  if (_state == _VoiceState.recording)
+                    GlassCard(
+                      tier: GlassTier.inset,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.md,
+                        vertical: AppSizes.xs,
+                      ),
+                      borderRadius:
+                          BorderRadius.circular(AppSizes.borderRadiusFull),
+                      child: Text(
+                        _formatDuration(_recordingSeconds),
+                        style: context.textStyles.headlineSmall?.copyWith(
+                          color: cs.primary,
+                          fontFeatures: [const FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                  if (_state != _VoiceState.recording)
+                    // Reserve space when not recording to keep layout stable.
+                    const SizedBox(height: AppSizes.xl),
+
+                  const SizedBox(height: AppSizes.sm),
+
+                  // -- Status text --
+                  Text(
+                    _statusText(context),
+                    style: context.textStyles.bodyMedium?.copyWith(
+                      color: _state == _VoiceState.error
+                          ? cs.error
+                          : cs.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSizes.lg),
+
+                  // -- Action buttons --
+                  _buildActionButtons(cs),
+
+                  const Spacer(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMicButton(ColorScheme cs, dynamic theme) {
     final micColor = switch (_state) {
       _VoiceState.recording => cs.primary,
       _VoiceState.error => cs.error,
@@ -324,175 +484,114 @@ class _VoiceInputSheetState extends ConsumerState<VoiceInputSheet> {
       _ => cs.onPrimaryContainer,
     };
 
-    return Padding(
-      padding: EdgeInsetsDirectional.only(
-        start: AppSizes.screenHPadding,
-        end: AppSizes.screenHPadding,
-        top: AppSizes.sm,
-        bottom: MediaQuery.viewInsetsOf(context).bottom + AppSizes.lg,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // -- Drag handle --
-          const DragHandle(),
+    final isInteractive =
+        _state == _VoiceState.idle || _state == _VoiceState.recording;
 
-          // -- Close button --
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: IconButton(
-              icon: const Icon(AppIcons.close, size: AppSizes.iconSm),
-              onPressed: () async {
-                final nav = GoRouter.of(context);
-                if (_state == _VoiceState.recording) {
-                  await _recorder.stop();
-                }
-                if (_state == _VoiceState.processing) {
-                  _cancelled = true;
-                }
-                nav.pop();
-              },
-              visualDensity: VisualDensity.compact,
-              tooltip: context.l10n.common_close,
+    return Semantics(
+      button: true,
+      label: _state == _VoiceState.idle
+          ? context.l10n.voice_tap_to_start
+          : _state == _VoiceState.recording
+              ? context.l10n.common_done
+              : null,
+      child: GestureDetector(
+        onTap: isInteractive ? _onMicTap : null,
+        onLongPressStart: isInteractive ? (_) => _onMicLongPressStart() : null,
+        onLongPressEnd: isInteractive ? (_) => _onMicLongPressEnd() : null,
+        child: AnimatedContainer(
+          duration: AppDurations.animQuick,
+          width: AppSizes.voiceMicSize,
+          height: AppSizes.voiceMicSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: micColor,
+            boxShadow: _state == _VoiceState.recording
+                ? [
+                    BoxShadow(
+                      color:
+                          cs.primary.withValues(alpha: AppSizes.opacityLight4),
+                      blurRadius: AppSizes.xl,
+                      spreadRadius: AppSizes.xs,
+                    ),
+                  ]
+                : null,
+            border: Border.all(
+              color: context.appTheme.glassCardBorder,
+              width: AppSizes.glassBorderWidthSubtle,
             ),
           ),
-
-          // -- Voice wave bars --
-          VoiceWaveBars(
-            state: _voiceWaveState,
-            amplitude: _currentAmplitude,
+          child: Icon(
+            _state == _VoiceState.error ? AppIcons.close : AppIcons.mic,
+            size: AppSizes.voiceMicIconSize,
+            color: micIconColor,
           ),
-          const SizedBox(height: AppSizes.md),
-
-          // -- Mic button (glassmorphic) --
-          Semantics(
-            button: true,
-            label: _state == _VoiceState.idle
-                ? context.l10n.voice_tap_to_start
-                : _state == _VoiceState.recording
-                    ? context.l10n.common_done
-                    : null,
-            child: GestureDetector(
-              onTap: _state == _VoiceState.idle
-                  ? _startRecording
-                  : _state == _VoiceState.recording
-                      ? _stopAndProcess
-                      : null,
-              child: Container(
-                width: AppSizes.voiceMicSize,
-                height: AppSizes.voiceMicSize,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: micColor,
-                  boxShadow: _state == _VoiceState.recording
-                      ? [
-                          BoxShadow(
-                            color: cs.primary
-                                .withValues(alpha: AppSizes.opacityLight4),
-                            blurRadius: AppSizes.xl,
-                            spreadRadius: AppSizes.xs,
-                          ),
-                        ]
-                      : null,
-                  border: Border.all(
-                    color: theme.glassCardBorder,
-                    width: AppSizes.glassBorderWidthSubtle,
-                  ),
-                ),
-                child: Icon(
-                  _state == _VoiceState.error ? AppIcons.close : AppIcons.mic,
-                  size: AppSizes.iconLg,
-                  color: micIconColor,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSizes.md),
-
-          // -- Status text --
-          Text(
-            _statusText(context),
-            style: context.textStyles.bodyMedium?.copyWith(
-              color: cs.onSurfaceVariant,
-            ),
-          ),
-
-          // -- Recording duration counter --
-          if (_state == _VoiceState.recording) ...[
-            const SizedBox(height: AppSizes.sm),
-            GlassCard(
-              tier: GlassTier.inset,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.md,
-                vertical: AppSizes.xs,
-              ),
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-              child: Text(
-                _formatDuration(_recordingSeconds),
-                style: context.textStyles.headlineSmall?.copyWith(
-                  color: cs.primary,
-                  fontFeatures: [const FontFeature.tabularFigures()],
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSizes.lg),
-
-          // -- Action buttons --
-          if (_state == _VoiceState.recording)
-            FilledButton.icon(
-              onPressed: _stopAndProcess,
-              icon: const Icon(AppIcons.check, size: AppSizes.iconSm2),
-              label: Text(context.l10n.common_done),
-            )
-          else if (_state == _VoiceState.error)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                OutlinedButton(
-                  onPressed: () => context.pop(),
-                  child: Text(context.l10n.common_close),
-                ),
-                const SizedBox(width: AppSizes.md),
-                FilledButton(
-                  onPressed: () {
-                    setState(() {
-                      _isMicPermissionError = false;
-                      _state = _VoiceState.idle;
-                    });
-                  },
-                  child: Text(context.l10n.voice_retry),
-                ),
-              ],
-            )
-          else if (_state == _VoiceState.processing)
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: AppSizes.md),
-                OutlinedButton(
-                  onPressed: () {
-                    _cancelled = true;
-                    context.pop();
-                  },
-                  child: Text(context.l10n.common_cancel),
-                ),
-              ],
-            ),
-        ],
+        ),
       ),
     );
   }
 
+  Widget _buildActionButtons(ColorScheme cs) {
+    return switch (_state) {
+      _VoiceState.idle => const SizedBox.shrink(),
+      _VoiceState.recording => FilledButton.icon(
+          onPressed: _stopAndProcess,
+          icon: const Icon(AppIcons.check, size: AppSizes.iconSm2),
+          label: Text(context.l10n.common_done),
+        ),
+      _VoiceState.processing => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: AppSizes.spinnerSize,
+              height: AppSizes.spinnerSize,
+              child: CircularProgressIndicator(
+                strokeWidth: AppSizes.spinnerStrokeWidth,
+                color: cs.primary,
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+            TextButton(
+              onPressed: () {
+                _cancelled = true;
+                context.pop();
+              },
+              child: Text(context.l10n.common_cancel),
+            ),
+          ],
+        ),
+      _VoiceState.error => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextButton(
+              onPressed: _close,
+              child: Text(context.l10n.common_cancel),
+            ),
+            const SizedBox(width: AppSizes.md),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  _isMicPermissionError = false;
+                  _errorMessage = null;
+                  _state = _VoiceState.idle;
+                });
+              },
+              child: Text(context.l10n.voice_retry),
+            ),
+          ],
+        ),
+    };
+  }
+
   String _statusText(BuildContext context) {
+    if (_state == _VoiceState.error) {
+      if (_isMicPermissionError) return context.l10n.permission_mic_body;
+      return _errorMessage ?? context.l10n.voice_error_no_service;
+    }
     return switch (_state) {
       _VoiceState.idle => context.l10n.voice_tap_to_start,
       _VoiceState.recording => context.l10n.voice_listening,
       _VoiceState.processing => context.l10n.voice_ai_parsing,
-      _VoiceState.error => _isMicPermissionError
-          ? context.l10n.permission_mic_body
-          : context.l10n.voice_error_no_service,
+      _VoiceState.error => context.l10n.voice_error_no_service,
     };
   }
 }

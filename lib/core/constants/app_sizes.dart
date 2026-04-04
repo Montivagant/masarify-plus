@@ -110,12 +110,10 @@ abstract final class AppSizes {
   static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 
-  /// Snackbar bottom margin to clear the floating nav bar + raised FAB.
-  /// The SnackBar renders on the inner screen Scaffold (no FAB/nav), so
-  /// Flutter's auto-offset doesn't apply. Manual clearance needed:
-  /// bottomNavHeight(64) + fabVerticalOffset(24) + md(16) = 104dp.
-  static const double snackbarBottomMargin =
-      bottomNavHeight + fabVerticalOffset + md;
+  /// Snackbar bottom margin — renders on root MaterialApp scaffold via
+  /// rootMessengerKey. The nav bar lives on a nested AppScaffoldShell,
+  /// so we only need a small margin from the screen bottom edge.
+  static const double snackbarBottomMargin = md;
 
   // ── SnackBar / Toast ──────────────────────────────────────────────────
   static const double snackTextSize = 13.0;
@@ -196,11 +194,26 @@ abstract final class AppSizes {
   // ── Speed dial ─────────────────────────────────────────────────────
   static const double speedDialButtonSize =
       48.0; // circular, meets minTapTarget
-  static const double speedDialArcRadius = 110.0; // FAB center to button center
-  static const double speedDialArcWidth = 280.0; // container width
-  static const double speedDialArcHeight = 220.0; // container height
+  static const double speedDialArcRadius = 82.0; // FAB center to button center
+  static const double speedDialArcWidth = 220.0; // container width
+  static const double speedDialArcHeight = 160.0; // container height
   static const double speedDialIconSize = 20.0;
   static const double speedDialLabelGap = 4.0; // circle to label gap
+
+  // ── Voice overlay ────────────────────────────────────────────────────
+  static const double voiceOverlayMinHeight = 0.65; // fraction of screen
+  static const double voiceOverlayMaxHeight = 1.0;
+  static const double voiceMicIconSize = 32.0;
+
+  // ── Swipe card ──────────────────────────────────────────────────────
+  static const double swipeCardHPadding = 24.0;
+  static const double swipeCardMaxWidth = 340.0;
+  static const double swipeRotationAngle = 0.26; // ~15 degrees in radians
+  static const double swipeDragThreshold = 0.3; // fraction of screen width
+  static const double swipeStampOpacity = 0.7;
+  static const double cardStackOffset = 8.0; // vertical offset per ghost card
+  static const double cardStackScale = 0.95; // scale per ghost card
+  static const double draftListItemHeight = 80.0;
 
   // ── Pie chart ──────────────────────────────────────────────────────────
   static const double pieChartRadius = 36.0; // WS-9: increased from 28

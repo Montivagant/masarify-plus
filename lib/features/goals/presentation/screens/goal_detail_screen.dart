@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
@@ -27,6 +26,7 @@ import '../../../../shared/widgets/inputs/app_text_field.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../../../../shared/widgets/sheets/drag_handle.dart';
+import 'add_goal_screen.dart';
 
 class GoalDetailScreen extends ConsumerWidget {
   const GoalDetailScreen({super.key, required this.id});
@@ -62,7 +62,7 @@ class GoalDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(AppIcons.edit),
                 tooltip: context.l10n.common_edit,
-                onPressed: () => context.push(AppRoutes.editGoalPath(goal.id)),
+                onPressed: () => AddGoalScreen.showEdit(context, goal.id),
               ),
               // H6 fix: goal delete button
               IconButton(

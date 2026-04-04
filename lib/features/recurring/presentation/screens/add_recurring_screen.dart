@@ -19,7 +19,6 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
@@ -29,10 +28,60 @@ import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Add / Edit recurring transaction rule or one-time bill.
 class AddRecurringScreen extends ConsumerStatefulWidget {
-  const AddRecurringScreen({super.key, this.editId, this.detectedPattern});
+  const AddRecurringScreen({
+    super.key,
+    this.editId,
+    this.detectedPattern,
+    this.isSheet = false,
+  });
 
   final int? editId;
   final DetectedPattern? detectedPattern;
+  final bool isSheet;
+
+  /// Show the add-recurring form as a modal bottom sheet.
+  static Future<void> show(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        minChildSize: AppSizes.sheetMinSize,
+        maxChildSize: AppSizes.sheetMaxSize,
+        expand: false,
+        builder: (_, __) => const AddRecurringScreen(isSheet: true),
+      ),
+    );
+  }
+
+  /// Show the edit-recurring form as a modal bottom sheet.
+  static Future<void> showEdit(BuildContext context, int editId) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        minChildSize: AppSizes.sheetMinSize,
+        maxChildSize: AppSizes.sheetMaxSize,
+        expand: false,
+        builder: (_, __) => AddRecurringScreen(editId: editId, isSheet: true),
+      ),
+    );
+  }
 
   @override
   ConsumerState<AddRecurringScreen> createState() => _AddRecurringScreenState();
@@ -401,22 +450,9 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isSheet) return _buildSheetBody(context);
+
     final isEdit = widget.editId != null;
-    final cs = context.colors;
-    final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
-    final typeCats =
-        allCats.where((c) => c.type == _type || c.type == 'both').toList();
-    final selectedCat = typeCats.where((c) => c.id == _categoryId).firstOrNull;
-
-    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final selectedWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
-
-    final canSave = _titleController.text.trim().isNotEmpty &&
-        _amountPiastres > 0 &&
-        _categoryId != null &&
-        _walletId != null &&
-        (!_isCustom || _endDate != null);
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppAppBar(
@@ -430,226 +466,273 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           AppSizes.screenHPadding,
           AppSizes.bottomScrollPadding,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: _buildFormFields(context, isEdit: isEdit),
+      ),
+      bottomNavigationBar: _buildBottomButton(context, isEdit: isEdit),
+    );
+  }
+
+  Widget _buildSheetBody(BuildContext context) {
+    final cs = context.colors;
+    final isEdit = widget.editId != null;
+    return Column(
+      children: [
+        const SizedBox(height: AppSizes.sm),
+        Container(
+          width: AppSizes.dragHandleWidth,
+          height: AppSizes.dragHandleHeight,
+          decoration: BoxDecoration(
+            color: cs.outlineVariant,
+            borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+          ),
+        ),
+        const SizedBox(height: AppSizes.md),
+        Text(
+          isEdit ? context.l10n.recurring_edit : context.l10n.recurring_add,
+          style: context.textStyles.headlineMedium,
+        ),
+        const SizedBox(height: AppSizes.lg),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.screenHPadding,
+            ),
+            child: _buildFormFields(context, isEdit: isEdit),
+          ),
+        ),
+        _buildBottomButton(context, isEdit: isEdit),
+      ],
+    );
+  }
+
+  Widget _buildFormFields(BuildContext context, {required bool isEdit}) {
+    final cs = context.colors;
+    final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final typeCats =
+        allCats.where((c) => c.type == _type || c.type == 'both').toList();
+    final selectedCat = typeCats.where((c) => c.id == _categoryId).firstOrNull;
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+    final selectedWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Amount FIRST (hero) ────────────────────────────────────
+        Center(
+          child: Text(
+            context.l10n.recurring_amount_label,
+            style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
+          ),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        AmountInput(
+          initialPiastres: _amountPiastres,
+          onAmountChanged: (p) => setState(() => _amountPiastres = p),
+          autofocus: false,
+          compact: true,
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Title ─────────────────────────────────────────────────
+        AppTextField(
+          label: context.l10n.recurring_title_label,
+          hint: context.l10n.recurring_title_hint,
+          controller: _titleController,
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: AppSizes.md),
+
+        // ── Type toggle ───────────────────────────────────────────
+        Text(
+          context.l10n.recurring_type_label,
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        SegmentedButton<String>(
+          segments: [
+            ButtonSegment(
+              value: 'expense',
+              label: Text(context.l10n.transaction_type_expense),
+              icon: const Icon(AppIcons.expense),
+            ),
+            ButtonSegment(
+              value: 'income',
+              label: Text(context.l10n.transaction_type_income),
+              icon: const Icon(AppIcons.income),
+            ),
+          ],
+          selected: {_type},
+          onSelectionChanged: (v) => setState(() {
+            _type = v.first;
+            _categoryId = null;
+            _suggestedCategory = null;
+          }),
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Category & Wallet (side by side) ──────────────────────
+        if (_suggestedCategory != null && _categoryId == null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSizes.sm),
+            child: ActionChip(
+              avatar: Icon(
+                CategoryIconMapper.fromName(_suggestedCategory!.iconName),
+                size: AppSizes.iconSm,
+              ),
+              label: Text(
+                _suggestedCategory!.displayName(context.languageCode),
+              ),
+              onPressed: () {
+                setState(() {
+                  _categoryId = _suggestedCategory!.id;
+                  _suggestedCategory = null;
+                });
+              },
+            ),
+          ),
+        Row(
           children: [
-            // ── Title & Type ──────────────────────────────────────────
-            GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppTextField(
-                    label: context.l10n.recurring_title_label,
-                    hint: context.l10n.recurring_title_hint,
-                    controller: _titleController,
-                    onChanged: (_) => setState(() {}),
+            // Category
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _showCategoryPicker(typeCats),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.md,
                   ),
-                  const SizedBox(height: AppSizes.md),
-                  Text(
-                    context.l10n.recurring_type_label,
-                    style: context.textStyles.labelLarge
-                        ?.copyWith(color: cs.outline),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: cs.outline),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusMd),
                   ),
-                  const SizedBox(height: AppSizes.sm),
-                  SegmentedButton<String>(
-                    segments: [
-                      ButtonSegment(
-                        value: 'expense',
-                        label: Text(context.l10n.transaction_type_expense),
-                        icon: const Icon(AppIcons.expense),
+                  child: Row(
+                    children: [
+                      Icon(
+                        selectedCat != null
+                            ? CategoryIconMapper.fromName(selectedCat.iconName)
+                            : AppIcons.category,
+                        size: AppSizes.iconSm,
                       ),
-                      ButtonSegment(
-                        value: 'income',
-                        label: Text(context.l10n.transaction_type_income),
-                        icon: const Icon(AppIcons.income),
+                      const SizedBox(width: AppSizes.xs),
+                      Expanded(
+                        child: Text(
+                          selectedCat?.displayName(context.languageCode) ??
+                              context.l10n.transaction_category,
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: selectedCat != null ? null : cs.outline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      const Icon(AppIcons.expandMore, size: AppSizes.iconXxs),
                     ],
-                    selected: {_type},
-                    onSelectionChanged: (v) => setState(() {
-                      _type = v.first;
-                      _categoryId = null;
-                      _suggestedCategory = null;
-                    }),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // ── Category picker ───────────────────────────────────────
-            Text(
-              context.l10n.transaction_category,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            // Category suggestion chip from title text.
-            if (_suggestedCategory != null && _categoryId == null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSizes.sm),
-                child: ActionChip(
-                  avatar: Icon(
-                    CategoryIconMapper.fromName(
-                      _suggestedCategory!.iconName,
-                    ),
-                    size: AppSizes.iconSm,
-                  ),
-                  label: Text(
-                    _suggestedCategory!.displayName(context.languageCode),
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _categoryId = _suggestedCategory!.id;
-                      _suggestedCategory = null;
-                    });
-                  },
                 ),
               ),
-            GestureDetector(
-              onTap: () => _showCategoryPicker(typeCats),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.md,
-                  vertical: AppSizes.md,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: cs.outline),
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      selectedCat != null
-                          ? CategoryIconMapper.fromName(
-                              selectedCat.iconName,
-                            )
-                          : AppIcons.category,
-                      size: AppSizes.iconSm,
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    Expanded(
-                      child: Text(
-                        selectedCat?.displayName(context.languageCode) ??
-                            context.l10n.transaction_category_picker,
-                        style: selectedCat != null
-                            ? context.textStyles.bodyLarge
-                            : context.textStyles.bodyMedium
-                                ?.copyWith(color: cs.outline),
+            ),
+            const SizedBox(width: AppSizes.sm),
+            // Wallet
+            Expanded(
+              child: GestureDetector(
+                onTap: _showWalletPicker,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.md,
+                  ),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: cs.outline),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusMd),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(AppIcons.wallet, size: AppSizes.iconSm),
+                      const SizedBox(width: AppSizes.xs),
+                      Expanded(
+                        child: Text(
+                          selectedWallet?.name ??
+                              context.l10n.transaction_wallet,
+                          style: context.textStyles.bodySmall?.copyWith(
+                            color: selectedWallet != null ? null : cs.outline,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
-                  ],
+                      const Icon(AppIcons.expandMore, size: AppSizes.iconXxs),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Wallet picker ─────────────────────────────────────────
-            Text(
-              context.l10n.transaction_wallet,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            GestureDetector(
-              onTap: _showWalletPicker,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.md,
-                  vertical: AppSizes.md,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: cs.outline),
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(AppIcons.wallet, size: AppSizes.iconSm),
-                    const SizedBox(width: AppSizes.sm),
-                    Expanded(
-                      child: Text(
-                        selectedWallet?.name ??
-                            context.l10n.transaction_wallet_picker,
-                        style: selectedWallet != null
-                            ? context.textStyles.bodyLarge
-                            : context.textStyles.bodyMedium
-                                ?.copyWith(color: cs.outline),
-                      ),
-                    ),
-                    const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Amount ────────────────────────────────────────────────
-            Text(
-              context.l10n.recurring_amount_label,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            AmountInput(
-              initialPiastres: _amountPiastres,
-              onAmountChanged: (p) => setState(() => _amountPiastres = p),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Frequency ─────────────────────────────────────────────
-            Text(
-              context.l10n.recurring_frequency_label,
-              style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
-            ),
-            const SizedBox(height: AppSizes.sm),
-            Wrap(
-              spacing: AppSizes.sm,
-              runSpacing: AppSizes.sm,
-              children: _frequencies
-                  .map(
-                    (f) => ChoiceChip(
-                      label: Text(context.l10n.frequencyLabel(f)),
-                      selected: _frequency == f,
-                      onSelected: (_) => setState(() {
-                        _frequency = f;
-                        // Chain end date based on frequency.
-                        if (f == 'once') {
-                          _endDate = _startDate;
-                        } else if (f == 'yearly') {
-                          // Auto-compute: 1 year from start date.
-                          _endDate = DateTime(
-                            _startDate.year + 1,
-                            _startDate.month,
-                            _startDate.day,
-                          );
-                        } else if (f != 'custom') {
-                          _endDate = null;
-                        }
-                      }),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: AppSizes.lg),
-
-            // ── Date pickers ──────────────────────────────────────────
-            ..._buildDatePickers(cs),
           ],
         ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSizes.screenHPadding,
-            AppSizes.sm,
-            AppSizes.screenHPadding,
-            AppSizes.md,
-          ),
-          child: AppButton(
-            label: isEdit
-                ? context.l10n.common_save_changes
-                : context.l10n.recurring_add,
-            onPressed: canSave && !_loading ? _save : null,
-            isLoading: _loading,
-            icon: AppIcons.check,
-          ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Frequency ─────────────────────────────────────────────
+        Text(
+          context.l10n.recurring_frequency_label,
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        Wrap(
+          spacing: AppSizes.sm,
+          runSpacing: AppSizes.sm,
+          children: _frequencies
+              .map(
+                (f) => ChoiceChip(
+                  label: Text(context.l10n.frequencyLabel(f)),
+                  selected: _frequency == f,
+                  onSelected: (_) => setState(() {
+                    _frequency = f;
+                    if (f == 'once') {
+                      _endDate = _startDate;
+                    } else if (f == 'yearly') {
+                      _endDate = DateTime(
+                        _startDate.year + 1,
+                        _startDate.month,
+                        _startDate.day,
+                      );
+                    } else if (f != 'custom') {
+                      _endDate = null;
+                    }
+                  }),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Dates ─────────────────────────────────────────────────
+        ..._buildDatePickers(cs),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context, {required bool isEdit}) {
+    final canSave = _titleController.text.trim().isNotEmpty &&
+        _amountPiastres > 0 &&
+        _categoryId != null &&
+        _walletId != null &&
+        (!_isCustom || _endDate != null);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSizes.screenHPadding,
+          AppSizes.sm,
+          AppSizes.screenHPadding,
+          AppSizes.md,
+        ),
+        child: AppButton(
+          label: isEdit
+              ? context.l10n.common_save_changes
+              : context.l10n.recurring_add,
+          onPressed: canSave && !_loading ? _save : null,
+          isLoading: _loading,
+          icon: AppIcons.check,
         ),
       ),
     );

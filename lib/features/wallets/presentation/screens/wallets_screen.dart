@@ -20,6 +20,7 @@ import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_wallet_screen.dart';
 
 class WalletsScreen extends ConsumerWidget {
   const WalletsScreen({super.key});
@@ -37,7 +38,7 @@ class WalletsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(AppIcons.add),
             tooltip: context.l10n.wallet_add_title,
-            onPressed: () => context.push(AppRoutes.walletAdd),
+            onPressed: () => AddWalletScreen.show(context),
           ),
         ],
       ),
@@ -51,7 +52,7 @@ class WalletsScreen extends ConsumerWidget {
               title: context.l10n.wallets_empty_title,
               subtitle: context.l10n.wallets_empty_sub,
               ctaLabel: context.l10n.wallets_add,
-              onCta: () => context.push(AppRoutes.walletAdd),
+              onCta: () => AddWalletScreen.show(context),
             );
           }
 
@@ -91,8 +92,7 @@ class WalletsScreen extends ConsumerWidget {
                     wallet: wallet,
                     onTap: () =>
                         context.push(AppRoutes.walletDetailPath(wallet.id)),
-                    onEdit: () =>
-                        context.push(AppRoutes.editWalletPath(wallet.id)),
+                    onEdit: () => AddWalletScreen.showEdit(context, wallet.id),
                     onArchive: wallet.isDefaultAccount
                         ? null
                         : () => _confirmArchive(context, ref, wallet),
@@ -125,7 +125,7 @@ class WalletsScreen extends ConsumerWidget {
                       onTap: () =>
                           context.push(AppRoutes.walletDetailPath(wallet.id)),
                       onEdit: () =>
-                          context.push(AppRoutes.editWalletPath(wallet.id)),
+                          AddWalletScreen.showEdit(context, wallet.id),
                       onUnarchive: () =>
                           _confirmUnarchive(context, ref, wallet),
                     ),

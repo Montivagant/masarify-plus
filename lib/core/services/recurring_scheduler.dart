@@ -136,6 +136,7 @@ class RecurringScheduler {
       id: rule.id + 100000,
       title: rule.title,
       body: MoneyFormatter.format(rule.amount),
+      payload: 'recurring:${rule.id}',
     );
   }
 

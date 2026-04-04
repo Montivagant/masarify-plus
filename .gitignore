@@ -26,6 +26,7 @@ migrate_working_dir/
 # API keys & secrets (never commit)
 lib/core/config/env.dart
 .env
+.mcp.json
 Secret-and-Creds/
 
 # Firebase config (contains project IDs)

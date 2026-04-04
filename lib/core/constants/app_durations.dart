@@ -58,6 +58,23 @@ abstract final class AppDurations {
   static const Duration voiceBarUpdate = Duration(milliseconds: 50);
   static const Duration voiceShimmer = Duration(milliseconds: 1500);
 
+  // Voice overlay & swipe
+  static const Duration overlayExpand = Duration(milliseconds: 350);
+  static const Duration overlayCollapse = Duration(milliseconds: 250);
+  static const Duration swipeOut = Duration(milliseconds: 300);
+  static const Duration swipeReturn = Duration(milliseconds: 200);
+  static const Duration cardSpringUp = Duration(milliseconds: 400);
+  static const Duration undoSnackbar = Duration(seconds: 3);
+
+  // Swipe hint (first-time overlay)
+  static const Duration swipeHintSlide = Duration(milliseconds: 600);
+  static const Duration swipeHintPause = Duration(milliseconds: 500);
+  static const Duration swipeHintFadeOut = Duration(milliseconds: 400);
+  static const Duration swipeHintTotal = Duration(seconds: 3);
+
+  // Business logic
+  static const Duration subscriptionDefaultCycle = Duration(days: 30);
+
   // Search
   static const int searchDebounceMs = 300;
   static const Duration searchDebounce =

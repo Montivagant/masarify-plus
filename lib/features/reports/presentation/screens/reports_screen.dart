@@ -21,6 +21,7 @@ class ReportsScreen extends ConsumerWidget {
       child: Scaffold(
         appBar: AppAppBar(
           title: context.l10n.reports_title,
+          centerTitle: false,
           actions: [
             IconButton(
               icon: const Icon(AppIcons.calendar),
@@ -29,8 +30,6 @@ class ReportsScreen extends ConsumerWidget {
             ),
           ],
           bottom: TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(text: context.l10n.reports_overview),
               Tab(text: context.l10n.reports_categories),

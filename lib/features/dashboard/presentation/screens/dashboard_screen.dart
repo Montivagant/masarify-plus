@@ -8,6 +8,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../domain/entities/transaction_entity.dart';
+import '../../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
@@ -60,6 +61,7 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppAppBar(
         title: context.l10n.dashboard_title,
         showBack: false,
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(AppIcons.ai),
@@ -165,7 +167,7 @@ class DashboardScreen extends ConsumerWidget {
       );
       return;
     }
-    context.push('/transactions/${tx.id}/edit');
+    AddTransactionScreen.showEdit(context, tx.id);
   }
 
   void _deleteTransaction(

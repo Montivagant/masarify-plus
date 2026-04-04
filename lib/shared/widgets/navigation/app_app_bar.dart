@@ -15,7 +15,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showBack = true,
     this.onBack,
     this.bottom,
-    this.centerTitle = false,
+    this.centerTitle = true,
   });
 
   final String title;

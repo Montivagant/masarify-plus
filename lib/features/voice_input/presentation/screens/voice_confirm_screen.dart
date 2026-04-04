@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,17 +18,17 @@ import '../../../../core/utils/goal_keyword_matcher.dart';
 import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
-import '../../../../domain/repositories/i_wallet_repository.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/goal_provider.dart';
+import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
-import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
-import '../../../../shared/widgets/sheets/drag_handle.dart';
+import '../widgets/draft_edit_sheet.dart';
+import '../widgets/draft_list_item.dart';
+import '../widgets/swipe_card.dart';
 
 /// Rule #7: Voice-parsed transactions MUST pass review — never auto-save.
 class VoiceConfirmScreen extends ConsumerStatefulWidget {
@@ -44,10 +45,33 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   bool _saving = false;
   bool _defaultsApplied = false;
 
+  // ── Dual-mode state ──────────────────────────────────────────────────
+  bool _isSwipeView = true;
+  int _currentIndex = 0;
+
+  // ── Swipe hint state ────────────────────────────────────────────────
+  bool _showSwipeHint = false;
+
   @override
   void initState() {
     super.initState();
     _editableDrafts = widget.drafts.map((d) => _EditableDraft.from(d)).toList();
+    _checkSwipeHint();
+  }
+
+  Future<void> _checkSwipeHint() async {
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!prefs.swipeHintShown && mounted) {
+      setState(() => _showSwipeHint = true);
+    }
+  }
+
+  void _dismissSwipeHint() {
+    if (!_showSwipeHint) return;
+    setState(() => _showSwipeHint = false);
+    ref.read(preferencesFutureProvider.future).then((prefs) {
+      prefs.setSwipeHintShown();
+    });
   }
 
   @override
@@ -216,7 +240,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           final List<String> kws;
           try {
             kws = (jsonDecode(goal.keywords) as List).cast<String>();
-          } catch (_) {
+          } catch (e) {
+            dev.log(
+              'Bad goal keywords for ${goal.id}: $e',
+              name: 'VoiceConfirm',
+            );
             continue;
           }
           final matcher = GoalKeywordMatcher(keywords: kws);
@@ -240,6 +268,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     }
   }
 
+  // ── Build ──────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
@@ -261,26 +291,14 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     return Scaffold(
       appBar: AppAppBar(
         title: context.l10n.voice_confirm_title,
-        actions: _editableDrafts.length > 1
-            ? [
-                TextButton(
-                  onPressed: () {
-                    final allIncluded =
-                        _editableDrafts.every((d) => d.isIncluded);
-                    setState(() {
-                      for (final d in _editableDrafts) {
-                        d.isIncluded = !allIncluded;
-                      }
-                    });
-                  },
-                  child: Text(
-                    _editableDrafts.every((d) => d.isIncluded)
-                        ? context.l10n.voice_deselect_all
-                        : context.l10n.voice_select_all,
-                  ),
-                ),
-              ]
-            : null,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isSwipeView ? AppIcons.listView : AppIcons.cardStack,
+            ),
+            onPressed: () => setState(() => _isSwipeView = !_isSwipeView),
+          ),
+        ],
       ),
       body: _editableDrafts.isEmpty
           ? Center(
@@ -291,150 +309,525 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 ),
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.only(
-                top: AppSizes.md,
-                bottom: AppSizes.bottomScrollPadding,
-              ),
-              itemCount: _editableDrafts.length,
-              itemBuilder: (context, index) {
-                final draft = _editableDrafts[index];
-                final cat = categories
-                    .where((c) => c.id == draft.categoryId)
-                    .firstOrNull;
+          : _isSwipeView
+              ? _buildSwipeView(context)
+              : _buildListView(context),
+      bottomNavigationBar: _editableDrafts.isEmpty
+          ? null
+          : _isSwipeView
+              ? _buildSwipeBottomBar(context)
+              : _buildListBottomBar(context),
+    );
+  }
 
-                final wallet =
-                    wallets.where((w) => w.id == draft.walletId).firstOrNull;
+  // ── Swipe view ─────────────────────────────────────────────────────────
 
-                final card = _DraftCard(
-                  draft: draft,
-                  categoryName: cat?.displayName(context.languageCode),
-                  categoryIcon: cat != null
-                      ? CategoryIconMapper.fromName(cat.iconName)
-                      : AppIcons.category,
-                  categoryColor: cat != null
-                      ? ColorUtils.fromHex(cat.colorHex)
-                      : context.colors.outline,
-                  walletName: wallet?.name,
-                  isIncluded: draft.isIncluded,
-                  matchedGoalName: draft.matchedGoalName,
-                  onToggleIncluded: () {
-                    setState(() => draft.isIncluded = !draft.isIncluded);
-                  },
-                  onAmountChanged: (piastres) {
-                    draft.amountPiastres = piastres;
-                  },
-                  onTypeToggle: () {
-                    if (draft.type == 'cash_withdrawal' ||
-                        draft.type == 'cash_deposit') {
-                      return;
-                    }
-                    setState(() {
-                      draft.type =
-                          draft.type == 'income' ? 'expense' : 'income';
-                      // Clear category if it doesn't match the new type
-                      if (draft.categoryId != null) {
-                        final cat = categories
-                            .where((c) => c.id == draft.categoryId)
-                            .firstOrNull;
-                        if (cat != null &&
-                            cat.type != draft.type &&
-                            cat.type != 'both') {
-                          draft.categoryId = null;
-                        }
-                      }
-                    });
-                  },
-                  onCategoryTap: () => _showCategoryPicker(context, draft),
-                  onWalletTap: () => _showWalletPicker(context, draft),
-                  onCreateWalletFromHint: draft.unmatchedHint != null
-                      ? () => _createWalletFromHint(draft)
-                      : null,
-                  onCreateToWalletFromHint: draft.unmatchedToHint != null
-                      ? () => _createToWalletFromHint(draft)
-                      : null,
-                  onCreateSubscription:
-                      draft.isSubscriptionLike && draft.categoryId != null
-                          ? () => _createSubscriptionFromDraft(draft)
-                          : null,
-                  subscriptionAdded: draft.subscriptionAdded,
-                );
-                if (context.reduceMotion) return card;
-                return card
-                    .animate()
-                    .fadeIn(duration: AppDurations.listItemEntry)
-                    .slideY(
-                      begin: 0.03,
-                      end: 0,
-                      duration: AppDurations.listItemEntry,
-                      curve: Curves.easeOutCubic,
-                    )
-                    .then(delay: AppDurations.staggerDelay * index);
-              },
+  Widget _buildSwipeView(BuildContext context) {
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+
+    // When all cards have been reviewed, auto-confirm or handle all-skip.
+    if (_currentIndex >= _editableDrafts.length) {
+      final hasIncluded = _editableDrafts.any((d) => d.isIncluded);
+      if (hasIncluded) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _confirmAll(context);
+        });
+        return Center(
+          child: SizedBox(
+            width: AppSizes.spinnerSize,
+            height: AppSizes.spinnerSize,
+            child: CircularProgressIndicator(
+              strokeWidth: AppSizes.spinnerStrokeWidth,
+              color: context.colors.primary,
             ),
-      bottomNavigationBar: _editableDrafts.isNotEmpty
-          ? Builder(
-              builder: (context) {
-                final includedCount =
-                    _editableDrafts.where((d) => d.isIncluded).length;
-                final isMultiDraft = _editableDrafts.length > 1;
-                final allIncluded = _editableDrafts.every((d) => d.isIncluded);
-                return SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSizes.screenHPadding),
-                    child: Row(
-                      children: [
-                        // Primary confirm button for selected drafts
-                        Expanded(
-                          child: FilledButton(
-                            onPressed: _saving || includedCount == 0
-                                ? null
-                                : () => _confirmAll(context),
-                            child: _saving
-                                ? SizedBox(
-                                    width: AppSizes.spinnerSize,
-                                    height: AppSizes.spinnerSize,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: AppSizes.spinnerStrokeWidth,
-                                      color: context.colors.onPrimary,
-                                    ),
-                                  )
-                                : Text(
-                                    context.l10n
-                                        .voice_confirm_count(includedCount),
-                                  ),
-                          ),
-                        ),
-                        // "Save All" shortcut for multi-draft (D-16)
-                        if (isMultiDraft && !allIncluded) ...[
-                          const SizedBox(width: AppSizes.sm),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: _saving
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        for (final d in _editableDrafts) {
-                                          d.isIncluded = true;
-                                        }
-                                      });
-                                      _confirmAll(context);
-                                    },
-                              child: Text(
-                                context.l10n.voice_confirm_accept_all,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+          ),
+        );
+      }
+      // All drafts were skipped — show message and allow switching to list.
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              AppIcons.warning,
+              size: AppSizes.iconXl,
+              color: context.colors.outline,
+            ),
+            const SizedBox(height: AppSizes.md),
+            Text(
+              context.l10n.voice_no_results,
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: context.colors.outline,
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+            OutlinedButton(
+              onPressed: () => setState(() {
+                _currentIndex = 0;
+                for (final d in _editableDrafts) {
+                  d.isIncluded = true;
+                }
+              }),
+              child: Text(context.l10n.voice_select_all),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        const SizedBox(height: AppSizes.md),
+        // Counter text
+        Text(
+          '${_currentIndex + 1} / ${_editableDrafts.length}',
+          style: context.textStyles.bodyMedium?.copyWith(
+            color: context.colors.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSizes.md),
+        // Card stack
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.screenHPadding,
+              ),
+              child: _buildCardStack(context, categories, wallets),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSizes.md),
+      ],
+    );
+  }
+
+  Widget _buildCardStack(
+    BuildContext context,
+    List<dynamic> categories,
+    List<dynamic> wallets,
+  ) {
+    // Show up to 3 cards: current + 2 behind.
+    final visibleCount = (_editableDrafts.length - _currentIndex).clamp(0, 3);
+    if (visibleCount == 0) return const SizedBox.shrink();
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Render back-to-front so the current card is on top.
+        for (int i = visibleCount - 1; i >= 0; i--) ...[
+          if (i > 0)
+            // Behind cards: scaled down and offset.
+            Transform.translate(
+              offset: Offset(0, -AppSizes.cardStackOffset * i),
+              child: Transform.scale(
+                scale: _pow(AppSizes.cardStackScale, i),
+                child: Opacity(
+                  opacity: 1.0 - (i * 0.15),
+                  child: IgnorePointer(
+                    child: _buildSingleCard(
+                      context,
+                      _currentIndex + i,
+                      categories,
+                      wallets,
+                      isFront: false,
                     ),
                   ),
-                );
-              },
+                ),
+              ),
             )
+          else
+            // Front card: fully interactive.
+            _buildSingleCard(
+              context,
+              _currentIndex,
+              categories,
+              wallets,
+              isFront: true,
+            ),
+        ],
+        // ── Swipe hint overlay (first-time only) ─────────────────────
+        if (_showSwipeHint && !context.reduceMotion)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragStart: (_) => _dismissSwipeHint(),
+              onTap: _dismissSwipeHint,
+              child: _SwipeHintOverlay(onComplete: _dismissSwipeHint),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Exponentiation helper for scale calculations.
+  static double _pow(double base, int exp) {
+    double result = 1.0;
+    for (int i = 0; i < exp; i++) {
+      result *= base;
+    }
+    return result;
+  }
+
+  Widget _buildSingleCard(
+    BuildContext context,
+    int index,
+    List<dynamic> categories,
+    List<dynamic> wallets, {
+    required bool isFront,
+  }) {
+    if (index >= _editableDrafts.length) return const SizedBox.shrink();
+    final draft = _editableDrafts[index];
+    final cat = categories.where((c) => c.id == draft.categoryId).firstOrNull;
+    final wallet = wallets.where((w) => w.id == draft.walletId).firstOrNull;
+    final isCash = _isCashType(draft.type);
+
+    return SwipeCard(
+      key: ValueKey('swipe_card_$index'),
+      categoryIcon: cat != null
+          ? CategoryIconMapper.fromName(cat.iconName)
+          : AppIcons.category,
+      categoryColor: cat != null
+          ? ColorUtils.fromHex(cat.colorHex)
+          : context.colors.outline,
+      categoryName: cat?.displayName(context.languageCode),
+      walletName: wallet?.name,
+      amount: draft.amountPiastres,
+      type: draft.type,
+      title: draft.noteController.text.trim().isNotEmpty
+          ? draft.noteController.text.trim()
+          : draft.rawText,
+      rawTranscript: draft.rawText,
+      transactionDate: draft.transactionDate,
+      matchedGoalName: draft.matchedGoalName,
+      isSubscriptionLike: draft.isSubscriptionLike,
+      subscriptionAdded: draft.subscriptionAdded,
+      unmatchedHint: draft.unmatchedHint,
+      onApprove: () => _approveDraft(index),
+      onSkip: () => _skipDraft(index),
+      onTypeTap: isCash
+          ? null
+          : () => _openEditSheet(context, draft, initialField: 'type'),
+      onCategoryTap: () =>
+          _openEditSheet(context, draft, initialField: 'category'),
+      onWalletTap: () => _openEditSheet(context, draft, initialField: 'wallet'),
+      onAmountTap: () => _openEditSheet(context, draft, initialField: 'amount'),
+      onTitleTap: () => _openEditSheet(context, draft, initialField: 'title'),
+      onSubscriptionTap: draft.isSubscriptionLike && draft.categoryId != null
+          ? () => _createSubscriptionFromDraft(draft)
+          : null,
+      onCreateWallet: draft.unmatchedHint != null
+          ? () => _createWalletFromHint(draft)
           : null,
     );
   }
+
+  Widget _buildSwipeBottomBar(BuildContext context) {
+    if (_currentIndex >= _editableDrafts.length) return const SizedBox.shrink();
+
+    final theme = context.appTheme;
+    final cs = context.colors;
+    final remainingCount = _editableDrafts.length - _currentIndex;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.screenHPadding),
+        child: Row(
+          children: [
+            // Skip button (left)
+            SizedBox(
+              width: AppSizes.iconContainerLg,
+              height: AppSizes.iconContainerLg,
+              child: OutlinedButton(
+                onPressed: _saving ? null : () => _skipDraft(_currentIndex),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  side: BorderSide(color: theme.expenseColor),
+                  shape: const CircleBorder(),
+                ),
+                child: Icon(
+                  AppIcons.close,
+                  color: theme.expenseColor,
+                  size: AppSizes.iconMd,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSizes.sm),
+            // Approve All (center)
+            Expanded(
+              child: FilledButton(
+                onPressed: _saving
+                    ? null
+                    : () {
+                        setState(() {
+                          for (final d in _editableDrafts) {
+                            d.isIncluded = true;
+                          }
+                        });
+                        _confirmAll(context);
+                      },
+                child: _saving
+                    ? SizedBox(
+                        width: AppSizes.spinnerSize,
+                        height: AppSizes.spinnerSize,
+                        child: CircularProgressIndicator(
+                          strokeWidth: AppSizes.spinnerStrokeWidth,
+                          color: cs.onPrimary,
+                        ),
+                      )
+                    : Text(
+                        '${context.l10n.voice_confirm_accept_all} ($remainingCount)',
+                      ),
+              ),
+            ),
+            const SizedBox(width: AppSizes.sm),
+            // Approve button (right)
+            SizedBox(
+              width: AppSizes.iconContainerLg,
+              height: AppSizes.iconContainerLg,
+              child: OutlinedButton(
+                onPressed: _saving ? null : () => _approveDraft(_currentIndex),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  side: BorderSide(color: theme.incomeColor),
+                  shape: const CircleBorder(),
+                ),
+                child: Icon(
+                  AppIcons.check,
+                  color: theme.incomeColor,
+                  size: AppSizes.iconMd,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Swipe actions ──────────────────────────────────────────────────────
+
+  void _approveDraft(int index) {
+    if (index >= _editableDrafts.length) return;
+    _dismissSwipeHint();
+    final previousState = _editableDrafts[index].isIncluded;
+    final isLast = index == _editableDrafts.length - 1;
+    setState(() {
+      _editableDrafts[index].isIncluded = true;
+      _currentIndex = index + 1;
+    });
+    // No undo on last card — auto-confirm fires before undo can take effect.
+    if (!isLast) {
+      SnackHelper.showInfo(
+        context,
+        context.l10n.sms_review_approve,
+        action: SnackBarAction(
+          label: context.l10n.common_undo,
+          onPressed: () {
+            setState(() {
+              _currentIndex = index;
+              _editableDrafts[index].isIncluded = previousState;
+            });
+          },
+        ),
+      );
+    }
+  }
+
+  void _skipDraft(int index) {
+    if (index >= _editableDrafts.length) return;
+    _dismissSwipeHint();
+    final previousState = _editableDrafts[index].isIncluded;
+    final isLast = index == _editableDrafts.length - 1;
+    setState(() {
+      _editableDrafts[index].isIncluded = false;
+      _currentIndex = index + 1;
+    });
+    if (!isLast) {
+      SnackHelper.showInfo(
+        context,
+        context.l10n.sms_review_skip,
+        action: SnackBarAction(
+          label: context.l10n.common_undo,
+          onPressed: () {
+            setState(() {
+              _currentIndex = index;
+              _editableDrafts[index].isIncluded = previousState;
+            });
+          },
+        ),
+      );
+    }
+  }
+
+  // ── Edit sheet (shared by both views) ──────────────────────────────────
+
+  Future<void> _openEditSheet(
+    BuildContext context,
+    _EditableDraft draft, {
+    String? initialField,
+  }) async {
+    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
+
+    await DraftEditSheet.show(
+      context,
+      amountPiastres: draft.amountPiastres,
+      type: draft.type,
+      categoryId: draft.categoryId,
+      walletId: draft.walletId,
+      noteController: draft.noteController,
+      isCashType: _isCashType(draft.type),
+      onAmountChanged: (piastres) {
+        setState(() => draft.amountPiastres = piastres);
+      },
+      onTypeChanged: (newType) {
+        setState(() {
+          draft.type = newType;
+          // Clear category if it doesn't match the new type
+          if (draft.categoryId != null) {
+            final cat =
+                categories.where((c) => c.id == draft.categoryId).firstOrNull;
+            if (cat != null && cat.type != draft.type && cat.type != 'both') {
+              draft.categoryId = null;
+            }
+          }
+        });
+      },
+      onCategoryChanged: (catId) {
+        setState(() => draft.categoryId = catId);
+      },
+      onWalletChanged: (walletId) {
+        setState(() => draft.walletId = walletId);
+      },
+    );
+    // Rebuild after sheet closes to reflect changes.
+    if (mounted) setState(() {});
+  }
+
+  // ── List view ──────────────────────────────────────────────────────────
+
+  Widget _buildListView(BuildContext context) {
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(
+        top: AppSizes.md,
+        bottom: AppSizes.bottomScrollPadding,
+      ),
+      itemCount: _editableDrafts.length,
+      itemBuilder: (context, index) {
+        final draft = _editableDrafts[index];
+        final cat =
+            categories.where((c) => c.id == draft.categoryId).firstOrNull;
+        final wallet = wallets.where((w) => w.id == draft.walletId).firstOrNull;
+
+        final item = DraftListItem(
+          id: index,
+          categoryIcon: cat != null
+              ? CategoryIconMapper.fromName(cat.iconName)
+              : AppIcons.category,
+          categoryColor: cat != null
+              ? ColorUtils.fromHex(cat.colorHex)
+              : context.colors.outline,
+          categoryName: cat?.displayName(context.languageCode),
+          walletName: wallet?.name,
+          amount: draft.amountPiastres,
+          type: draft.type,
+          title: draft.noteController.text.trim().isNotEmpty
+              ? draft.noteController.text.trim()
+              : draft.rawText,
+          isIncluded: draft.isIncluded,
+          matchedGoalName: draft.matchedGoalName,
+          isSubscriptionLike: draft.isSubscriptionLike,
+          unmatchedHint: draft.unmatchedHint,
+          onToggle: () {
+            setState(() => draft.isIncluded = !draft.isIncluded);
+          },
+          onEdit: () => _openEditSheet(context, draft),
+          onAccept: () {
+            final wasIncluded = draft.isIncluded;
+            setState(() => draft.isIncluded = true);
+            SnackHelper.showSuccess(
+              context,
+              context.l10n.sms_review_approve,
+              action: SnackBarAction(
+                label: context.l10n.common_undo,
+                onPressed: () {
+                  setState(() => draft.isIncluded = wasIncluded);
+                },
+              ),
+            );
+          },
+          onDecline: () {
+            final removedDraft = draft;
+            final removedIndex = index;
+            setState(() {
+              removedDraft.isIncluded = false;
+              _editableDrafts.removeAt(removedIndex);
+            });
+            SnackHelper.showInfo(
+              context,
+              context.l10n.sms_review_skip,
+              action: SnackBarAction(
+                label: context.l10n.common_undo,
+                onPressed: () {
+                  setState(() {
+                    removedDraft.isIncluded = true;
+                    _editableDrafts.insert(
+                      removedIndex.clamp(0, _editableDrafts.length),
+                      removedDraft,
+                    );
+                  });
+                },
+              ),
+            );
+          },
+        );
+
+        if (context.reduceMotion) return item;
+        return item
+            .animate()
+            .fadeIn(duration: AppDurations.listItemEntry)
+            .slideY(
+              begin: 0.03,
+              end: 0,
+              duration: AppDurations.listItemEntry,
+              curve: Curves.easeOutCubic,
+            )
+            .then(delay: AppDurations.staggerDelay * index);
+      },
+    );
+  }
+
+  Widget _buildListBottomBar(BuildContext context) {
+    final includedCount = _editableDrafts.where((d) => d.isIncluded).length;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.screenHPadding),
+        child: FilledButton(
+          onPressed:
+              _saving || includedCount == 0 ? null : () => _confirmAll(context),
+          child: _saving
+              ? SizedBox(
+                  width: AppSizes.spinnerSize,
+                  height: AppSizes.spinnerSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: AppSizes.spinnerStrokeWidth,
+                    color: context.colors.onPrimary,
+                  ),
+                )
+              : Text(
+                  context.l10n.voice_confirm_count(includedCount),
+                ),
+        ),
+      ),
+    );
+  }
+
+  // ── Utility methods ────────────────────────────────────────────────────
 
   /// Returns true if [type] is a cash withdrawal or deposit.
   static bool _isCashType(String type) =>
@@ -448,6 +841,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     }
     return score;
   }
+
+  // ── Confirm all ────────────────────────────────────────────────────────
 
   Future<void> _confirmAll(BuildContext ctx) async {
     // R5-I7 fix: prevent double-tap race condition
@@ -532,7 +927,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 fromWalletId: bankWalletId,
                 toWalletId: cashWallet.id,
                 amount: draft.amountPiastres,
-                note: draft.note,
+                note: draft.noteController.text.trim().isNotEmpty
+                    ? draft.noteController.text.trim()
+                    : draft.note,
                 transferDate: draft.transactionDate,
               );
             } else {
@@ -541,7 +938,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 fromWalletId: cashWallet.id,
                 toWalletId: bankWalletId,
                 amount: draft.amountPiastres,
-                note: draft.note,
+                note: draft.noteController.text.trim().isNotEmpty
+                    ? draft.noteController.text.trim()
+                    : draft.note,
                 transferDate: draft.transactionDate,
               );
             }
@@ -641,137 +1040,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     nav.pop();
   }
 
-  Future<void> _showCategoryPicker(
-    BuildContext context,
-    _EditableDraft draft,
-  ) async {
-    final categories = ref.read(categoriesProvider).valueOrNull ?? [];
-    final typeCats = categories
-        .where((c) => c.type == draft.type || c.type == 'both')
-        .toList();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: AppSizes.sheetInitialSize,
-        minChildSize: AppSizes.sheetMinSize,
-        maxChildSize: AppSizes.sheetMaxSize,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            const DragHandle(),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppSizes.md,
-                0,
-                AppSizes.md,
-                AppSizes.sm,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  context.l10n.transaction_category_picker,
-                  style: ctx.textStyles.titleMedium,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: controller,
-                itemCount: typeCats.length,
-                itemBuilder: (_, i) {
-                  final cat = typeCats[i];
-                  final color = ColorUtils.fromHex(cat.colorHex);
-                  return ListTile(
-                    leading: Icon(
-                      CategoryIconMapper.fromName(cat.iconName),
-                      size: AppSizes.iconMd,
-                      color: color,
-                    ),
-                    title: Text(cat.displayName(context.languageCode)),
-                    selected: cat.id == draft.categoryId,
-                    onTap: () {
-                      setState(() => draft.categoryId = cat.id);
-                      ctx.pop();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _showWalletPicker(
-    BuildContext context,
-    _EditableDraft draft,
-  ) async {
-    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
-        .where((w) => !w.isSystemWallet)
-        .toList();
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: AppSizes.sheetSmallInitialSize,
-        maxChildSize: AppSizes.sheetSmallMaxSize,
-        expand: false,
-        builder: (_, controller) => Column(
-          children: [
-            const DragHandle(),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                AppSizes.md,
-                0,
-                AppSizes.md,
-                AppSizes.sm,
-              ),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(
-                  context.l10n.voice_select_wallet,
-                  style: ctx.textStyles.titleMedium,
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                controller: controller,
-                itemCount: wallets.length + 1,
-                itemBuilder: (_, i) {
-                  // First item: "Create new account" with inline name entry.
-                  if (i == 0) {
-                    return _CreateAccountTile(
-                      hint: draft.unmatchedHint,
-                      onCreated: (newId) {
-                        setState(() => draft.walletId = newId);
-                        ctx.pop();
-                      },
-                      repo: ref.read(walletRepositoryProvider),
-                    );
-                  }
-                  final w = wallets[i - 1];
-                  return ListTile(
-                    leading: const Icon(AppIcons.wallet, size: AppSizes.iconMd),
-                    title: Text(w.name),
-                    selected: w.id == draft.walletId,
-                    onTap: () {
-                      setState(() => draft.walletId = w.id);
-                      ctx.pop();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ── Wallet/subscription creation helpers ───────────────────────────────
 
   Future<void> _createWalletFromHint(_EditableDraft draft) async {
     final duplicateMsg = context.l10n.wallet_name_duplicate;
@@ -803,34 +1072,6 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     }
   }
 
-  /// Creates a new wallet for the "To" side of a transfer (D-15).
-  Future<void> _createToWalletFromHint(_EditableDraft draft) async {
-    final duplicateMsg = context.l10n.wallet_name_duplicate;
-    final genericMsg = context.l10n.common_error_generic;
-    final hintName = draft.unmatchedToHint!;
-    try {
-      final newId = await ref.read(walletRepositoryProvider).create(
-            name: hintName,
-            type: 'bank',
-            initialBalance: 0,
-          );
-      if (mounted) {
-        setState(() {
-          for (final d in _editableDrafts) {
-            if (d.unmatchedToHint == hintName) {
-              d.toWalletId = newId;
-              d.unmatchedToHint = null;
-            }
-          }
-        });
-      }
-    } on ArgumentError {
-      if (mounted) SnackHelper.showError(context, duplicateMsg);
-    } catch (_) {
-      if (mounted) SnackHelper.showError(context, genericMsg);
-    }
-  }
-
   /// One-tap inline subscription creation — mirrors _createWalletFromHint
   /// pattern: no navigation, instant feedback.
   Future<void> _createSubscriptionFromDraft(_EditableDraft draft) async {
@@ -847,7 +1088,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             title: title,
             frequency: 'monthly',
             startDate: now,
-            nextDueDate: now.add(const Duration(days: 30)),
+            nextDueDate: now.add(AppDurations.subscriptionDefaultCycle),
           );
       if (mounted) {
         HapticFeedback.selectionClick();
@@ -870,17 +1111,19 @@ class _EditableDraft {
   _EditableDraft({
     required this.rawText,
     required this.amountPiastres,
+    this.aiTitle,
     this.categoryHint,
     this.walletHint,
     this.toWalletHint,
     this.note,
     required this.type,
     required this.transactionDate,
-  }) : noteController = TextEditingController(text: note ?? rawText);
+  }) : noteController = TextEditingController(text: aiTitle ?? note ?? rawText);
 
   factory _EditableDraft.from(VoiceTransactionDraft d) => _EditableDraft(
         rawText: d.rawText,
         amountPiastres: d.amountPiastres ?? 0,
+        aiTitle: d.title,
         categoryHint: d.categoryHint,
         walletHint: d.walletHint,
         toWalletHint: d.toWalletHint,
@@ -890,6 +1133,7 @@ class _EditableDraft {
       );
 
   final String rawText;
+  final String? aiTitle;
   int amountPiastres;
   String? categoryHint;
   String? walletHint;
@@ -921,378 +1165,40 @@ class _EditableDraft {
   final TextEditingController noteController;
 }
 
-// ── Draft card widget ─────────────────────────────────────────────────────
+// ── Swipe hint overlay (first-time education) ─────────────────────────────
 
-class _DraftCard extends StatelessWidget {
-  const _DraftCard({
-    required this.draft,
-    required this.categoryName,
-    required this.categoryIcon,
-    required this.categoryColor,
-    this.walletName,
-    required this.isIncluded,
-    this.matchedGoalName,
-    required this.onToggleIncluded,
-    required this.onAmountChanged,
-    required this.onTypeToggle,
-    required this.onCategoryTap,
-    required this.onWalletTap,
-    this.onCreateWalletFromHint,
-    this.onCreateToWalletFromHint,
-    this.onCreateSubscription,
-    this.subscriptionAdded = false,
-  });
+class _SwipeHintOverlay extends StatefulWidget {
+  const _SwipeHintOverlay({required this.onComplete});
 
-  final _EditableDraft draft;
-  final String? categoryName;
-  final IconData categoryIcon;
-  final Color categoryColor;
-  final String? walletName;
-  final bool isIncluded;
-  final String? matchedGoalName;
-  final VoidCallback onToggleIncluded;
-  final ValueChanged<int> onAmountChanged;
-  final VoidCallback onTypeToggle;
-  final VoidCallback onCategoryTap;
-  final VoidCallback onWalletTap;
-  final VoidCallback? onCreateWalletFromHint;
-  final VoidCallback? onCreateToWalletFromHint;
-  final VoidCallback? onCreateSubscription;
-  final bool subscriptionAdded;
+  final VoidCallback onComplete;
 
   @override
-  Widget build(BuildContext context) {
-    final cs = context.colors;
-    final theme = context.appTheme;
-    final isCash =
-        draft.type == 'cash_withdrawal' || draft.type == 'cash_deposit';
-    final typeColor = switch (draft.type) {
-      'income' => theme.incomeColor,
-      'cash_withdrawal' || 'cash_deposit' => theme.transferColor,
-      _ => theme.expenseColor,
-    };
-
-    return Opacity(
-      opacity: isIncluded ? 1.0 : AppSizes.opacityLight5,
-      child: GlassCard(
-        margin: const EdgeInsets.symmetric(
-          horizontal: AppSizes.screenHPadding,
-          vertical: AppSizes.xs,
-        ),
-        tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header: amount (prominent) + checkbox ──────────
-            Row(
-              children: [
-                // Include/exclude toggle
-                SizedBox(
-                  width: AppSizes.iconContainerSm,
-                  height: AppSizes.iconContainerSm,
-                  child: Checkbox(
-                    value: isIncluded,
-                    onChanged: (_) => onToggleIncluded(),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-                const Spacer(),
-                // Raw AI transcript (subtle)
-                Flexible(
-                  flex: 3,
-                  child: Text(
-                    draft.rawText,
-                    style: context.textStyles.bodySmall?.copyWith(
-                      color: cs.outline,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                  ),
-                ),
-              ],
-            ),
-
-            // ── Amount (hero) ────────────────────────────────────
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: AmountInput(
-                initialPiastres: draft.amountPiastres,
-                onAmountChanged: onAmountChanged,
-                autofocus: false,
-                compact: true,
-              ),
-            ),
-            const SizedBox(height: AppSizes.sm),
-
-            // ── Type + Category badges row ────────────────────
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: Wrap(
-                spacing: AppSizes.sm,
-                runSpacing: AppSizes.xs,
-                children: [
-                  // Type badge
-                  _ChipBadge(
-                    icon: switch (draft.type) {
-                      'income' => AppIcons.income,
-                      'cash_withdrawal' || 'cash_deposit' => AppIcons.transfer,
-                      _ => AppIcons.expense,
-                    },
-                    label: switch (draft.type) {
-                      'income' => context.l10n.transaction_type_income,
-                      'cash_withdrawal' =>
-                        context.l10n.transaction_type_cash_withdrawal_short,
-                      'cash_deposit' =>
-                        context.l10n.transaction_type_cash_deposit_short,
-                      _ => context.l10n.transaction_type_expense,
-                    },
-                    color: typeColor,
-                    onTap: isCash ? null : onTypeToggle,
-                    dimmed: isCash,
-                  ),
-                  // Category badge — hidden for cash types
-                  if (!isCash)
-                    _ChipBadge(
-                      icon: categoryIcon,
-                      label: categoryName ?? context.l10n.transaction_category,
-                      color: categoryColor,
-                      onTap: onCategoryTap,
-                    ),
-                  // Wallet badge
-                  _ChipBadge(
-                    icon: AppIcons.wallet,
-                    label: walletName ?? context.l10n.voice_select_wallet,
-                    color: cs.primary,
-                    onTap: onWalletTap,
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Unmatched wallet hints ──────────────────────────
-            if (draft.unmatchedHint != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(top: AppSizes.xs),
-                child: TextButton.icon(
-                  onPressed: onCreateWalletFromHint,
-                  icon: const Icon(AppIcons.add, size: AppSizes.iconXxs2),
-                  label: Text(
-                    context.l10n.voice_create_wallet_instead(
-                      draft.unmatchedHint!,
-                    ),
-                    style: context.textStyles.bodySmall,
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.sm,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-            if (draft.unmatchedToHint != null)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(top: AppSizes.xs),
-                child: TextButton.icon(
-                  onPressed: onCreateToWalletFromHint,
-                  icon: const Icon(AppIcons.add, size: AppSizes.iconXxs2),
-                  label: Text(
-                    context.l10n.voice_create_wallet_instead(
-                      draft.unmatchedToHint!,
-                    ),
-                    style: context.textStyles.bodySmall,
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.sm,
-                    ),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
-
-            // ── Editable title ──────────────────────────────────
-            const SizedBox(height: AppSizes.sm),
-            IgnorePointer(
-              ignoring: !isIncluded,
-              child: TextField(
-                controller: draft.noteController,
-                style: context.textStyles.bodySmall,
-                decoration: InputDecoration(
-                  hintText: context.l10n.voice_edit_title_hint,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.sm,
-                    vertical: AppSizes.xs,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusSm),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Contextual suggestions ─────────────────────────
-            if (matchedGoalName != null) ...[
-              const SizedBox(height: AppSizes.sm),
-              _InfoBanner(
-                icon: AppIcons.goals,
-                text: context.l10n.goal_link_prompt(matchedGoalName!),
-                color: cs.tertiary,
-              ),
-            ],
-            if (subscriptionAdded) ...[
-              const SizedBox(height: AppSizes.sm),
-              _InfoBanner(
-                icon: AppIcons.checkCircle,
-                text: context.l10n.voice_confirm_subscription_added,
-                color: cs.onTertiaryContainer,
-                backgroundColor: cs.tertiaryContainer,
-              ),
-            ] else if (draft.isSubscriptionLike &&
-                onCreateSubscription != null) ...[
-              const SizedBox(height: AppSizes.sm),
-              InkWell(
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-                onTap: onCreateSubscription,
-                child: _InfoBanner(
-                  icon: AppIcons.recurring,
-                  text: context.l10n.voice_confirm_subscription_suggest,
-                  color: cs.onTertiaryContainer,
-                  backgroundColor: cs.tertiaryContainer,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  State<_SwipeHintOverlay> createState() => _SwipeHintOverlayState();
 }
 
-/// Tappable chip badge used for type/category/wallet selectors in draft cards.
-class _ChipBadge extends StatelessWidget {
-  const _ChipBadge({
-    required this.icon,
-    required this.label,
-    required this.color,
-    this.onTap,
-    this.dimmed = false,
-  });
+class _SwipeHintOverlayState extends State<_SwipeHintOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
 
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Opacity(
-      opacity: dimmed ? AppSizes.opacityMedium : 1.0,
-      child: GestureDetector(
-        onTap: onTap,
-        child: GlassCard(
-          tier: GlassTier.inset,
-          tintColor: color.withValues(alpha: AppSizes.opacitySubtle),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.sm,
-            vertical: AppSizes.xxs,
-          ),
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: AppSizes.iconXxs2, color: color),
-              const SizedBox(width: AppSizes.xs),
-              Text(
-                label,
-                style: context.textStyles.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Small informational banner used for goal/subscription suggestions.
-class _InfoBanner extends StatelessWidget {
-  const _InfoBanner({
-    required this.icon,
-    required this.text,
-    required this.color,
-    this.backgroundColor,
-  });
-
-  final IconData icon;
-  final String text;
-  final Color color;
-  final Color? backgroundColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.sm,
-        vertical: AppSizes.xs,
-      ),
-      decoration: BoxDecoration(
-        color:
-            backgroundColor ?? color.withValues(alpha: AppSizes.opacitySubtle),
-        borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: AppSizes.iconXs, color: color),
-          const SizedBox(width: AppSizes.xs),
-          Expanded(
-            child: Text(
-              text,
-              style: context.textStyles.bodySmall?.copyWith(color: color),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Inline "Create new account" tile inside the wallet picker (D-15/D-16).
-/// Shows an expandable text field for entering a new account name directly.
-class _CreateAccountTile extends StatefulWidget {
-  const _CreateAccountTile({
-    this.hint,
-    required this.onCreated,
-    required this.repo,
-  });
-
-  final String? hint;
-  final ValueChanged<int> onCreated;
-  final IWalletRepository repo;
-
-  @override
-  State<_CreateAccountTile> createState() => _CreateAccountTileState();
-}
-
-class _CreateAccountTileState extends State<_CreateAccountTile> {
-  bool _expanded = false;
-  late final TextEditingController _controller;
-  bool _creating = false;
+  // Phase timings (normalised 0→1 over ~3s total):
+  // 0.00–0.20 : slide right + "approve" fade in
+  // 0.20–0.37 : hold right
+  // 0.37–0.57 : slide left + "skip" fade in
+  // 0.57–0.73 : hold left
+  // 0.73–1.00 : fade out everything
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.hint ?? '');
+    _controller = AnimationController(
+      vsync: this,
+      duration: AppDurations.swipeHintTotal,
+    )..forward();
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        widget.onComplete();
+      }
+    });
   }
 
   @override
@@ -1301,73 +1207,113 @@ class _CreateAccountTileState extends State<_CreateAccountTile> {
     super.dispose();
   }
 
-  Future<void> _create() async {
-    final name = _controller.text.trim();
-    if (name.isEmpty || _creating) return;
-    setState(() => _creating = true);
-    try {
-      final id = await widget.repo.create(
-        name: name,
-        type: 'bank',
-        initialBalance: 0,
-      );
-      widget.onCreated(id);
-    } catch (_) {
-      if (mounted) {
-        SnackHelper.showError(context, context.l10n.common_error_generic);
-        setState(() => _creating = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    final textStyles = context.textStyles;
     final cs = context.colors;
 
-    if (!_expanded) {
-      return ListTile(
-        leading: Icon(AppIcons.add, size: AppSizes.iconMd, color: cs.primary),
-        title: Text(
-          context.l10n.wallet_add_title,
-          style: context.textStyles.bodyMedium?.copyWith(color: cs.primary),
-        ),
-        onTap: () => setState(() => _expanded = true),
-      );
-    }
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final t = _controller.value;
 
-    return Padding(
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSizes.md,
-        vertical: AppSizes.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: context.l10n.wallet_name_hint,
-                isDense: true,
-                border: const OutlineInputBorder(),
+        // ── Phase calculations ───────────────────────────────────
+        // Slide offset: positive = right, negative = left.
+        double slideOffset;
+        double approveOpacity;
+        double skipOpacity;
+        double globalOpacity;
+
+        if (t < 0.20) {
+          // Slide right
+          slideOffset = (t / 0.20) * 60;
+          approveOpacity = (t / 0.20).clamp(0, 1);
+          skipOpacity = 0;
+          globalOpacity = 1;
+        } else if (t < 0.37) {
+          // Hold right
+          slideOffset = 60;
+          approveOpacity = 1;
+          skipOpacity = 0;
+          globalOpacity = 1;
+        } else if (t < 0.57) {
+          // Slide left (from right to left)
+          final phase = (t - 0.37) / 0.20;
+          slideOffset = 60 - (phase * 120); // 60 → -60
+          approveOpacity = 1.0 - phase;
+          skipOpacity = phase.clamp(0, 1);
+          globalOpacity = 1;
+        } else if (t < 0.73) {
+          // Hold left
+          slideOffset = -60;
+          approveOpacity = 0;
+          skipOpacity = 1;
+          globalOpacity = 1;
+        } else {
+          // Fade out
+          final phase = (t - 0.73) / 0.27;
+          slideOffset = -60;
+          approveOpacity = 0;
+          skipOpacity = 1.0 - phase;
+          globalOpacity = 1.0 - phase;
+        }
+
+        if (globalOpacity <= 0) return const SizedBox.shrink();
+
+        return Opacity(
+          opacity: globalOpacity.clamp(0, 1),
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: cs.scrim.withValues(alpha: AppSizes.opacityLight3),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
               ),
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _create(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Hand icon
+                  Transform.translate(
+                    offset: Offset(slideOffset, 0),
+                    child: Icon(
+                      AppIcons.handPointing,
+                      size: AppSizes.iconXl,
+                      color: cs.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                  // Labels
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Opacity(
+                        opacity: approveOpacity.clamp(0, 1),
+                        child: Text(
+                          context.l10n.hint_swipe_right,
+                          style: textStyles.bodyMedium?.copyWith(
+                            color: theme.incomeColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Opacity(
+                        opacity: skipOpacity.clamp(0, 1),
+                        child: Text(
+                          context.l10n.hint_swipe_left,
+                          style: textStyles.bodyMedium?.copyWith(
+                            color: theme.expenseColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: AppSizes.sm),
-          _creating
-              ? const SizedBox(
-                  width: AppSizes.iconMd,
-                  height: AppSizes.iconMd,
-                  child: CircularProgressIndicator.adaptive(strokeWidth: 2),
-                )
-              : IconButton(
-                  icon: Icon(AppIcons.check, color: cs.primary),
-                  onPressed: _create,
-                ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

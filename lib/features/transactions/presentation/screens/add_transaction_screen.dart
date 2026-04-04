@@ -28,22 +28,20 @@ import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/buttons/app_button.dart';
-import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../../../../shared/widgets/inputs/app_date_picker.dart';
 import '../../../../shared/widgets/inputs/app_text_field.dart';
-import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Core transaction entry screen — supports both add and edit modes.
 ///
-/// Layout (Glass Sections):
+/// Layout:
 ///   ChoiceChip row (type: expense/income/withdraw/deposit) — scrollable
-///   GlassCard (Amount) — tinted with type color
-///   GlassCard (Details) — title, category chips, wallet picker (expense/income)
+///   Amount section — tinted with type color
+///   Details section — title, category chips, wallet picker (expense/income)
 ///               OR — wallet picker only (cash_withdrawal/cash_deposit)
-///   GlassCard (Optional) — date, note, location chips (expense/income only)
+///   Optional section — date, note, location chips (expense/income only)
 ///   AppButton (Save) — sticky bottom
 class AddTransactionScreen extends ConsumerStatefulWidget {
   const AddTransactionScreen({
@@ -56,7 +54,6 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
   final int? editId;
 
   /// Opens a modal bottom sheet for adding a new transaction.
-  /// Edit mode still uses the full-screen route.
   static Future<void> show(
     BuildContext context, {
     String initialType = 'expense',
@@ -83,6 +80,30 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
     );
   }
 
+  /// Opens a modal bottom sheet for editing an existing transaction.
+  static Future<void> showEdit(BuildContext context, int editId) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSizes.borderRadiusLg),
+        ),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        maxChildSize: AppSizes.sheetFullSize,
+        minChildSize: AppSizes.sheetSmallMaxSize,
+        expand: false,
+        builder: (ctx, scrollController) => AddTransactionSheet(
+          editId: editId,
+          scrollController: scrollController,
+        ),
+      ),
+    );
+  }
+
   // Wallet type → icon resolved via AppIcons.walletType() (single source).
 
   @override
@@ -92,10 +113,10 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
 
 // ── Shared form logic (DRY: used by Screen and Sheet states) ──────────────
 
-/// Holds all form state, validation, save, and picker logic shared between
-/// [_AddTransactionScreenState] (full-screen) and [_AddTransactionSheetState]
-/// (bottom-sheet). Each concrete class provides its own [build] method and
-/// owns the [TextEditingController] instances (for proper disposal).
+/// Holds all form state, validation, save, and picker logic used by
+/// [_AddTransactionSheetState] (bottom-sheet). The concrete class provides
+/// its own [build] method and owns the [TextEditingController] instances
+/// (for proper disposal).
 mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
   // ── Abstract — concrete classes own these for dispose ────────────────
@@ -612,399 +633,32 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
 
 // ── Full-screen state ─────────────────────────────────────────────────────
 
-class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
-    with _TransactionFormMixin {
-  @override
-  final _noteController = TextEditingController();
-  @override
-  final _titleController = TextEditingController(); // WS-10
-
-  @override
-  void initState() {
-    super.initState();
-    _type = widget.initialType;
-    _isEditMode = widget.editId != null;
-    _startTitleListener();
-    if (_isEditMode) {
-      _loadForEdit();
-    } else {
-      _initWallet();
-    }
-  }
-
-  @override
-  void dispose() {
-    _stopTitleListener();
-    _noteController.dispose();
-    _titleController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadForEdit() async {
-    final tx =
-        await ref.read(transactionRepositoryProvider).getById(widget.editId!);
-    if (!mounted || tx == null) return;
-
-    setState(() {
-      _editTx = tx;
-      _type = tx.type;
-      _amountPiastres = tx.amount;
-      _selectedCategoryId = tx.categoryId;
-      _walletId = tx.walletId;
-      _date = tx.transactionDate;
-      _locationName = tx.locationName;
-      _latitude = tx.latitude;
-      _longitude = tx.longitude;
-      if (tx.note != null) _noteController.text = tx.note!;
-      _titleController.text = tx.title; // WS-10
-      // Auto-expand optional section if edit data has details.
-      _showOptional = tx.note != null ||
-          tx.locationName != null ||
-          !DateUtils.isSameDay(tx.transactionDate, DateTime.now());
-    });
-  }
-
-  // ── Build ───────────────────────────────────────────────────────────
+/// Route fallback state — immediately opens the bottom sheet and pops.
+/// All actual usage goes through [AddTransactionScreen.show] or
+/// [AddTransactionScreen.showEdit]. This only exists as a safety net
+/// for deep-link or route-based navigation.
+class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen> {
+  bool _opened = false;
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.colors;
-    final allCats = ref.watch(categoriesProvider).valueOrNull ?? [];
-    final typeCats =
-        allCats.where((c) => c.type == _type || c.type == 'both').toList();
-    if (!_isCashType) _tryApplySmartDefault(typeCats);
-    final freqService = ref.read(categoryFrequencyServiceProvider);
-    final sortedCats = freqService.sortByFrequency(typeCats, _type);
-    final topCats = sortedCats.take(AppSizes.categoryChipMaxVisible).toList();
-    final todKeywords = freqService.getTimeOfDaySuggestedKeywords();
-
-    final typeColor = switch (_type) {
-      'income' => context.appTheme.incomeColor,
-      'cash_withdrawal' || 'cash_deposit' => context.appTheme.transferColor,
-      _ => context.appTheme.expenseColor,
-    };
-
-    final canSave = _isCashType
-        ? _amountPiastres > 0 && _walletId != null
-        : _amountPiastres > 0 &&
-            _selectedCategoryId != null &&
-            _walletId != null;
-
-    // Resolve current wallet for the wallet picker row.
-    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
-    final nonSystemWallets = wallets.where((w) => !w.isSystemWallet).toList();
-    final showWalletPicker = nonSystemWallets.length > 1;
-
-    // Type chip definitions: value, label, icon
-    final typeOptions = <({String value, String label, IconData icon})>[
-      (
-        value: 'expense',
-        label: context.l10n.transaction_type_expense,
-        icon: AppIcons.expense,
-      ),
-      (
-        value: 'income',
-        label: context.l10n.transaction_type_income,
-        icon: AppIcons.income,
-      ),
-      (
-        value: 'cash_withdrawal',
-        label: context.l10n.transaction_type_cash_withdrawal_short,
-        icon: AppIcons.bank,
-      ),
-      (
-        value: 'cash_deposit',
-        label: context.l10n.transaction_type_cash_deposit_short,
-        icon: AppIcons.bank,
-      ),
-    ];
-
-    return Scaffold(
-      appBar: AppAppBar(
-        title: _isEditMode
-            ? context.l10n.transaction_edit_title
-            : context.l10n.transactions_add,
-      ),
-      resizeToAvoidBottomInset: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Type toggle (scrollable chips — 4 options) ───────────
-            if (!_isEditMode)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                  vertical: AppSizes.sm,
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: typeOptions.map((opt) {
-                      final selected = _type == opt.value;
-                      final chipColor = switch (opt.value) {
-                        'income' => context.appTheme.incomeColor,
-                        'cash_withdrawal' ||
-                        'cash_deposit' =>
-                          context.appTheme.transferColor,
-                        _ => context.appTheme.expenseColor,
-                      };
-                      return Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          end: AppSizes.sm,
-                        ),
-                        child: ChoiceChip(
-                          selected: selected,
-                          label: Text(opt.label),
-                          avatar: Icon(opt.icon, size: AppSizes.iconXs),
-                          selectedColor: chipColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          side: selected ? BorderSide(color: chipColor) : null,
-                          onSelected: (_) {
-                            setState(() {
-                              _type = opt.value;
-                              _selectedCategoryId = null;
-                              _smartDefaultApplied = false;
-                              // For cash types, auto-select first non-system wallet
-                              if (_isCashType && wallets.isNotEmpty) {
-                                final nonSystem = wallets
-                                    .where((w) => !w.isSystemWallet)
-                                    .toList();
-                                if (nonSystem.isNotEmpty) {
-                                  _walletId = nonSystem.first.id;
-                                }
-                              }
-                            });
-                          },
-                          showCheckmark: false,
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-
-            // ── Type toggle (edit mode — only expense/income) ────────
-            if (_isEditMode)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                  vertical: AppSizes.sm,
-                ),
-                child: SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(
-                      value: 'expense',
-                      label: Text(context.l10n.transaction_type_expense),
-                      icon: const Icon(AppIcons.expense),
-                    ),
-                    ButtonSegment(
-                      value: 'income',
-                      label: Text(context.l10n.transaction_type_income),
-                      icon: const Icon(AppIcons.income),
-                    ),
-                  ],
-                  selected: {_type},
-                  onSelectionChanged: (v) {
-                    setState(() {
-                      _type = v.first;
-                      _selectedCategoryId = null;
-                      _smartDefaultApplied = false;
-                    });
-                  },
-                ),
-              ),
-
-            // ── Amount Card (tinted glass) ───────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: GlassCard(
-                tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSizes.sm,
-                ),
-                child: AmountInput(
-                  initialPiastres: _amountPiastres,
-                  onAmountChanged: (p) => setState(() => _amountPiastres = p),
-                  autofocus: !_isEditMode,
-                  textColor: typeColor,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSizes.md),
-
-            // ── Cash type: simplified form (account + note) ──────────
-            if (_isCashType) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
-                child: GlassCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Bank account picker
-                      _WalletPickerRow(
-                        wallet: currentWallet,
-                        onTap: _showWalletPicker,
-                      ),
-                      const SizedBox(height: AppSizes.sm),
-                      // Optional note
-                      AppTextField(
-                        label: context.l10n.transaction_note,
-                        hint: context.l10n.transaction_note_hint,
-                        controller: _noteController,
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            // ── Expense/Income: full form ────────────────────────────
-            if (!_isCashType) ...[
-              // Details Card (title + categories + wallet)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
-                child: GlassCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Category chips row
-                      SizedBox(
-                        height: AppSizes.categoryChipSize,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: topCats.length + 1,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: AppSizes.xs),
-                          itemBuilder: (_, i) {
-                            if (i == topCats.length) {
-                              return ActionChip(
-                                label: Text(context.l10n.common_all),
-                                avatar: const Icon(
-                                  AppIcons.expandMore,
-                                  size: AppSizes.iconXxs2,
-                                ),
-                                onPressed: () => _showAllCategories(typeCats),
-                              );
-                            }
-                            final cat = topCats[i];
-                            final color = ColorUtils.fromHex(cat.colorHex);
-                            final isSelected = cat.id == _selectedCategoryId;
-                            final isTimeHint = !isSelected &&
-                                todKeywords.any(
-                                  (kw) =>
-                                      cat.name.toLowerCase().contains(kw) ||
-                                      cat.nameAr.contains(kw),
-                                );
-                            return AnimatedScale(
-                              scale: isSelected ? 1.0 : 0.95,
-                              duration: context.reduceMotion
-                                  ? Duration.zero
-                                  : AppDurations.microBounce,
-                              curve: Curves.easeOutBack,
-                              child: FilterChip(
-                                selected: isSelected,
-                                avatar: Icon(
-                                  CategoryIconMapper.fromName(
-                                    cat.iconName,
-                                  ),
-                                  size: AppSizes.iconXs,
-                                  color: isSelected
-                                      ? cs.onSecondaryContainer
-                                      : color,
-                                ),
-                                label: Text(
-                                  cat.displayName(
-                                    context.languageCode,
-                                  ),
-                                ),
-                                side: isTimeHint
-                                    ? BorderSide(
-                                        color: cs.primary,
-                                        width: AppSizes.borderWidthEmphasis,
-                                      )
-                                    : null,
-                                onSelected: (_) {
-                                  setState(() => _selectedCategoryId = cat.id);
-                                },
-                                showCheckmark: false,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-
-                      // Wallet picker row (only when multiple wallets)
-                      if (showWalletPicker) ...[
-                        const SizedBox(height: AppSizes.sm),
-                        _WalletPickerRow(
-                          wallet: currentWallet,
-                          onTap: _showWalletPicker,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSizes.md),
-
-              // Optional Card (date, note, location)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
-                child: _OptionalSection(
-                  expanded: _showOptional,
-                  onToggle: () =>
-                      setState(() => _showOptional = !_showOptional),
-                  date: _date,
-                  onDateChanged: (d) => setState(() => _date = d),
-                  titleController: _titleController,
-                  noteController: _noteController,
-                  locationName: _locationName,
-                  detectingLocation: _detectingLocation,
-                  onDetectLocation: _detectLocation,
-                  onLocationChanged: (v) => setState(() => _locationName = v),
-                ),
-              ),
-            ],
-
-            // Extra space for scrolling when keyboard opens
-            const SizedBox(height: AppSizes.xl),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(
-            AppSizes.screenHPadding,
-            AppSizes.sm,
-            AppSizes.screenHPadding,
-            AppSizes.md,
-          ),
-          child: AppButton(
-            label: _isEditMode
-                ? context.l10n.common_save_changes
-                : context.l10n.common_save,
-            onPressed: canSave && !_loading
-                ? (_isCashType ? _saveCashTransfer : _save)
-                : null,
-            isLoading: _loading,
-            icon: AppIcons.check,
-          ),
-        ),
-      ),
-    );
+    // Redirect to sheet on first frame — this route is a fallback only.
+    if (!_opened) {
+      _opened = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.pop();
+        if (widget.editId != null) {
+          AddTransactionScreen.showEdit(context, widget.editId!);
+        } else {
+          AddTransactionScreen.show(
+            context,
+            initialType: widget.initialType,
+          );
+        }
+      });
+    }
+    return const Scaffold(body: SizedBox.shrink());
   }
 }
 
@@ -1017,10 +671,12 @@ class AddTransactionSheet extends ConsumerStatefulWidget {
   const AddTransactionSheet({
     super.key,
     this.initialType = 'expense',
+    this.editId,
     required this.scrollController,
   });
 
   final String initialType;
+  final int? editId;
   final ScrollController scrollController;
 
   @override
@@ -1039,8 +695,35 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
   void initState() {
     super.initState();
     _type = widget.initialType;
+    _isEditMode = widget.editId != null;
     _startTitleListener();
-    _initWallet();
+    if (_isEditMode) {
+      _loadForEdit();
+    } else {
+      _initWallet();
+    }
+  }
+
+  Future<void> _loadForEdit() async {
+    final tx =
+        await ref.read(transactionRepositoryProvider).getById(widget.editId!);
+    if (!mounted || tx == null) return;
+    setState(() {
+      _editTx = tx;
+      _type = tx.type;
+      _amountPiastres = tx.amount;
+      _selectedCategoryId = tx.categoryId;
+      _walletId = tx.walletId;
+      _date = tx.transactionDate;
+      _locationName = tx.locationName;
+      _latitude = tx.latitude;
+      _longitude = tx.longitude;
+      if (tx.note != null) _noteController.text = tx.note!;
+      _titleController.text = tx.title;
+      _showOptional = tx.note != null ||
+          tx.locationName != null ||
+          !DateUtils.isSameDay(tx.transactionDate, DateTime.now());
+    });
   }
 
   @override
@@ -1114,11 +797,12 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
           padding: const EdgeInsets.symmetric(
             horizontal: AppSizes.screenHPadding,
           ),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
+          child: Center(
             child: Text(
-              context.l10n.transactions_add,
-              style: context.textStyles.titleLarge,
+              _isEditMode
+                  ? context.l10n.transaction_edit_title
+                  : context.l10n.transactions_add,
+              style: context.textStyles.headlineMedium,
             ),
           ),
         ),
@@ -1135,63 +819,60 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
                   horizontal: AppSizes.screenHPadding,
                   vertical: AppSizes.sm,
                 ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: typeOptions.map((opt) {
-                      final selected = _type == opt.value;
-                      final chipColor = switch (opt.value) {
-                        'income' => context.appTheme.incomeColor,
-                        'cash_withdrawal' ||
-                        'cash_deposit' =>
-                          context.appTheme.transferColor,
-                        _ => context.appTheme.expenseColor,
-                      };
-                      return Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          end: AppSizes.sm,
-                        ),
-                        child: ChoiceChip(
-                          selected: selected,
-                          label: Text(opt.label),
-                          avatar: Icon(opt.icon, size: AppSizes.iconXs),
-                          selectedColor: chipColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          side: selected ? BorderSide(color: chipColor) : null,
-                          onSelected: (_) {
-                            setState(() {
-                              _type = opt.value;
-                              _selectedCategoryId = null;
-                              _smartDefaultApplied = false;
-                              if (_isCashType && wallets.isNotEmpty) {
-                                final nonSystem = wallets
-                                    .where((w) => !w.isSystemWallet)
-                                    .toList();
-                                if (nonSystem.isNotEmpty) {
-                                  _walletId = nonSystem.first.id;
-                                }
-                              }
-                            });
-                          },
-                          showCheckmark: false,
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                child: Wrap(
+                  spacing: AppSizes.sm,
+                  runSpacing: AppSizes.xs,
+                  children: typeOptions.map((opt) {
+                    final selected = _type == opt.value;
+                    final chipColor = switch (opt.value) {
+                      'income' => context.appTheme.incomeColor,
+                      'cash_withdrawal' ||
+                      'cash_deposit' =>
+                        context.appTheme.transferColor,
+                      _ => context.appTheme.expenseColor,
+                    };
+                    return ChoiceChip(
+                      selected: selected,
+                      label: Text(opt.label),
+                      avatar: Icon(opt.icon, size: AppSizes.iconXs),
+                      selectedColor: chipColor.withValues(
+                        alpha: AppSizes.opacityLight2,
+                      ),
+                      side: selected ? BorderSide(color: chipColor) : null,
+                      onSelected: (_) {
+                        setState(() {
+                          _type = opt.value;
+                          _selectedCategoryId = null;
+                          _smartDefaultApplied = false;
+                          if (_isCashType && wallets.isNotEmpty) {
+                            final nonSystem = wallets
+                                .where((w) => !w.isSystemWallet)
+                                .toList();
+                            if (nonSystem.isNotEmpty) {
+                              _walletId = nonSystem.first.id;
+                            }
+                          }
+                        });
+                      },
+                      showCheckmark: false,
+                    );
+                  }).toList(),
                 ),
               ),
 
-              // ── Amount Card (tinted glass) ───────────────────────────
+              // ── Amount (hero, tinted background) ─────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSizes.screenHPadding,
                 ),
-                child: GlassCard(
-                  tintColor:
-                      typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                child: Container(
                   padding: const EdgeInsets.symmetric(
                     vertical: AppSizes.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusMd),
                   ),
                   child: AmountInput(
                     initialPiastres: _amountPiastres,
@@ -1208,23 +889,21 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
                   ),
-                  child: GlassCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _WalletPickerRow(
-                          wallet: currentWallet,
-                          onTap: _showWalletPicker,
-                        ),
-                        const SizedBox(height: AppSizes.sm),
-                        AppTextField(
-                          label: context.l10n.transaction_note,
-                          hint: context.l10n.transaction_note_hint,
-                          controller: _noteController,
-                          maxLines: 2,
-                        ),
-                      ],
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _WalletPickerRow(
+                        wallet: currentWallet,
+                        onTap: _showWalletPicker,
+                      ),
+                      const SizedBox(height: AppSizes.md),
+                      AppTextField(
+                        label: context.l10n.transaction_note,
+                        hint: context.l10n.transaction_note_hint,
+                        controller: _noteController,
+                        maxLines: 2,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -1235,85 +914,83 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
                   ),
-                  child: GlassCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: AppSizes.categoryChipSize,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: topCats.length + 1,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: AppSizes.xs),
-                            itemBuilder: (_, i) {
-                              if (i == topCats.length) {
-                                return ActionChip(
-                                  label: Text(context.l10n.common_all),
-                                  avatar: const Icon(
-                                    AppIcons.expandMore,
-                                    size: AppSizes.iconXxs2,
-                                  ),
-                                  onPressed: () => _showAllCategories(typeCats),
-                                );
-                              }
-                              final cat = topCats[i];
-                              final color = ColorUtils.fromHex(cat.colorHex);
-                              final isSelected = cat.id == _selectedCategoryId;
-                              final isTimeHint = !isSelected &&
-                                  todKeywords.any(
-                                    (kw) =>
-                                        cat.name.toLowerCase().contains(kw) ||
-                                        cat.nameAr.contains(kw),
-                                  );
-                              return AnimatedScale(
-                                scale: isSelected ? 1.0 : 0.95,
-                                duration: context.reduceMotion
-                                    ? Duration.zero
-                                    : AppDurations.microBounce,
-                                curve: Curves.easeOutBack,
-                                child: FilterChip(
-                                  selected: isSelected,
-                                  avatar: Icon(
-                                    CategoryIconMapper.fromName(
-                                      cat.iconName,
-                                    ),
-                                    size: AppSizes.iconXs,
-                                    color: isSelected
-                                        ? cs.onSecondaryContainer
-                                        : color,
-                                  ),
-                                  label: Text(
-                                    cat.displayName(
-                                      context.languageCode,
-                                    ),
-                                  ),
-                                  side: isTimeHint
-                                      ? BorderSide(
-                                          color: cs.primary,
-                                          width: AppSizes.borderWidthEmphasis,
-                                        )
-                                      : null,
-                                  onSelected: (_) {
-                                    setState(
-                                      () => _selectedCategoryId = cat.id,
-                                    );
-                                  },
-                                  showCheckmark: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: AppSizes.categoryChipSize,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: topCats.length + 1,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: AppSizes.xs),
+                          itemBuilder: (_, i) {
+                            if (i == topCats.length) {
+                              return ActionChip(
+                                label: Text(context.l10n.common_all),
+                                avatar: const Icon(
+                                  AppIcons.expandMore,
+                                  size: AppSizes.iconXxs2,
                                 ),
+                                onPressed: () => _showAllCategories(typeCats),
                               );
-                            },
-                          ),
+                            }
+                            final cat = topCats[i];
+                            final color = ColorUtils.fromHex(cat.colorHex);
+                            final isSelected = cat.id == _selectedCategoryId;
+                            final isTimeHint = !isSelected &&
+                                todKeywords.any(
+                                  (kw) =>
+                                      cat.name.toLowerCase().contains(kw) ||
+                                      cat.nameAr.contains(kw),
+                                );
+                            return AnimatedScale(
+                              scale: isSelected ? 1.0 : 0.95,
+                              duration: context.reduceMotion
+                                  ? Duration.zero
+                                  : AppDurations.microBounce,
+                              curve: Curves.easeOutBack,
+                              child: FilterChip(
+                                selected: isSelected,
+                                avatar: Icon(
+                                  CategoryIconMapper.fromName(
+                                    cat.iconName,
+                                  ),
+                                  size: AppSizes.iconXs,
+                                  color: isSelected
+                                      ? cs.onSecondaryContainer
+                                      : color,
+                                ),
+                                label: Text(
+                                  cat.displayName(
+                                    context.languageCode,
+                                  ),
+                                ),
+                                side: isTimeHint
+                                    ? BorderSide(
+                                        color: cs.primary,
+                                        width: AppSizes.borderWidthEmphasis,
+                                      )
+                                    : null,
+                                onSelected: (_) {
+                                  setState(
+                                    () => _selectedCategoryId = cat.id,
+                                  );
+                                },
+                                showCheckmark: false,
+                              ),
+                            );
+                          },
                         ),
-                        if (showWalletPicker) ...[
-                          const SizedBox(height: AppSizes.sm),
-                          _WalletPickerRow(
-                            wallet: currentWallet,
-                            onTap: _showWalletPicker,
-                          ),
-                        ],
+                      ),
+                      if (showWalletPicker) ...[
+                        const SizedBox(height: AppSizes.sm),
+                        _WalletPickerRow(
+                          wallet: currentWallet,
+                          onTap: _showWalletPicker,
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: AppSizes.md),
@@ -1412,7 +1089,7 @@ class _WalletPickerRow extends StatelessWidget {
   }
 }
 
-// ── Optional section (wrapped in GlassCard) ──────────────────────────────
+// ── Optional section ─────────────────────────────────────────────────────
 
 class _OptionalSection extends StatelessWidget {
   const _OptionalSection({
@@ -1443,152 +1120,149 @@ class _OptionalSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.colors;
 
-    return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Toggle row with Switch (D-18) ──────────────────────
-          Row(
-            children: [
-              Icon(
-                AppIcons.settings,
-                size: AppSizes.iconSm,
-                color: cs.outline,
-              ),
-              const SizedBox(width: AppSizes.sm),
-              Expanded(
-                child: Text(
-                  context.l10n.transaction_optional_details,
-                  style: context.textStyles.bodySmall?.copyWith(
-                    color: cs.outline,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Toggle row with Switch (D-18) ──────────────────────
+        Row(
+          children: [
+            Icon(
+              AppIcons.settings,
+              size: AppSizes.iconSm,
+              color: cs.outline,
+            ),
+            const SizedBox(width: AppSizes.sm),
+            Expanded(
+              child: Text(
+                context.l10n.transaction_optional_details,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
                 ),
               ),
-              // Quick-access chips when collapsed
-              if (!expanded) ...[
-                _QuickChip(
-                  icon: AppIcons.calendar,
-                  label: DateUtils.isSameDay(date, DateTime.now())
-                      ? context.l10n.date_today
-                      : MaterialLocalizations.of(context).formatShortDate(date),
-                ),
-                const SizedBox(width: AppSizes.xs),
-                if (locationName != null)
-                  Flexible(
-                    child: _QuickChip(
-                      icon: AppIcons.location,
-                      label: locationName!,
-                    ),
-                  ),
-              ],
-              SizedBox(
-                height: AppSizes.iconContainerSm,
-                child: FittedBox(
-                  child: Switch.adaptive(
-                    value: expanded,
-                    onChanged: (_) => onToggle(),
-                  ),
-                ),
+            ),
+            // Quick-access chips when collapsed
+            if (!expanded) ...[
+              _QuickChip(
+                icon: AppIcons.calendar,
+                label: DateUtils.isSameDay(date, DateTime.now())
+                    ? context.l10n.date_today
+                    : MaterialLocalizations.of(context).formatShortDate(date),
               ),
+              const SizedBox(width: AppSizes.xs),
+              if (locationName != null)
+                Flexible(
+                  child: _QuickChip(
+                    icon: AppIcons.location,
+                    label: locationName!,
+                  ),
+                ),
             ],
-          ),
+            SizedBox(
+              height: AppSizes.iconContainerSm,
+              child: FittedBox(
+                child: Switch.adaptive(
+                  value: expanded,
+                  onChanged: (_) => onToggle(),
+                ),
+              ),
+            ),
+          ],
+        ),
 
-          // ── Expanded state: full form fields ─────────────────────
-          AnimatedSize(
-            duration:
-                context.reduceMotion ? Duration.zero : AppDurations.animQuick,
-            curve: Curves.easeInOut,
-            child: expanded
-                ? Padding(
-                    padding: const EdgeInsets.only(top: AppSizes.sm),
-                    child: Column(
-                      children: [
-                        AppDatePicker(
-                          selectedDate: date,
-                          onDateChanged: onDateChanged,
+        // ── Expanded state: full form fields ─────────────────────
+        AnimatedSize(
+          duration:
+              context.reduceMotion ? Duration.zero : AppDurations.animQuick,
+          curve: Curves.easeInOut,
+          child: expanded
+              ? Padding(
+                  padding: const EdgeInsets.only(top: AppSizes.sm),
+                  child: Column(
+                    children: [
+                      AppDatePicker(
+                        selectedDate: date,
+                        onDateChanged: onDateChanged,
+                      ),
+                      const SizedBox(height: AppSizes.sm),
+                      AppTextField(
+                        label: context.l10n.transaction_title_label,
+                        hint: context.l10n.transaction_title_hint,
+                        controller: titleController,
+                        prefixIcon: Icon(
+                          AppIcons.edit,
+                          size: AppSizes.iconSm,
+                          color: cs.onSurfaceVariant,
                         ),
-                        const SizedBox(height: AppSizes.sm),
-                        AppTextField(
-                          label: context.l10n.transaction_title_label,
-                          hint: context.l10n.transaction_title_hint,
-                          controller: titleController,
-                          prefixIcon: Icon(
-                            AppIcons.edit,
-                            size: AppSizes.iconSm,
-                            color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: AppSizes.sm),
+                      AppTextField(
+                        label: context.l10n.transaction_note,
+                        hint: context.l10n.transaction_note_hint,
+                        controller: noteController,
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: AppSizes.sm),
+                      // ── Location ──────────────────────────────
+                      Row(
+                        children: [
+                          const Icon(
+                            AppIcons.location,
+                            size: AppSizes.iconXs,
                           ),
-                        ),
-                        const SizedBox(height: AppSizes.sm),
-                        AppTextField(
-                          label: context.l10n.transaction_note,
-                          hint: context.l10n.transaction_note_hint,
-                          controller: noteController,
-                          maxLines: 2,
-                        ),
-                        const SizedBox(height: AppSizes.sm),
-                        // ── Location ──────────────────────────────
-                        Row(
-                          children: [
-                            const Icon(
-                              AppIcons.location,
-                              size: AppSizes.iconXs,
-                            ),
-                            const SizedBox(width: AppSizes.xs),
-                            Expanded(
-                              child: locationName != null
-                                  ? Text(
-                                      locationName!,
-                                      style: context.textStyles.bodySmall,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    )
-                                  : Text(
-                                      context.l10n.location_hint,
-                                      style: context.textStyles.bodySmall
-                                          ?.copyWith(
-                                        color: cs.outline,
-                                      ),
+                          const SizedBox(width: AppSizes.xs),
+                          Expanded(
+                            child: locationName != null
+                                ? Text(
+                                    locationName!,
+                                    style: context.textStyles.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                : Text(
+                                    context.l10n.location_hint,
+                                    style:
+                                        context.textStyles.bodySmall?.copyWith(
+                                      color: cs.outline,
                                     ),
-                            ),
-                            if (locationName != null)
-                              IconButton(
-                                icon: const Icon(
-                                  AppIcons.close,
-                                  size: AppSizes.iconXs,
-                                ),
-                                onPressed: () => onLocationChanged(null),
-                                tooltip: context.l10n.common_delete,
-                                constraints: const BoxConstraints(
-                                  minWidth: AppSizes.minTapTarget,
-                                  minHeight: AppSizes.minTapTarget,
-                                ),
+                                  ),
+                          ),
+                          if (locationName != null)
+                            IconButton(
+                              icon: const Icon(
+                                AppIcons.close,
+                                size: AppSizes.iconXs,
                               ),
-                            const SizedBox(width: AppSizes.xs),
-                            TextButton(
-                              onPressed:
-                                  detectingLocation ? null : onDetectLocation,
-                              child: detectingLocation
-                                  ? const SizedBox(
-                                      width: AppSizes.md,
-                                      height: AppSizes.md,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth:
-                                            AppSizes.spinnerStrokeWidth,
-                                      ),
-                                    )
-                                  : Text(
-                                      context.l10n.location_detect,
-                                    ),
+                              onPressed: () => onLocationChanged(null),
+                              tooltip: context.l10n.common_delete,
+                              constraints: const BoxConstraints(
+                                minWidth: AppSizes.minTapTarget,
+                                minHeight: AppSizes.minTapTarget,
+                              ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
+                          const SizedBox(width: AppSizes.xs),
+                          TextButton(
+                            onPressed:
+                                detectingLocation ? null : onDetectLocation,
+                            child: detectingLocation
+                                ? const SizedBox(
+                                    width: AppSizes.md,
+                                    height: AppSizes.md,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: AppSizes.spinnerStrokeWidth,
+                                    ),
+                                  )
+                                : Text(
+                                    context.l10n.location_detect,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }

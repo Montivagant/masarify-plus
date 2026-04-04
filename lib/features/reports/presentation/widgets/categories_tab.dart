@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
-import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/budget_entity.dart';
@@ -14,7 +13,7 @@ import '../../../../shared/providers/analytics_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
-/// Categories tab — horizontal bar chart + ranked list of expense categories.
+/// Categories tab — donut chart + ranked list of expense categories.
 class CategoriesTab extends ConsumerStatefulWidget {
   const CategoriesTab({super.key});
 
@@ -54,7 +53,29 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
         return ListView(
           padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
           children: [
-            // ── Month selector ─────────────────────────────────────
+            // ── Hero Section ──────────────────────────────────────────
+            const SizedBox(height: AppSizes.md),
+            Center(
+              child: Text(
+                context.l10n.reports_top_categories,
+                style: context.textStyles.labelLarge?.copyWith(
+                  color: context.colors.outline,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.xs),
+            Center(
+              child: Text(
+                MoneyFormatter.format(totalExpense),
+                style: context.textStyles.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: context.appTheme.expenseColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.md),
+
+            // ── Month Navigator ───────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.screenHPadding,
@@ -64,7 +85,10 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(AppIcons.chevronLeft),
+                    icon: Icon(
+                      AppIcons.chevronLeft,
+                      color: context.colors.outline,
+                    ),
                     onPressed: () {
                       final (y, m) = selectedMonth;
                       final prev = m == 1 ? (y - 1, 12) : (y, m - 1);
@@ -80,7 +104,10 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   IconButton(
-                    icon: const Icon(AppIcons.chevronRight),
+                    icon: Icon(
+                      AppIcons.chevronRight,
+                      color: context.colors.outline,
+                    ),
                     onPressed: () {
                       final now = DateTime.now();
                       final (y, m) = selectedMonth;
@@ -94,57 +121,49 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
               ),
             ),
 
-            // ── Header ─────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.all(AppSizes.screenHPadding),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.l10n.reports_top_categories,
-                    style: context.textStyles.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    MoneyFormatter.format(totalExpense),
-                    style: context.textStyles.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: context.appTheme.expenseColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Horizontal bar chart ───────────────────────────────
-            SizedBox(
-              height:
-                  breakdown.length.clamp(0, 5) * AppSizes.chartBarRowHeight +
-                      AppSizes.chartBarHeaderHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
-                ),
+            // ── Donut Chart ───────────────────────────────────────────
+            const SizedBox(height: AppSizes.sm),
+            Center(
+              child: SizedBox(
+                height: 160,
+                width: 160,
                 child: RepaintBoundary(
-                  child: _CategoryHorizontalBarChart(
-                    breakdown: breakdown.take(5).toList(),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          centerSpaceRadius: 50,
+                          sectionsSpace: 2,
+                          sections: breakdown.map((cat) {
+                            return PieChartSectionData(
+                              value: cat.amount.toDouble(),
+                              radius: 16,
+                              showTitle: false,
+                              color: ColorUtils.fromHex(cat.colorHex),
+                            );
+                          }).toList(),
+                          borderData: FlBorderData(show: false),
+                        ),
+                      ),
+                      Text(
+                        '${breakdown.length} categories',
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: context.colors.outline,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
+            const SizedBox(height: AppSizes.md),
 
-            const SizedBox(height: AppSizes.sm),
-            Divider(
-              height: AppSizes.dividerHeight,
-              color: context.colors.outlineVariant,
-            ),
-            const SizedBox(height: AppSizes.sm),
-
-            // ── Ranked list ────────────────────────────────────────
+            // ── Ranked Category List ──────────────────────────────────
             ...List.generate(breakdown.length, (i) {
               final cat = breakdown[i];
               return _CategoryRow(
-                rank: i + 1,
                 spending: cat,
                 budget: budgetByCategoryId[cat.categoryId],
               );
@@ -156,192 +175,101 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
   }
 }
 
-// ── Horizontal bar chart ──────────────────────────────────────────────────
-
-class _CategoryHorizontalBarChart extends StatelessWidget {
-  const _CategoryHorizontalBarChart({required this.breakdown});
-
-  final List<CategorySpending> breakdown;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxAmount =
-        breakdown.fold<int>(0, (s, e) => e.amount > s ? e.amount : s);
-
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: maxAmount * 1.15,
-        barTouchData: BarTouchData(
-          enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipItem: (group, groupIdx, rod, rodIdx) {
-              final idx = group.x;
-              final name = idx >= 0 && idx < breakdown.length
-                  ? breakdown[idx].categoryName
-                  : '';
-              return BarTooltipItem(
-                '$name\n${MoneyFormatter.format(rod.toY.round())}',
-                (context.textStyles.bodySmall ?? const TextStyle()).copyWith(
-                  color: context.colors.onSurface,
-                  fontWeight: FontWeight.w600,
-                ),
-              );
-            },
-          ),
-        ),
-        titlesData: FlTitlesData(
-          topTitles: const AxisTitles(),
-          rightTitles: const AxisTitles(),
-          bottomTitles: const AxisTitles(),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: AppSizes.chartAxisReservedMd,
-              getTitlesWidget: (value, _) {
-                final idx = value.toInt();
-                if (idx < 0 || idx >= breakdown.length) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsetsDirectional.only(end: 8),
-                  child: Text(
-                    breakdown[idx].categoryName,
-                    style: context.textStyles.bodySmall,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        gridData: const FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        barGroups: List.generate(breakdown.length, (i) {
-          final cat = breakdown[i];
-          return BarChartGroupData(
-            x: i,
-            barRods: [
-              BarChartRodData(
-                toY: cat.amount.toDouble(),
-                color: ColorUtils.fromHex(cat.colorHex),
-                width: AppSizes.barChartWidth,
-                borderRadius: BorderRadius.horizontal(
-                  right: context.isRtl
-                      ? Radius.zero
-                      : const Radius.circular(AppSizes.borderRadiusXs),
-                  left: context.isRtl
-                      ? const Radius.circular(AppSizes.borderRadiusXs)
-                      : Radius.zero,
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
-  }
-}
-
 // ── Category row ──────────────────────────────────────────────────────────
 
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
-    required this.rank,
     required this.spending,
     this.budget,
   });
 
-  final int rank;
   final CategorySpending spending;
   final BudgetEntity? budget;
 
   @override
   Widget build(BuildContext context) {
-    final color = ColorUtils.fromHex(spending.colorHex);
+    final catColor = ColorUtils.fromHex(spending.colorHex);
     final hasBudget = budget != null;
-    final overBudget = hasBudget && spending.amount > budget!.limitAmount;
-    // When a budget exists, show spent/budget ratio instead of category fraction.
-    final barValue = hasBudget
-        ? (spending.amount / budget!.limitAmount).clamp(0.0, 1.0)
-        : spending.fraction;
-    final barColor = overBudget ? context.appTheme.expenseColor : color;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSizes.screenHPadding,
-        vertical: AppSizes.sm,
+        vertical: AppSizes.md,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: AppSizes.lg,
-            child: Text(
-              context.l10n.reports_category_rank(rank),
-              style: context.textStyles.bodySmall?.copyWith(
-                color: context.colors.outline,
-                fontWeight: FontWeight.w600,
-              ),
+          // Color dot
+          Container(
+            width: 12,
+            height: 12,
+            margin: const EdgeInsets.only(top: AppSizes.xs),
+            decoration: BoxDecoration(
+              color: catColor,
+              shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: AppSizes.sm),
-          Icon(
-            CategoryIconMapper.fromName(spending.iconName),
-            size: AppSizes.iconMd,
-            color: color,
-          ),
-          const SizedBox(width: AppSizes.md),
+          // Content column
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  spending.categoryName,
-                  style: context.textStyles.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                // Name + amount row
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        spending.categoryName,
+                        style: context.textStyles.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      MoneyFormatter.format(spending.amount),
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: context.colors.outline,
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: AppSizes.xxs),
+
+                // Percentage
+                Text(
+                  '${(spending.fraction * 100).toStringAsFixed(1)}%',
+                  style: context.textStyles.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: catColor,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.xxs),
+
+                // Progress bar
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppSizes.borderRadiusXs),
                   child: LinearProgressIndicator(
-                    value: barValue,
-                    backgroundColor: context.colors.outlineVariant
-                        .withValues(alpha: AppSizes.opacityLight3),
-                    valueColor: AlwaysStoppedAnimation<Color>(barColor),
-                    minHeight: AppSizes.progressBarHeightSm,
+                    value: spending.fraction,
+                    color: catColor,
+                    backgroundColor: context.colors.surfaceContainerHigh,
+                    minHeight: 4,
                   ),
                 ),
+
+                // Budget label (if exists)
+                if (hasBudget) ...[
+                  const SizedBox(height: AppSizes.xxs),
+                  Text(
+                    'Budget: ${MoneyFormatter.format(budget!.limitAmount)}',
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: context.colors.outline,
+                    ),
+                  ),
+                ],
               ],
             ),
-          ),
-          const SizedBox(width: AppSizes.md),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                MoneyFormatter.formatAmount(spending.amount),
-                style: context.textStyles.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: overBudget ? context.appTheme.expenseColor : null,
-                ),
-              ),
-              if (hasBudget)
-                Text(
-                  '/ ${MoneyFormatter.formatCompact(budget!.limitAmount)}',
-                  style: context.textStyles.bodySmall?.copyWith(
-                    color: context.colors.outline,
-                  ),
-                )
-              else
-                Text(
-                  '${(spending.fraction * 100).round()}%',
-                  style: context.textStyles.bodySmall?.copyWith(
-                    color: context.colors.outline,
-                  ),
-                ),
-            ],
           ),
         ],
       ),

@@ -4,11 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
+import '../../providers/preferences_provider.dart';
+import '../feedback/first_time_hint.dart';
 import 'raised_center_docked_fab_location.dart';
 import 'speed_dial_fab.dart';
 
@@ -120,9 +123,36 @@ class AppScaffoldShell extends ConsumerStatefulWidget {
 }
 
 class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
+  bool _showFabHint = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _maybeShowFabHint();
+  }
+
+  Future<void> _maybeShowFabHint() async {
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    if (prefs.fabHintShown) return;
+
+    // Wait for the first frame + a short delay so the UI is fully rendered.
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) setState(() => _showFabHint = true);
+      });
+    });
+  }
+
+  Future<void> _dismissFabHint() async {
+    setState(() => _showFabHint = false);
+    final prefs = await ref.read(preferencesFutureProvider.future);
+    await prefs.setFabHintShown();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final scaffold = Scaffold(
       extendBody: true,
       body: widget.navigationShell,
       bottomNavigationBar: AppNavBar(
@@ -134,12 +164,31 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
           );
         },
       ),
-      floatingActionButton: SpeedDialFab(
-        tabIndex: widget.navigationShell.currentIndex,
-        onVoice: () => VoiceInputButton.handleVoiceInput(context),
-        onManual: () => AddTransactionScreen.show(context),
-      ),
+      // Hide FAB when keyboard is open to prevent mid-screen push-up.
+      floatingActionButton: MediaQuery.viewInsetsOf(context).bottom > 0
+          ? null
+          : SpeedDialFab(
+              tabIndex: widget.navigationShell.currentIndex,
+              onVoice: () => VoiceInputButton.handleVoiceInput(context),
+              onManual: () => AddTransactionScreen.show(context),
+            ),
       floatingActionButtonLocation: RaisedCenterDockedFabLocation.raised,
+    );
+
+    if (!_showFabHint) return scaffold;
+
+    return Stack(
+      children: [
+        scaffold,
+        Positioned.fill(
+          child: FirstTimeHint(
+            message: context.l10n.hint_fab,
+            icon: AppIcons.add,
+            alignment: Alignment.bottomCenter,
+            onDismiss: _dismissFabHint,
+          ),
+        ),
+      ],
     );
   }
 }

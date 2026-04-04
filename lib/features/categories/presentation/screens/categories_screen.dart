@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
@@ -19,6 +17,7 @@ import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/shimmer_list.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_category_screen.dart';
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
@@ -34,7 +33,7 @@ class CategoriesScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(AppIcons.add),
             tooltip: context.l10n.category_add_title,
-            onPressed: () => context.push(AppRoutes.categoryAdd),
+            onPressed: () => AddCategoryScreen.show(context),
           ),
         ],
       ),
@@ -46,7 +45,7 @@ class CategoriesScreen extends ConsumerWidget {
               title: context.l10n.categories_empty_title,
               subtitle: context.l10n.categories_empty_sub,
               ctaLabel: context.l10n.category_add,
-              onCta: () => context.push(AppRoutes.categoryAdd),
+              onCta: () => AddCategoryScreen.show(context),
             );
           }
           final expense = nonArchived
@@ -62,7 +61,7 @@ class CategoriesScreen extends ConsumerWidget {
           Widget animateTile(CategoryEntity c) {
             final tile = _CategoryTile(
               category: c,
-              onTap: () => context.push(AppRoutes.editCategoryPath(c.id)),
+              onTap: () => AddCategoryScreen.showEdit(context, c.id),
               onDelete: () => _confirmDelete(context, ref, c),
             );
             if (reduceMotion) return tile;

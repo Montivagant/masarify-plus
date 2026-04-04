@@ -90,19 +90,22 @@ final monthlyTotalsProvider =
       final sum =
           await repo.sumByTypeAndMonth(typeFilter, y, m, walletId: walletId);
       final isIncome = typeFilter == 'income';
-      results.add(MonthlyTotal(
-        year: y,
-        month: m,
-        income: isIncome ? sum : 0,
-        expense: isIncome ? 0 : sum,
-      ),);
+      results.add(
+        MonthlyTotal(
+          year: y,
+          month: m,
+          income: isIncome ? sum : 0,
+          expense: isIncome ? 0 : sum,
+        ),
+      );
     } else {
       final [income, expense] = await Future.wait([
         repo.sumByTypeAndMonth('income', y, m, walletId: walletId),
         repo.sumByTypeAndMonth('expense', y, m, walletId: walletId),
       ]);
       results.add(
-          MonthlyTotal(year: y, month: m, income: income, expense: expense),);
+        MonthlyTotal(year: y, month: m, income: income, expense: expense),
+      );
     }
   }
 
@@ -122,8 +125,11 @@ final categoryBreakdownProvider =
     final walletId = ref.watch(reportsWalletFilterProvider);
     final typeFilter = ref.watch(reportsTypeFilterProvider);
     return txAsync.whenData((transactions) {
-      final targetType = typeFilter ?? 'expense';
-      var filtered = transactions.where((tx) => tx.type == targetType);
+      var filtered = typeFilter != null
+          ? transactions.where((tx) => tx.type == typeFilter)
+          : transactions.where(
+              (tx) => tx.type == 'expense' || tx.type == 'income',
+            );
       if (walletId != null) {
         filtered = filtered.where((tx) => tx.walletId == walletId);
       }
@@ -163,14 +169,14 @@ final categoryBreakdownProvider =
 final dailySpendingProvider =
     FutureProvider.family<List<DailySpending>, int>((ref, days) async {
   final now = DateTime.now();
-  final start = DateTime(now.year, now.month, now.day - days + 1);
-  final end = DateTime(now.year, now.month, now.day + 1);
+  final today = DateTime(now.year, now.month, now.day);
+  final start = today.subtract(Duration(days: days - 1));
+  final end = today.add(const Duration(days: 1));
 
   final repo = ref.watch(transactionRepositoryProvider);
   ref.watch(recentTransactionsProvider);
   final walletId = ref.watch(reportsWalletFilterProvider);
   final typeFilter = ref.watch(reportsTypeFilterProvider);
-  final targetType = typeFilter ?? 'expense';
   final txns = await repo.getByDateRange(start, end);
 
   final dailyMap = <DateTime, int>{};
@@ -180,7 +186,8 @@ final dailySpendingProvider =
   }
 
   for (final tx in txns) {
-    if (tx.type == targetType) {
+    final matchesType = typeFilter == null || tx.type == typeFilter;
+    if (matchesType) {
       final matchesWallet = walletId == null || tx.walletId == walletId;
       if (matchesWallet) {
         final key = DateTime(

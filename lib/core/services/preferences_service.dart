@@ -44,6 +44,10 @@ class PreferencesService {
 
   static const _kHasSeenAiDisclaimer = 'has_seen_ai_disclaimer';
 
+  // First-time hints
+  static const _kFabHintShown = 'fab_hint_shown';
+  static const _kSwipeHintShown = 'swipe_hint_shown';
+
   // ── Onboarding ────────────────────────────────────────────────────────────
   bool get isOnboardingDone => _prefs.getBool(_kOnboardingDone) ?? false;
 
@@ -55,6 +59,13 @@ class PreferencesService {
 
   Future<void> markAiDisclaimerSeen() =>
       _prefs.setBool(_kHasSeenAiDisclaimer, true);
+
+  // ── First-time hints ─────────────────────────────────────────────────────
+  bool get fabHintShown => _prefs.getBool(_kFabHintShown) ?? false;
+  Future<void> setFabHintShown() => _prefs.setBool(_kFabHintShown, true);
+
+  bool get swipeHintShown => _prefs.getBool(_kSwipeHintShown) ?? false;
+  Future<void> setSwipeHintShown() => _prefs.setBool(_kSwipeHintShown, true);
 
   // ── PIN (Phase 4) ─────────────────────────────────────────────────────────
   bool get isPinEnabled => _prefs.getBool(_kPinEnabled) ?? false;

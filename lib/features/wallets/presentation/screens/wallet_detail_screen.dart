@@ -12,6 +12,7 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/transaction_grouper.dart';
 import '../../../../domain/entities/wallet_entity.dart';
+import '../../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -23,6 +24,7 @@ import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'add_wallet_screen.dart';
 
 class WalletDetailScreen extends ConsumerWidget {
   const WalletDetailScreen({super.key, required this.id});
@@ -71,8 +73,7 @@ class WalletDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(AppIcons.edit),
                 tooltip: context.l10n.common_edit,
-                onPressed: () =>
-                    context.push(AppRoutes.editWalletPath(wallet.id)),
+                onPressed: () => AddWalletScreen.showEdit(context, wallet.id),
               ),
               // Archive button for non-default, non-system accounts.
               if (!wallet.isDefaultAccount && !wallet.isSystemWallet)
@@ -257,7 +258,7 @@ class WalletDetailScreen extends ConsumerWidget {
                                 if (tx.id < 0) {
                                   context.push(AppRoutes.transfer);
                                 } else {
-                                  context.push('/transactions/${tx.id}/edit');
+                                  AddTransactionScreen.showEdit(context, tx.id);
                                 }
                               },
                             ),
