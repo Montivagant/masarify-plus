@@ -12,7 +12,6 @@ import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/transaction_grouper.dart';
 import '../../../../domain/entities/wallet_entity.dart';
-import '../../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -24,6 +23,7 @@ import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/lists/transaction_list_section.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/show_transaction_sheet.dart';
 import 'add_wallet_screen.dart';
 
 class WalletDetailScreen extends ConsumerWidget {
@@ -258,7 +258,7 @@ class WalletDetailScreen extends ConsumerWidget {
                                 if (tx.id < 0) {
                                   context.push(AppRoutes.transfer);
                                 } else {
-                                  AddTransactionScreen.showEdit(context, tx.id);
+                                  showEditTransactionSheet(context, tx.id);
                                 }
                               },
                             ),

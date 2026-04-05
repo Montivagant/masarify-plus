@@ -720,7 +720,7 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
         (!_isCustom || _endDate != null);
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
+        padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
           AppSizes.sm,
           AppSizes.screenHPadding,

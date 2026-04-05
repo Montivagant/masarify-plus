@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/brand_registry.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_resolver.dart';
 import '../../../../core/utils/transaction_grouper.dart';
@@ -68,7 +69,7 @@ class TransactionSliverList extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSizes.xl),
           child: Center(
             child: Text(
-              e.toString(),
+              context.l10n.common_error_generic,
               style: context.textStyles.bodySmall?.copyWith(
                 color: context.colors.error,
               ),
@@ -162,6 +163,7 @@ class TransactionSliverList extends ConsumerWidget {
               categoryIcon: resolved.icon,
               categoryColor: resolved.color,
               categoryName: transferDisplayName ?? resolved.name,
+              brandInfo: BrandRegistry.match(tx.title),
               transferCounterpartIcon: transferCounterpartIcon,
               walletName: showWalletName ? walletNames[tx.walletId] : null,
               onTap: onTap != null ? () => onTap!(tx) : null,

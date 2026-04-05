@@ -19,7 +19,6 @@ abstract final class AppDurations {
   static const Duration animQuick = Duration(milliseconds: 200);
 
   // Snackbar
-  static const Duration snackbarShort = Duration(seconds: 2);
   static const Duration snackbarDefault = Duration(seconds: 3);
   static const Duration snackbarError = Duration(seconds: 4);
   static const Duration snackbarLong = Duration(seconds: 5);
@@ -28,11 +27,13 @@ abstract final class AppDurations {
   static const Duration dnsLookupTimeout = Duration(seconds: 3);
   static const Duration geocodeTimeout = Duration(seconds: 5);
   static const Duration locationTimeout = Duration(seconds: 10);
-  static const Duration aiHttpTimeout = Duration(seconds: 30);
   static const Duration lockoutDuration = Duration(seconds: 30);
   static const Duration lockoutDurationMid = Duration(minutes: 5);
   static const Duration lockoutDurationMax = Duration(minutes: 30);
   static const Duration voiceMaxRecording = Duration(seconds: 60);
+
+  // Timer buffers
+  static const Duration midnightTimerBuffer = Duration(milliseconds: 100);
 
   // Micro-interactions
   static const Duration microBounce = Duration(milliseconds: 200);
@@ -41,11 +42,8 @@ abstract final class AppDurations {
   static const Duration staggerDelay = Duration(milliseconds: 50);
 
   // Onboarding
-  static const Duration onboardingParallax = Duration(milliseconds: 500);
-  static const Duration onboardingCardSwipe = Duration(milliseconds: 400);
   static const Duration onboardingTextDelay1 = Duration(milliseconds: 200);
   static const Duration onboardingTextDelay2 = Duration(milliseconds: 350);
-  static const Duration onboardingCtaDelay = Duration(milliseconds: 500);
   static const Duration onboardingDemoDelay1 = Duration(milliseconds: 400);
   static const Duration onboardingDemoDelay2 = Duration(milliseconds: 600);
   static const Duration onboardingDemoDelay3 = Duration(milliseconds: 700);
@@ -57,31 +55,22 @@ abstract final class AppDurations {
   static const Duration voiceRecordingTick = Duration(seconds: 1);
   static const Duration voiceBarUpdate = Duration(milliseconds: 50);
   static const Duration voiceShimmer = Duration(milliseconds: 1500);
+  static const Duration voicePillPulse = Duration(milliseconds: 600);
+  static const Duration voicePillErrorDismiss = Duration(seconds: 2);
 
   // Voice overlay & swipe
   static const Duration overlayExpand = Duration(milliseconds: 350);
-  static const Duration overlayCollapse = Duration(milliseconds: 250);
   static const Duration swipeOut = Duration(milliseconds: 300);
   static const Duration swipeReturn = Duration(milliseconds: 200);
-  static const Duration cardSpringUp = Duration(milliseconds: 400);
-  static const Duration undoSnackbar = Duration(seconds: 3);
-
-  // Swipe hint (first-time overlay)
-  static const Duration swipeHintSlide = Duration(milliseconds: 600);
-  static const Duration swipeHintPause = Duration(milliseconds: 500);
-  static const Duration swipeHintFadeOut = Duration(milliseconds: 400);
   static const Duration swipeHintTotal = Duration(seconds: 3);
 
   // Business logic
   static const Duration subscriptionDefaultCycle = Duration(days: 30);
 
   // Search
-  static const int searchDebounceMs = 300;
-  static const Duration searchDebounce =
-      Duration(milliseconds: searchDebounceMs);
+  static const Duration searchDebounce = Duration(milliseconds: 300);
 
   // Service delays
-  static const Duration listenerBindDelay = Duration(seconds: 3);
   static const Duration notificationLaunchDelay = Duration(milliseconds: 500);
 
   // FAB hint

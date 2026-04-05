@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_durations.dart';
 import '../../core/services/subscription_service.dart';
 import 'theme_provider.dart';
 
@@ -24,7 +25,9 @@ final _dailyTickProvider = Provider<(int, int, int)>((ref) {
   final msUntilMidnight = tomorrow.difference(now).inMilliseconds;
 
   // Schedule invalidation at midnight so providers re-evaluate.
-  final timer = Timer(Duration(milliseconds: msUntilMidnight + 100), () {
+  final timer = Timer(
+      Duration(milliseconds: msUntilMidnight) +
+          AppDurations.midnightTimerBuffer, () {
     ref.invalidateSelf();
   });
   ref.onDispose(timer.cancel);
@@ -34,8 +37,17 @@ final _dailyTickProvider = Provider<(int, int, int)>((ref) {
 
 /// Whether the user currently has Pro access (subscription OR trial).
 ///
-/// Listens to [SubscriptionService.proStatusStream] so the UI rebuilds
-/// immediately when a purchase completes — no app restart needed.
+/// Uses a dedicated [StreamProvider] for the raw stream so Riverpod manages
+/// the subscription lifecycle (no manual `.listen()` leak on rebuild).
+final _proStatusStreamProvider = StreamProvider<bool>((ref) {
+  final service = ref.watch(subscriptionServiceProvider);
+  return service.proStatusStream;
+});
+
+/// Synchronous Pro access flag for callers that expect a plain `bool`.
+///
+/// Re-evaluates at midnight (trial expiry) and whenever the underlying
+/// purchase stream emits.
 final hasProAccessProvider = Provider<bool>(
   (ref) {
     final service = ref.watch(subscriptionServiceProvider);
@@ -43,11 +55,8 @@ final hasProAccessProvider = Provider<bool>(
     // H-6: Re-evaluate at midnight when trial may expire.
     ref.watch(_dailyTickProvider);
 
-    // Listen for purchase completions and invalidate self to re-read.
-    final sub = service.proStatusStream.listen((_) {
-      ref.invalidateSelf();
-    });
-    ref.onDispose(sub.cancel);
+    // Watch the managed stream provider — Riverpod handles the subscription.
+    ref.watch(_proStatusStreamProvider);
 
     return service.hasProAccess;
   },

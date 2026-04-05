@@ -29,7 +29,12 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit, offset: offset))
           .watch();
 
-  Stream<List<Transaction>> watchByMonth(int year, int month) {
+  Stream<List<Transaction>> watchByMonth(
+    int year,
+    int month, {
+    int limit = 200,
+    int offset = 0,
+  }) {
     final start = DateTime(year, month);
     final end = DateTime(year, month + 1);
     return (select(transactions)
@@ -38,7 +43,8 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
                 t.transactionDate.isBiggerOrEqualValue(start) &
                 t.transactionDate.isSmallerThanValue(end),
           )
-          ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)]))
+          ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
+          ..limit(limit, offset: offset))
         .watch();
   }
 
@@ -131,6 +137,12 @@ class TransactionDao extends DatabaseAccessor<AppDatabase>
       (delete(transactions)..where((t) => t.id.equals(id)))
           .go()
           .then((count) => count > 0);
+
+  /// Reactive count of all transactions — lightweight sentinel for staleness.
+  Stream<int> watchCount() {
+    final query = selectOnly(transactions)..addColumns([countAll()]);
+    return query.map((row) => row.read(countAll()) ?? 0).watchSingle();
+  }
 
   /// WS3: Find similar transactions for cross-table dedup.
   /// Returns true if a transaction with the same wallet, amount, type exists

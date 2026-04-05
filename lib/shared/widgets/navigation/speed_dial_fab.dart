@@ -257,7 +257,8 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                   onPressed: _toggle,
                   elevation: 0,
                   highlightElevation: 0,
-                  backgroundColor: _isExpanded ? context.colors.surface : null,
+                  backgroundColor:
+                      _isExpanded ? context.colors.surface : primaryColor,
                   shape: _isExpanded
                       ? CircleBorder(
                           side: BorderSide(color: primaryColor),

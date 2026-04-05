@@ -121,7 +121,9 @@ class TransferDetailScreen extends ConsumerWidget {
                               horizontal: AppSizes.md,
                             ),
                             child: Icon(
-                              AppIcons.arrowForward,
+                              context.isRtl
+                                  ? AppIcons.arrowBack
+                                  : AppIcons.arrowForward,
                               color: theme.transferColor,
                               size: AppSizes.iconMd,
                             ),

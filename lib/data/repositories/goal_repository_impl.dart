@@ -225,7 +225,14 @@ class GoalRepositoryImpl implements IGoalRepository {
     return _db.transaction(() async {
       final contribution = await _dao.getContribution(id);
       if (contribution == null) return false;
-      await _dao.subtractProgress(contribution.goalId, contribution.amount);
+
+      // H3 fix: guard against negative currentAmount before subtracting
+      final goalBefore = await _dao.getById(contribution.goalId);
+      final subtractAmount =
+          goalBefore != null && contribution.amount > goalBefore.currentAmount
+              ? goalBefore.currentAmount
+              : contribution.amount;
+      await _dao.subtractProgress(contribution.goalId, subtractAmount);
 
       // Restore wallet balance if contribution was made with wallet deduction.
       if (contribution.walletId != null) {

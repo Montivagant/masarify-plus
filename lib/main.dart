@@ -16,6 +16,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/recurring_scheduler.dart';
 import 'core/services/sms_parser_service.dart';
+import 'l10n/app_localizations.dart';
 import 'shared/providers/database_provider.dart';
 import 'shared/providers/pending_transactions_provider.dart';
 import 'shared/providers/repository_providers.dart';
@@ -45,7 +46,14 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
 
   await GlassConfig.initialize();
+  NotificationService.setSharedPreferences(prefs);
   await NotificationService.initialize();
+  // Request POST_NOTIFICATIONS permission early (Android 13+).
+  // Without this, all show() and zonedSchedule() calls silently fail.
+  // The system dialog only appears once — subsequent launches are a no-op.
+  await NotificationService.requestPermission();
+  // Request exact alarm permission (Android 14+) for zonedSchedule().
+  await NotificationService.requestExactAlarmPermission();
 
   // Run init tasks before UI mounts, reusing the same container.
   final container = ProviderContainer(
@@ -65,9 +73,18 @@ Future<void> main() async {
     ),
   );
 
-  // M-7 fix: ensure Cash wallet exists even after DB restore/corruption
+  // M-7 fix: ensure Cash wallet exists even after DB restore/corruption.
+  // Resolve platform locale so the wallet name is localized (not hardcoded 'Cash').
+  final platformLocale = PlatformDispatcher.instance.locale;
+  final l10n = lookupAppLocalizations(
+    AppLocalizations.supportedLocales.contains(platformLocale)
+        ? platformLocale
+        : const Locale('en'),
+  );
   unawaited(
-    container.read(walletRepositoryProvider).ensureSystemWalletExists(),
+    container.read(walletRepositoryProvider).ensureSystemWalletExists(
+          localizedName: l10n.wallet_type_physical_cash,
+        ),
   );
 
   // C-4 fix: wire notification tap callback for deep-link navigation
@@ -90,8 +107,10 @@ Future<void> main() async {
   unawaited(
     RecurringScheduler(
       ruleRepository: container.read(recurringRuleRepositoryProvider),
+      transactionRepository: container.read(transactionRepositoryProvider),
       walletRepository: container.read(walletRepositoryProvider),
       categoryRepository: container.read(categoryRepositoryProvider),
+      sharedPreferences: prefs,
     ).run(),
   );
 

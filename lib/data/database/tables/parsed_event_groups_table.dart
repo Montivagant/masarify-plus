@@ -17,7 +17,8 @@ class ParsedEventGroups extends Table {
   TextColumn get semanticFingerprint => text().unique()();
 
   /// The first log that created this group — shown as the pending item.
-  IntColumn get canonicalLogId => integer().references(SmsParserLogs, #id)();
+  IntColumn get canonicalLogId =>
+      integer().references(SmsParserLogs, #id, onDelete: KeyAction.cascade)();
 
   /// Parsed amount in piastres for quick querying.
   IntColumn get amountPiastres => integer()();

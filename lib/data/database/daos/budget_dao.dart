@@ -9,15 +9,16 @@ part 'budget_dao.g.dart';
 class BudgetDao extends DatabaseAccessor<AppDatabase> with _$BudgetDaoMixin {
   BudgetDao(super.db);
 
-  Stream<List<Budget>> watchByMonth(int year, int month) =>
-      (select(budgets)
-            ..where((b) => b.year.equals(year) & b.month.equals(month)))
-          .watch();
+  Future<Budget?> getById(int id) =>
+      (select(budgets)..where((b) => b.id.equals(id))).getSingleOrNull();
 
-  Future<List<Budget>> getByMonth(int year, int month) =>
-      (select(budgets)
-            ..where((b) => b.year.equals(year) & b.month.equals(month)))
-          .get();
+  Stream<List<Budget>> watchByMonth(int year, int month) => (select(budgets)
+        ..where((b) => b.year.equals(year) & b.month.equals(month)))
+      .watch();
+
+  Future<List<Budget>> getByMonth(int year, int month) => (select(budgets)
+        ..where((b) => b.year.equals(year) & b.month.equals(month)))
+      .get();
 
   Future<Budget?> getByCategoryAndMonth(int categoryId, int year, int month) =>
       (select(budgets)

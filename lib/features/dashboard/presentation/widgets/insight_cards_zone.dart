@@ -11,13 +11,8 @@ import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
-import '../../../../shared/providers/theme_provider.dart';
+import '../../../../shared/providers/nudge_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
-
-/// Nudge service provider.
-final nudgeServiceProvider = Provider<NudgeService>(
-  (ref) => NudgeService(ref.watch(sharedPreferencesProvider)),
-);
 
 /// Incremented on each card dismiss to trigger InsightCardsZone rebuild.
 final _insightDismissVersionProvider = StateProvider<int>((_) => 0);
@@ -91,27 +86,7 @@ class InsightCardsZone extends ConsumerWidget {
       );
     }
 
-    // ── Priority 3: Upcoming bills (due within 7 days) ────────────────
-    final upcomingBills = ref.watch(upcomingBillsProvider);
-    if (upcomingBills.isNotEmpty) {
-      final key =
-          'upcoming_bills_${DateTime.now().toIso8601String().substring(0, 10)}';
-      if (!nudge.isCardDismissed(key)) {
-        cards.add(
-          _InsightData(
-            key: key,
-            icon: AppIcons.bill,
-            color: context.appTheme.transferColor,
-            title: context.l10n.insight_upcoming_bills_title,
-            subtitle:
-                context.l10n.insight_upcoming_bills_body(upcomingBills.length),
-            route: AppRoutes.recurring,
-          ),
-        );
-      }
-    }
-
-    // ── Priority 4: Recurring pattern detected ────────────────────────
+    // ── Priority 3: Recurring pattern detected ─────────────────────────
     final patterns = ref.watch(detectedPatternsProvider);
     for (final p in patterns.take(1)) {
       final key = 'recurring_${p.categoryId}_${p.amount}';

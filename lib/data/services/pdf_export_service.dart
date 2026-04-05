@@ -8,6 +8,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../core/constants/app_sizes.dart';
+import '../../core/services/pdf_export_service.dart';
 import '../../core/utils/money_formatter.dart';
 import '../database/app_database.dart';
 
@@ -46,8 +47,8 @@ class PdfLabels {
 /// - Income / Expense / Net totals
 /// - Top 5 categories table
 /// - Transaction list table
-class PdfExportService {
-  PdfExportService(this._db);
+class PdfExportServiceImpl implements IPdfExportService {
+  PdfExportServiceImpl(this._db);
 
   final AppDatabase _db;
 
@@ -70,6 +71,7 @@ class PdfExportService {
     }
   }
 
+  @override
   Future<String> generate({
     required int year,
     required int month,

@@ -67,8 +67,11 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  /// Current schema version — referenced by both migrations and backup service.
+  static const int currentSchemaVersion = 16;
+
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -105,7 +108,12 @@ class AppDatabase extends _$AppDatabase {
             // so Drift won't generate code for it.
 
             // Migrate bills -> recurring_rules (if bills table still exists from older schema)
-            try {
+            final billsTables = await m.database
+                .customSelect(
+                  "SELECT name FROM sqlite_master WHERE type='table' AND name='bills'",
+                )
+                .get();
+            if (billsTables.isNotEmpty) {
               final billRows = await customSelect('SELECT * FROM bills').get();
               for (final row in billRows) {
                 await customStatement(
@@ -128,8 +136,6 @@ class AppDatabase extends _$AppDatabase {
               }
               // Drop bills table after migration
               await customStatement('DROP TABLE IF EXISTS bills');
-            } catch (_) {
-              // Bills table may not exist on fresh installs — that's fine
             }
           }
           if (from < 5) {
@@ -271,6 +277,33 @@ class AppDatabase extends _$AppDatabase {
             // Create subscription_records table for IAP purchase tracking.
             await m.createTable(subscriptionRecords);
           }
+          if (from < 15) {
+            // v15: Added ON DELETE (RESTRICT/SET NULL/CASCADE) to FK columns
+            // in table definitions. SQLite does not support altering FK
+            // constraints on existing tables, so these only take effect on
+            // fresh installs via onCreate. Existing users are protected by
+            // repo-level cleanup (category archive, goal delete, etc.).
+          }
+          if (from < 16) {
+            // C2 fix: v16 — FK enforcement for pre-v15 users.
+            //
+            // Ideally we would rebuild tables with proper FK constraints using
+            // the SQLite table-rebuild pattern (create temp → copy → drop →
+            // rename). However, this is risky for a production app with 14
+            // tables and complex FK relationships — a failed rebuild could
+            // cause data loss. Pre-v15 users are protected by repo-level
+            // enforcement (validation in repositories, cascade deletes in
+            // repository methods). Fresh v15+ installs already have proper
+            // FK constraints from CREATE TABLE.
+            //
+            // The composite index below is also created in _createIndexes()
+            // (idempotent), but including it here documents the intent for
+            // the v16 migration.
+            await customStatement(
+              'CREATE INDEX IF NOT EXISTS idx_transactions_category_date '
+              'ON transactions(category_id, transaction_date DESC)',
+            );
+          }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
         },
@@ -370,6 +403,11 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE INDEX IF NOT EXISTS idx_recurring_rules_wallet '
       'ON recurring_rules(wallet_id)',
+    );
+    // H4 fix: composite index for sumByCategoryAndMonth budget progress queries.
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_transactions_category_date '
+      'ON transactions(category_id, transaction_date DESC)',
     );
   }
 

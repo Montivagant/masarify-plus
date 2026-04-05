@@ -25,4 +25,8 @@ abstract class BackupService {
     required int month,
     List<String>? headers,
   });
+
+  /// Deletes ALL user data from every table in dependency-safe order.
+  /// Wrapped in a single DB transaction for atomicity.
+  Future<void> deleteAllData();
 }

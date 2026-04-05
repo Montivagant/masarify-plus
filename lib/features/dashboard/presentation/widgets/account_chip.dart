@@ -18,7 +18,6 @@ class AccountChip extends StatelessWidget {
     required this.balance,
     required this.isSelected,
     required this.onTap,
-    this.isAllAccounts = false,
     this.hidden = false,
     this.walletType,
     this.colorHex,
@@ -28,7 +27,6 @@ class AccountChip extends StatelessWidget {
   final int balance;
   final bool isSelected;
   final VoidCallback onTap;
-  final bool isAllAccounts;
   final bool hidden;
 
   /// Wallet type string (e.g. 'bank', 'mobile_wallet') — resolves to icon.
@@ -37,11 +35,8 @@ class AccountChip extends StatelessWidget {
   /// Wallet's personal color hex — used as subtle accent.
   final String? colorHex;
 
-  /// Card width for "All Accounts" chip (slightly wider).
-  static const double _allAccountsWidth = 120;
-
-  /// Card width for individual account chips.
-  static const double _individualWidth = 110;
+  /// Card width for account chips.
+  static const double individualWidth = 110;
 
   /// Card height for all chips.
   static const double _cardHeight = 64;
@@ -56,12 +51,9 @@ class AccountChip extends StatelessWidget {
         colorHex != null ? ColorUtils.fromHex(colorHex!) : cs.primary;
 
     final miniBalance = hidden ? '---' : MoneyFormatter.formatCompact(balance);
-    final icon = isAllAccounts
-        ? AppIcons.wallet
-        : AppIcons.walletType(walletType ?? 'bank');
+    final icon = AppIcons.walletType(walletType ?? 'bank');
 
-    final double cardWidth =
-        isAllAccounts ? _allAccountsWidth : _individualWidth;
+    const double cardWidth = individualWidth;
 
     // Resolve visual state
     final _ChipStyle style = _resolveStyle(cs, walletColor);
@@ -79,10 +71,8 @@ class AccountChip extends StatelessWidget {
               width: cardWidth,
               height: _cardHeight,
               decoration: BoxDecoration(
-                gradient: style.gradient,
-                color: style.gradient == null ? style.backgroundColor : null,
+                color: style.backgroundColor,
                 borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
-                border: style.border,
               ),
               child: _buildContent(context, style, icon, miniBalance),
             ),
@@ -99,7 +89,7 @@ class AccountChip extends StatelessWidget {
     IconData icon,
     String miniBalance,
   ) {
-    if (!isAllAccounts && isSelected) {
+    if (isSelected) {
       // Individual selected: left colored strip + content
       return Row(
         children: [
@@ -135,37 +125,6 @@ class AccountChip extends StatelessWidget {
 
   /// Determine colors, gradient, and border based on current visual state.
   _ChipStyle _resolveStyle(ColorScheme cs, Color walletColor) {
-    if (isAllAccounts && isSelected) {
-      // "All Accounts" selected: mint gradient, white text
-      return _ChipStyle(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            cs.primary,
-            cs.primary.withValues(alpha: AppSizes.opacityStrong),
-          ],
-        ),
-        backgroundColor: cs.primary,
-        textColor: cs.onPrimary,
-        iconColor: cs.onPrimary,
-        balanceColor: cs.onPrimary,
-      );
-    }
-
-    if (isAllAccounts && !isSelected) {
-      // "All Accounts" unselected: surface + outline
-      return _ChipStyle(
-        backgroundColor: cs.surface,
-        textColor: cs.onSurface,
-        iconColor: cs.outline,
-        balanceColor: cs.onSurface,
-        border: Border.all(
-          color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight4),
-        ),
-      );
-    }
-
     if (isSelected) {
       // Individual selected: tinted bg + wallet-color strip
       return _ChipStyle(
@@ -251,8 +210,6 @@ class _ChipStyle {
     required this.textColor,
     required this.iconColor,
     required this.balanceColor,
-    this.gradient,
-    this.border,
     this.stripColor,
   });
 
@@ -260,7 +217,5 @@ class _ChipStyle {
   final Color textColor;
   final Color iconColor;
   final Color balanceColor;
-  final LinearGradient? gradient;
-  final BoxBorder? border;
   final Color? stripColor;
 }

@@ -11,7 +11,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.expenseColor,
     required this.transferColor,
     required this.warningColor,
-    required this.heroGradient,
     required this.onTransferColor,
     required this.glassCardSurface,
     required this.glassCardBorder,
@@ -26,7 +25,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final Color expenseColor;
   final Color transferColor;
   final Color warningColor;
-  final LinearGradient heroGradient;
   final Color onTransferColor;
 
   // ── 3-Tier Glass Hierarchy ──────────────────────────────────────────
@@ -43,11 +41,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     expenseColor: AppColors.expenseRed,
     transferColor: AppColors.transferBlue,
     warningColor: AppColors.warning, // #92400E — AA 7.2:1
-    heroGradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [AppColors.gradientStartLight, AppColors.gradientEndLight],
-    ),
     onTransferColor: AppColors.onTransfer,
     glassCardSurface: AppColors.glassCardSurfaceLight,
     glassCardBorder: AppColors.glassCardBorderLight,
@@ -63,11 +56,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     expenseColor: AppColors.expenseRedDark, // Red 300 — 4.6:1 on navy
     transferColor: AppColors.transferBlueDark, // Blue 400
     warningColor: AppColors.warningDark, // Amber 400
-    heroGradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: [AppColors.gradientStartDark, AppColors.gradientEndDark],
-    ),
     onTransferColor: AppColors.onTransfer,
     glassCardSurface: AppColors.glassCardSurfaceDark,
     glassCardBorder: AppColors.glassCardBorderDark,
@@ -84,7 +72,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     Color? expenseColor,
     Color? transferColor,
     Color? warningColor,
-    LinearGradient? heroGradient,
     Color? onTransferColor,
     Color? glassCardSurface,
     Color? glassCardBorder,
@@ -99,7 +86,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
         expenseColor: expenseColor ?? this.expenseColor,
         transferColor: transferColor ?? this.transferColor,
         warningColor: warningColor ?? this.warningColor,
-        heroGradient: heroGradient ?? this.heroGradient,
         onTransferColor: onTransferColor ?? this.onTransferColor,
         glassCardSurface: glassCardSurface ?? this.glassCardSurface,
         glassCardBorder: glassCardBorder ?? this.glassCardBorder,
@@ -121,7 +107,6 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       expenseColor: Color.lerp(expenseColor, other.expenseColor, t)!,
       transferColor: Color.lerp(transferColor, other.transferColor, t)!,
       warningColor: Color.lerp(warningColor, other.warningColor, t)!,
-      heroGradient: t < 0.5 ? heroGradient : other.heroGradient,
       onTransferColor: Color.lerp(onTransferColor, other.onTransferColor, t)!,
       glassCardSurface:
           Color.lerp(glassCardSurface, other.glassCardSurface, t)!,

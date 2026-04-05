@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,7 +99,9 @@ class SubscriptionService {
     // Listen for purchase updates.
     _purchaseSub = _iap.purchaseStream.listen(
       _handlePurchaseUpdates,
-      onError: (_) {},
+      onError: (Object e) {
+        dev.log('IAP purchase stream error: $e', name: 'SubscriptionService');
+      },
     );
 
     // Check for any pending purchases on startup.

@@ -9,7 +9,6 @@ abstract final class AppSizes {
   static const double md = 16;
   static const double lg = 24;
   static const double xl = 32;
-  static const double xxl = 48;
 
   // ── Border radius ──────────────────────────────────────────────────────
   static const double borderRadiusXs = 4;
@@ -21,8 +20,6 @@ abstract final class AppSizes {
 
   // ── Elevation ─────────────────────────────────────────────────────────
   static const double elevationNone = 0;
-  static const double elevationLow = 1;
-  static const double elevationMedium = 2;
   static const double elevationHigh = 4;
 
   // ── Icon sizes ────────────────────────────────────────────────────────
@@ -42,7 +39,6 @@ abstract final class AppSizes {
   static const double bottomScrollPadding =
       130; // nav bar (64) + margin (16) + raised FAB clearance (50)
   static const double bottomNavHeight = 64; // WS-6: M3 standard height
-  static const double appBarHeight = 56;
   static const double fabSize = 56;
   static const double minTapTarget = 48; // Accessibility: min touch target
 
@@ -50,7 +46,6 @@ abstract final class AppSizes {
   static const double xxs = 2;
 
   // ── Icon containers ─────────────────────────────────────────────────
-  static const double iconContainerXs = 28;
   static const double iconContainerSm = 32;
   static const double colorSwatchSize = 36;
   static const double iconContainerMd = 40;
@@ -59,7 +54,6 @@ abstract final class AppSizes {
   static const double categoryChipSize = 52;
 
   // ── Progress rings ──────────────────────────────────────────────────
-  static const double progressRingSm = 56;
   static const double progressRingInner = 72;
   static const double voiceMicSize = 72;
   static const double progressRingLg = 96;
@@ -69,8 +63,6 @@ abstract final class AppSizes {
   // ── Chart heights ───────────────────────────────────────────────────
   static const double chartHeightSm = 160;
   static const double chartHeightMd = 200;
-  static const double chartHeightLg = 220;
-  static const double chartHeightXl = 240;
 
   // ── Drag handle ─────────────────────────────────────────────────────
   static const double dragHandleWidth = 40;
@@ -81,33 +73,20 @@ abstract final class AppSizes {
   static const double shimmerTextHeightSm = 11;
 
   // ── Dots / indicators ───────────────────────────────────────────────
+  static const double dotGap = 1;
   static const double dotSm = 6;
   static const double indicatorDotSize = 8.0;
-  static const double indicatorDotGap = 3.0;
-  static const double dotMd = 10;
   static const double dotLg = 12;
 
   // ── Chart bars & labels ─────────────────────────────────────────────
-  static const double chartBarWidth = 20;
-  static const double chartLineWidth = 3.0;
   static const double chartDotRadius = 4.0;
   static const double chartDotStrokeWidth = 2.0;
-  static const double chartShadowBlur = 8.0;
-  static const double chartShadowOffsetY = 4.0;
-  static const double chartBarRowHeight = 64.0;
-  static const double chartBarHeaderHeight = 48.0;
-  static const double chartAxisReservedSm = 48.0;
-  static const double chartAxisReservedMd = 80.0;
   static const double progressBarHeight = 8;
-  static const double progressBarHeightSm = 4.0;
-  static const double chartLabelSize = 11;
 
   // ── Color picker ────────────────────────────────────────────────────
   static const double colorSwatchBorder = 3.0;
 
   // ── Dashboard carousel ─────────────────────────────────────────────
-  static const double carouselHeight = 240;
-  static const double carouselViewportFraction = 0.92;
   static const double fabVerticalOffset = 24;
 
   /// Snackbar bottom margin — renders on root MaterialApp scaffold via
@@ -116,8 +95,6 @@ abstract final class AppSizes {
   static const double snackbarBottomMargin = md;
 
   // ── SnackBar / Toast ──────────────────────────────────────────────────
-  static const double snackTextSize = 13.0;
-  static const double snackBorderRadius = 12.0;
   static const double snackVerticalPadding = 10.0;
   static const double snackHorizontalMargin = 24.0;
   static const double snackElevation = 4.0;
@@ -127,7 +104,6 @@ abstract final class AppSizes {
   static const double brandIconFontSmall = 8;
 
   // ── Border widths ───────────────────────────────────────────────────
-  static const double borderWidth = 1.0;
   static const double borderWidthFocus = 2.0;
   static const double borderWidthSelected = 2.5;
 
@@ -136,9 +112,6 @@ abstract final class AppSizes {
   static const double heroShadowOffsetY = 6.0;
   static const double cardShadowBlur = 12.0;
   static const double cardShadowOffsetY = 4.0;
-
-  // ── Voice input ────────────────────────────────────────────────────
-  static const double voiceMicGlowRadius = 0.3;
 
   // ── Voice wave bars ──────────────────────────────────────────────────
   static const int voiceBarCount = 24;
@@ -157,7 +130,6 @@ abstract final class AppSizes {
   static const double spinnerStrokeWidth = 2.0;
   static const double dividerHeight = 1.0;
   static const double barChartWidth = 12.0;
-  static const double comparisonColumnWidth = 64.0;
   static const double pinKeypadButtonSize = 72.0;
   static const double shimmerWidthLg = 100.0;
   static const double shimmerWidthSm = 60.0;
@@ -167,14 +139,12 @@ abstract final class AppSizes {
   static const double lineHeightNormal = 1.5;
 
   // ── Opacity scale ─────────────────────────────────────────────────────
-  static const double opacityNone = 0.0;
   static const double opacityXLight2 = 0.06;
   static const double opacitySubtle = 0.08;
   static const double opacityXLight = 0.1;
   static const double opacityLight2 = 0.12;
   static const double opacityLight = 0.15;
   static const double opacityLight3 = 0.2;
-  static const double opacityQuarter = 0.25;
   static const double opacityLight4 = 0.3;
   static const double opacityLight5 = 0.4;
   static const double opacityDisabled = 0.38;
@@ -196,9 +166,9 @@ abstract final class AppSizes {
   // ── Speed dial ─────────────────────────────────────────────────────
   static const double speedDialButtonSize =
       48.0; // circular, meets minTapTarget
-  static const double speedDialArcRadius = 82.0; // FAB center to button center
-  static const double speedDialArcWidth = 220.0; // container width
-  static const double speedDialArcHeight = 160.0; // container height
+  static const double speedDialArcRadius = 96.0; // FAB center to button center
+  static const double speedDialArcWidth = 240.0; // container width
+  static const double speedDialArcHeight = 180.0; // container height
   static const double speedDialIconSize = 20.0;
   static const double speedDialLabelGap = 4.0; // circle to label gap
 
@@ -207,25 +177,22 @@ abstract final class AppSizes {
   static const double voiceOverlayMaxHeight = 1.0;
   static const double voiceMicIconSize = 32.0;
 
+  // ── Voice recording pill ───────────────────────────────────────────
+  static const double voicePillHeight = 56.0;
+  static const double voicePillStopSize = 36.0;
+  static const double voicePillStopIconSize = 14.0;
+  static const double voicePillDotSize = 10.0;
+
   // ── Swipe card ──────────────────────────────────────────────────────
-  static const double swipeCardHPadding = 24.0;
   static const double swipeCardMaxWidth = 340.0;
   static const double swipeRotationAngle = 0.26; // ~15 degrees in radians
   static const double swipeDragThreshold = 0.3; // fraction of screen width
   static const double swipeStampOpacity = 0.7;
   static const double cardStackOffset = 8.0; // vertical offset per ghost card
   static const double cardStackScale = 0.95; // scale per ghost card
-  static const double draftListItemHeight = 80.0;
-
-  // ── Pie chart ──────────────────────────────────────────────────────────
-  static const double pieChartRadius = 36.0; // WS-9: increased from 28
-  static const double pieChartCenterRadius = 60.0; // WS-9: increased from 52
-  static const double pieChartSectionSpace = 2.0;
 
   // ── Glass / Gradient (WS-7) ──────────────────────────────────────────
-  static const double glassBlurSigma = 12.0;
   static const double glassBorderWidth = 1.0;
-  static const double gradientBorderRadius = 24.0;
 
   // ── Glass hierarchy (3-tier iOS Control Center style) ──────────────
   static const double glassBlurBackground = 20.0; // Tier 1: sheets, dialogs
@@ -233,21 +200,8 @@ abstract final class AppSizes {
   static const double glassBlurInset = 8.0; // Tier 3: nested elements
   static const double glassBorderWidthSubtle = 0.5; // Tier 1 border
 
-  // ── Decorative circles (balance card) ──────────────────────────────
-  static const double decorCircleLg = 100.0;
-  static const double decorCircleSm = 80.0;
-  static const double decorCircleLgOffset = -20.0;
-  static const double decorCircleSmOffsetBottom = -30.0;
-  static const double decorCircleSmOffsetStart = -15.0;
-  static const double decorCircleLgOpacity = 0.08;
-  static const double decorCircleSmOpacity = 0.05;
-
   // ── Dashboard sections (WS-8) ────────────────────────────────────────
   static const double sectionGap = 16.0;
-
-  // ── Insight cards ──────────────────────────────────────────────────
-  static const double insightCardListHeight = 72.0;
-  static const double insightCardMaxWidth = 180.0;
 
   // ── Smart defaults / Quick Add ──────────────────────────────────────
   static const double borderWidthEmphasis = 1.5;
@@ -269,7 +223,6 @@ abstract final class AppSizes {
   static const double sheetFullSize = 0.95;
 
   // ── Onboarding ─────────────────────────────────────────────────────────
-  static const double onboardingFeatureCardHeight = 200.0;
   static const double onboardingParallaxOffset = 30.0;
 
   // ── PDF layout ────────────────────────────────────────────────────────

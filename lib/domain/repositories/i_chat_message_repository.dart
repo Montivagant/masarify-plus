@@ -24,6 +24,21 @@ abstract interface class IChatMessageRepository {
     required String followUpContent,
   });
 
+  /// Atomically execute [action] and finalize the message in a single
+  /// DB transaction to prevent inconsistent state if the app crashes
+  /// between action execution and message finalization.
+  ///
+  /// [followUpFromResult] extracts the follow-up message text from the
+  /// action result so it can be persisted inside the same transaction.
+  /// Returns the result of [action].
+  Future<T> executeAndFinalizeAction<T>({
+    required Future<T> Function() action,
+    required String Function(T result) followUpFromResult,
+    required int messageId,
+    required String strippedContent,
+    required int strippedTokenCount,
+  });
+
   /// Delete all messages (clear chat).
   Future<void> deleteAll();
 }

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/transaction_entity.dart';
+import 'transaction_provider.dart';
 
 /// Daily transaction summary for calendar event dots.
 class DaySummary {
@@ -19,33 +19,36 @@ class DaySummary {
 
 /// Groups a month's transactions by day → DaySummary.
 /// Key is the day (DateTime with time zeroed).
-final calendarDaySummaryProvider = Provider.family<
-    Map<DateTime, DaySummary>,
-    (int year, int month, List<TransactionEntity> transactions)>(
-  (ref, params) {
-    final transactions = params.$3;
-    final result = <DateTime, DaySummary>{};
+///
+/// Family key is `(year, month)` — the provider watches the transaction
+/// stream internally so the cache key uses value equality (records),
+/// not list identity.
+final calendarDaySummaryProvider = Provider.autoDispose
+    .family<Map<DateTime, DaySummary>, (int, int)>((ref, params) {
+  final (year, month) = params;
+  final transactions =
+      ref.watch(transactionsByMonthProvider((year, month))).valueOrNull ?? [];
+  final result = <DateTime, DaySummary>{};
 
-    for (final tx in transactions) {
-      final day = DateTime(
-        tx.transactionDate.year,
-        tx.transactionDate.month,
-        tx.transactionDate.day,
+  for (final tx in transactions) {
+    final day = DateTime(
+      tx.transactionDate.year,
+      tx.transactionDate.month,
+      tx.transactionDate.day,
+    );
+    final existing = result[day] ?? const DaySummary();
+    if (tx.type == 'income') {
+      result[day] = DaySummary(
+        income: existing.income + tx.amount,
+        expense: existing.expense,
       );
-      final existing = result[day] ?? const DaySummary();
-      if (tx.type == 'income') {
-        result[day] = DaySummary(
-          income: existing.income + tx.amount,
-          expense: existing.expense,
-        );
-      } else {
-        result[day] = DaySummary(
-          income: existing.income,
-          expense: existing.expense + tx.amount,
-        );
-      }
+    } else {
+      result[day] = DaySummary(
+        income: existing.income,
+        expense: existing.expense + tx.amount,
+      );
     }
+  }
 
-    return result;
-  },
-);
+  return result;
+});

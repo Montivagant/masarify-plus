@@ -13,7 +13,7 @@ import '../../../../shared/providers/calendar_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
-
+import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
@@ -47,14 +47,16 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       appBar: AppAppBar(title: context.l10n.calendar_title),
       body: txAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: Text(context.l10n.common_error_generic),
+        error: (_, __) => EmptyState(
+          title: context.l10n.common_error_title,
+          ctaLabel: context.l10n.common_retry,
+          onCta: () => ref.invalidate(
+            transactionsByMonthProvider((year, month)),
+          ),
         ),
         data: (transactions) {
-          final daySummary = ref.read(
-            calendarDaySummaryProvider(
-              (year, month, transactions),
-            ),
+          final daySummary = ref.watch(
+            calendarDaySummaryProvider((year, month)),
           );
 
           return Column(
@@ -129,7 +131,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                     if (summary == null) return null;
 
                     return Positioned(
-                      bottom: 4,
+                      bottom: AppSizes.xs,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -138,7 +140,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               width: AppSizes.dotSm,
                               height: AppSizes.dotSm,
                               margin: const EdgeInsets.symmetric(
-                                horizontal: 1,
+                                horizontal: AppSizes.dotGap,
                               ),
                               decoration: BoxDecoration(
                                 color: ctx.appTheme.incomeColor,
@@ -150,7 +152,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                               width: AppSizes.dotSm,
                               height: AppSizes.dotSm,
                               margin: const EdgeInsets.symmetric(
-                                horizontal: 1,
+                                horizontal: AppSizes.dotGap,
                               ),
                               decoration: BoxDecoration(
                                 color: ctx.appTheme.expenseColor,

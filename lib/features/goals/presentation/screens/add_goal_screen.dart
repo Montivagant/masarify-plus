@@ -537,7 +537,7 @@ class _AddGoalScreenState extends ConsumerState<AddGoalScreen> {
   Widget _buildBottomButton(BuildContext context, {required bool isEdit}) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
+        padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
           AppSizes.sm,
           AppSizes.screenHPadding,

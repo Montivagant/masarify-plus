@@ -71,12 +71,12 @@ class DailySpending {
 
 /// Returns [MonthlyTotal] for the last [count] months (most recent last).
 /// Respects wallet and type filters from reports filter bar.
-final monthlyTotalsProvider =
-    FutureProvider.family<List<MonthlyTotal>, int>((ref, count) async {
+final monthlyTotalsProvider = FutureProvider.autoDispose
+    .family<List<MonthlyTotal>, int>((ref, count) async {
   final now = DateTime.now();
   final repo = ref.watch(transactionRepositoryProvider);
-  // Watch all recent transactions so past-month edits also trigger refresh
-  ref.watch(recentTransactionsProvider);
+  // Watch transaction count sentinel so any mutation triggers refresh
+  ref.watch(transactionChangeTriggerProvider);
   final walletId = ref.watch(reportsWalletFilterProvider);
   final typeFilter = ref.watch(reportsTypeFilterProvider);
   final results = <MonthlyTotal>[];
@@ -125,9 +125,9 @@ final categoryBreakdownProvider =
     final walletId = ref.watch(reportsWalletFilterProvider);
     final typeFilter = ref.watch(reportsTypeFilterProvider);
     return txAsync.whenData((transactions) {
-      var filtered = transactions.where(
-        (tx) => tx.type == (typeFilter ?? 'expense'),
-      );
+      var filtered = typeFilter == null
+          ? transactions
+          : transactions.where((tx) => tx.type == typeFilter);
       if (walletId != null) {
         filtered = filtered.where((tx) => tx.walletId == walletId);
       }
@@ -164,17 +164,19 @@ final categoryBreakdownProvider =
 
 /// Daily totals for the last [days] days.
 /// Respects wallet and type filters from reports filter bar.
-final dailySpendingProvider =
-    FutureProvider.family<List<DailySpending>, int>((ref, days) async {
+final dailySpendingProvider = FutureProvider.autoDispose
+    .family<List<DailySpending>, int>((ref, days) async {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final start = today.subtract(Duration(days: days - 1));
   final end = today.add(const Duration(days: 1));
 
   final repo = ref.watch(transactionRepositoryProvider);
-  ref.watch(recentTransactionsProvider);
+  // Watch transaction count sentinel so any mutation triggers refresh
+  ref.watch(transactionChangeTriggerProvider);
   final walletId = ref.watch(reportsWalletFilterProvider);
   final typeFilter = ref.watch(reportsTypeFilterProvider);
+  final archivedIds = ref.watch(archivedWalletIdsProvider);
   final txns = await repo.getByDateRange(start, end);
 
   final dailyMap = <DateTime, int>{};
@@ -184,7 +186,8 @@ final dailySpendingProvider =
   }
 
   for (final tx in txns) {
-    final matchesType = tx.type == (typeFilter ?? 'expense');
+    if (archivedIds.contains(tx.walletId)) continue;
+    final matchesType = typeFilter == null || tx.type == typeFilter;
     if (matchesType) {
       final matchesWallet = walletId == null || tx.walletId == walletId;
       if (matchesWallet) {

@@ -13,8 +13,7 @@ class ReportsFilterBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-    final activeWallets =
-        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+    final activeWallets = wallets.where((w) => !w.isArchived).toList();
     final selectedWalletId = ref.watch(reportsWalletFilterProvider);
     final selectedType = ref.watch(reportsTypeFilterProvider);
 

@@ -8,6 +8,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/app_lock_service.dart';
+import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 
 /// Splash screen — brand logo with fade-in animation (1.5s), then auto-routes:
@@ -62,7 +63,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     if (!prefs.isOnboardingDone) {
       context.go(AppRoutes.onboarding);
-    } else if (prefs.isPinEnabled) {
+      return;
+    }
+
+    // Restore Drive session early so isSignedIn works everywhere.
+    ref
+        .read(googleDriveBackupProvider)
+        .signInSilently()
+        .catchError((_) => null);
+
+    if (prefs.isPinEnabled) {
       // H2 fix: set requiresAuth so GoRouter redirect guard blocks deep links
       AppLockService.instance.setRequiresAuth(true);
       context.go(AppRoutes.pinEntry);

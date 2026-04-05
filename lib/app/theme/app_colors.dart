@@ -13,7 +13,6 @@ abstract final class AppColors {
   static const Color transferBlue = Color(0xFF2E7DD1); // Ocean Blue
   static const Color warning = Color(0xFFB8860B); // Warm Amber
   static const Color surface = Color(0xFFF5FBF8); // Mint White
-  static const Color onSurface = Color(0xFF1A2E27); // Deep Green-Black
   static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
   static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
 
@@ -22,22 +21,12 @@ abstract final class AppColors {
   static const Color surfaceDark = Color(0xFF1A1A1A); // Dark Charcoal
   static const Color primaryDark =
       Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
-  static const Color onSurfaceDark = Color(0xFFC4C4C4); // Silver Gray
   static const Color primaryContainerDark = Color(0xFF2D2344); // Dark Violet
   static const Color secondaryDark = Color(0xFFC4898A); // Mauve Pink
   static const Color secondaryContainerDark = Color(0xFF3D2A2A); // Dark mauve
   static const Color tertiaryDark = Color(0xFFE19B8B); // Rose Gold
   static const Color tertiaryContainerDark = Color(0xFF3D2B25); // Dark rose
   static const Color errorDark = Color(0xFFB85450); // Warm terracotta
-
-  // ── Comparison / Previous Period ──────────────────────────────────────
-  static const Color lastMonthGray = Color(0xFF94A3B8); // Slate 400
-  static const Color lastMonthGrayLight = Color(0xFFCBD5E1); // Slate 300
-  static const Color lastMonthGrayDark = Color(0xFF94A3B8); // Slate 400
-  static const Color lastMonthGrayLightDark = Color(0xFF64748B); // Slate 500
-
-  // ── Semantic ──────────────────────────────────────────────────────────
-  static const Color error = expenseRed;
 
   // ── Dark mode semantic colors ────────────────────────────────────────
   static const Color incomeGreenDark = Color(0xFFE19B8B); // Rose Gold
@@ -83,7 +72,6 @@ abstract final class AppColors {
 
   // ── Barrier & overlay ───────────────────────────────────────────────────
   static const Color barrierScrim = Color(0x26000000); // Black at 15%
-  static const Color dragHandle = Color(0x4DFFFFFF); // White at 30%
 
   // ── Utility ────────────────────────────────────────────────────────────
   static const Color transparent = Color(0x00000000);

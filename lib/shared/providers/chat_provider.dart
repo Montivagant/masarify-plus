@@ -29,7 +29,7 @@ final aiChatServiceProvider = Provider<AiChatService>(
 
 // ── 3. Financial context (computed snapshot) ────────────────────────────────
 
-final financialContextProvider = Provider<FinancialContext>((ref) {
+final financialContextProvider = Provider.autoDispose<FinancialContext>((ref) {
   final now = DateTime.now();
   final monthKey = (now.year, now.month);
 

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/notification_trigger_service.dart';
+import '../../core/services/pdf_export_service.dart';
 import '../../core/services/preferences_service.dart';
 import '../../data/repositories/budget_repository_impl.dart';
 import '../../data/repositories/category_repository_impl.dart';
@@ -25,6 +26,9 @@ import '../../domain/repositories/i_wallet_repository.dart';
 import 'database_provider.dart';
 import 'theme_provider.dart';
 
+// Re-export PdfLabels so presentation layer doesn't need a direct data import.
+export '../../data/services/pdf_export_service.dart' show PdfLabels;
+
 final notificationTriggerServiceProvider =
     Provider<NotificationTriggerService>((ref) {
   return NotificationTriggerService(
@@ -40,7 +44,10 @@ final walletRepositoryProvider = Provider<IWalletRepository>(
 );
 
 final chatMessageRepositoryProvider = Provider<IChatMessageRepository>(
-  (ref) => ChatMessageRepositoryImpl(ref.watch(chatMessageDaoProvider)),
+  (ref) => ChatMessageRepositoryImpl(
+    ref.watch(chatMessageDaoProvider),
+    ref.watch(databaseProvider),
+  ),
 );
 
 final categoryRepositoryProvider = Provider<ICategoryRepository>(
@@ -96,13 +103,18 @@ final smsParserLogRepositoryProvider = Provider<ISmsParserLogRepository>(
   (ref) => SmsParserLogRepositoryImpl(
     ref.watch(smsParserLogDaoProvider),
     ref.watch(databaseProvider),
+    ref.watch(transactionRepositoryProvider),
+    ref.watch(transferRepositoryProvider),
   ),
 );
 
 final backupServiceProvider = Provider<BackupServiceImpl>(
-  (ref) => BackupServiceImpl(ref.watch(databaseProvider)),
+  (ref) => BackupServiceImpl(
+    ref.watch(databaseProvider),
+    ref.watch(sharedPreferencesProvider),
+  ),
 );
 
-final pdfExportServiceProvider = Provider<PdfExportService>(
-  (ref) => PdfExportService(ref.watch(databaseProvider)),
+final pdfExportServiceProvider = Provider<IPdfExportService>(
+  (ref) => PdfExportServiceImpl(ref.watch(databaseProvider)),
 );

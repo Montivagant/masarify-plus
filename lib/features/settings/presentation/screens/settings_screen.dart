@@ -13,7 +13,6 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -387,27 +386,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     final confirmed = await _showDeleteConfirmation();
     if (!confirmed || !mounted) return;
 
-    final db = ref.read(databaseProvider);
     // M16 fix: wrap in single transaction for atomicity.
     // Delete child tables before parent tables (FK order). Keep in sync with @DriftDatabase (14 tables).
-    await db.transaction(() async {
-      await db.customStatement('DELETE FROM transactions');
-      await db.customStatement('DELETE FROM transfers');
-      await db.customStatement('DELETE FROM budgets');
-      await db.customStatement('DELETE FROM goal_contributions');
-      await db.customStatement('DELETE FROM savings_goals');
-      await db.customStatement('DELETE FROM recurring_rules');
-      // parsed_event_groups FKs to sms_parser_logs → delete child first.
-      await db.customStatement('DELETE FROM parsed_event_groups');
-      await db.customStatement('DELETE FROM sms_parser_logs');
-      await db.customStatement('DELETE FROM exchange_rates');
-      await db.customStatement('DELETE FROM category_mappings');
-      await db.customStatement('DELETE FROM chat_messages');
-      // H-16: Include subscription_records in clear-all.
-      await db.customStatement('DELETE FROM subscription_records');
-      await db.customStatement('DELETE FROM wallets');
-      await db.customStatement('DELETE FROM categories');
-    });
+    await ref.read(backupServiceProvider).deleteAllData();
 
     // C3 fix: clear PIN and lockout state before clearing prefs
     await AuthService().removePin();

@@ -50,11 +50,13 @@ class GoalDao extends DatabaseAccessor<AppDatabase> with _$GoalDaoMixin {
     );
   }
 
-  /// Decrement currentAmount for a goal (clamped to 0 via MAX).
+  /// Decrement currentAmount for a goal.
+  /// H3 fix: removed MAX(0,...) clamp — caller must validate that
+  /// amountPiastres <= currentAmount to prevent negative balances.
   /// Returns the number of updated rows (0 if goal not found).
   Future<int> subtractProgress(int goalId, int amountPiastres) async {
     return customUpdate(
-      'UPDATE savings_goals SET current_amount = MAX(0, current_amount - ?) WHERE id = ?',
+      'UPDATE savings_goals SET current_amount = current_amount - ? WHERE id = ?',
       variables: [
         Variable.withInt(amountPiastres),
         Variable.withInt(goalId),

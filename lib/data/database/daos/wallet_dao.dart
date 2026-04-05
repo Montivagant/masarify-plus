@@ -9,11 +9,10 @@ part 'wallet_dao.g.dart';
 class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
   WalletDao(super.db);
 
-  /// All non-archived wallets — system wallet first, then by sortOrder, id.
+  /// All non-archived wallets ordered by sortOrder, then id.
   Stream<List<Wallet>> watchAll() => (select(wallets)
         ..where((w) => w.isArchived.not())
         ..orderBy([
-          (w) => OrderingTerm.desc(w.isSystemWallet),
           (w) => OrderingTerm.asc(w.sortOrder),
           (w) => OrderingTerm.asc(w.id),
         ]))
@@ -22,7 +21,6 @@ class WalletDao extends DatabaseAccessor<AppDatabase> with _$WalletDaoMixin {
   Future<List<Wallet>> getAll() => (select(wallets)
         ..where((w) => w.isArchived.not())
         ..orderBy([
-          (w) => OrderingTerm.desc(w.isSystemWallet),
           (w) => OrderingTerm.asc(w.sortOrder),
           (w) => OrderingTerm.asc(w.id),
         ]))

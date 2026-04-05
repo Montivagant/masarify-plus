@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/repositories/i_category_repository.dart';
 import '../../domain/repositories/i_recurring_rule_repository.dart';
+import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
 import '../extensions/datetime_extensions.dart';
 import '../utils/money_formatter.dart';
@@ -12,6 +13,7 @@ import 'notification_service.dart';
 /// Called on every app open (from main.dart via ProviderContainer).
 ///
 /// For each **recurring** rule where [nextDueDate] ≤ today:
+/// - Auto-creates a transaction for each missed period (H2 fix)
 /// - Advances nextDueDate past today
 /// - Fires a local notification reminder
 ///
@@ -22,17 +24,23 @@ import 'notification_service.dart';
 class RecurringScheduler {
   const RecurringScheduler({
     required IRecurringRuleRepository ruleRepository,
+    required ITransactionRepository transactionRepository,
     required IWalletRepository walletRepository,
     required ICategoryRepository categoryRepository,
+    SharedPreferences? sharedPreferences,
   })  : _ruleRepo = ruleRepository,
+        _txRepo = transactionRepository,
         _walletRepo = walletRepository,
-        _categoryRepo = categoryRepository;
+        _categoryRepo = categoryRepository,
+        _prefs = sharedPreferences;
 
   static const int _notificationIdOffset = 100000;
 
   final IRecurringRuleRepository _ruleRepo;
+  final ITransactionRepository _txRepo;
   final IWalletRepository _walletRepo;
   final ICategoryRepository _categoryRepo;
+  final SharedPreferences? _prefs;
 
   Future<void> run() async {
     final now = DateTime.now();
@@ -93,6 +101,19 @@ class RecurringScheduler {
         while (!nextDue.isAfter(today) && iterations < maxCatchUp) {
           iterations++;
 
+          // H2 fix: auto-create the transaction for this period.
+          await _txRepo.create(
+            walletId: rule.walletId,
+            categoryId: rule.categoryId,
+            amount: rule.amount,
+            type: rule.type,
+            title: rule.title,
+            transactionDate: nextDue,
+            source: 'recurring',
+            isRecurring: true,
+            recurringRuleId: rule.id,
+          );
+
           nextDue = _computeNextDueDate(nextDue, rule.frequency);
 
           // C7 fix: check endDate after advancing — break if past end
@@ -125,7 +146,7 @@ class RecurringScheduler {
   Future<void> _fireReminder(RecurringRuleEntity rule) async {
     // H-11: Respect user's bill reminder notification preference.
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = _prefs ?? await SharedPreferences.getInstance();
       final billRemindersEnabled =
           prefs.getBool('notify_bill_reminder') ?? true;
       if (!billRemindersEnabled) return;

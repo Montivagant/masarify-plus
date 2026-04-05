@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 
 import 'package:drift/drift.dart';
 
@@ -251,7 +252,8 @@ class WalletRepositoryImpl implements IWalletRepository {
     try {
       final list = jsonDecode(json) as List<dynamic>;
       return list.cast<String>();
-    } catch (_) {
+    } catch (e) {
+      dev.log('Failed to decode linked senders: $e', name: 'WalletRepo');
       return [];
     }
   }

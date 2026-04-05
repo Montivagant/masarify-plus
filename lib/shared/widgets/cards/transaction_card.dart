@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/brand_registry.dart';
@@ -9,6 +8,7 @@ import '../../../core/extensions/build_context_extensions.dart';
 import '../../../core/utils/money_formatter.dart';
 import '../../../domain/adapters/transfer_adapter.dart';
 import '../../../domain/entities/transaction_entity.dart';
+import 'brand_logo.dart';
 
 /// Single transaction row for TransactionListSection and Dashboard.
 ///
@@ -175,9 +175,9 @@ class _CardContent extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Brand icon (colored circle + initial) or category icon fallback.
+            // Brand icon (3-tier logo) or category icon fallback.
             if (brandInfo != null)
-              _BrandIconCircle(brand: brandInfo!)
+              BrandLogo(brand: brandInfo!)
             else
               Icon(
                 categoryIcon,
@@ -258,40 +258,6 @@ class _CardContent extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Colored circle with brand initial — used as leading icon when a brand match
-/// is found. Sized to match the category icon (AppSizes.iconMd = 24).
-class _BrandIconCircle extends StatelessWidget {
-  const _BrandIconCircle({required this.brand});
-
-  final BrandInfo brand;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: AppSizes.iconLg,
-      height: AppSizes.iconLg,
-      decoration: BoxDecoration(
-        color: brand.color,
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        brand.displayInitial,
-        style: context.textStyles.labelSmall?.copyWith(
-          color: ThemeData.estimateBrightnessForColor(brand.color) ==
-                  Brightness.dark
-              ? AppColors.white
-              : AppColors.black,
-          fontWeight: FontWeight.w800,
-          fontSize: brand.displayInitial.length > 2
-              ? AppSizes.brandIconFontSmall
-              : AppSizes.brandIconFontLarge,
         ),
       ),
     );

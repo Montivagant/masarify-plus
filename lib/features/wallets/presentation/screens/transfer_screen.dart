@@ -53,7 +53,14 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     if (active.isEmpty) return;
     setState(() {
       _fromWalletId = active.first.id;
-      _toWalletId = active.length > 1 ? active[1].id : null;
+      if (active.length > 1) {
+        _toWalletId = active[1].id;
+      } else {
+        // Single non-system wallet — include system wallet (Cash) as target.
+        final cash =
+            wallets.where((w) => w.isSystemWallet && !w.isArchived).firstOrNull;
+        _toWalletId = cash?.id;
+      }
     });
   }
 
@@ -61,9 +68,8 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
     final allWallets = ref.read(walletsProvider).valueOrNull ?? [];
     // IM-29 fix: exclude the other side's wallet from the picker
     final excludeId = isFrom ? _toWalletId : _fromWalletId;
-    final wallets = allWallets
-        .where((w) => w.id != excludeId && !w.isArchived && !w.isSystemWallet)
-        .toList();
+    final wallets =
+        allWallets.where((w) => w.id != excludeId && !w.isArchived).toList();
     final current = isFrom ? _fromWalletId : _toWalletId;
     final pickerTitle = isFrom
         ? context.l10n.transfer_from_wallet
@@ -267,7 +273,7 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
+          padding: const EdgeInsetsDirectional.fromSTEB(
             AppSizes.screenHPadding,
             AppSizes.sm,
             AppSizes.screenHPadding,
@@ -298,34 +304,41 @@ class _WalletSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
-    return GestureDetector(
-      onTap: onTap,
-      child: GlassCard(
-        child: Row(
-          children: [
-            const Icon(AppIcons.wallet, size: AppSizes.iconSm),
-            const SizedBox(width: AppSizes.sm),
-            Expanded(
-              child: wallet != null
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(wallet!.name, style: context.textStyles.bodyLarge),
-                        Text(
-                          MoneyFormatter.format(wallet!.balance),
-                          style: context.textStyles.bodySmall
-                              ?.copyWith(color: cs.outline),
-                        ),
-                      ],
-                    )
-                  : Text(
-                      placeholder,
-                      style: context.textStyles.bodyMedium
-                          ?.copyWith(color: cs.outline),
-                    ),
-            ),
-            const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
-          ],
+    return Semantics(
+      button: true,
+      label: wallet?.name ?? placeholder,
+      child: GestureDetector(
+        onTap: onTap,
+        child: GlassCard(
+          child: Row(
+            children: [
+              const Icon(AppIcons.wallet, size: AppSizes.iconSm),
+              const SizedBox(width: AppSizes.sm),
+              Expanded(
+                child: wallet != null
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            wallet!.name,
+                            style: context.textStyles.bodyLarge,
+                          ),
+                          Text(
+                            MoneyFormatter.format(wallet!.balance),
+                            style: context.textStyles.bodySmall
+                                ?.copyWith(color: cs.outline),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        placeholder,
+                        style: context.textStyles.bodyMedium
+                            ?.copyWith(color: cs.outline),
+                      ),
+              ),
+              const Icon(AppIcons.expandMore, size: AppSizes.iconXs),
+            ],
+          ),
         ),
       ),
     );

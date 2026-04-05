@@ -4,6 +4,13 @@ import '../../domain/entities/transaction_entity.dart';
 import 'repository_providers.dart';
 import 'wallet_provider.dart';
 
+/// Sentinel that changes whenever any transaction is created, updated, or deleted.
+/// Use this as a staleness trigger instead of watching paginated data.
+final transactionChangeTriggerProvider = StreamProvider<int>((ref) {
+  final repo = ref.watch(transactionRepositoryProvider);
+  return repo.watchCount();
+});
+
 /// Set of archived wallet IDs — used to filter transactions from archived
 /// wallets out of display lists. Derived from allWalletsProvider so it
 /// reactively updates when a wallet is archived or unarchived.
@@ -49,13 +56,6 @@ final rawTransactionsByMonthProvider =
   (ref, params) => ref
       .watch(transactionRepositoryProvider)
       .watchByMonth(params.$1, params.$2),
-);
-
-/// Transactions for a specific wallet.
-final transactionsByWalletProvider =
-    StreamProvider.family<List<TransactionEntity>, int>(
-  (ref, walletId) =>
-      ref.watch(transactionRepositoryProvider).watchByWallet(walletId),
 );
 
 /// H14 fix: Total income for a given (year, month).

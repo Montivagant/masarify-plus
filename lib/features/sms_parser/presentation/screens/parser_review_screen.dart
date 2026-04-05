@@ -21,7 +21,6 @@ import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/pending_transactions_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
@@ -408,8 +407,7 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     final resolvedCategoryId = categoryId;
 
     // WS3: Cross-table dedup — check if a similar transaction already exists.
-    final txDao = ref.read(transactionDaoProvider);
-    final hasSimilar = await txDao.existsSimilar(
+    final hasSimilar = await txRepo.existsSimilar(
       walletId: resolvedWalletId,
       amount: parsed.amountPiastres,
       type: parsed.type,
@@ -439,25 +437,19 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     HapticFeedback.mediumImpact();
 
     try {
-      // Atomic: create transaction + mark log approved in one DB transaction
-      // to prevent duplicate transactions if app crashes between the two steps.
-      // Note: txRepo.create() uses its own inner transaction (Drift promotes to savepoint).
-      final db = ref.read(databaseProvider);
-      await db.transaction(() async {
-        final txId = await txRepo.create(
-          walletId: resolvedWalletId,
-          categoryId: resolvedCategoryId,
-          amount: parsed.amountPiastres,
-          type: parsed.type,
-          title: title,
-          currencyCode: parsed.currency,
-          transactionDate: log.receivedAt,
-          source: log.source,
-          rawSourceText: log.body,
-        );
-
-        await smsRepo.markStatus(log.id, 'approved', transactionId: txId);
-      });
+      // Atomic: create transaction + mark log approved via repository abstraction.
+      await smsRepo.approveAsTransaction(
+        logId: log.id,
+        walletId: resolvedWalletId,
+        categoryId: resolvedCategoryId,
+        amount: parsed.amountPiastres,
+        type: parsed.type,
+        title: title,
+        currencyCode: parsed.currency,
+        transactionDate: log.receivedAt,
+        source: log.source,
+        rawSourceText: log.body,
+      );
 
       // Record title→category for future auto-categorization learning.
       await ref
@@ -570,7 +562,6 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
       return;
     }
 
-    final transferRepo = ref.read(transferRepositoryProvider);
     final smsRepo = ref.read(smsParserLogRepositoryProvider);
     if (!mounted) return;
     final approvedMsg = context.l10n.parser_approved_msg;
@@ -578,19 +569,15 @@ class _ParserReviewScreenState extends ConsumerState<ParserReviewScreen> {
     HapticFeedback.mediumImpact();
 
     try {
-      final db = ref.read(databaseProvider);
-      await db.transaction(() async {
-        final transferId = await transferRepo.create(
-          fromWalletId: fromWalletId,
-          toWalletId: cashWalletId,
-          amount: parsed.amountPiastres,
-          transferDate: log.receivedAt,
-          note: log.body,
-        );
-        await smsRepo.markStatus(log.id, 'approved');
-        // Store transfer link in the log.
-        await smsRepo.linkTransfer(log.id, transferId);
-      });
+      // Atomic: create transfer + mark log approved via repository abstraction.
+      await smsRepo.approveAsTransfer(
+        logId: log.id,
+        fromWalletId: fromWalletId,
+        toWalletId: cashWalletId,
+        amount: parsed.amountPiastres,
+        transferDate: log.receivedAt,
+        note: log.body,
+      );
 
       ref.invalidate(pendingParsedTransactionsProvider);
       if (mounted) SnackHelper.showSuccess(context, approvedMsg);

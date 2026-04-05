@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -28,8 +30,9 @@ abstract final class GlassConfig {
           _blurEnabled = false;
         }
       }
-    } catch (_) {
-      // If detection fails, keep blur enabled (safe default).
+    } catch (e) {
+      dev.log('GPU capability check failed: $e', name: 'GlassConfig');
+      // Keep blur enabled (safe default).
     }
   }
 

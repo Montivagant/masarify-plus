@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../domain/entities/transaction_entity.dart';
-import '../../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
@@ -20,7 +20,9 @@ import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import '../../../../shared/widgets/sheets/show_transaction_sheet.dart';
 import '../widgets/balance_header.dart';
+import '../widgets/due_soon_section.dart';
 import '../widgets/filter_badge.dart';
 import '../widgets/filter_bar.dart';
 import '../widgets/filter_bar_delegate.dart';
@@ -111,6 +113,10 @@ class DashboardScreen extends ConsumerWidget {
                     if (!filter.isSearchActive)
                       const SliverToBoxAdapter(child: InsightCardsZone()),
 
+                    // ── Due-soon bills (scroll away, hidden during search)
+                    if (!filter.isSearchActive)
+                      const SliverToBoxAdapter(child: DueSoonSection()),
+
                     // ── Pinned filter bar (D-09) ──────────────────────────
                     const SliverPersistentHeader(
                       pinned: true,
@@ -167,7 +173,7 @@ class DashboardScreen extends ConsumerWidget {
       );
       return;
     }
-    AddTransactionScreen.showEdit(context, tx.id);
+    showEditTransactionSheet(context, tx.id);
   }
 
   void _deleteTransaction(
@@ -210,9 +216,40 @@ class DashboardScreen extends ConsumerWidget {
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {
-        await ref.read(transactionRepositoryProvider).delete(tx.id);
-        if (context.mounted) {
-          SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
+        // Store entity before deletion for undo support.
+        final repo = ref.read(transactionRepositoryProvider);
+        final entity = await repo.getById(tx.id);
+        await repo.delete(tx.id);
+        if (context.mounted && entity != null) {
+          SnackHelper.showSuccess(
+            context,
+            context.l10n.transaction_deleted,
+            action: SnackBarAction(
+              label: context.l10n.common_undo,
+              onPressed: () {
+                repo.create(
+                  walletId: entity.walletId,
+                  categoryId: entity.categoryId,
+                  amount: entity.amount,
+                  type: entity.type,
+                  title: entity.title,
+                  transactionDate: entity.transactionDate,
+                  currencyCode: entity.currencyCode,
+                  note: entity.note,
+                  tags: entity.tags,
+                  source: entity.source,
+                  rawSourceText: entity.rawSourceText,
+                  isRecurring: entity.isRecurring,
+                  recurringRuleId: entity.recurringRuleId,
+                  goalId: entity.goalId,
+                  locationName: entity.locationName,
+                  latitude: entity.latitude,
+                  longitude: entity.longitude,
+                );
+              },
+            ),
+            duration: AppDurations.snackbarLong,
+          );
         }
       }
     });
@@ -249,9 +286,29 @@ class DashboardScreen extends ConsumerWidget {
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {
-        await ref.read(transferRepositoryProvider).delete(originalTransferId);
-        if (context.mounted) {
-          SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
+        // Store entity before deletion for undo support.
+        final repo = ref.read(transferRepositoryProvider);
+        final entity = await repo.getById(originalTransferId);
+        await repo.delete(originalTransferId);
+        if (context.mounted && entity != null) {
+          SnackHelper.showSuccess(
+            context,
+            context.l10n.transaction_deleted,
+            action: SnackBarAction(
+              label: context.l10n.common_undo,
+              onPressed: () {
+                repo.create(
+                  fromWalletId: entity.fromWalletId,
+                  toWalletId: entity.toWalletId,
+                  amount: entity.amount,
+                  fee: entity.fee,
+                  note: entity.note,
+                  transferDate: entity.transferDate,
+                );
+              },
+            ),
+            duration: AppDurations.snackbarLong,
+          );
         }
       }
     });

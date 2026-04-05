@@ -5,6 +5,7 @@ import 'package:csv/csv.dart';
 import 'package:drift/drift.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/backup_service.dart';
 import '../../core/services/crash_log_service.dart';
@@ -15,13 +16,20 @@ import '../database/app_database.dart';
 /// - JSON export/import: all 14 DB tables + crash log + schema version.
 /// - CSV export: monthly transactions with readable columns.
 class BackupServiceImpl implements BackupService {
-  BackupServiceImpl(this._db);
+  BackupServiceImpl(this._db, this._prefs);
 
   final AppDatabase _db;
+  final SharedPreferences _prefs;
 
-  // Hardcoded to avoid creating a throwaway AppDatabase() instance (leaked connection).
-  // Must be kept in sync with AppDatabase.schemaVersion.
-  static const int _schemaVersion = 14;
+  /// SharedPreferences keys that must survive backup/restore.
+  static const _spBackupKeys = [
+    'trial_start_date',
+    'pro_active',
+    'subscription_validated_at',
+  ];
+
+  // M1 fix: reference the single source of truth instead of hardcoding.
+  static const int _schemaVersion = AppDatabase.currentSchemaVersion;
 
   // ── JSON Export ─────────────────────────────────────────────────────────
 
@@ -67,10 +75,18 @@ class BackupServiceImpl implements BackupService {
 
     final crashLog = await CrashLogService.readLog();
 
+    // Export subscription-related SharedPreferences for restore.
+    final prefsMap = <String, dynamic>{};
+    for (final key in _spBackupKeys) {
+      final value = _prefs.get(key);
+      if (value != null) prefsMap[key] = value;
+    }
+
     final data = {
       'version': _schemaVersion,
       'exportDate': DateTime.now().toIso8601String(),
       'tables': tables,
+      if (prefsMap.isNotEmpty) 'preferences': prefsMap,
       if (crashLog != null) 'crash_log': crashLog,
     };
 
@@ -249,7 +265,29 @@ class BackupServiceImpl implements BackupService {
           );
         }
       }
+
+      // M2 fix: reconcile savings_goals.current_amount from contributions
+      // to correct any stored-counter drift after restore.
+      await _db.customStatement('''
+        UPDATE savings_goals SET current_amount = COALESCE(
+          (SELECT SUM(amount) FROM goal_contributions
+           WHERE goal_id = savings_goals.id), 0
+        )
+      ''');
     });
+
+    // Restore subscription-related SharedPreferences (H-5 fix).
+    final savedPrefs = data['preferences'] as Map<String, dynamic>?;
+    if (savedPrefs != null) {
+      for (final key in _spBackupKeys) {
+        final value = savedPrefs[key];
+        if (value is String) {
+          await _prefs.setString(key, value);
+        } else if (value is bool) {
+          await _prefs.setBool(key, value);
+        }
+      }
+    }
   }
 
   /// C4 fix: validate all rows can be deserialized without errors.
@@ -299,6 +337,7 @@ class BackupServiceImpl implements BackupService {
   }
 
   // H13 fix: use insertOrReplace to handle PK conflicts
+  // H1 fix: use batch API instead of one-at-a-time inserts
   Future<void> _insertAll<T extends Table, D>(
     Map<String, dynamic> tables,
     String key,
@@ -307,12 +346,15 @@ class BackupServiceImpl implements BackupService {
   ) async {
     final rows = tables[key] as List<dynamic>?;
     if (rows == null) return;
-    for (final row in rows) {
-      await _db.into(table).insert(
-            mapper(row as Map<String, dynamic>),
-            mode: InsertMode.insertOrReplace,
-          );
-    }
+    await _db.batch((batch) {
+      for (final row in rows) {
+        batch.insert(
+          table,
+          mapper(row as Map<String, dynamic>),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
   }
 
   // ── CSV Export ──────────────────────────────────────────────────────────
@@ -852,4 +894,30 @@ class BackupServiceImpl implements BackupService {
         ),
         status: Value(m['status'] as String? ?? 'active'),
       );
+
+  // ── Delete All Data ───────────────────────────────────────────────────
+
+  @override
+  Future<void> deleteAllData() async {
+    await _db.transaction(() async {
+      // Delete child tables before parent tables (FK order).
+      // Keep in sync with @DriftDatabase (14 tables).
+      await _db.customStatement('DELETE FROM transactions');
+      await _db.customStatement('DELETE FROM transfers');
+      await _db.customStatement('DELETE FROM budgets');
+      await _db.customStatement('DELETE FROM goal_contributions');
+      await _db.customStatement('DELETE FROM savings_goals');
+      await _db.customStatement('DELETE FROM recurring_rules');
+      // parsed_event_groups FKs to sms_parser_logs → delete child first.
+      await _db.customStatement('DELETE FROM parsed_event_groups');
+      await _db.customStatement('DELETE FROM sms_parser_logs');
+      await _db.customStatement('DELETE FROM exchange_rates');
+      await _db.customStatement('DELETE FROM category_mappings');
+      await _db.customStatement('DELETE FROM chat_messages');
+      // H-16: Include subscription_records in clear-all.
+      await _db.customStatement('DELETE FROM subscription_records');
+      await _db.customStatement('DELETE FROM wallets');
+      await _db.customStatement('DELETE FROM categories');
+    });
+  }
 }

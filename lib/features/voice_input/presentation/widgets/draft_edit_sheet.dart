@@ -183,7 +183,9 @@ class DraftEditSheet extends ConsumerWidget {
               selectedCategory?.displayName(lang) ??
                   context.l10n.voice_confirm_select_category,
             ),
-            trailing: const Icon(AppIcons.chevronRight),
+            trailing: Icon(
+              context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+            ),
             onTap: () => _showCategoryPicker(
               context,
               ref,
@@ -197,7 +199,9 @@ class DraftEditSheet extends ConsumerWidget {
             title: Text(
               selectedWallet?.name ?? context.l10n.voice_select_wallet,
             ),
-            trailing: const Icon(AppIcons.chevronRight),
+            trailing: Icon(
+              context.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
+            ),
             onTap: () => _showWalletPicker(
               context,
               nonSystemWallets,

@@ -138,7 +138,11 @@ class WalletsScreen extends ConsumerWidget {
           padding: EdgeInsets.all(AppSizes.screenHPadding),
           child: ShimmerList(itemCount: 4),
         ),
-        error: (_, __) => EmptyState(title: context.l10n.common_error_title),
+        error: (_, __) => EmptyState(
+          title: context.l10n.common_error_title,
+          ctaLabel: context.l10n.common_retry,
+          onCta: () => ref.invalidate(allWalletsProvider),
+        ),
       ),
     );
   }

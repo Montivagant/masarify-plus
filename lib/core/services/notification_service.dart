@@ -17,6 +17,15 @@ class NotificationService {
   /// External callback for notification taps (set from main.dart / router).
   static NotificationTapCallback? onNotificationTap;
 
+  /// Preloaded SharedPreferences instance — set from main.dart before use.
+  /// Avoids calling SharedPreferences.getInstance() on every notification.
+  static SharedPreferences? _prefs;
+
+  /// Inject the preloaded SharedPreferences instance (call from main.dart).
+  static void setSharedPreferences(SharedPreferences prefs) {
+    _prefs = prefs;
+  }
+
   /// Notification ID for the daily spending recap.
   /// Recurring rules use `rule.id + 100_000`, so this must stay below 100_000
   /// and above any manually-assigned ID to avoid collisions.
@@ -64,11 +73,15 @@ class NotificationService {
           importance: Importance.high,
         ),
       );
+      // Delete stale channel (was created with default importance — locked
+      // on Android 8+ and cannot be changed programmatically).
+      await androidPlugin.deleteNotificationChannel('masarify_recap');
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
-          'masarify_recap',
+          'masarify_recap_v2',
           'Daily Recap',
           description: 'Daily spending recap reminder',
+          importance: Importance.high,
         ),
       );
       await androidPlugin.createNotificationChannel(
@@ -111,6 +124,17 @@ class NotificationService {
     return false;
   }
 
+  /// Request exact alarm permission (Android 14+).
+  /// Needed for zonedSchedule() — without this, scheduled notifications
+  /// may silently fail on Android 14+ even with inexact mode.
+  static Future<void> requestExactAlarmPermission() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      await android.requestExactAlarmsPermission();
+    }
+  }
+
   /// M-18 fix: check if app was launched from a notification tap (cold start).
   /// Returns the payload string, or null if not launched from notification.
   static Future<String?> getLaunchPayload() async {
@@ -128,7 +152,7 @@ class NotificationService {
   }) async {
     // H-10: Enforce quiet hours — suppress notifications during user-defined window.
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = _prefs ?? await SharedPreferences.getInstance();
       final quietEnabled = prefs.getBool('quiet_hours_enabled') ?? false;
       if (quietEnabled) {
         final start = prefs.getInt('quiet_hours_start') ?? 22;
@@ -187,13 +211,15 @@ class NotificationService {
       scheduled,
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'masarify_recap',
+          'masarify_recap_v2',
           'Daily Recap',
           channelDescription: 'Daily spending recap reminder',
+          importance: Importance.high,
+          priority: Priority.high,
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,

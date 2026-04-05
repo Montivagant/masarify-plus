@@ -8,8 +8,10 @@ import 'wallets_table.dart';
 // NOTE: Wallet-to-wallet transfers use the Transfers table instead.
 class Transactions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get walletId => integer().references(Wallets, #id)();
-  IntColumn get categoryId => integer().references(Categories, #id)();
+  IntColumn get walletId =>
+      integer().references(Wallets, #id, onDelete: KeyAction.restrict)();
+  IntColumn get categoryId =>
+      integer().references(Categories, #id, onDelete: KeyAction.restrict)();
   IntColumn get amount => integer()(); // always positive, in piastres
   TextColumn get type => text()(); // 'income' | 'expense'
   TextColumn get currencyCode =>
@@ -27,24 +29,22 @@ class Transactions extends Table {
   TextColumn get locationName => text().nullable()();
 
   // Source tracking — MANDATORY for non-manual entries
-  TextColumn get source =>
-      text().withDefault(const Constant('manual'))();
+  TextColumn get source => text().withDefault(const Constant('manual'))();
   // Values: 'manual' | 'voice' | 'sms' | 'notification' | 'import' | 'ai_chat'
   TextColumn get rawSourceText =>
       text().nullable()(); // original SMS body or voice transcript
 
   // Recurring link
-  BoolColumn get isRecurring =>
-      boolean().withDefault(const Constant(false))();
-  IntColumn get recurringRuleId =>
-      integer().nullable().references(RecurringRules, #id)();
+  BoolColumn get isRecurring => boolean().withDefault(const Constant(false))();
+  IntColumn get recurringRuleId => integer()
+      .nullable()
+      .references(RecurringRules, #id, onDelete: KeyAction.setNull)();
 
   // Goal link
-  IntColumn get goalId =>
-      integer().nullable().references(SavingsGoals, #id)();
+  IntColumn get goalId => integer()
+      .nullable()
+      .references(SavingsGoals, #id, onDelete: KeyAction.setNull)();
 
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }

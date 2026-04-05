@@ -209,6 +209,12 @@ class TransactionRepositoryImpl implements ITransactionRepository {
     return _db.transaction(() async {
       final existing = await _dao.getById(id);
       if (existing == null) return false;
+      // H2 fix: null out sms_parser_logs references before deleting
+      await _db.customStatement(
+        'UPDATE sms_parser_logs SET transaction_id = NULL '
+        'WHERE transaction_id = ?',
+        [id],
+      );
       // Reverse the balance effect
       final reverseDelta =
           existing.type == 'income' ? -existing.amount : existing.amount;
@@ -216,6 +222,23 @@ class TransactionRepositoryImpl implements ITransactionRepository {
       return _dao.deleteById(id);
     });
   }
+
+  @override
+  Future<bool> existsSimilar({
+    required int walletId,
+    required int amount,
+    required String type,
+    required DateTime aroundDate,
+  }) =>
+      _dao.existsSimilar(
+        walletId: walletId,
+        amount: amount,
+        type: type,
+        aroundDate: aroundDate,
+      );
+
+  @override
+  Stream<int> watchCount() => _dao.watchCount();
 
   // ── Mapping ───────────────────────────────────────────────────────────────
 

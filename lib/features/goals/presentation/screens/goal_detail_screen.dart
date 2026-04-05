@@ -333,7 +333,9 @@ class GoalDetailScreen extends ConsumerWidget {
                       if (amountPiastres > remaining) {
                         SnackHelper.showError(
                           ctx,
-                          '${ctx.l10n.common_error_generic} (max: ${MoneyFormatter.formatAmount(remaining)})',
+                          ctx.l10n.goal_contribution_max(
+                            MoneyFormatter.formatAmount(remaining),
+                          ),
                         );
                         return;
                       }
@@ -423,7 +425,7 @@ class _GoalHeader extends StatelessWidget {
                   curve: Curves.easeOutCubic,
                   builder: (_, value, __) => CircularProgressIndicator(
                     value: value,
-                    strokeWidth: 8,
+                    strokeWidth: AppSizes.progressBarHeight,
                     backgroundColor: cs.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation(color),
                   ),

@@ -49,12 +49,15 @@ class GoogleDriveBackupService {
 
   // ── Auth ──────────────────────────────────────────────────────────────
 
+  /// Attempts interactive Google Sign-In. Rethrows on failure so callers
+  /// can surface a meaningful error message; returns `null` only when the
+  /// user explicitly cancels the account picker.
   Future<GoogleSignInAccount?> signIn() async {
     try {
       return await _googleSignIn.signIn();
     } catch (e) {
       dev.log('Google Sign-In failed: $e', name: 'DriveBackup');
-      return null;
+      rethrow;
     }
   }
 
@@ -97,11 +100,12 @@ class GoogleDriveBackupService {
 
     final media = drive.Media(Stream.value(keyBytes), keyBytes.length);
 
-    if (existing.files != null && existing.files!.isNotEmpty) {
+    final existingId = existing.files?.firstOrNull?.id;
+    if (existingId != null) {
       // Update existing key file.
       await driveApi.files.update(
         drive.File(),
-        existing.files!.first.id!,
+        existingId,
         uploadMedia: media,
       );
     } else {
@@ -125,10 +129,11 @@ class GoogleDriveBackupService {
         $fields: 'files(id)',
       );
 
-      if (result.files == null || result.files!.isEmpty) return false;
+      final keyFileId = result.files?.firstOrNull?.id;
+      if (keyFileId == null) return false;
 
       final media = await driveApi.files.get(
-        result.files!.first.id!,
+        keyFileId,
         downloadOptions: drive.DownloadOptions.fullMedia,
       ) as drive.Media;
 
@@ -181,12 +186,17 @@ class GoogleDriveBackupService {
       uploadMedia: media,
     );
 
+    final id = result.id;
+    if (id == null) {
+      throw StateError('Drive API did not return a file ID after create');
+    }
+
     dev.log(
-      'Backup uploaded: ${result.id} (${encrypted.length} bytes)',
+      'Backup uploaded: $id (${encrypted.length} bytes)',
       name: 'DriveBackup',
     );
 
-    return result.id!;
+    return id;
   }
 
   // ── List ──────────────────────────────────────────────────────────────
@@ -202,7 +212,7 @@ class GoogleDriveBackupService {
       $fields: 'files(id, name, modifiedTime, size)',
     );
 
-    return (fileList.files ?? []).map((f) {
+    return (fileList.files ?? []).where((f) => f.id != null).map((f) {
       return DriveBackupInfo(
         fileId: f.id!,
         name: f.name ?? 'Unknown',
@@ -222,7 +232,13 @@ class GoogleDriveBackupService {
     // C-7: if no local key, try restoring from Drive before decryption.
     final localKey = await _secureStorage.read(key: _keyStorageKey);
     if (localKey == null) {
-      await restoreKeyFromDrive();
+      final restored = await restoreKeyFromDrive();
+      if (!restored) {
+        throw StateError(
+          'Encryption key not found locally or on Drive. '
+          'Cannot decrypt this backup.',
+        );
+      }
     }
 
     final media = await driveApi.files.get(

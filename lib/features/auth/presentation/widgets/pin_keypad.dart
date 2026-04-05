@@ -49,22 +49,23 @@ class PinKeypad extends StatelessWidget {
       children: [
         // Bottom-left: biometric or empty space.
         SizedBox(
-          width: 72,
-          height: 72,
+          width: AppSizes.pinKeypadButtonSize,
+          height: AppSizes.pinKeypadButtonSize,
           child: bottomLeft ?? const SizedBox.shrink(),
         ),
         _digitButton(context, 0),
         // Backspace
         SizedBox(
-          width: 72,
-          height: 72,
+          width: AppSizes.pinKeypadButtonSize,
+          height: AppSizes.pinKeypadButtonSize,
           child: IconButton(
             onPressed: onBackspace,
             icon: const Icon(AppIcons.backspace),
             iconSize: AppSizes.iconMd,
             tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
             style: IconButton.styleFrom(
-              minimumSize: const Size(AppSizes.minTapTarget, AppSizes.minTapTarget),
+              minimumSize:
+                  const Size(AppSizes.minTapTarget, AppSizes.minTapTarget),
             ),
           ),
         ),
@@ -85,8 +86,8 @@ class PinKeypad extends StatelessWidget {
         child: Text(
           '$digit',
           style: context.textStyles.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

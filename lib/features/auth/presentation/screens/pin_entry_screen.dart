@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +30,12 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     with SingleTickerProviderStateMixin {
   String _pin = '';
   bool _biometricAvailable = false;
+
+  // setState is used for _lockedOut and _failedAttempts despite being security
+  // state because the authoritative values are persisted in secure storage via
+  // AuthService (setFailedAttempts / setLockoutUntil). These fields mirror that
+  // persisted state for UI reactivity, and _restoreLockoutState() rehydrates
+  // them on widget rebuild.
   bool _lockedOut = false;
   int _failedAttempts = 0;
   late final AnimationController _shakeController;
@@ -101,8 +109,8 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
       if (ok) {
         _unlock();
       }
-    } catch (_) {
-      // Biometric hardware error — silently fall back to PIN
+    } catch (e) {
+      dev.log('Biometric check failed: $e', name: 'PinEntryScreen');
     }
   }
 

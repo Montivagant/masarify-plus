@@ -711,93 +711,137 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
 
-    return ListView.builder(
-      padding: const EdgeInsets.only(
-        top: AppSizes.md,
-        bottom: AppSizes.bottomScrollPadding,
-      ),
-      itemCount: _editableDrafts.length,
-      itemBuilder: (context, index) {
-        final draft = _editableDrafts[index];
-        final cat =
-            categories.where((c) => c.id == draft.categoryId).firstOrNull;
-        final wallet = wallets.where((w) => w.id == draft.walletId).firstOrNull;
+    return Column(
+      children: [
+        // ── Batch selection controls ──────────────────────────────
+        _buildBatchControls(context),
 
-        final item = DraftListItem(
-          id: index,
-          categoryIcon: cat != null
-              ? CategoryIconMapper.fromName(cat.iconName)
-              : AppIcons.category,
-          categoryColor: cat != null
-              ? ColorUtils.fromHex(cat.colorHex)
-              : context.colors.outline,
-          categoryName: cat?.displayName(context.languageCode),
-          walletName: wallet?.name,
-          amount: draft.amountPiastres,
-          type: draft.type,
-          title: draft.noteController.text.trim().isNotEmpty
-              ? draft.noteController.text.trim()
-              : draft.rawText,
-          isIncluded: draft.isIncluded,
-          matchedGoalName: draft.matchedGoalName,
-          isSubscriptionLike: draft.isSubscriptionLike,
-          unmatchedHint: draft.unmatchedHint,
-          onToggle: () {
-            setState(() => draft.isIncluded = !draft.isIncluded);
-          },
-          onEdit: () => _openEditSheet(context, draft),
-          onAccept: () {
-            final wasIncluded = draft.isIncluded;
-            setState(() => draft.isIncluded = true);
-            SnackHelper.showSuccess(
-              context,
-              context.l10n.sms_review_approve,
-              action: SnackBarAction(
-                label: context.l10n.common_undo,
-                onPressed: () {
-                  setState(() => draft.isIncluded = wasIncluded);
+        // ── Transaction list ─────────────────────────────────────
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(
+              top: AppSizes.xs,
+              bottom: AppSizes.bottomScrollPadding,
+            ),
+            itemCount: _editableDrafts.length,
+            itemBuilder: (context, index) {
+              final draft = _editableDrafts[index];
+              final cat =
+                  categories.where((c) => c.id == draft.categoryId).firstOrNull;
+              final wallet =
+                  wallets.where((w) => w.id == draft.walletId).firstOrNull;
+
+              final item = DraftListItem(
+                id: index,
+                categoryIcon: cat != null
+                    ? CategoryIconMapper.fromName(cat.iconName)
+                    : AppIcons.category,
+                categoryColor: cat != null
+                    ? ColorUtils.fromHex(cat.colorHex)
+                    : context.colors.outline,
+                categoryName: cat?.displayName(context.languageCode),
+                walletName: wallet?.name,
+                amount: draft.amountPiastres,
+                type: draft.type,
+                title: draft.noteController.text.trim().isNotEmpty
+                    ? draft.noteController.text.trim()
+                    : draft.rawText,
+                isIncluded: draft.isIncluded,
+                matchedGoalName: draft.matchedGoalName,
+                isSubscriptionLike: draft.isSubscriptionLike,
+                subscriptionAdded: draft.subscriptionAdded,
+                unmatchedHint: draft.unmatchedHint,
+                onSubscriptionTap:
+                    draft.isSubscriptionLike && draft.categoryId != null
+                        ? () => _createSubscriptionFromDraft(draft)
+                        : null,
+                onCreateWallet: draft.unmatchedHint != null
+                    ? () => _createWalletFromHint(draft)
+                    : null,
+                onToggle: () {
+                  setState(() => draft.isIncluded = !draft.isIncluded);
                 },
-              ),
-            );
-          },
-          onDecline: () {
-            final removedDraft = draft;
-            final removedIndex = index;
-            setState(() {
-              removedDraft.isIncluded = false;
-              _editableDrafts.removeAt(removedIndex);
-            });
-            SnackHelper.showInfo(
-              context,
-              context.l10n.sms_review_skip,
-              action: SnackBarAction(
-                label: context.l10n.common_undo,
-                onPressed: () {
+                onEdit: () => _openEditSheet(context, draft),
+                onDecline: () {
+                  final removedDraft = draft;
+                  final removedIndex = index;
                   setState(() {
-                    removedDraft.isIncluded = true;
-                    _editableDrafts.insert(
-                      removedIndex.clamp(0, _editableDrafts.length),
-                      removedDraft,
-                    );
+                    removedDraft.isIncluded = false;
+                    _editableDrafts.removeAt(removedIndex);
                   });
+                  SnackHelper.showInfo(
+                    context,
+                    context.l10n.sms_review_skip,
+                    action: SnackBarAction(
+                      label: context.l10n.common_undo,
+                      onPressed: () {
+                        setState(() {
+                          removedDraft.isIncluded = true;
+                          _editableDrafts.insert(
+                            removedIndex.clamp(0, _editableDrafts.length),
+                            removedDraft,
+                          );
+                        });
+                      },
+                    ),
+                  );
                 },
-              ),
-            );
-          },
-        );
+              );
 
-        if (context.reduceMotion) return item;
-        return item
-            .animate()
-            .fadeIn(duration: AppDurations.listItemEntry)
-            .slideY(
-              begin: 0.03,
-              end: 0,
-              duration: AppDurations.listItemEntry,
-              curve: Curves.easeOutCubic,
-            )
-            .then(delay: AppDurations.staggerDelay * index);
-      },
+              if (context.reduceMotion) return item;
+              return item
+                  .animate()
+                  .fadeIn(duration: AppDurations.listItemEntry)
+                  .slideY(
+                    begin: 0.03,
+                    end: 0,
+                    duration: AppDurations.listItemEntry,
+                    curve: Curves.easeOutCubic,
+                  )
+                  .then(delay: AppDurations.staggerDelay * index);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBatchControls(BuildContext context) {
+    final allSelected = _editableDrafts.every((d) => d.isIncluded);
+    final selectedCount = _editableDrafts.where((d) => d.isIncluded).length;
+    final totalCount = _editableDrafts.length;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.screenHPadding,
+        vertical: AppSizes.xs,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                final newValue = !allSelected;
+                for (final d in _editableDrafts) {
+                  d.isIncluded = newValue;
+                }
+              });
+            },
+            child: Text(
+              allSelected
+                  ? context.l10n.voice_deselect_all
+                  : context.l10n.voice_select_all,
+            ),
+          ),
+          Text(
+            context.l10n.voice_selected_count(selectedCount, totalCount),
+            style: context.textStyles.bodySmall?.copyWith(
+              color: context.colors.outline,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

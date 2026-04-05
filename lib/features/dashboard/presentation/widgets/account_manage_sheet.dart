@@ -41,8 +41,8 @@ class _AccountManageSheetState extends ConsumerState<AccountManageSheet> {
     final wallets =
         await ref.read(walletRepositoryProvider).getAllIncludingArchived();
     if (!mounted) return;
-    // Filter out system wallet, sort by sortOrder then id.
-    final userWallets = wallets.where((w) => !w.isSystemWallet).toList()
+    // Sort by sortOrder then id.
+    final userWallets = wallets.toList()
       ..sort((a, b) {
         final cmp = a.sortOrder.compareTo(b.sortOrder);
         return cmp != 0 ? cmp : a.id.compareTo(b.id);
@@ -69,6 +69,7 @@ class _AccountManageSheetState extends ConsumerState<AccountManageSheet> {
   }
 
   Future<void> _toggleArchive(WalletEntity wallet) async {
+    if (wallet.isSystemWallet) return;
     final repo = ref.read(walletRepositoryProvider);
 
     if (wallet.isArchived) {
@@ -295,16 +296,19 @@ class _WalletTile extends StatelessWidget {
               onPressed: onSetDefault,
               tooltip: context.l10n.wallet_set_default_title,
             ),
-          IconButton(
-            icon: Icon(
-              isArchived ? AppIcons.unarchive : AppIcons.archive,
-              size: AppSizes.iconSm,
-              color: isArchived ? cs.primary : cs.outline,
+          Opacity(
+            opacity: wallet.isSystemWallet ? AppSizes.opacityLight4 : 1.0,
+            child: IconButton(
+              icon: Icon(
+                isArchived ? AppIcons.unarchive : AppIcons.archive,
+                size: AppSizes.iconSm,
+                color: isArchived ? cs.primary : cs.outline,
+              ),
+              onPressed: onToggleArchive,
+              tooltip: isArchived
+                  ? context.l10n.wallet_unarchive_action
+                  : context.l10n.wallet_archive_action,
             ),
-            onPressed: onToggleArchive,
-            tooltip: isArchived
-                ? context.l10n.wallet_unarchive_action
-                : context.l10n.wallet_archive_action,
           ),
         ],
       ),

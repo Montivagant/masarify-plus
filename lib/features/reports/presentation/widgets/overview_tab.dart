@@ -34,8 +34,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
 
     return totalsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => Center(
-        child: Text(context.l10n.common_error_generic),
+      error: (_, __) => EmptyState(
+        title: context.l10n.common_error_title,
+        ctaLabel: context.l10n.common_retry,
+        onCta: () => ref.invalidate(monthlyTotalsProvider(_months)),
       ),
       data: (totals) {
         final hasData = totals.any((t) => t.income > 0 || t.expense > 0);
@@ -427,8 +429,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                 ),
                 width: barWidth,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
+                  topLeft: Radius.circular(AppSizes.borderRadiusXs),
+                  topRight: Radius.circular(AppSizes.borderRadiusXs),
                 ),
               ),
               BarChartRodData(
@@ -444,8 +446,8 @@ class _IncomeExpenseBarChart extends StatelessWidget {
                 ),
                 width: barWidth,
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(4),
-                  topRight: Radius.circular(4),
+                  topLeft: Radius.circular(AppSizes.borderRadiusXs),
+                  topRight: Radius.circular(AppSizes.borderRadiusXs),
                 ),
               ),
             ],

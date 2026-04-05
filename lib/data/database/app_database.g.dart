@@ -1219,8 +1219,8 @@ class $RecurringRulesTable extends RecurringRules
       'wallet_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES wallets (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE RESTRICT'));
   static const VerificationMeta _categoryIdMeta =
       const VerificationMeta('categoryId');
   @override
@@ -1228,8 +1228,8 @@ class $RecurringRulesTable extends RecurringRules
       'category_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES categories (id) ON DELETE RESTRICT'));
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<int> amount = GeneratedColumn<int>(
@@ -2013,8 +2013,8 @@ class $SavingsGoalsTable extends SavingsGoals
       'wallet_id', aliasedName, true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES wallets (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE SET NULL'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -2548,8 +2548,8 @@ class $TransactionsTable extends Transactions
       'wallet_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES wallets (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE RESTRICT'));
   static const VerificationMeta _categoryIdMeta =
       const VerificationMeta('categoryId');
   @override
@@ -2557,8 +2557,8 @@ class $TransactionsTable extends Transactions
       'category_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES categories (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES categories (id) ON DELETE RESTRICT'));
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<int> amount = GeneratedColumn<int>(
@@ -2657,15 +2657,15 @@ class $TransactionsTable extends Transactions
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES recurring_rules (id)'));
+          'REFERENCES recurring_rules (id) ON DELETE SET NULL'));
   static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
   @override
   late final GeneratedColumn<int> goalId = GeneratedColumn<int>(
       'goal_id', aliasedName, true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES savings_goals (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES savings_goals (id) ON DELETE SET NULL'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -3526,8 +3526,8 @@ class $TransfersTable extends Transfers
       'from_wallet_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES wallets (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE RESTRICT'));
   static const VerificationMeta _toWalletIdMeta =
       const VerificationMeta('toWalletId');
   @override
@@ -3535,8 +3535,8 @@ class $TransfersTable extends Transfers
       'to_wallet_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES wallets (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES wallets (id) ON DELETE RESTRICT'));
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<int> amount = GeneratedColumn<int>(
@@ -6274,7 +6274,7 @@ class $ParsedEventGroupsTable extends ParsedEventGroups
       type: DriftSqlType.int,
       requiredDuringInsert: true,
       defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES sms_parser_logs (id)'));
+          'REFERENCES sms_parser_logs (id) ON DELETE CASCADE'));
   static const VerificationMeta _amountPiastresMeta =
       const VerificationMeta('amountPiastres');
   @override
@@ -7164,6 +7164,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
           WritePropagation(
+            on: TableUpdateQuery.onTableName('wallets',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('savings_goals', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('recurring_rules',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('transactions', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('savings_goals',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('transactions', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
             on: TableUpdateQuery.onTableName('categories',
                 limitUpdateKind: UpdateKind.delete),
             result: [
@@ -7189,6 +7210,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('category_mappings', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('sms_parser_logs',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('parsed_event_groups', kind: UpdateKind.delete),
             ],
           ),
         ],

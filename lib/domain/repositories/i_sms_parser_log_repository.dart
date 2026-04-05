@@ -18,4 +18,30 @@ abstract interface class ISmsParserLogRepository {
 
   /// Link a transfer to a parser log entry (ATM withdrawal -> bank-to-cash).
   Future<void> linkTransfer(int logId, int transferId);
+
+  /// Atomically create a transaction and mark the log as approved.
+  /// Returns the new transaction id.
+  Future<int> approveAsTransaction({
+    required int logId,
+    required int walletId,
+    required int categoryId,
+    required int amount,
+    required String type,
+    required String title,
+    required DateTime transactionDate,
+    String currencyCode = 'EGP',
+    String source = 'sms',
+    String? rawSourceText,
+  });
+
+  /// Atomically create a transfer and mark the log as approved.
+  /// Returns the new transfer id.
+  Future<int> approveAsTransfer({
+    required int logId,
+    required int fromWalletId,
+    required int toWalletId,
+    required int amount,
+    required DateTime transferDate,
+    String? note,
+  });
 }

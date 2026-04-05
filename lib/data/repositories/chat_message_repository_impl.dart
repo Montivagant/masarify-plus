@@ -1,11 +1,13 @@
 import '../../domain/entities/chat_message_entity.dart';
 import '../../domain/repositories/i_chat_message_repository.dart';
+import '../database/app_database.dart';
 import '../database/daos/chat_message_dao.dart';
 
 class ChatMessageRepositoryImpl implements IChatMessageRepository {
-  const ChatMessageRepositoryImpl(this._dao);
+  const ChatMessageRepositoryImpl(this._dao, this._db);
 
   final ChatMessageDao _dao;
+  final AppDatabase _db;
 
   // ── Streams ──────────────────────────────────────────────────────────────
 
@@ -47,6 +49,25 @@ class ChatMessageRepositoryImpl implements IChatMessageRepository {
         strippedTokenCount: strippedTokenCount,
         followUpContent: followUpContent,
       );
+
+  @override
+  Future<T> executeAndFinalizeAction<T>({
+    required Future<T> Function() action,
+    required String Function(T result) followUpFromResult,
+    required int messageId,
+    required String strippedContent,
+    required int strippedTokenCount,
+  }) =>
+      _db.transaction(() async {
+        final result = await action();
+        await _dao.finalizeAction(
+          messageId: messageId,
+          strippedContent: strippedContent,
+          strippedTokenCount: strippedTokenCount,
+          followUpContent: followUpFromResult(result),
+        );
+        return result;
+      });
 
   @override
   Future<void> deleteAll() => _dao.deleteAll();

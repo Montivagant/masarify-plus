@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +10,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/subscription_provider.dart';
@@ -16,10 +19,11 @@ import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/inputs/amount_input.dart';
 import '../widgets/onboarding_pages.dart';
 
-/// 5-page onboarding flow:
+/// 6-page onboarding flow:
 ///   Page 0 — Welcome hero (app value prop + language toggle)
 ///   Pages 1-3 — Value preview slides (animated feature demos)
-///   Page 4 — Starting balance (optional, skip → 0)
+///   Page 4 — Google Sign-In (Drive backup enrollment, skippable)
+///   Page 5 — Starting balance (optional, skip → 0)
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -32,10 +36,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _loading = false;
   int _currentIndex = 0;
 
-  /// Starting balance in piastres — set on Page 4 (optional, defaults to 0).
+  /// Starting balance in piastres — set on Page 5 (optional, defaults to 0).
   int _startingBalancePiastres = 0;
 
-  static const _pageCount = 5;
+  static const _pageCount = 6;
 
   /// Current page offset for parallax — updated on scroll.
   double _currentPage = 0;
@@ -130,10 +134,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (!mounted) return;
       SnackHelper.showSuccess(context, context.l10n.trial_started_message);
       context.go(AppRoutes.dashboard);
-    } catch (_) {
+    } catch (e, st) {
+      dev.log(
+        'Onboarding finish failed: $e',
+        name: 'Onboarding',
+        error: e,
+        stackTrace: st,
+      );
       if (!mounted) return;
-      setState(() => _loading = false);
       SnackHelper.showError(context, context.l10n.common_error_generic);
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -229,9 +240,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    // Page 4: Starting balance (optional)
-                    _StartingBalancePage(
+                    // Page 4: Google Sign-In (strongly encouraged)
+                    _GoogleSignInPage(
                       pageOffset: _offsetForPage(4),
+                      onNext: _nextPage,
+                      onSkip: _nextPage,
+                    ),
+                    // Page 5: Starting balance (optional)
+                    _StartingBalancePage(
+                      pageOffset: _offsetForPage(5),
                       loading: _loading,
                       onAmountChanged: (piastres) =>
                           _startingBalancePiastres = piastres,
@@ -269,14 +286,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
 // ── Success Overlay ──────────────────────────────────────────────────────────
 
-class _SuccessOverlay extends StatefulWidget {
+class _SuccessOverlay extends ConsumerStatefulWidget {
   const _SuccessOverlay();
 
   @override
-  State<_SuccessOverlay> createState() => _SuccessOverlayState();
+  ConsumerState<_SuccessOverlay> createState() => _SuccessOverlayState();
 }
 
-class _SuccessOverlayState extends State<_SuccessOverlay> {
+class _SuccessOverlayState extends ConsumerState<_SuccessOverlay> {
   @override
   void initState() {
     super.initState();
@@ -332,7 +349,7 @@ class _SuccessOverlayState extends State<_SuccessOverlay> {
   }
 }
 
-// ── Page 4: Starting Balance ─────────────────────────────────────────────────
+// ── Page 5: Starting Balance ─────────────────────────────────────────────────
 
 class _StartingBalancePage extends StatelessWidget {
   const _StartingBalancePage({
@@ -417,6 +434,139 @@ class _StartingBalancePage extends StatelessWidget {
               onPressed: onSkip,
               child: Text(
                 context.l10n.common_skip,
+                style: context.textStyles.bodyMedium?.copyWith(
+                  color: cs.outline,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSizes.xl),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Page 4: Google Sign-In ──────────────────────────────────────────────────
+
+class _GoogleSignInPage extends ConsumerStatefulWidget {
+  const _GoogleSignInPage({
+    required this.pageOffset,
+    required this.onNext,
+    required this.onSkip,
+  });
+
+  final double pageOffset;
+  final VoidCallback onNext;
+  final VoidCallback onSkip;
+
+  @override
+  ConsumerState<_GoogleSignInPage> createState() => _GoogleSignInPageState();
+}
+
+class _GoogleSignInPageState extends ConsumerState<_GoogleSignInPage> {
+  bool _busy = false;
+  bool _signedIn = false;
+  String? _email;
+
+  Future<void> _signIn() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      final account = await driveService.signIn();
+      if (!mounted) return;
+      if (account != null) {
+        setState(() {
+          _busy = false;
+          _signedIn = true;
+          _email = account.email;
+        });
+        // Brief pause to show success state, then auto-advance.
+        await Future<void>.delayed(AppDurations.splashHold);
+        if (mounted) widget.onNext();
+        return;
+      }
+      // account == null means user cancelled — stay on page, no error.
+    } catch (e) {
+      dev.log('Onboarding sign-in error: $e', name: 'Onboarding');
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.backup_sign_in_failed);
+      }
+    } finally {
+      if (mounted && _busy) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSizes.screenHPadding),
+      child: Column(
+        children: [
+          const Spacer(),
+          // ── Icon ───────────────────────────────────────────────────────
+          Transform.translate(
+            offset: Offset(
+              widget.pageOffset * AppSizes.onboardingParallaxOffset,
+              0,
+            ),
+            child: Container(
+              width: AppSizes.onboardingIcon,
+              height: AppSizes.onboardingIcon,
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: AppSizes.opacityLight),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _signedIn ? AppIcons.checkCircle : AppIcons.backup,
+                size: AppSizes.iconXl2,
+                color: cs.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSizes.xl),
+          // ── Title ──────────────────────────────────────────────────────
+          Text(
+            _signedIn
+                ? context.l10n.onboarding_google_success(_email ?? '')
+                : context.l10n.onboarding_google_title,
+            style: context.textStyles.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (!_signedIn) ...[
+            const SizedBox(height: AppSizes.sm),
+            Text(
+              context.l10n.onboarding_google_body,
+              style: context.textStyles.bodyMedium?.copyWith(
+                color: cs.outline,
+                height: AppSizes.lineHeightNormal,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const Spacer(flex: 2),
+          // ── Buttons ────────────────────────────────────────────────────
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.all(AppSizes.xl),
+              child: CircularProgressIndicator.adaptive(),
+            )
+          else if (!_signedIn) ...[
+            AppButton(
+              label: context.l10n.onboarding_google_sign_in,
+              onPressed: _signIn,
+              icon: AppIcons.backup,
+            ),
+            const SizedBox(height: AppSizes.sm),
+            TextButton(
+              onPressed: widget.onSkip,
+              child: Text(
+                context.l10n.onboarding_google_skip,
                 style: context.textStyles.bodyMedium?.copyWith(
                   color: cs.outline,
                 ),

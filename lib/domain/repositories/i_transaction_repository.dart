@@ -50,4 +50,16 @@ abstract interface class ITransactionRepository {
 
   /// Deletes the transaction AND reverses its wallet balance effect atomically.
   Future<bool> delete(int id);
+
+  /// Returns true if a transaction with the same wallet, amount, and type
+  /// exists within a time window around [aroundDate] (duplicate detection).
+  Future<bool> existsSimilar({
+    required int walletId,
+    required int amount,
+    required String type,
+    required DateTime aroundDate,
+  });
+
+  /// Reactive count of all transactions — used as a staleness sentinel.
+  Stream<int> watchCount();
 }

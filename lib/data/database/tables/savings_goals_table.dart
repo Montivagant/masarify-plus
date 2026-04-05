@@ -13,12 +13,11 @@ class SavingsGoals extends Table {
   TextColumn get currencyCode =>
       text().withLength(min: 3, max: 3).withDefault(const Constant('EGP'))();
   DateTimeColumn get deadline => dateTime().nullable()();
-  BoolColumn get isCompleted =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   // JSON array of keyword strings: ["Noon","laptop","سفر","تذكرة"]
-  TextColumn get keywords =>
-      text().withDefault(const Constant('[]'))();
-  IntColumn get walletId => integer().nullable().references(Wallets, #id)();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get keywords => text().withDefault(const Constant('[]'))();
+  IntColumn get walletId => integer()
+      .nullable()
+      .references(Wallets, #id, onDelete: KeyAction.setNull)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }

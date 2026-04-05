@@ -10,4 +10,12 @@ part 'parsed_event_group_dao.g.dart';
 class ParsedEventGroupDao extends DatabaseAccessor<AppDatabase>
     with _$ParsedEventGroupDaoMixin {
   ParsedEventGroupDao(super.db);
+
+  Future<List<ParsedEventGroup>> getAll() => select(parsedEventGroups).get();
+
+  Future<int> insertRow(ParsedEventGroupsCompanion entry) =>
+      into(parsedEventGroups).insert(entry);
+
+  Future<void> deleteById(int id) =>
+      (delete(parsedEventGroups)..where((t) => t.id.equals(id))).go();
 }

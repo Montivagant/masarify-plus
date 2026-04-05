@@ -9,13 +9,11 @@ abstract final class AppIcons {
   static const IconData home = PhosphorIconsFill.house;
   static const IconData homeOutlined = PhosphorIconsRegular.house;
   static const IconData transactions = PhosphorIconsFill.receipt;
-  static const IconData transactionsOutlined = PhosphorIconsRegular.receipt;
   static const IconData analytics = PhosphorIconsFill.chartBar;
   static const IconData analyticsOutlined = PhosphorIconsRegular.chartBar;
   static const IconData more = PhosphorIconsFill.squaresFour;
   static const IconData moreOutlined = PhosphorIconsRegular.squaresFour;
   static const IconData settings = PhosphorIconsFill.gear;
-  static const IconData settingsOutlined = PhosphorIconsRegular.gear;
 
   // ── Actions ───────────────────────────────────────────────────────────
   static const IconData add = PhosphorIconsBold.plus;
@@ -55,7 +53,6 @@ abstract final class AppIcons {
   static const IconData calendar = PhosphorIconsRegular.calendarBlank;
   static const IconData sms = PhosphorIconsFill.chatText;
   static const IconData notification = PhosphorIconsFill.bell;
-  static const IconData notificationOutlined = PhosphorIconsRegular.bell;
   static const IconData backup = PhosphorIconsFill.cloudArrowUp;
   static const IconData security = PhosphorIconsFill.shield;
   static const IconData eye = PhosphorIconsRegular.eye;
@@ -71,14 +68,12 @@ abstract final class AppIcons {
   static const IconData fingerprint = PhosphorIconsRegular.fingerprint;
   static const IconData language = PhosphorIconsRegular.globe;
   static const IconData theme = PhosphorIconsFill.moon;
-  static const IconData themeLight = PhosphorIconsFill.sun;
   static const IconData currency = PhosphorIconsBold.currencyDollar;
   static const IconData help = PhosphorIconsRegular.question;
   static const IconData info = PhosphorIconsRegular.info;
   static const IconData warning = PhosphorIconsRegular.warning;
   static const IconData inbox = PhosphorIconsFill.tray;
   static const IconData expandMore = PhosphorIconsRegular.caretDown;
-  static const IconData expandLess = PhosphorIconsRegular.caretUp;
   static const IconData creditCard = PhosphorIconsRegular.creditCard;
 
   // ── Account types ───────────────────────────────────────────────────
@@ -126,9 +121,9 @@ abstract final class AppIcons {
   static const IconData unarchive = PhosphorIconsRegular.arrowCounterClockwise;
   static const IconData moreVert = PhosphorIconsRegular.dotsThreeVertical;
   static const IconData dragHandle = PhosphorIconsRegular.dotsSixVertical;
-  static const IconData sliders = PhosphorIconsBold.sliders;
   static const IconData listView = PhosphorIconsRegular.list;
   static const IconData cardStack = PhosphorIconsRegular.stack;
+  static const IconData stop = PhosphorIconsFill.stop;
 
   // ── Hint / gesture ────────────────────────────────────────────────────
   static const IconData handPointing = PhosphorIconsFill.handPointing;

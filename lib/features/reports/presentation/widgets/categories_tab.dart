@@ -11,6 +11,7 @@ import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/budget_entity.dart';
 import '../../../../shared/providers/analytics_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
+import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/widgets/lists/empty_state.dart';
 
 /// Categories tab — donut chart + ranked list of expense categories.
@@ -37,8 +38,12 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
 
     return breakdownAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => Center(
-        child: Text(context.l10n.common_error_generic),
+      error: (_, __) => EmptyState(
+        title: context.l10n.common_error_title,
+        ctaLabel: context.l10n.common_retry,
+        onCta: () => ref.invalidate(
+          transactionsByMonthProvider(selectedMonth),
+        ),
       ),
       data: (breakdown) {
         if (breakdown.isEmpty) {
@@ -86,9 +91,12 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                 children: [
                   IconButton(
                     icon: Icon(
-                      AppIcons.chevronLeft,
+                      context.isRtl
+                          ? AppIcons.chevronRight
+                          : AppIcons.chevronLeft,
                       color: context.colors.outline,
                     ),
+                    tooltip: context.l10n.month_previous,
                     onPressed: () {
                       final (y, m) = selectedMonth;
                       final prev = m == 1 ? (y - 1, 12) : (y, m - 1);
@@ -105,9 +113,12 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                   ),
                   IconButton(
                     icon: Icon(
-                      AppIcons.chevronRight,
+                      context.isRtl
+                          ? AppIcons.chevronLeft
+                          : AppIcons.chevronRight,
                       color: context.colors.outline,
                     ),
+                    tooltip: context.l10n.month_next,
                     onPressed: () {
                       final now = DateTime.now();
                       final (y, m) = selectedMonth;
@@ -125,8 +136,8 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
             const SizedBox(height: AppSizes.sm),
             Center(
               child: SizedBox(
-                height: 160,
-                width: 160,
+                height: AppSizes.chartHeightSm,
+                width: AppSizes.chartHeightSm,
                 child: RepaintBoundary(
                   child: Stack(
                     alignment: Alignment.center,
@@ -147,7 +158,7 @@ class _CategoriesTabState extends ConsumerState<CategoriesTab>
                         ),
                       ),
                       Text(
-                        '${breakdown.length} categories',
+                        context.l10n.reportsCategoryCount(breakdown.length),
                         style: context.textStyles.bodySmall?.copyWith(
                           color: context.colors.outline,
                         ),
@@ -201,8 +212,8 @@ class _CategoryRow extends StatelessWidget {
         children: [
           // Color dot
           Container(
-            width: 12,
-            height: 12,
+            width: AppSizes.iconXxs,
+            height: AppSizes.iconXxs,
             margin: const EdgeInsets.only(top: AppSizes.xs),
             decoration: BoxDecoration(
               color: catColor,
@@ -262,7 +273,9 @@ class _CategoryRow extends StatelessWidget {
                 if (hasBudget) ...[
                   const SizedBox(height: AppSizes.xxs),
                   Text(
-                    'Budget: ${MoneyFormatter.format(budget!.limitAmount)}',
+                    context.l10n.reportsBudgetLabel(
+                      MoneyFormatter.format(budget!.limitAmount),
+                    ),
                     style: context.textStyles.labelSmall?.copyWith(
                       color: context.colors.outline,
                     ),

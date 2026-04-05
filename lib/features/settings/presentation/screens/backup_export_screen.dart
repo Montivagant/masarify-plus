@@ -15,7 +15,6 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/google_drive_backup_service.dart';
-import '../../../../data/services/pdf_export_service.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
 import '../../../../shared/providers/google_drive_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
@@ -38,7 +37,8 @@ class BackupExportScreen extends ConsumerStatefulWidget {
   ConsumerState<BackupExportScreen> createState() => _BackupExportScreenState();
 }
 
-class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
+class _BackupExportScreenState extends ConsumerState<BackupExportScreen>
+    with WidgetsBindingObserver {
   bool _busy = false;
   bool _driveSignedIn = false;
   String? _driveEmail;
@@ -47,7 +47,21 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkDriveStatus();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkDriveStatus();
+    }
   }
 
   Future<void> _checkDriveStatus() async {
@@ -84,6 +98,32 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
         _driveEmail = account?.email;
       });
     } catch (e) {
+      dev.log('Sign-in error: $e', name: 'BackupScreen');
+      if (mounted) {
+        SnackHelper.showError(context, context.l10n.backup_sign_in_failed);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _signOutGoogle() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final driveService = ref.read(googleDriveBackupProvider);
+      await driveService.signOut();
+      if (!mounted) return;
+      final prefs = await ref.read(preferencesFutureProvider.future);
+      await prefs.clearDrivePrefs();
+      if (!mounted) return;
+      setState(() {
+        _driveSignedIn = false;
+        _driveEmail = null;
+        _lastBackupDate = null;
+      });
+    } catch (e) {
+      dev.log('Sign-out error: $e', name: 'BackupScreen');
       if (mounted) {
         SnackHelper.showError(context, context.l10n.common_error_generic);
       }
@@ -92,18 +132,15 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
     }
   }
 
-  Future<void> _signOutGoogle() async {
-    final driveService = ref.read(googleDriveBackupProvider);
-    await driveService.signOut();
-    if (!mounted) return;
-    final prefs = await ref.read(preferencesFutureProvider.future);
-    await prefs.clearDrivePrefs();
-    if (!mounted) return;
-    setState(() {
-      _driveSignedIn = false;
-      _driveEmail = null;
-      _lastBackupDate = null;
-    });
+  String _driveErrorMessage(dynamic error) {
+    final msg = error is StateError ? error.message : '';
+    if (msg.contains('Not signed in') || msg.contains('session')) {
+      return context.l10n.backup_session_expired;
+    }
+    if (msg.contains('Encryption key')) {
+      return context.l10n.backup_key_missing;
+    }
+    return context.l10n.backup_drive_failed;
   }
 
   Future<void> _backupToDrive() async {
@@ -144,7 +181,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       SnackHelper.showSuccess(context, context.l10n.backup_drive_success);
     } catch (e) {
       if (mounted) {
-        SnackHelper.showError(context, context.l10n.backup_drive_failed);
+        SnackHelper.showError(context, _driveErrorMessage(e));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -233,7 +270,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
       if (mounted) {
         final msg = e is FormatException
             ? context.l10n.backup_error_invalid
-            : context.l10n.backup_drive_failed;
+            : _driveErrorMessage(e);
         SnackHelper.showError(context, msg);
       }
     } finally {
@@ -260,7 +297,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
             ...backups.take(10).map(
                   (b) => ListTile(
                     title: Text(
-                      DateFormat.yMMMd(context.languageCode)
+                      DateFormat.yMMMd(ctx.languageCode)
                           .add_Hm()
                           .format(b.modifiedTime),
                     ),
@@ -268,9 +305,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
                       '${(b.sizeBytes / 1024).toStringAsFixed(1)} KB',
                     ),
                     trailing: Icon(
-                      context.isRtl
-                          ? AppIcons.chevronLeft
-                          : AppIcons.chevronRight,
+                      ctx.isRtl ? AppIcons.chevronLeft : AppIcons.chevronRight,
                     ),
                     onTap: () => ctx.pop(b),
                   ),
@@ -334,7 +369,7 @@ class _BackupExportScreenState extends ConsumerState<BackupExportScreen> {
 
     if (!mounted) return;
     final confirmed = await _showRestoreConfirmation();
-    if (!confirmed) return;
+    if (!confirmed || !mounted) return;
 
     setState(() => _busy = true);
     try {

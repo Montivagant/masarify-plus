@@ -10,6 +10,7 @@ import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/brand_registry.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/frequency_label_extension.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
@@ -21,6 +22,7 @@ import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/recurring_rule_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 
+import '../../../../shared/widgets/cards/brand_logo.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/confirm_dialog.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
@@ -49,8 +51,10 @@ class RecurringScreen extends ConsumerWidget {
       ),
       body: rulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(
-          child: Text(context.l10n.common_error_generic),
+        error: (_, __) => EmptyState(
+          title: context.l10n.common_error_title,
+          ctaLabel: context.l10n.common_retry,
+          onCta: () => ref.invalidate(recurringRulesProvider),
         ),
         data: (rules) {
           if (rules.isEmpty) {
@@ -205,6 +209,7 @@ class _RecurringCard extends ConsumerWidget {
     final prefix = rule.type == 'income' ? '+' : '\u2212';
     final isBill = rule.isBill;
     final isOverdue = rule.isOverdue;
+    final brand = BrandRegistry.match(rule.title);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -257,23 +262,31 @@ class _RecurringCard extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  // Category icon — colored circle container (matches detail screen)
-                  Container(
-                    width: AppSizes.iconContainerMd,
-                    height: AppSizes.iconContainerMd,
-                    decoration: BoxDecoration(
-                      color:
-                          (isOverdue ? context.appTheme.expenseColor : catColor)
-                              .withValues(alpha: AppSizes.opacityLight2),
-                      shape: BoxShape.circle,
+                  // Brand logo (3-tier) or category icon fallback.
+                  if (brand != null)
+                    BrandLogo(
+                      brand: brand,
+                      size: AppSizes.iconContainerMd,
+                    )
+                  else
+                    Container(
+                      width: AppSizes.iconContainerMd,
+                      height: AppSizes.iconContainerMd,
+                      decoration: BoxDecoration(
+                        color: (isOverdue
+                                ? context.appTheme.expenseColor
+                                : catColor)
+                            .withValues(alpha: AppSizes.opacityLight2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isBill ? AppIcons.bill : catIcon,
+                        size: AppSizes.iconSm,
+                        color: isOverdue
+                            ? context.appTheme.expenseColor
+                            : catColor,
+                      ),
                     ),
-                    child: Icon(
-                      isBill ? AppIcons.bill : catIcon,
-                      size: AppSizes.iconSm,
-                      color:
-                          isOverdue ? context.appTheme.expenseColor : catColor,
-                    ),
-                  ),
                   const SizedBox(width: AppSizes.md),
                   // Title + subtitle row
                   Expanded(

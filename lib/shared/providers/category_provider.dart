@@ -12,18 +12,7 @@ final categoriesProvider = StreamProvider<List<CategoryEntity>>(
 /// duplicate Drift stream subscriptions on the same table.
 final expenseCategoriesProvider = Provider<AsyncValue<List<CategoryEntity>>>(
   (ref) => ref.watch(categoriesProvider).whenData(
-        (cats) => cats
-            .where((c) => c.type == 'expense' || c.type == 'both')
-            .toList(),
-      ),
-);
-
-/// Income categories only — derived from [categoriesProvider] to avoid
-/// duplicate Drift stream subscriptions on the same table.
-final incomeCategoriesProvider = Provider<AsyncValue<List<CategoryEntity>>>(
-  (ref) => ref.watch(categoriesProvider).whenData(
-        (cats) => cats
-            .where((c) => c.type == 'income' || c.type == 'both')
-            .toList(),
+        (cats) =>
+            cats.where((c) => c.type == 'expense' || c.type == 'both').toList(),
       ),
 );

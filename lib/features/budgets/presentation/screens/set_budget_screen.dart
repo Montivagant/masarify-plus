@@ -119,13 +119,14 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
   }
 
   Future<void> _loadBudget() async {
-    final budgets =
-        await ref.read(budgetRepositoryProvider).getByMonth(_year, _month);
-    final budget = budgets.where((b) => b.id == widget.editId).firstOrNull;
+    final budget =
+        await ref.read(budgetRepositoryProvider).getById(widget.editId!);
     if (!mounted || budget == null) return;
     setState(() {
       _categoryId = budget.categoryId;
       _limitPiastres = budget.limitAmount;
+      _year = budget.year;
+      _month = budget.month;
     });
   }
 
@@ -219,9 +220,11 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           );
         }
       } else {
+        final catId = _categoryId;
+        if (catId == null) return;
         // C4 fix: check for existing budget on same category+month → upsert
         final existing = await repo.getByCategoryAndMonth(
-          _categoryId!,
+          catId,
           _year,
           _month,
         );
@@ -239,7 +242,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           );
         } else {
           await repo.create(
-            categoryId: _categoryId!,
+            categoryId: catId,
             month: _month,
             year: _year,
             limitAmount: _limitPiastres,
@@ -476,7 +479,7 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
     final canSave = _categoryId != null && _limitPiastres > 0;
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
+        padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,
           AppSizes.sm,
           AppSizes.screenHPadding,

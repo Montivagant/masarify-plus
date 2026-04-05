@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
@@ -11,6 +12,8 @@ import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
 import '../../../features/transactions/presentation/screens/add_transaction_screen.dart';
 import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
+import '../../../features/voice_input/presentation/widgets/voice_recording_pill.dart';
+import '../../providers/background_ai_provider.dart';
 import '../../providers/preferences_provider.dart';
 import '../feedback/first_time_hint.dart';
 import 'raised_center_docked_fab_location.dart';
@@ -26,7 +29,7 @@ import 'speed_dial_fab.dart';
 /// The center spacer reserves space for the `centerDocked` FAB.
 /// Tab selection is mapped between the 4-tab logical index (0–3) and
 /// the 5-destination visual index (0, 1, _, 3, 4).
-class AppNavBar extends StatelessWidget {
+class AppNavBar extends ConsumerWidget {
   const AppNavBar({
     super.key,
     required this.currentIndex,
@@ -37,10 +40,11 @@ class AppNavBar extends StatelessWidget {
   final ValueChanged<int> onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = context.colors;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final dests = AppNavigation.destinations;
+    final upcomingCount = ref.watch(upcomingBillsProvider).length;
 
     // Map logical 4-tab index (0–3) → visual 5-destination index (0,1,_,3,4).
     final navIndex = currentIndex < 2 ? currentIndex : currentIndex + 1;
@@ -83,8 +87,20 @@ class AppNavBar extends StatelessWidget {
             destinations: [
               for (var i = 0; i < 2; i++)
                 NavigationDestination(
-                  icon: Icon(dests[i].icon),
-                  selectedIcon: Icon(dests[i].activeIcon),
+                  icon: i == 1
+                      ? Badge(
+                          isLabelVisible: upcomingCount > 0,
+                          label: Text('$upcomingCount'),
+                          child: Icon(dests[i].icon),
+                        )
+                      : Icon(dests[i].icon),
+                  selectedIcon: i == 1
+                      ? Badge(
+                          isLabelVisible: upcomingCount > 0,
+                          label: Text('$upcomingCount'),
+                          child: Icon(dests[i].activeIcon),
+                        )
+                      : Icon(dests[i].activeIcon),
                   label: dests[i].label(context),
                 ),
               // Center spacer for FAB overlap.
@@ -125,6 +141,7 @@ class AppScaffoldShell extends ConsumerStatefulWidget {
 
 class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
   bool _showFabHint = false;
+  bool _showVoicePill = false;
 
   @override
   void initState() {
@@ -151,6 +168,16 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
     await prefs.setFabHintShown();
   }
 
+  Future<void> _onVoiceTap() async {
+    final status = await Permission.microphone.status;
+    if (status.isGranted) {
+      setState(() => _showVoicePill = true);
+      return;
+    }
+    if (!mounted) return;
+    await VoiceInputButton.handleVoiceInput(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
@@ -170,25 +197,34 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
           ? null
           : SpeedDialFab(
               tabIndex: widget.navigationShell.currentIndex,
-              onVoice: () => VoiceInputButton.handleVoiceInput(context),
+              onVoice: _onVoiceTap,
               onManual: () => AddTransactionScreen.show(context),
             ),
       floatingActionButtonLocation: RaisedCenterDockedFabLocation.raised,
     );
 
-    if (!_showFabHint) return scaffold;
-
+    // Layer: scaffold -> voice pill -> fab hint (mutually exclusive overlays).
     return Stack(
       children: [
         scaffold,
-        Positioned.fill(
-          child: FirstTimeHint(
-            message: context.l10n.hint_fab,
-            icon: AppIcons.add,
-            alignment: Alignment.bottomCenter,
-            onDismiss: _dismissFabHint,
+        if (_showVoicePill)
+          Positioned(
+            left: AppSizes.screenHPadding,
+            right: AppSizes.screenHPadding,
+            bottom: AppSizes.bottomNavHeight + AppSizes.md,
+            child: VoiceRecordingPill(
+              onDismiss: () => setState(() => _showVoicePill = false),
+            ),
           ),
-        ),
+        if (_showFabHint)
+          Positioned.fill(
+            child: FirstTimeHint(
+              message: context.l10n.hint_fab,
+              icon: AppIcons.add,
+              alignment: Alignment.bottomCenter,
+              onDismiss: _dismissFabHint,
+            ),
+          ),
       ],
     );
   }

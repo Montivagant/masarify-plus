@@ -18,22 +18,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appBrandArabic => 'مصاريفي';
 
   @override
-  String get appTagline => 'Track Every Pound. Own Your Money.';
-
-  @override
   String get nav_home => 'Home';
 
   @override
-  String get nav_transactions => 'Transactions';
-
-  @override
-  String get nav_budgets => 'Budgets';
-
-  @override
   String get nav_analytics => 'Analytics';
-
-  @override
-  String get nav_more => 'More';
 
   @override
   String get nav_subscriptions => 'Recurring';
@@ -42,34 +30,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_title => 'Masarify';
 
   @override
-  String get dashboard_net_balance => 'Net Balance';
-
-  @override
   String get dashboard_income => 'Income';
 
   @override
   String get dashboard_expense => 'Expense';
-
-  @override
-  String get dashboard_recent_transactions => 'Recent';
-
-  @override
-  String get dashboard_see_all => 'See All';
-
-  @override
-  String get dashboard_quick_add_expense => '+ Expense';
-
-  @override
-  String get dashboard_quick_add_income => '+ Income';
-
-  @override
-  String get dashboard_spending_overview => 'Spending Overview';
-
-  @override
-  String get dashboard_budget_alerts => 'Budget Alerts';
-
-  @override
-  String get dashboard_manage_budgets => 'Manage Budgets';
 
   @override
   String get dashboard_welcome_empty => 'Welcome to Masarify!';
@@ -82,16 +46,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactions_title => 'Transactions';
 
   @override
-  String get transactions_search_hint => 'Search transactions...';
-
-  @override
-  String get transactions_filter => 'Filter';
-
-  @override
   String get transactions_empty_title => 'No transactions yet';
-
-  @override
-  String get transactions_empty_sub => 'Tap + to add your first one';
 
   @override
   String get transactions_add => 'Add Transaction';
@@ -124,13 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_category => 'Category';
 
   @override
-  String get transaction_tags => 'Tags';
-
-  @override
   String get transaction_location => 'Location';
-
-  @override
-  String get transaction_all_categories => 'All Categories';
 
   @override
   String get transaction_amount_hint => '0.00';
@@ -143,9 +92,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transaction_deleted => 'Transaction deleted';
-
-  @override
-  String get transaction_undo => 'Undo';
 
   @override
   String get transaction_source_voice => 'Voice';
@@ -199,13 +145,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_initial_balance => 'Initial Balance';
 
   @override
-  String get wallet_delete_warning =>
-      'Cannot delete account with existing transactions';
-
-  @override
-  String get wallet_balance => 'Balance';
-
-  @override
   String get categories_title => 'Categories';
 
   @override
@@ -216,12 +155,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get category_add => 'Add Category';
-
-  @override
-  String get category_name_en => 'Name (English)';
-
-  @override
-  String get category_name_ar => 'Name (Arabic)';
 
   @override
   String get category_name_label => 'Category Name';
@@ -267,23 +200,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get budget_rollover => 'Rollover unused amount';
-
-  @override
   String get budget_spent => 'Spent';
 
   @override
   String get budget_remaining => 'Remaining';
-
-  @override
-  String budget_alert_80(String category) {
-    return '$category budget at 80%';
-  }
-
-  @override
-  String budget_alert_100(String category) {
-    return '$category budget exceeded!';
-  }
 
   @override
   String get goals_title => 'Goals';
@@ -307,18 +227,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goal_keywords => 'Auto-match keywords';
 
   @override
-  String get goal_contribute => 'Add Money';
-
-  @override
   String get goal_completed => 'Goal Completed! 🎉';
 
   @override
   String get goal_overdue => 'Overdue';
-
-  @override
-  String goal_progress(int percent) {
-    return '$percent% reached';
-  }
 
   @override
   String get recurring_add => 'Add Subscription';
@@ -451,18 +363,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_action_tx_title => 'Create Transaction';
 
   @override
-  String get hub_title => 'More';
-
-  @override
-  String get hub_section_money => 'Money';
-
-  @override
-  String get hub_section_reports => 'Reports';
-
-  @override
-  String get hub_section_planning => 'Planning';
-
-  @override
   String get hub_section_ai => 'AI Assistant';
 
   @override
@@ -472,34 +372,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_wallets => 'Accounts';
 
   @override
-  String get hub_analytics => 'Analytics';
-
-  @override
-  String get hub_calendar => 'Calendar';
-
-  @override
-  String get hub_recurring => 'Subscriptions';
-
-  @override
-  String get hub_settings => 'Settings';
-
-  @override
-  String get hub_backup => 'Backup & Export';
-
-  @override
-  String get hub_about => 'About';
-
-  @override
-  String get hub_help => 'Help & FAQ';
-
-  @override
   String get hub_active => 'active';
 
   @override
   String get hub_in_progress => 'in progress';
-
-  @override
-  String get hub_new_label => 'new';
 
   @override
   String get settings_title => 'Settings';
@@ -509,9 +385,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_security => 'Security';
-
-  @override
-  String get settings_data => 'Data';
 
   @override
   String get settings_about => 'About';
@@ -541,9 +414,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_first_day_of_month => 'First Day of Month';
 
   @override
-  String get settings_pin_setup => 'Set PIN';
-
-  @override
   String get settings_pin_change => 'Change PIN';
 
   @override
@@ -551,9 +421,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_auto_lock => 'Auto-lock';
-
-  @override
-  String get settings_auto_lock_subtitle => 'Lock app after inactivity';
 
   @override
   String get settings_auto_lock_immediate => 'Immediate';
@@ -598,9 +465,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_voice_input => 'Voice Input';
 
   @override
-  String get settings_sms_parser => 'SMS Parser';
-
-  @override
   String get settings_language_changed => 'Language changed';
 
   @override
@@ -628,9 +492,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_error_invalid => 'Invalid backup file';
 
   @override
-  String get backup_error_version => 'This backup requires a newer version';
-
-  @override
   String get backup_confirm_restore_title => 'Restore Backup?';
 
   @override
@@ -639,12 +500,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backup_select_month => 'Select Month';
-
-  @override
-  String get backup_exporting => 'Exporting...';
-
-  @override
-  String get backup_restoring => 'Restoring...';
 
   @override
   String get backup_export_json_subtitle =>
@@ -722,28 +577,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_page1_title => 'Take Control of Your Money';
 
   @override
-  String get onboarding_page1_subtitle => 'Track Every Pound. Own Your Money.';
-
-  @override
-  String get onboarding_page1_cta => 'Get Started';
-
-  @override
-  String get onboarding_page2_title => 'What\'s your starting balance?';
-
-  @override
-  String get onboarding_page2_subtitle =>
-      'We\'ll create a Cash account for you. You can change this later.';
-
-  @override
-  String get onboarding_page2_cta => 'Start Tracking';
-
-  @override
-  String get onboarding_page2_skip => 'Skip';
-
-  @override
-  String get splash_loading => 'Loading...';
-
-  @override
   String get common_save => 'Save';
 
   @override
@@ -786,21 +619,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_invalid_amount => 'Invalid amount';
 
   @override
-  String get common_error_db => 'Database error. Please restart the app.';
-
-  @override
-  String get common_empty_list => 'Nothing here yet';
-
-  @override
-  String get common_loading => 'Loading...';
-
-  @override
-  String get common_grant_permission => 'Grant Permission';
-
-  @override
-  String get common_maybe_later => 'Maybe Later';
-
-  @override
   String get permission_mic_title => 'Microphone Access';
 
   @override
@@ -816,9 +634,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get location_detect => 'Detect Location';
-
-  @override
-  String get location_detecting => 'Detecting…';
 
   @override
   String get location_hint => 'e.g. Maadi, Cairo';
@@ -839,56 +654,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error_name_required => 'Name is required';
 
   @override
-  String get error_pin_too_short => 'PIN must be 6 digits';
-
-  @override
   String get voice_tap_to_start => 'Tap the mic to start';
 
   @override
   String get voice_listening => 'Recording...';
 
   @override
-  String get voice_processing => 'Processing...';
-
-  @override
   String get voice_confirm_title => 'Review Transactions';
 
   @override
-  String get voice_confirm_all => 'Confirm All';
-
-  @override
   String get voice_confirm_accept_all => 'Save All';
-
-  @override
-  String get voice_confirm_all_saved => 'All transactions saved';
-
-  @override
-  String get voice_remove => 'Remove';
-
-  @override
-  String get voice_unavailable => 'Voice input is not available on this device';
 
   @override
   String get voice_error_no_service =>
       'Voice input is not available. Please check your internet connection.';
 
   @override
-  String get voice_error_no_locale =>
-      'No language packs found for speech recognition. Please install one in your device settings.';
-
-  @override
-  String get voice_error_speech =>
-      'Speech recognition error. Please try again.';
-
-  @override
   String get voice_no_results => 'Nothing detected. Please try again.';
 
   @override
   String get voice_ai_error => 'AI parsing failed. Please try again.';
-
-  @override
-  String get voice_permission_denied =>
-      'Microphone permission is required for voice input';
 
   @override
   String get voice_retry => 'Try Again';
@@ -915,9 +700,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sms_review_skip => 'Skip';
 
   @override
-  String get sms_review_edit => 'Edit';
-
-  @override
   String sms_new_found(int count) {
     return '$count transaction(s) found — tap to review';
   }
@@ -932,33 +714,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parser_skipped_msg => 'Transaction skipped';
 
   @override
-  String get parser_approve_all => 'Approve All';
-
-  @override
-  String get parser_ai_category => 'Suggested Category';
-
-  @override
-  String get parser_ai_merchant => 'Merchant';
-
-  @override
-  String get parser_ai_note => 'Note';
-
-  @override
   String get parser_enrich => 'Enrich';
 
   @override
   String get parser_enrich_all => 'Enrich All';
 
   @override
-  String get parser_enriching => 'Enriching…';
-
-  @override
   String get parser_possible_duplicate => 'Possible duplicate';
-
-  @override
-  String parser_similar_exists(String date) {
-    return 'Similar transaction found ($date)';
-  }
 
   @override
   String get parser_wallet_label => 'Account';
@@ -977,38 +739,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Similar transaction already exists. Create anyway?';
 
   @override
-  String parser_auto_resolved(int count) {
-    return '$count parsed transaction(s) matched and auto-resolved';
-  }
-
-  @override
-  String get settings_smart_detection => 'Smart Detection';
-
-  @override
-  String get settings_smart_detection_subtitle =>
-      'Auto-detect transactions from SMS messages';
-
-  @override
-  String get settings_ai_models => 'AI & Models';
-
-  @override
-  String dashboard_pending_review(int count) {
-    return '$count transaction(s) to review';
-  }
-
-  @override
-  String get dashboard_pending_review_action => 'Review';
-
-  @override
   String goal_link_prompt(String goalName) {
     return 'This looks like it relates to your \'$goalName\'. Link it?';
   }
 
   @override
   String get goal_link_action => 'Link';
-
-  @override
-  String get goal_dismiss => 'Dismiss';
 
   @override
   String get transfer_from => 'From';
@@ -1030,14 +766,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pro_badge => 'PRO';
-
-  @override
-  String get pro_feature_title => 'Premium Feature';
-
-  @override
-  String pro_feature_body(String featureName) {
-    return '$featureName is available for PRO subscribers only.\nComing very soon!';
-  }
 
   @override
   String get pro_upgrade => 'Upgrade to Pro';
@@ -1141,14 +869,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_pro_free => 'Free Plan';
 
   @override
-  String get budget_limit_reached =>
-      'Free plan allows 2 budgets. Upgrade to Pro for unlimited.';
-
-  @override
-  String get goal_limit_reached =>
-      'Free plan allows 1 savings goal. Upgrade to Pro for unlimited.';
-
-  @override
   String get common_ok => 'OK';
 
   @override
@@ -1194,30 +914,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_source_manual => 'Manual';
 
   @override
-  String get transaction_no_results => 'No results';
-
-  @override
-  String get transaction_try_different => 'Try a different search term';
-
-  @override
-  String get transaction_filter_type_title => 'Filter by Type';
-
-  @override
-  String get transaction_filter_all => 'All';
-
-  @override
-  String get transaction_filter_expenses => 'Expenses';
-
-  @override
-  String get transaction_filter_income => 'Income';
-
-  @override
-  String get transaction_filter_expenses_chip => 'Expenses';
-
-  @override
-  String get transaction_filter_income_chip => 'Income';
-
-  @override
   String get transaction_optional_details => 'Additional details';
 
   @override
@@ -1245,16 +941,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_edit_title => 'Edit Account';
 
   @override
-  String get wallet_delete_title => 'Delete Account';
-
-  @override
-  String get wallet_delete_confirm =>
-      'Are you sure you want to delete this account?';
-
-  @override
-  String get wallet_cannot_delete_title => 'Cannot Delete Account';
-
-  @override
   String get wallet_name_label => 'Account Name';
 
   @override
@@ -1276,10 +962,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get wallet_no_transactions_sub =>
       'No transactions recorded for this account yet';
-
-  @override
-  String get wallet_cannot_delete_body =>
-      'This account has transactions.\nDelete or move them before deleting the account.';
 
   @override
   String get wallet_type_label => 'Account Type';
@@ -1309,40 +991,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_investment_short => 'Invest';
 
   @override
-  String get wallet_system_badge => 'System';
-
-  @override
   String get wallet_cannot_archive_system =>
       'The Cash wallet cannot be archived';
 
   @override
-  String get balance_available => 'Available';
-
-  @override
-  String get balance_in_goals => 'In Goals';
-
-  @override
-  String get goal_link_sheet_title => 'Save to goal?';
-
-  @override
-  String goal_link_sheet_subtitle(Object goalName) {
-    return 'Would you like to allocate to $goalName?';
-  }
-
-  @override
-  String get goal_link_sheet_save => 'Save to Goal';
-
-  @override
   String get goal_contribution_from_wallet => 'From account';
-
-  @override
-  String goal_contribution_deducted(Object walletName) {
-    return 'Deducted from $walletName';
-  }
-
-  @override
-  String get onboarding_physical_cash_note =>
-      'Your cash-in-hand wallet is created automatically';
 
   @override
   String get wallet_linked_senders_label => 'Linked SMS Senders';
@@ -1384,15 +1037,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get category_default_chip => 'Default';
 
   @override
-  String get category_name_ar_label => 'Category Name (Arabic)';
-
-  @override
-  String get category_name_ar_hint => 'e.g. Coffee, Transport, Subscription';
-
-  @override
-  String get category_name_en_label => 'Category Name (English)';
-
-  @override
   String get category_group_needs => 'Needs';
 
   @override
@@ -1413,9 +1057,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budget_spent_label => 'Spent';
-
-  @override
-  String get budget_rollover_title => 'Budget Rollover';
 
   @override
   String get budgets_empty_sub_long =>
@@ -1444,6 +1085,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goal_already_funded => 'This goal is already fully funded.';
+
+  @override
+  String goal_contribution_max(String amount) {
+    return 'Maximum: $amount';
+  }
 
   @override
   String get goal_detail_no_savings => 'No savings yet';
@@ -1529,23 +1175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance => 'Appearance';
 
   @override
-  String get settings_theme_auto => 'Auto';
-
-  @override
-  String get settings_data_management => 'Data Management';
-
-  @override
-  String get settings_wallets_label => 'Accounts';
-
-  @override
-  String get settings_wallets_subtitle => 'Manage your accounts';
-
-  @override
   String get settings_categories_label => 'Categories';
-
-  @override
-  String get settings_categories_subtitle =>
-      'Customize expense and income categories';
 
   @override
   String get settings_pin_subtitle => 'Protect the app with a PIN code';
@@ -1635,76 +1265,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_coming_soon => 'Coming Soon';
 
   @override
-  String get dashboard_income_label => 'Income';
-
-  @override
-  String get dashboard_expense_label => 'Expenses';
-
-  @override
-  String get dashboard_no_transactions => 'No transactions yet';
-
-  @override
-  String get dashboard_start_tracking =>
-      'Start by recording your first transaction to track your money';
-
-  @override
-  String get dashboard_failed_balance => 'Failed to load balance';
-
-  @override
-  String get dashboard_failed_transactions => 'Failed to load transactions';
-
-  @override
-  String get dashboard_failed_spending => 'Failed to load spending overview';
-
-  @override
-  String get dashboard_failed_budgets => 'Failed to load budget alerts';
-
-  @override
-  String get dashboard_voice => 'Voice';
-
-  @override
-  String get balance_income_label => 'Income';
-
-  @override
-  String get balance_expense_label => 'Expenses';
-
-  @override
-  String get onboarding_feature_wallets => 'Multiple Accounts';
-
-  @override
-  String get onboarding_feature_budgets => 'Smart Budgets';
-
-  @override
-  String get onboarding_feature_goals => 'Savings Goals';
-
-  @override
-  String get onboarding_feature_reports => 'Detailed Reports';
-
-  @override
-  String get onboarding_language_prompt => 'Choose your language';
-
-  @override
   String get onboarding_page1_body =>
       'Track every pound, plan your future,\nand live worry-free about money.';
-
-  @override
-  String get onboarding_page2_body =>
-      'Enter your current balance to start accurately.\n(Optional — you can change it later)';
-
-  @override
-  String get onboarding_saving => 'Saving...';
-
-  @override
-  String get onboarding_default_wallet_name => 'Cash';
-
-  @override
-  String get onboarding_account_name_label => 'Account Name';
-
-  @override
-  String get onboarding_account_name_hint => 'e.g. Cash, CIB, Vodafone Cash';
-
-  @override
-  String get onboarding_account_type_label => 'Account Type';
 
   @override
   String get goal_active_section => 'Active';
@@ -1769,12 +1331,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get month_next => 'Next month';
 
   @override
-  String get dashboard_other_category => 'Other';
-
-  @override
-  String get dashboard_total => 'Total';
-
-  @override
   String get recurring_active => 'Active Subscriptions';
 
   @override
@@ -1782,9 +1338,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_pause => 'Pause';
-
-  @override
-  String get recurring_resume => 'Resume';
 
   @override
   String get recurring_error_title => 'Please enter a title';
@@ -1818,9 +1371,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_end_date_required => 'End Date';
 
   @override
-  String get recurring_empty_title => 'No Subscriptions';
-
-  @override
   String get recurring_empty_sub =>
       'Set up subscriptions & bills to track regular payments';
 
@@ -1849,16 +1399,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_type_label => 'Transaction Type';
 
   @override
-  String get recurring_saved => 'Subscription saved';
-
-  @override
   String get calendar_no_transactions_day => 'No transactions on this day';
-
-  @override
-  String get calendar_day_income => 'Income';
-
-  @override
-  String get calendar_day_expense => 'Expenses';
 
   @override
   String get reports_period_7d => '7 Days';
@@ -1876,19 +1417,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_top_categories => 'Top Categories';
 
   @override
-  String get reports_this_month => 'This Month';
-
-  @override
-  String get reports_last_month => 'Last Month';
-
-  @override
   String get reports_vs_last_month => 'vs last month';
 
   @override
   String get reports_no_data => 'No transactions in this period';
-
-  @override
-  String get reports_total_income => 'Total Income';
 
   @override
   String get reports_total_expense => 'Total Expense';
@@ -1914,18 +1446,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String reports_category_rank(int rank) {
-    return '#$rank';
+  String reportsCategoryCount(int count) {
+    return '$count categories';
   }
 
   @override
-  String reports_projected_total(String amount) {
-    return 'On track to spend $amount this month';
-  }
-
-  @override
-  String reports_top_spending(String category, String amount) {
-    return 'Top: $category at $amount';
+  String reportsBudgetLabel(String amount) {
+    return 'Budget: $amount';
   }
 
   @override
@@ -1935,35 +1462,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get balance_hide => 'Hide';
 
   @override
-  String get goal_status_completed => 'Completed';
-
-  @override
-  String get goal_status_overdue => 'Overdue';
-
-  @override
-  String get goal_status_last_day => 'Last day';
-
-  @override
-  String get goal_status_one_day => '1 day remaining';
-
-  @override
-  String goal_status_days_remaining(int days) {
-    return '$days days remaining';
-  }
-
-  @override
-  String goal_status_months_remaining(int months) {
-    return '$months month(s) remaining';
-  }
-
-  @override
   String get budget_exceeded => 'Exceeded!';
-
-  @override
-  String get common_search => 'Search';
-
-  @override
-  String get common_search_hint => 'Search...';
 
   @override
   String get common_clear => 'Clear';
@@ -1973,9 +1472,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get common_amount => 'Amount';
-
-  @override
-  String get common_delete_action => 'Delete';
 
   @override
   String get settings_delete_confirm_word => 'DELETE';
@@ -1994,29 +1490,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goal_color_label => 'Color';
-
-  @override
-  String get quick_add_title => 'Quick Add';
-
-  @override
-  String get quick_add_voice => 'Voice Input';
-
-  @override
-  String get settings_sms_parser_subtitle =>
-      'Scan SMS inbox for bank transaction messages';
-
-  @override
-  String get permission_sms_title => 'SMS Access';
-
-  @override
-  String get permission_sms_body =>
-      'Masarify can scan your SMS inbox to detect bank transactions. Messages are parsed locally on your device. You can optionally tap \'Enrich\' on any parsed transaction to use AI for category and merchant detection.';
-
-  @override
-  String get fab_expense => 'Expense';
-
-  @override
-  String get fab_income => 'Income';
 
   @override
   String get fab_voice => 'Voice';
@@ -2075,17 +1548,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Celebrate when you reach 25%, 50%, 75%, and 100% of a goal';
 
   @override
-  String get notif_section_daily => 'Daily Reminder';
-
-  @override
   String get notif_daily_reminder => 'Log Your Expenses';
-
-  @override
-  String get notif_daily_reminder_sub =>
-      'A gentle reminder to log today\'s transactions';
-
-  @override
-  String get notif_daily_reminder_time => 'Reminder Time';
 
   @override
   String get notif_section_quiet => 'Quiet Hours';
@@ -2161,61 +1624,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_all_accounts => 'All Accounts';
 
   @override
-  String get voice_offline_message =>
-      'AI parsing needs internet. You can add the transaction manually.';
-
-  @override
   String get dashboard_offline_banner =>
       'Offline — AI features unavailable. Add transactions manually.';
 
   @override
   String get budget_over_by => 'Over by';
-
-  @override
-  String get dashboard_month_summary => 'This Month';
-
-  @override
-  String get dashboard_month_net => 'Net';
-
-  @override
-  String get dashboard_vs_last_month => 'vs last month';
-
-  @override
-  String get dashboard_insights => 'Insights';
-
-  @override
-  String dashboard_insight_spending_up(int percent) {
-    return '+$percent% spending pace';
-  }
-
-  @override
-  String dashboard_insight_spending_down(int percent) {
-    return '$percent% less spending';
-  }
-
-  @override
-  String get dashboard_insight_parsed_transactions =>
-      'Auto-detected Transactions';
-
-  @override
-  String insight_recurring_detected(String title) {
-    return 'Monthly: $title — add as subscription?';
-  }
-
-  @override
-  String insight_weekly_detected(String title) {
-    return 'Weekly: $title — add as subscription?';
-  }
-
-  @override
-  String insight_over_budget_prediction(String category, String amount) {
-    return '$category may exceed budget by $amount';
-  }
-
-  @override
-  String insight_budget_suggestion(String amount, String category) {
-    return 'Set a $amount budget for $category?';
-  }
 
   @override
   String get hub_planning_title => 'Planning';
@@ -2227,18 +1640,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_section_goals_budgets => 'Budgets & Goals';
 
   @override
-  String get hub_section_recurring => 'Subscriptions & Bills';
-
-  @override
   String get nav_planning => 'Planning';
-
-  @override
-  String get dashboard_quick_add => 'Quick Add';
-
-  @override
-  String quick_add_saved(String title) {
-    return '$title added';
-  }
 
   @override
   String get common_undo => 'Undo';
@@ -2271,41 +1673,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_transfer_to => 'To';
 
   @override
-  String chat_budget_created(String category) {
-    return 'Budget created for $category';
-  }
-
-  @override
-  String chat_recurring_created(String title) {
-    return 'Subscription \"$title\" created';
-  }
-
-  @override
-  String chat_wallet_created(String name) {
-    return 'Account \"$name\" created';
-  }
-
-  @override
-  String get chat_transaction_deleted => 'Transaction deleted';
-
-  @override
-  String get chat_confirm_delete =>
-      'Are you sure you want to delete this transaction?';
-
-  @override
-  String get chat_no_match_category => 'Could not find a matching category';
-
-  @override
-  String get chat_no_active_wallet => 'No active account available';
-
-  @override
-  String get chat_budget_exists => 'A budget already exists for this category';
-
-  @override
-  String get chat_wallet_name_taken =>
-      'An account with this name already exists';
-
-  @override
   String get backup_cloud_title => 'Cloud Backup';
 
   @override
@@ -2313,11 +1680,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backup_sign_out => 'Sign Out';
-
-  @override
-  String backup_signed_in_as(String email) {
-    return 'Signed in as $email';
-  }
 
   @override
   String backup_last_date(String date) {
@@ -2331,29 +1693,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_restore_drive => 'Restore from Drive';
 
   @override
-  String get backup_encrypting => 'Encrypting...';
-
-  @override
   String get backup_uploading => 'Uploading to Drive...';
 
   @override
   String get backup_downloading => 'Downloading from Drive...';
 
   @override
-  String get backup_restore_warning =>
-      'This will replace ALL local data with the backup. Continue?';
-
-  @override
   String get backup_no_backups => 'No backups found on Google Drive';
-
-  @override
-  String get backup_welcome_back => 'Welcome back?';
-
-  @override
-  String get backup_start_fresh => 'Start Fresh';
-
-  @override
-  String get backup_restore_from_drive => 'Restore from Google Drive';
 
   @override
   String get backup_offline_error => 'Connect to internet to use cloud backup';
@@ -2363,6 +1709,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backup_drive_failed => 'Cloud backup failed. Please try again.';
+
+  @override
+  String get backup_sign_in_failed =>
+      'Google sign-in failed. Check your internet connection and try again.';
+
+  @override
+  String get backup_session_expired =>
+      'Your Google session has expired. Please sign in again.';
+
+  @override
+  String get backup_key_missing =>
+      'Encryption key not found. This backup cannot be restored on this device.';
 
   @override
   String get backup_pre_reset_offer => 'Save a backup before deleting?';
@@ -2399,7 +1757,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_deselect_all => 'Deselect All';
 
   @override
-  String get common_create => 'Create';
+  String voice_selected_count(int selected, int total) {
+    return '$selected of $total selected';
+  }
 
   @override
   String get backup_encryption_warning =>
@@ -2602,9 +1962,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recap_prime_message => 'How was my spending today?';
-
-  @override
   String get chat_copy_message => 'Copy message';
 
   @override
@@ -2617,34 +1974,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String chat_subscription_suggest(String title) {
     return '💡 \"$title\" looks like a recurring payment. Add to Subscriptions & Bills?';
   }
-
-  @override
-  String get onboarding_default_account_note =>
-      'This will be your default account for transactions';
-
-  @override
-  String get onboarding_features_title => 'Discover Masarify';
-
-  @override
-  String get onboarding_feature_voice_title => 'Voice Input';
-
-  @override
-  String get onboarding_feature_voice_body =>
-      'Just speak. AI will parse your transactions instantly.';
-
-  @override
-  String get onboarding_feature_budget_title => 'Smart Budgets';
-
-  @override
-  String get onboarding_feature_budget_body =>
-      'Set limits, get alerts, stay on track.';
-
-  @override
-  String get onboarding_feature_goal_title => 'Goal Tracking';
-
-  @override
-  String get onboarding_feature_goal_body =>
-      'Save towards what matters most to you.';
 
   @override
   String get onboarding_ready_title => 'You\'re All Set!';
@@ -2686,15 +2015,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_demo_voice_text => '\"Lunch 150 pounds\"';
 
   @override
-  String get onboarding_demo_sms_sender => 'CIB Bank';
-
-  @override
-  String get onboarding_demo_sms_body => 'Purchase EGP 250.00 at...';
-
-  @override
-  String get onboarding_demo_sms_result => 'EGP 250 — Auto-detected';
-
-  @override
   String get onboarding_demo_chat_user =>
       'How much did I spend on food this week?';
 
@@ -2703,42 +2023,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'You spent EGP 450 on food — 15% more than last week.';
 
   @override
-  String get onboarding_pick_account_title => 'What\'s Your Main Account?';
-
-  @override
-  String get onboarding_pick_account_body =>
-      'Pick one to start — you can add more later.';
-
-  @override
-  String get onboarding_type_bank => 'Bank Account';
-
-  @override
-  String get onboarding_type_bank_desc => 'CIB, NBE, Banque Misr, etc.';
-
-  @override
-  String get onboarding_type_cash => 'Cash Only';
-
-  @override
-  String get onboarding_type_cash_desc => 'Track cash spending without a bank.';
-
-  @override
-  String get onboarding_type_mobile => 'Mobile Wallet';
-
-  @override
-  String get onboarding_type_mobile_desc => 'Vodafone Cash, Orange, etc.';
-
-  @override
   String get onboarding_default_bank_name => 'My Bank';
-
-  @override
-  String get onboarding_default_mobile_name => 'Mobile Wallet';
 
   @override
   String get disclaimer_financial =>
       'Masarify provides budgeting guidance only, not regulated financial, investment, or tax advice.';
-
-  @override
-  String get disclaimer_ai_content => 'AI-generated content';
 
   @override
   String get common_dismiss => 'Dismiss';
@@ -2784,9 +2073,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get cash_in_hand => 'Cash in Hand';
-
-  @override
   String get transaction_type_cash_withdrawal => 'Cash Withdrawal';
 
   @override
@@ -2799,25 +2085,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_type_cash_deposit_short => 'Deposit';
 
   @override
-  String get category_atm => 'ATM';
-
-  @override
   String get voice_edit_title_hint => 'Refine title...';
 
   @override
   String voice_create_wallet_instead(String name) {
     return 'Create \'\'$name\'\' instead?';
   }
-
-  @override
-  String get voice_add_as_recurring => 'Add to Subscriptions & Bills?';
-
-  @override
-  String get voice_recurring_added => 'Added to Subscriptions & Bills';
-
-  @override
-  String get voice_amount_missing =>
-      'Amount not detected — please enter the amount';
 
   @override
   String get home_filter_all => 'All';
@@ -2885,20 +2158,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transfer_cannot_edit => 'Transfers cannot be edited from here';
 
   @override
-  String get voice_confirm_amount_missing =>
-      'Amount not detected — please enter';
-
-  @override
   String get voice_confirm_select_category => 'Select category';
-
-  @override
-  String get voice_confirm_select_account => 'Select account';
-
-  @override
-  String get voice_confirm_from_account => 'From';
-
-  @override
-  String get voice_confirm_to_account => 'To';
 
   @override
   String get voice_confirm_add_notes => 'Add notes...';
@@ -2906,18 +2166,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get voice_confirm_subscription_suggest =>
       'Add to Subscriptions & Bills?';
-
-  @override
-  String get voice_confirm_subscription_added =>
-      'Added to Subscriptions & Bills';
-
-  @override
-  String get voice_confirm_save_next => 'Save & Next';
-
-  @override
-  String voice_confirm_draft_count(int current, int total) {
-    return '$current of $total';
-  }
 
   @override
   String get insight_upcoming_bills_title => 'Upcoming Bills';
@@ -3075,6 +2323,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboarding_starting_balance_set => 'Set Balance';
 
   @override
+  String get onboarding_google_title => 'Protect Your Data';
+
+  @override
+  String get onboarding_google_body =>
+      'Sign in with Google to automatically back up your finances to Google Drive.\nYour backups are encrypted — only you can access them.';
+
+  @override
+  String get onboarding_google_sign_in => 'Sign in with Google';
+
+  @override
+  String get onboarding_google_skip => 'I\'ll do this later';
+
+  @override
+  String onboarding_google_success(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
   String get transfer_detail_title => 'Transfer Details';
 
   @override
@@ -3099,9 +2365,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get notif_coming_soon => ' (Coming Soon)';
-
-  @override
   String get notif_permission_denied =>
       'Notification permission denied. Enable it in Settings to receive alerts.';
 
@@ -3116,4 +2379,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get action_card_arabic_name => '→ Arabic Name';
+
+  @override
+  String get home_due_soon_title => 'Due Soon';
+
+  @override
+  String get home_due_soon_today => 'Today';
+
+  @override
+  String get home_due_soon_tomorrow => 'Tomorrow';
+
+  @override
+  String home_due_soon_in_days(int count) {
+    return 'In $count days';
+  }
+
+  @override
+  String home_due_soon_more(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String dashboard_account_selector(String name) {
+    return 'Select account: $name';
+  }
 }

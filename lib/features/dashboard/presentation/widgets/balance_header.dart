@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
-import '../../../../features/wallets/presentation/screens/add_wallet_screen.dart';
+import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/hide_balances_provider.dart';
+import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/lists/horizontal_reorderable_row.dart';
+import '../../../../shared/widgets/sheets/show_wallet_sheet.dart';
 import 'account_chip.dart';
 import 'account_manage_sheet.dart';
 import 'month_summary_inline.dart';
 
-/// Compact Wise/Revolut-style balance header with account chips (D-01 to D-05).
+/// Compact Wise/Revolut-style balance header with account dropdown selector.
 ///
-/// Replaces the previous PageView [AccountCarousel] + [BalanceCard].
 /// Displays the total balance (or selected account balance), an inline month
-/// summary, and a horizontally scrollable row of account chips.
-///
-/// Uses translucent glass surface colors instead of BackdropFilter to avoid
-/// GPU compositing overload on Android (Impeller disabled).
+/// summary, and a tappable account selector. When a specific wallet is selected,
+/// a horizontally scrollable row of account chips appears for quick switching.
 class BalanceHeader extends ConsumerWidget {
   const BalanceHeader({super.key});
 
@@ -36,8 +39,17 @@ class BalanceHeader extends ConsumerWidget {
         ? totalBalance
         : wallets.where((w) => w.id == selectedId).firstOrNull?.balance ?? 0;
 
-    // All non-archived wallets for chips (includes system Cash wallet per D-06).
-    final userWallets = wallets.where((w) => !w.isArchived).toList();
+    // Separate Cash (system) wallet from regular wallets.
+    final cashWallet =
+        wallets.where((w) => w.isSystemWallet && !w.isArchived).firstOrNull;
+    final userWallets =
+        wallets.where((w) => !w.isArchived && !w.isSystemWallet).toList();
+
+    // Current selection label.
+    final selectionLabel = selectedId == null
+        ? context.l10n.dashboard_all_accounts
+        : wallets.where((w) => w.id == selectedId).firstOrNull?.name ??
+            context.l10n.dashboard_all_accounts;
 
     final cs = context.colors;
     final theme = context.appTheme;
@@ -86,44 +98,159 @@ class BalanceHeader extends ConsumerWidget {
           ),
           const SizedBox(height: AppSizes.xs),
 
-          // ── Inline month summary (D-04) ─────────────────────────────
+          // ── Inline month summary ────────────────────────────────────
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
-          const SizedBox(height: AppSizes.md),
+          const SizedBox(height: AppSizes.sm),
 
-          // ── Account chips (horizontal scroll, D-02/D-03) + manage gear (D-08)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AccountChip(
-                        label: context.l10n.dashboard_all_accounts,
-                        balance: totalBalance,
-                        isSelected: selectedId == null,
-                        isAllAccounts: true,
-                        hidden: hidden,
-                        onTap: () => ref
-                            .read(selectedAccountIdProvider.notifier)
-                            .state = null,
+          // ── Account selector dropdown ───────────────────────────────
+          Semantics(
+            button: true,
+            label: context.l10n.dashboard_account_selector(selectionLabel),
+            child: Material(
+              color: AppColors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+                onTap: () => _showAccountPicker(
+                  context,
+                  ref,
+                  userWallets,
+                  selectedId,
+                  totalBalance,
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minHeight: AppSizes.minTapTarget,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.sm,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          selectionLabel,
+                          style: context.textStyles.labelMedium?.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(width: AppSizes.xxs),
+                        Icon(
+                          AppIcons.expandMore,
+                          size: AppSizes.iconXs,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ── Cash wallet slim banner (always visible) ──────────────
+          if (cashWallet != null) ...[
+            const SizedBox(height: AppSizes.sm),
+            GestureDetector(
+              onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
+                  selectedId == cashWallet.id ? null : cashWallet.id,
+              child: Container(
+                height: AppSizes.xl,
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: AppSizes.md,
+                ),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerLow,
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusFull),
+                  border: selectedId == cashWallet.id
+                      ? Border.all(
+                          color: cs.primary.withValues(
+                            alpha: AppSizes.opacityMedium,
+                          ),
+                        )
+                      : null,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      AppIcons.walletType('physical_cash'),
+                      size: AppSizes.iconXs,
+                      color: selectedId == cashWallet.id
+                          ? cs.primary
+                          : cs.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Text(
+                      cashWallet.name,
+                      style: context.textStyles.labelMedium?.copyWith(
+                        color: selectedId == cashWallet.id
+                            ? cs.primary
+                            : cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
                       ),
-                      ...userWallets.map(
-                        (w) => AccountChip(
-                          label: w.name,
-                          balance: w.balance,
-                          isSelected: selectedId == w.id,
-                          hidden: hidden,
-                          walletType: w.type,
-                          colorHex: w.colorHex,
-                          onTap: () => ref
+                    ),
+                    const SizedBox(width: AppSizes.sm),
+                    Text(
+                      hidden
+                          ? '---'
+                          : MoneyFormatter.formatCompact(cashWallet.balance),
+                      style: context.textStyles.labelMedium?.copyWith(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Icon(
+                      AppIcons.chevronRight,
+                      size: AppSizes.iconXxs,
+                      color: cs.onSurfaceVariant.withValues(
+                        alpha: AppSizes.opacityMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+
+          // ── Account chips (only when a specific wallet is selected) ─
+          if (selectedId != null) ...[
+            const SizedBox(height: AppSizes.md),
+            Row(
+              children: [
+                Expanded(
+                  child: HorizontalReorderableRow<WalletEntity>(
+                    items: userWallets,
+                    onReorder: (oldIndex, newIndex) {
+                      final reordered = [...userWallets];
+                      if (newIndex > oldIndex) newIndex--;
+                      final item = reordered.removeAt(oldIndex);
+                      reordered.insert(newIndex, item);
+                      final updates = <({int id, int sortOrder})>[];
+                      for (var i = 0; i < reordered.length; i++) {
+                        updates.add((id: reordered[i].id, sortOrder: i));
+                      }
+                      ref
+                          .read(walletRepositoryProvider)
+                          .updateSortOrders(updates);
+                    },
+                    itemBuilder: (context, w, isDragging) => AccountChip(
+                      label: w.name,
+                      balance: w.balance,
+                      isSelected: selectedId == w.id,
+                      hidden: hidden,
+                      walletType: w.type,
+                      colorHex: w.colorHex,
+                      onTap: isDragging
+                          ? () {}
+                          : () => ref
                               .read(selectedAccountIdProvider.notifier)
                               .state = w.id,
-                        ),
-                      ),
-                      // Quick-add account chip
+                    ),
+                    trailing: [
                       Padding(
                         padding: const EdgeInsetsDirectional.only(
                           end: AppSizes.sm,
@@ -146,27 +273,78 @@ class BalanceHeader extends ConsumerWidget {
                             ),
                           ),
                           backgroundColor: cs.surface,
-                          onPressed: () => AddWalletScreen.show(context),
+                          onPressed: () => showWalletSheet(context),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              // Manage accounts gear icon (D-08)
-              IconButton(
-                icon: Icon(
-                  AppIcons.settings,
-                  size: AppSizes.iconSm,
-                  color: cs.outline,
+                // Manage accounts gear icon
+                IconButton(
+                  icon: Icon(
+                    AppIcons.settings,
+                    size: AppSizes.iconSm,
+                    color: cs.outline,
+                  ),
+                  tooltip: context.l10n.wallet_manage_title,
+                  onPressed: () => AccountManageSheet.show(context),
+                  visualDensity: VisualDensity.compact,
                 ),
-                tooltip: context.l10n.wallet_manage_title,
-                onPressed: () => AccountManageSheet.show(context),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  void _showAccountPicker(
+    BuildContext context,
+    WidgetRef ref,
+    List wallets,
+    int? selectedId,
+    int totalBalance,
+  ) {
+    final cs = context.colors;
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // "All Accounts" option
+            ListTile(
+              leading: Icon(AppIcons.wallet, color: cs.primary),
+              title: Text(context.l10n.dashboard_all_accounts),
+              subtitle: Text(MoneyFormatter.format(totalBalance)),
+              trailing: selectedId == null
+                  ? Icon(AppIcons.check, color: cs.primary)
+                  : null,
+              onTap: () {
+                ref.read(selectedAccountIdProvider.notifier).state = null;
+                context.pop();
+              },
+            ),
+            // Individual wallets
+            ...wallets.map(
+              (w) => ListTile(
+                leading: Icon(
+                  AppIcons.walletType(w.type),
+                  color: ColorUtils.fromHex(w.colorHex),
+                ),
+                title: Text(w.name),
+                subtitle: Text(MoneyFormatter.format(w.balance)),
+                trailing: selectedId == w.id
+                    ? Icon(AppIcons.check, color: cs.primary)
+                    : null,
+                onTap: () {
+                  ref.read(selectedAccountIdProvider.notifier).state = w.id;
+                  context.pop();
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

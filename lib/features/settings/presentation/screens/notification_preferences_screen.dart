@@ -71,6 +71,7 @@ class _NotificationPreferencesScreenState
       _dailyMinute = picked.minute;
     });
     final prefs = await ref.read(preferencesFutureProvider.future);
+    if (!mounted) return;
     await prefs.setDailyReminderTime(picked.hour, picked.minute);
     if (_dailyReminder) {
       await _scheduleRecap(picked.hour, picked.minute);
@@ -138,8 +139,7 @@ class _NotificationPreferencesScreenState
           // ── Budget Alerts ─────────────────────────────────────
           _SectionTitle(title: l10n.notif_section_budget),
           SwitchListTile(
-            title:
-                Text('${l10n.notif_budget_warning}${l10n.notif_coming_soon}'),
+            title: Text(l10n.notif_budget_warning),
             subtitle: Text(l10n.notif_budget_warning_sub),
             value: _budgetWarning,
             onChanged: (v) async {
@@ -151,8 +151,7 @@ class _NotificationPreferencesScreenState
             },
           ),
           SwitchListTile(
-            title:
-                Text('${l10n.notif_budget_exceeded}${l10n.notif_coming_soon}'),
+            title: Text(l10n.notif_budget_exceeded),
             subtitle: Text(l10n.notif_budget_exceeded_sub),
             value: _budgetExceeded,
             onChanged: (v) async {
@@ -198,8 +197,7 @@ class _NotificationPreferencesScreenState
           // ── Goals ─────────────────────────────────────────────
           _SectionTitle(title: l10n.notif_section_goals),
           SwitchListTile(
-            title:
-                Text('${l10n.notif_goal_milestone}${l10n.notif_coming_soon}'),
+            title: Text(l10n.notif_goal_milestone),
             subtitle: Text(l10n.notif_goal_milestone_sub),
             value: _goalMilestone,
             onChanged: (v) async {

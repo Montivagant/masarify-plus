@@ -1,14 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/services/preferences_service.dart';
+import 'theme_provider.dart';
 
-/// Async provider — resolves once SharedPreferences is loaded.
-/// Use `ref.read(preferencesFutureProvider.future)` in initState logic.
+/// Synchronous provider — uses the preloaded SharedPreferences instance
+/// from [sharedPreferencesProvider] (overridden in main.dart).
+final preferencesServiceProvider = Provider<PreferencesService>((ref) {
+  return PreferencesService(ref.watch(sharedPreferencesProvider));
+});
+
+/// Legacy alias for callers that still use the old FutureProvider name.
+/// Returns an already-resolved AsyncValue wrapping PreferencesService.
 final preferencesFutureProvider =
     FutureProvider<PreferencesService>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  return PreferencesService(prefs);
+  return ref.watch(preferencesServiceProvider);
 });
 
 /// H12 fix: reactive first day of week preference (6=Sat, 7=Sun, 1=Mon).

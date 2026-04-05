@@ -18,7 +18,6 @@ import '../../../../domain/entities/chat_message_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/chat_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
-import '../../../../shared/providers/database_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
@@ -288,33 +287,29 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         selectedWalletId = null;
         ref.read(selectedAccountIdProvider.notifier).state = null;
       }
-      final db = ref.read(databaseProvider);
+      // Strip only THIS action's JSON block, preserving others.
+      final contentAfterStrip = ChatResponseParser.stripActionAtIndex(
+        rawContent,
+        actionIndex,
+      );
+      final newTokens = AiChatService.estimateTokens(contentAfterStrip);
 
       // Wrap action execution + finalize in a single DB transaction so a crash
       // between them cannot leave inconsistent state (action executed but
       // message not finalized → duplicate execution on restart).
-      final result = await db.transaction(() async {
-        final r = await executor.execute(
+      final result = await repo.executeAndFinalizeAction(
+        action: () => executor.execute(
           action,
           categories: categories,
           wallets: wallets,
           messages: messages,
           selectedWalletId: selectedWalletId,
-        );
-        // Strip only THIS action's JSON block, preserving others.
-        final contentAfterStrip = ChatResponseParser.stripActionAtIndex(
-          rawContent,
-          actionIndex,
-        );
-        final newTokens = AiChatService.estimateTokens(contentAfterStrip);
-        await repo.finalizeAction(
-          messageId: messageId,
-          strippedContent: contentAfterStrip,
-          strippedTokenCount: newTokens,
-          followUpContent: r.message,
-        );
-        return r;
-      });
+        ),
+        followUpFromResult: (r) => r.message,
+        messageId: messageId,
+        strippedContent: contentAfterStrip,
+        strippedTokenCount: newTokens,
+      );
 
       if (!mounted) return;
       setState(() => _actionStates[key] = ChatActionStatus.confirmed);
@@ -330,11 +325,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           tokenCount: AiChatService.estimateTokens(suggestMsg),
         );
       }
-    } catch (e) {
-      final errorMsg = e is ArgumentError ? e.message.toString() : errorGeneric;
+    } catch (e, st) {
+      dev.log(
+        'Chat action failed: $e',
+        name: 'ChatScreen',
+        error: e,
+        stackTrace: st,
+      );
       await repo.insert(
         role: 'assistant',
-        content: errorMsg,
+        content: errorGeneric,
         tokenCount: 0,
       );
       if (!mounted) return;
@@ -459,9 +459,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         size: AppSizes.iconXs,
                         color: context.colors.onSecondaryContainer,
                       ),
+                      tooltip: context.l10n.common_dismiss,
                       onPressed: _dismissDisclaimer,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
                     ),
                   ],
                 ),

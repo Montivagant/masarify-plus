@@ -21,7 +21,7 @@ final recentActivityProvider = StreamProvider<List<TransactionEntity>>((ref) {
   final walletNames = {for (final w in wallets) w.id: w.name};
 
   return Rx.combineLatest2(
-    txRepo.watchAll(),
+    txRepo.watchAll(limit: 500),
     xferRepo.watchAll(),
     (List<TransactionEntity> txList, transfers) {
       final transferEntries = transfersToActivities(

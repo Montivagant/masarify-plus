@@ -77,10 +77,8 @@ class _AmountInputState extends State<AmountInput> {
   bool _hasInvalidInput = false;
 
   int _parsePiastres() {
-    final text = _controller.text
-        .replaceAll(',', '')
-        .replaceAll(' ', '')
-        .trim();
+    final text =
+        _controller.text.replaceAll(',', '').replaceAll(' ', '').trim();
     if (text.isEmpty) return 0;
     final parsed = double.tryParse(text) ?? 0;
     return (parsed * 100).round();
@@ -89,10 +87,8 @@ class _AmountInputState extends State<AmountInput> {
   void _onTextChanged() {
     final piastres = _parsePiastres();
     // I14 fix: detect invalid paste (non-empty text that parses as 0)
-    final rawText = _controller.text
-        .replaceAll(',', '')
-        .replaceAll(' ', '')
-        .trim();
+    final rawText =
+        _controller.text.replaceAll(',', '').replaceAll(' ', '').trim();
     final invalid = rawText.isNotEmpty && piastres == 0;
     if (invalid != _hasInvalidInput) {
       setState(() => _hasInvalidInput = invalid);
@@ -109,64 +105,81 @@ class _AmountInputState extends State<AmountInput> {
 
     final textStyle = widget.compact
         ? context.textStyles.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
-            )
+            fontWeight: FontWeight.w700,
+            color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
+          )
         : context.textStyles.displaySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
-            );
+            fontWeight: FontWeight.w700,
+            color: effectiveColor ?? (isZero ? cs.outline : cs.onSurface),
+          );
 
     final hintStyle = widget.compact
         ? context.textStyles.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: cs.onSurfaceVariant,
-            )
+            fontWeight: FontWeight.w700,
+            color: cs.onSurfaceVariant,
+          )
         : context.textStyles.displaySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: cs.onSurfaceVariant,
-            );
+            fontWeight: FontWeight.w700,
+            color: cs.onSurfaceVariant,
+          );
 
     return Semantics(
       label: context.l10n.common_amount,
-      child: TextFormField(
-        controller: _controller,
-        focusNode: _focusNode,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          _MoneyInputFormatter(),
-        ],
-        style: textStyle,
-        textAlign: widget.compact ? TextAlign.start : TextAlign.center,
-        autofocus: widget.autofocus,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          prefixIcon: widget.compact
-              ? null
-              : Padding(
-                  padding: const EdgeInsetsDirectional.only(start: AppSizes.lg),
-                  child: Text(
-                    widget.currencySymbol,
-                    style: hintStyle,
+      child: Directionality(
+        // Numbers are always LTR regardless of app locale.
+        textDirection: TextDirection.ltr,
+        child: TextFormField(
+          controller: _controller,
+          focusNode: _focusNode,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            _MoneyInputFormatter(),
+          ],
+          style: textStyle,
+          textAlign: TextAlign.center,
+          autofocus: widget.autofocus,
+          decoration: InputDecoration(
+            border: widget.compact
+                ? const UnderlineInputBorder()
+                : InputBorder.none,
+            enabledBorder: widget.compact
+                ? UnderlineInputBorder(
+                    borderSide: BorderSide(color: cs.outlineVariant),
+                  )
+                : InputBorder.none,
+            focusedBorder: widget.compact
+                ? UnderlineInputBorder(
+                    borderSide: BorderSide(color: cs.primary, width: 2),
+                  )
+                : InputBorder.none,
+            prefixIcon: widget.compact
+                ? null
+                : Padding(
+                    padding:
+                        const EdgeInsetsDirectional.only(start: AppSizes.lg),
+                    child: Text(
+                      widget.currencySymbol,
+                      style: hintStyle,
+                    ),
                   ),
-                ),
-          prefixIconConstraints: widget.compact
-              ? null
-              : const BoxConstraints(),
-          hintText: context.l10n.transaction_amount_hint,
-          hintStyle: hintStyle,
-          // I14 fix: show error when pasted text is invalid
-          errorText: _hasInvalidInput ? context.l10n.common_invalid_amount : null,
-          contentPadding: widget.compact
-              ? const EdgeInsets.symmetric(
-                  horizontal: AppSizes.sm,
-                  vertical: AppSizes.xs,
-                )
-              : const EdgeInsets.symmetric(
-                  horizontal: AppSizes.lg,
-                  vertical: AppSizes.md,
-                ),
-          isDense: widget.compact,
+            prefixIconConstraints:
+                widget.compact ? null : const BoxConstraints(),
+            hintText: context.l10n.transaction_amount_hint,
+            hintStyle: hintStyle,
+            // I14 fix: show error when pasted text is invalid
+            errorText:
+                _hasInvalidInput ? context.l10n.common_invalid_amount : null,
+            contentPadding: widget.compact
+                ? const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  )
+                : const EdgeInsets.symmetric(
+                    horizontal: AppSizes.lg,
+                    vertical: AppSizes.md,
+                  ),
+            isDense: widget.compact,
+          ),
         ),
       ),
     );

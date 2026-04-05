@@ -56,6 +56,18 @@ class BudgetRepositoryImpl implements IBudgetRepository {
   // ── Queries ───────────────────────────────────────────────────────────────
 
   @override
+  Future<BudgetEntity?> getById(int id) async {
+    final row = await _dao.getById(id);
+    if (row == null) return null;
+    final spent = await _txDao.sumByCategoryAndMonth(
+      row.categoryId,
+      row.year,
+      row.month,
+    );
+    return _toEntity(row, spent);
+  }
+
+  @override
   Future<List<BudgetEntity>> getByMonth(int year, int month) async {
     final rows = await _dao.getByMonth(year, month);
     final entities = <BudgetEntity>[];
