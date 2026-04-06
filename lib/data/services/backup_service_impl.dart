@@ -46,7 +46,6 @@ class BackupServiceImpl implements BackupService {
       final contributions = await _db.select(_db.goalContributions).get();
       final rules = await _db.select(_db.recurringRules).get();
       final smsLogs = await _db.select(_db.smsParserLogs).get();
-      final rates = await _db.select(_db.exchangeRates).get();
       final catMappings = await _db.select(_db.categoryMappings).get();
       final chatMessages = await _db.select(_db.chatMessages).get();
       final parsedEventGroups = await _db.select(_db.parsedEventGroups).get();
@@ -63,7 +62,6 @@ class BackupServiceImpl implements BackupService {
         'goal_contributions': contributions.map(_contributionToMap).toList(),
         'recurring_rules': rules.map(_ruleToMap).toList(),
         'sms_parser_logs': smsLogs.map(_smsLogToMap).toList(),
-        'exchange_rates': rates.map(_rateToMap).toList(),
         'category_mappings': catMappings.map(_categoryMappingToMap).toList(),
         'chat_messages': chatMessages.map(_chatMessageToMap).toList(),
         'parsed_event_groups':
@@ -143,7 +141,6 @@ class BackupServiceImpl implements BackupService {
       await _db.customStatement('DELETE FROM savings_goals');
       await _db.customStatement('DELETE FROM transfers');
       await _db.customStatement('DELETE FROM transactions');
-      await _db.customStatement('DELETE FROM exchange_rates');
       await _db.customStatement('DELETE FROM category_mappings');
       await _db.customStatement('DELETE FROM chat_messages');
       await _db.customStatement('DELETE FROM subscription_records');
@@ -192,12 +189,6 @@ class BackupServiceImpl implements BackupService {
         'parsed_event_groups',
         _db.parsedEventGroups,
         _mapToParsedEventGroup,
-      );
-      await _insertAll(
-        tables,
-        'exchange_rates',
-        _db.exchangeRates,
-        _mapToRate,
       );
       // v5+ tables — gracefully skip if absent in older backups
       await _insertAll(
@@ -306,7 +297,6 @@ class BackupServiceImpl implements BackupService {
       'sms_parser_logs',
       (m) => _mapToSmsLog(m, version),
     );
-    _tryDeserializeAll(tables, 'exchange_rates', _mapToRate);
     // v5+ tables — may be absent in older backups, _tryDeserializeAll skips null
     _tryDeserializeAll(tables, 'category_mappings', _mapToCategoryMapping);
     _tryDeserializeAll(tables, 'chat_messages', _mapToChatMessage);
@@ -637,13 +627,6 @@ class BackupServiceImpl implements BackupService {
         'createdAt': m.createdAt.toIso8601String(),
       };
 
-  Map<String, dynamic> _rateToMap(ExchangeRate r) => {
-        'baseCurrency': r.baseCurrency,
-        'targetCurrency': r.targetCurrency,
-        'rate': r.rate,
-        'updatedAt': r.updatedAt.toIso8601String(),
-      };
-
   // ── JSON helpers ─────────────────────────────────────────────────────
 
   /// Safely cast a JSON number to int. JSON from some platforms (web, JS)
@@ -813,14 +796,6 @@ class BackupServiceImpl implements BackupService {
         transferId: Value(_intN(m['transferId'])),
       );
 
-  ExchangeRatesCompanion _mapToRate(Map<String, dynamic> m) =>
-      ExchangeRatesCompanion(
-        baseCurrency: Value(m['baseCurrency'] as String),
-        targetCurrency: Value(m['targetCurrency'] as String),
-        rate: Value((m['rate'] as num).toDouble()),
-        updatedAt: Value(DateTime.parse(m['updatedAt'] as String)),
-      );
-
   // v5 table
   CategoryMappingsCompanion _mapToCategoryMapping(Map<String, dynamic> m) =>
       CategoryMappingsCompanion(
@@ -911,7 +886,6 @@ class BackupServiceImpl implements BackupService {
       // parsed_event_groups FKs to sms_parser_logs → delete child first.
       await _db.customStatement('DELETE FROM parsed_event_groups');
       await _db.customStatement('DELETE FROM sms_parser_logs');
-      await _db.customStatement('DELETE FROM exchange_rates');
       await _db.customStatement('DELETE FROM category_mappings');
       await _db.customStatement('DELETE FROM chat_messages');
       // H-16: Include subscription_records in clear-all.

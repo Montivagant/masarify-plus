@@ -5,7 +5,6 @@ import 'daos/budget_dao.dart';
 import 'daos/category_dao.dart';
 import 'daos/category_mapping_dao.dart';
 import 'daos/chat_message_dao.dart';
-import 'daos/exchange_rate_dao.dart';
 import 'daos/goal_dao.dart';
 import 'daos/parsed_event_group_dao.dart';
 import 'daos/recurring_rule_dao.dart';
@@ -18,7 +17,6 @@ import 'tables/budgets_table.dart';
 import 'tables/categories_table.dart';
 import 'tables/category_mappings_table.dart';
 import 'tables/chat_messages_table.dart';
-import 'tables/exchange_rates_table.dart';
 import 'tables/goal_contributions_table.dart';
 import 'tables/parsed_event_groups_table.dart';
 import 'tables/recurring_rules_table.dart';
@@ -42,7 +40,6 @@ part 'app_database.g.dart';
     GoalContributions,
     RecurringRules,
     SmsParserLogs,
-    ExchangeRates,
     CategoryMappings,
     ChatMessages,
     ParsedEventGroups,
@@ -57,7 +54,6 @@ part 'app_database.g.dart';
     GoalDao,
     RecurringRuleDao,
     SmsParserLogDao,
-    ExchangeRateDao,
     CategoryMappingDao,
     ChatMessageDao,
     ParsedEventGroupDao,
@@ -68,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// Current schema version — referenced by both migrations and backup service.
-  static const int currentSchemaVersion = 16;
+  static const int currentSchemaVersion = 17;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -303,6 +299,12 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX IF NOT EXISTS idx_transactions_category_date '
               'ON transactions(category_id, transaction_date DESC)',
             );
+          }
+          if (from < 17) {
+            // v17: Remove unused exchange_rates stub table (no app logic was
+            // ever built on top of it). DROP IF EXISTS is safe for users
+            // who never had the table (fresh installs skip this path).
+            await customStatement('DROP TABLE IF EXISTS exchange_rates');
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
