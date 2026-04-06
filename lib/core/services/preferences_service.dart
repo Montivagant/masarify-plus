@@ -45,6 +45,7 @@ class PreferencesService {
   // First-time hints
   static const _kFabHintShown = 'fab_hint_shown';
   static const _kSwipeHintShown = 'swipe_hint_shown';
+  static const _kAccountsHintShown = 'accounts_hint_shown';
 
   // ── Onboarding ────────────────────────────────────────────────────────────
   bool get isOnboardingDone => _prefs.getBool(_kOnboardingDone) ?? false;
@@ -64,6 +65,10 @@ class PreferencesService {
 
   bool get swipeHintShown => _prefs.getBool(_kSwipeHintShown) ?? false;
   Future<void> setSwipeHintShown() => _prefs.setBool(_kSwipeHintShown, true);
+
+  bool get accountsHintShown => _prefs.getBool(_kAccountsHintShown) ?? false;
+  Future<void> setAccountsHintShown() =>
+      _prefs.setBool(_kAccountsHintShown, true);
 
   // ── PIN (Phase 4) ─────────────────────────────────────────────────────────
   bool get isPinEnabled => _prefs.getBool(_kPinEnabled) ?? false;

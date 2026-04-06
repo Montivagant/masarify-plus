@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/transaction_entity.dart';
@@ -23,6 +24,7 @@ class HomeFilter {
     this.searchQuery = '',
     this.sortOrder = SortOrder.dateDesc,
     this.isSearchActive = false,
+    this.dateRange,
   });
 
   final TransactionTypeFilter typeFilter;
@@ -33,6 +35,9 @@ class HomeFilter {
   final SortOrder sortOrder;
   final bool isSearchActive;
 
+  /// When non-null, filters transactions to this date range only.
+  final DateTimeRange? dateRange;
+
   HomeFilter copyWith({
     TransactionTypeFilter? typeFilter,
     int? categoryId,
@@ -40,6 +45,8 @@ class HomeFilter {
     String? searchQuery,
     SortOrder? sortOrder,
     bool? isSearchActive,
+    DateTimeRange? dateRange,
+    bool clearDateRange = false,
   }) =>
       HomeFilter(
         typeFilter: typeFilter ?? this.typeFilter,
@@ -47,6 +54,7 @@ class HomeFilter {
         searchQuery: searchQuery ?? this.searchQuery,
         sortOrder: sortOrder ?? this.sortOrder,
         isSearchActive: isSearchActive ?? this.isSearchActive,
+        dateRange: clearDateRange ? null : (dateRange ?? this.dateRange),
       );
 }
 
@@ -96,6 +104,28 @@ final filteredActivityProvider =
     if (filter.categoryId != null) {
       result =
           result.where((tx) => tx.categoryId == filter.categoryId).toList();
+    }
+
+    // ── Date range filter ────────────────────────────────────────────
+    if (filter.dateRange != null) {
+      final rangeStart = DateTime(
+        filter.dateRange!.start.year,
+        filter.dateRange!.start.month,
+        filter.dateRange!.start.day,
+      );
+      final rangeEnd = DateTime(
+        filter.dateRange!.end.year,
+        filter.dateRange!.end.month,
+        filter.dateRange!.end.day,
+      );
+      result = result.where((tx) {
+        final txDate = DateTime(
+          tx.transactionDate.year,
+          tx.transactionDate.month,
+          tx.transactionDate.day,
+        );
+        return !txDate.isBefore(rangeStart) && !txDate.isAfter(rangeEnd);
+      }).toList();
     }
 
     // ── Search filter ─────────────────────────────────────────────────

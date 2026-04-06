@@ -46,6 +46,18 @@ abstract final class MoneyFormatter {
     return NumberFormat('#,##0.00', effectiveLocale).format(amount);
   }
 
+  /// Trailing-symbol format: "1,000.00 EGP" (amount first, symbol after).
+  ///
+  /// Used on the home screen where the design puts the currency after the
+  /// number instead of the locale-default position.
+  static String formatTrailing(
+    int piastres, {
+    String currency = 'EGP',
+    String? locale,
+  }) {
+    return '${formatAmount(piastres, locale: locale)} ${currencySymbol(currency: currency)}';
+  }
+
   /// Compact format for large numbers: "12.5K" or "1.2M".
   static String formatCompact(
     int piastres, {

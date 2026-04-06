@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -5,13 +7,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_durations.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_navigation.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/extensions/build_context_extensions.dart';
+import '../../../core/services/glass_config_service.dart';
+import '../../../core/utils/permission_helper.dart';
 import '../../../features/transactions/presentation/screens/add_transaction_screen.dart';
-import '../../../features/voice_input/presentation/widgets/voice_input_button.dart';
+import '../../../features/voice_input/presentation/widgets/ai_thinking_overlay.dart';
 import '../../../features/voice_input/presentation/widgets/voice_recording_pill.dart';
 import '../../providers/background_ai_provider.dart';
 import '../../providers/preferences_provider.dart';
@@ -142,6 +147,11 @@ class AppScaffoldShell extends ConsumerStatefulWidget {
 class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
   bool _showFabHint = false;
   bool _showVoicePill = false;
+  bool _showAiThinking = false;
+  Uint8List? _pendingAudioBytes;
+
+  /// True when either the recording pill or AI overlay is visible.
+  bool get _showVoiceOverlay => _showVoicePill || _showAiThinking;
 
   @override
   void initState() {
@@ -169,13 +179,45 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
   }
 
   Future<void> _onVoiceTap() async {
-    final status = await Permission.microphone.status;
-    if (status.isGranted) {
-      setState(() => _showVoicePill = true);
+    var status = await Permission.microphone.status;
+
+    if (status.isPermanentlyDenied) {
+      if (!mounted) return;
+      await PermissionHelper.openAppSettings();
       return;
     }
+
+    if (!status.isGranted) {
+      if (!mounted) return;
+      final allowed = await PermissionHelper.showRationale(
+        context,
+        title: context.l10n.permission_mic_title,
+        rationale: context.l10n.permission_mic_body,
+      );
+      if (!allowed || !mounted) return;
+      status = await Permission.microphone.request();
+      if (!status.isGranted) return;
+    }
+
     if (!mounted) return;
-    await VoiceInputButton.handleVoiceInput(context);
+    setState(() => _showVoicePill = true);
+  }
+
+  /// Transition from recording pill → AI thinking overlay.
+  void _onVoiceProcess(Uint8List audioBytes) {
+    setState(() {
+      _showVoicePill = false;
+      _pendingAudioBytes = audioBytes;
+      _showAiThinking = true;
+    });
+  }
+
+  void _dismissVoiceOverlay() {
+    setState(() {
+      _showVoicePill = false;
+      _showAiThinking = false;
+      _pendingAudioBytes = null;
+    });
   }
 
   @override
@@ -203,19 +245,38 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
       floatingActionButtonLocation: RaisedCenterDockedFabLocation.raised,
     );
 
-    // Layer: scaffold -> voice pill -> fab hint (mutually exclusive overlays).
+    // Layer: scaffold → blur scrim → recording pill / AI overlay → fab hint.
     return Stack(
       children: [
         scaffold,
+
+        // Blur + scrim backdrop — visible during recording & AI processing.
+        // Scrim tap dismisses only during recording; the overlay manages
+        // its own cancel button during AI processing.
+        if (_showVoiceOverlay)
+          _VoiceBlurScrim(
+            onTap: _showAiThinking ? null : _dismissVoiceOverlay,
+          ),
+
+        // Recording pill — compact bar above bottom nav.
         if (_showVoicePill)
           Positioned(
             left: AppSizes.screenHPadding,
             right: AppSizes.screenHPadding,
-            bottom: AppSizes.bottomNavHeight + AppSizes.md,
+            bottom: AppSizes.bottomNavHeight + AppSizes.voicePillBottomMargin,
             child: VoiceRecordingPill(
-              onDismiss: () => setState(() => _showVoicePill = false),
+              onDismiss: _dismissVoiceOverlay,
+              onProcess: _onVoiceProcess,
             ),
           ),
+
+        // AI thinking overlay — centered card with robot + typewriter.
+        if (_showAiThinking && _pendingAudioBytes != null)
+          AiThinkingOverlay(
+            audioBytes: _pendingAudioBytes!,
+            onDismiss: _dismissVoiceOverlay,
+          ),
+
         if (_showFabHint)
           Positioned.fill(
             child: FirstTimeHint(
@@ -227,5 +288,50 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
           ),
       ],
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _VoiceBlurScrim — Full-screen blur + semi-transparent scrim
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _VoiceBlurScrim extends StatelessWidget {
+  const _VoiceBlurScrim({this.onTap});
+
+  /// Tap handler — null disables tap-to-dismiss (during AI processing).
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final useBlur = GlassConfig.shouldBlur(context);
+    final scrimColor = AppColors.black.withValues(alpha: AppSizes.opacityLight);
+
+    Widget scrim = Positioned.fill(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.translucent,
+        child: Container(color: scrimColor),
+      ),
+    );
+
+    if (useBlur) {
+      scrim = Positioned.fill(
+        child: RepaintBoundary(
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.translucent,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: AppSizes.aiThinkingBlurSigma,
+                sigmaY: AppSizes.aiThinkingBlurSigma,
+              ),
+              child: Container(color: scrimColor),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return scrim;
   }
 }

@@ -18,6 +18,7 @@ class AccountChip extends StatelessWidget {
     required this.balance,
     required this.isSelected,
     required this.onTap,
+    this.onLongPress,
     this.hidden = false,
     this.walletType,
     this.colorHex,
@@ -27,6 +28,7 @@ class AccountChip extends StatelessWidget {
   final int balance;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
   final bool hidden;
 
   /// Wallet type string (e.g. 'bank', 'mobile_wallet') — resolves to icon.
@@ -50,7 +52,7 @@ class AccountChip extends StatelessWidget {
     final walletColor =
         colorHex != null ? ColorUtils.fromHex(colorHex!) : cs.primary;
 
-    final miniBalance = hidden ? '---' : MoneyFormatter.formatCompact(balance);
+    final miniBalance = hidden ? '---' : MoneyFormatter.formatTrailing(balance);
     final icon = AppIcons.walletType(walletType ?? 'bank');
 
     const double cardWidth = individualWidth;
@@ -66,6 +68,7 @@ class AccountChip extends StatelessWidget {
           color: AppColors.transparent,
           child: InkWell(
             onTap: onTap,
+            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
             child: Container(
               width: cardWidth,

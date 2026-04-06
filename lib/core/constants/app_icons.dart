@@ -21,6 +21,7 @@ abstract final class AppIcons {
   static const IconData delete = PhosphorIconsRegular.trash;
   static const IconData search = PhosphorIconsRegular.magnifyingGlass;
   static const IconData filter = PhosphorIconsRegular.funnelSimple;
+  static const IconData sort = PhosphorIconsRegular.sortAscending;
   static const IconData mic = PhosphorIconsFill.microphone;
   static const IconData location = PhosphorIconsFill.mapPin;
   static const IconData close = PhosphorIconsBold.x;

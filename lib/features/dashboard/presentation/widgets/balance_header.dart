@@ -74,7 +74,9 @@ class BalanceHeader extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                hidden ? '------' : MoneyFormatter.format(displayBalance),
+                hidden
+                    ? '------'
+                    : MoneyFormatter.formatTrailing(displayBalance),
                 style: context.textStyles.headlineLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: cs.onSurface,
@@ -102,6 +104,77 @@ class BalanceHeader extends ConsumerWidget {
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
           const SizedBox(height: AppSizes.sm),
 
+          // ── Cash wallet banner (always visible) ─────────────────
+          if (cashWallet != null) ...[
+            GestureDetector(
+              onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
+                  selectedId == cashWallet.id ? null : cashWallet.id,
+              onLongPress: () => showEditWalletSheet(context, cashWallet.id),
+              child: Container(
+                height: AppSizes.minTapTarget,
+                padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: AppSizes.md,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.glassCardSurface,
+                  borderRadius:
+                      BorderRadius.circular(AppSizes.borderRadiusFull),
+                  border: selectedId == cashWallet.id
+                      ? Border.all(
+                          color: cs.primary.withValues(
+                            alpha: AppSizes.opacityMedium,
+                          ),
+                        )
+                      : Border.all(
+                          color: theme.glassCardBorder,
+                          width: AppSizes.glassBorderWidthSubtle,
+                        ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      AppIcons.walletType('physical_cash'),
+                      size: AppSizes.iconXs,
+                      color: selectedId == cashWallet.id
+                          ? cs.primary
+                          : cs.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Text(
+                      cashWallet.name,
+                      style: context.textStyles.bodyMedium?.copyWith(
+                        color: selectedId == cashWallet.id
+                            ? cs.primary
+                            : cs.onSurfaceVariant,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.sm),
+                    Text(
+                      hidden
+                          ? '---'
+                          : MoneyFormatter.formatTrailing(cashWallet.balance),
+                      style: context.textStyles.bodyMedium?.copyWith(
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Icon(
+                      AppIcons.chevronRight,
+                      size: AppSizes.iconXxs,
+                      color: cs.onSurfaceVariant.withValues(
+                        alpha: AppSizes.opacityMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSizes.sm),
+          ],
+
           // ── Account selector dropdown ───────────────────────────────
           Semantics(
             button: true,
@@ -117,104 +190,38 @@ class BalanceHeader extends ConsumerWidget {
                   selectedId,
                   totalBalance,
                 ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minHeight: AppSizes.minTapTarget,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerLow,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusFull),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.sm,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          selectionLabel,
-                          style: context.textStyles.labelMedium?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: AppSizes.xxs),
-                        Icon(
-                          AppIcons.expandMore,
-                          size: AppSizes.iconXs,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        selectionLabel,
+                        style: context.textStyles.labelMedium?.copyWith(
                           color: cs.onSurfaceVariant,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: AppSizes.xxs),
+                      Icon(
+                        AppIcons.expandMore,
+                        size: AppSizes.iconXs,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-
-          // ── Cash wallet slim banner (always visible) ──────────────
-          if (cashWallet != null) ...[
-            const SizedBox(height: AppSizes.sm),
-            GestureDetector(
-              onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
-                  selectedId == cashWallet.id ? null : cashWallet.id,
-              child: Container(
-                height: AppSizes.xl,
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: AppSizes.md,
-                ),
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerLow,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusFull),
-                  border: selectedId == cashWallet.id
-                      ? Border.all(
-                          color: cs.primary.withValues(
-                            alpha: AppSizes.opacityMedium,
-                          ),
-                        )
-                      : null,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      AppIcons.walletType('physical_cash'),
-                      size: AppSizes.iconXs,
-                      color: selectedId == cashWallet.id
-                          ? cs.primary
-                          : cs.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppSizes.xs),
-                    Text(
-                      cashWallet.name,
-                      style: context.textStyles.labelMedium?.copyWith(
-                        color: selectedId == cashWallet.id
-                            ? cs.primary
-                            : cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    Text(
-                      hidden
-                          ? '---'
-                          : MoneyFormatter.formatCompact(cashWallet.balance),
-                      style: context.textStyles.labelMedium?.copyWith(
-                        color: cs.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: AppSizes.xs),
-                    Icon(
-                      AppIcons.chevronRight,
-                      size: AppSizes.iconXxs,
-                      color: cs.onSurfaceVariant.withValues(
-                        alpha: AppSizes.opacityMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
 
           // ── Account chips (only when a specific wallet is selected) ─
           if (selectedId != null) ...[
@@ -249,6 +256,9 @@ class BalanceHeader extends ConsumerWidget {
                           : () => ref
                               .read(selectedAccountIdProvider.notifier)
                               .state = w.id,
+                      onLongPress: isDragging
+                          ? null
+                          : () => showEditWalletSheet(context, w.id),
                     ),
                     trailing: [
                       Padding(

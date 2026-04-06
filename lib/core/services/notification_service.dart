@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -204,27 +206,31 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduled,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'masarify_recap_v2',
-          'Daily Recap',
-          channelDescription: 'Daily spending recap reminder',
-          importance: Importance.high,
-          priority: Priority.high,
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduled,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'masarify_recap_v2',
+            'Daily Recap',
+            channelDescription: 'Daily spending recap reminder',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-      payload: payload,
-    );
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+        payload: payload,
+      );
+    } catch (e) {
+      dev.log('scheduleDaily failed: $e', name: 'NotificationService');
+    }
   }
 
   /// Schedule a one-shot notification at [scheduledDate].
@@ -240,30 +246,48 @@ class NotificationService {
     // Guard: do not schedule in the past.
     if (tzDate.isBefore(tz.TZDateTime.now(tz.local))) return;
 
-    await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tzDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'masarify_bills',
-          'Bill Reminders',
-          channelDescription: 'Upcoming bill and subscription reminders',
-          importance: Importance.high,
-          priority: Priority.high,
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tzDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'masarify_bills',
+            'Bill Reminders',
+            channelDescription: 'Upcoming bill and subscription reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      payload: payload,
-    );
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+      );
+    } catch (e) {
+      dev.log('scheduleOnce failed: $e', name: 'NotificationService');
+    }
   }
 
   /// Cancel a scheduled notification by [id].
   static Future<void> cancelScheduled(int id) async {
     await _plugin.cancel(id);
+  }
+
+  /// Check whether notifications are enabled at the OS level.
+  ///
+  /// Returns `true` on iOS (always enabled once granted) and on Android
+  /// when the user has not disabled the app's notifications in Settings.
+  static Future<bool> areEnabled() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      return await android.areNotificationsEnabled() ?? false;
+    }
+    // iOS: assume enabled — the permission request covers this.
+    return true;
   }
 }

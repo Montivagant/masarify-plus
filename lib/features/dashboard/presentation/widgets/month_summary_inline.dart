@@ -108,7 +108,7 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
               child: _GlassPill(
                 icon: AppIcons.income,
                 label: context.l10n.dashboard_income,
-                amount: hidden ? bullet : MoneyFormatter.formatCompact(income),
+                amount: hidden ? bullet : MoneyFormatter.formatTrailing(income),
                 color: incomeColor,
                 labelStyle: bodySmall,
                 amountStyle: bodyMedium,
@@ -121,7 +121,8 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
               child: _GlassPill(
                 icon: AppIcons.expense,
                 label: context.l10n.dashboard_expense,
-                amount: hidden ? bullet : MoneyFormatter.formatCompact(expense),
+                amount:
+                    hidden ? bullet : MoneyFormatter.formatTrailing(expense),
                 color: expenseColor,
                 labelStyle: bodySmall,
                 amountStyle: bodyMedium,
@@ -163,7 +164,7 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
             Text(
               hidden
                   ? bullet
-                  : '${isPositive ? '+' : '-'}${MoneyFormatter.formatCompact(net.abs())}',
+                  : '${isPositive ? '+' : '-'}${MoneyFormatter.formatTrailing(net.abs())}',
               style: bodySmall?.copyWith(
                 color: netColor,
                 fontWeight: FontWeight.w600,
@@ -212,7 +213,6 @@ class _GlassPill extends StatelessWidget {
             const SizedBox(width: AppSizes.xs),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     label,

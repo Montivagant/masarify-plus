@@ -1,40 +1,40 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
-import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
-import '../../../../core/services/ai/gemini_audio_service.dart';
-import '../../../../shared/providers/ai_provider.dart';
-import '../../../../shared/providers/category_provider.dart';
-import '../../../../shared/providers/connectivity_provider.dart';
-import '../../../../shared/providers/goal_provider.dart';
-import '../../../../shared/providers/wallet_provider.dart';
 import 'voice_wave_bars.dart';
 
 /// Pill bar states — no idle state because the pill auto-starts recording.
-enum _PillState { recording, processing, error }
+enum _PillState { recording, error }
 
 /// Compact 56dp floating pill bar for voice recording.
 ///
 /// Auto-starts recording on mount. Shows wave visualizer + timer while
-/// recording, a spinner during Gemini processing, and an error state that
-/// auto-dismisses after [AppDurations.voicePillErrorDismiss].
+/// recording. When stopped, calls [onProcess] with recorded audio bytes
+/// so the parent can hand off to the AI thinking overlay.
 class VoiceRecordingPill extends ConsumerStatefulWidget {
-  const VoiceRecordingPill({super.key, required this.onDismiss});
+  const VoiceRecordingPill({
+    super.key,
+    required this.onDismiss,
+    required this.onProcess,
+  });
 
   /// Called when the pill should be removed from the widget tree.
   final VoidCallback onDismiss;
+
+  /// Called with raw WAV bytes when recording stops successfully.
+  final void Function(Uint8List audioBytes) onProcess;
 
   @override
   ConsumerState<VoiceRecordingPill> createState() => _VoiceRecordingPillState();
@@ -50,9 +50,6 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
 
   /// Synchronous guard against concurrent `_stopAndProcess` calls.
   bool _isStopping = false;
-
-  /// Set when user cancels during processing — prevents navigation.
-  final bool _cancelled = false;
 
   /// Recording duration in seconds.
   int _recordingSeconds = 0;
@@ -155,6 +152,18 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
     }
   }
 
+  /// Cancel recording without processing — saves AI tokens.
+  Future<void> _cancelRecording() async {
+    _durationTimer?.cancel();
+    _amplitudeSubscription?.cancel();
+    _amplitudeSubscription = null;
+    try {
+      await _recorder.stop();
+    } catch (_) {/* Recorder may not be active */}
+    await _cleanupTempFile();
+    if (mounted) widget.onDismiss();
+  }
+
   Future<void> _stopAndProcess() async {
     // Synchronous guard against concurrent calls from timer + user tap.
     if (_state != _PillState.recording || _isStopping) return;
@@ -163,7 +172,6 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
     _amplitudeSubscription?.cancel();
     _amplitudeSubscription = null;
     _currentAmplitude = 0.0;
-    setState(() => _state = _PillState.processing);
 
     try {
       final path = await _recorder.stop();
@@ -200,72 +208,16 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
         return;
       }
 
-      // Check connectivity before calling Gemini.
-      final online = ref.read(isOnlineProvider).valueOrNull ?? false;
-      dev.log(
-        'Connectivity before Gemini call: $online',
-        name: 'VoiceRecordingPill',
-      );
-      if (!online) {
-        if (!mounted) return;
-        _showErrorState(context.l10n.voice_error_no_service);
-        return;
-      }
-
-      // Send audio to Gemini for transcription + parsing.
-      final gemini = ref.read(geminiAudioServiceProvider);
-      final categories = ref.read(categoriesProvider).valueOrNull ?? [];
-      final goals = ref.read(activeGoalsProvider).valueOrNull ?? [];
-      final wallets = ref.read(walletsProvider).valueOrNull ?? [];
-      // Exclude system Cash wallet.
-      final walletNames =
-          wallets.where((w) => !w.isSystemWallet).map((w) => w.name).toList();
-
-      final drafts = await gemini.parseAudio(
-        audioBytes: audioBytes,
-        mimeType: 'audio/wav',
-        categories: categories,
-        goals: goals,
-        walletNames: walletNames,
-      );
-
-      if (!mounted || _cancelled) return;
-
-      dev.log(
-        'Gemini result: ${drafts.length} drafts',
-        name: 'VoiceRecordingPill',
-      );
-
-      if (drafts.isEmpty) {
-        _showErrorState(context.l10n.voice_no_results);
-        return;
-      }
-
-      // Navigate to confirm screen then dismiss pill.
-      context.push(AppRoutes.voiceConfirm, extra: drafts);
-      widget.onDismiss();
-    } on GeminiAudioException catch (e) {
-      dev.log(
-        'Gemini error: ${e.statusCode} — ${e.message}'
-        '${e.isRateLimit ? " (RATE LIMITED)" : ""}'
-        '${e.isUnauthorized ? " (AUTH FAILED)" : ""}'
-        '${e.isServerError ? " (SERVER ERROR)" : ""}',
-        name: 'VoiceRecordingPill',
-      );
       if (!mounted) return;
-      _showErrorState(context.l10n.voice_ai_error);
-    } on TimeoutException {
-      dev.log('Gemini request timed out', name: 'VoiceRecordingPill');
-      if (!mounted) return;
-      _showErrorState(context.l10n.voice_ai_error);
-    } on SocketException {
-      dev.log('Network lost during Gemini call', name: 'VoiceRecordingPill');
-      if (!mounted) return;
-      _showErrorState(context.l10n.voice_error_no_service);
+
+      // Hand off audio bytes to parent — the AI thinking overlay handles
+      // the Gemini call from here.
+      widget.onProcess(Uint8List.fromList(audioBytes));
     } catch (e) {
-      dev.log('Voice processing failed: $e', name: 'VoiceRecordingPill');
-      if (!mounted) return;
-      _showErrorState(context.l10n.voice_ai_error);
+      dev.log('Recording stop failed: $e', name: 'VoiceRecordingPill');
+      if (mounted) {
+        _showErrorState(context.l10n.voice_ai_error);
+      }
     } finally {
       _isStopping = false;
     }
@@ -324,7 +276,6 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
       padding: const EdgeInsets.symmetric(horizontal: AppSizes.md),
       child: switch (_state) {
         _PillState.recording => _buildRecordingContent(cs),
-        _PillState.processing => _buildProcessingContent(cs),
         _PillState.error => _buildErrorContent(cs),
       },
     );
@@ -333,6 +284,20 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
   Widget _buildRecordingContent(ColorScheme cs) {
     return Row(
       children: [
+        // Cancel (X) button
+        GestureDetector(
+          onTap: _cancelRecording,
+          child: Tooltip(
+            message: context.l10n.voice_cancel_recording,
+            child: Icon(
+              AppIcons.close,
+              size: AppSizes.iconSm,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSizes.sm),
+
         // Pulsing red dot
         AnimatedBuilder(
           animation: _pulseController,
@@ -391,29 +356,6 @@ class _VoiceRecordingPillState extends ConsumerState<VoiceRecordingPill>
               size: AppSizes.voicePillStopIconSize,
               color: AppColors.white,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProcessingContent(ColorScheme cs) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: AppSizes.spinnerSize,
-          height: AppSizes.spinnerSize,
-          child: CircularProgressIndicator(
-            strokeWidth: AppSizes.spinnerStrokeWidth,
-            color: cs.primary,
-          ),
-        ),
-        const SizedBox(width: AppSizes.sm),
-        Text(
-          context.l10n.voice_ai_parsing,
-          style: context.textStyles.labelMedium?.copyWith(
-            color: cs.onSurface,
           ),
         ),
       ],

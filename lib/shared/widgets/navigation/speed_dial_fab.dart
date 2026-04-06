@@ -251,23 +251,27 @@ class _SpeedDialFabState extends State<SpeedDialFab>
                     ),
                   ],
                 ),
-                child: FloatingActionButton(
-                  key: _fabKey,
-                  heroTag: 'nav_fab',
-                  onPressed: _toggle,
-                  elevation: 0,
-                  highlightElevation: 0,
-                  backgroundColor:
-                      _isExpanded ? context.colors.surface : primaryColor,
-                  shape: _isExpanded
-                      ? CircleBorder(
-                          side: BorderSide(color: primaryColor),
-                        )
-                      : null,
-                  child: Icon(
-                    AppIcons.add,
-                    color:
-                        _isExpanded ? primaryColor : context.colors.onPrimary,
+                child: SizedBox(
+                  width: AppSizes.fabSize,
+                  height: AppSizes.fabSize,
+                  child: FloatingActionButton(
+                    key: _fabKey,
+                    heroTag: 'nav_fab',
+                    onPressed: _toggle,
+                    elevation: 0,
+                    highlightElevation: 0,
+                    backgroundColor:
+                        _isExpanded ? context.colors.surface : primaryColor,
+                    shape: _isExpanded
+                        ? CircleBorder(
+                            side: BorderSide(color: primaryColor),
+                          )
+                        : null,
+                    child: Icon(
+                      AppIcons.add,
+                      color:
+                          _isExpanded ? primaryColor : context.colors.onPrimary,
+                    ),
                   ),
                 ),
               ),

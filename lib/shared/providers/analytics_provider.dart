@@ -7,12 +7,6 @@ import 'transaction_provider.dart';
 
 // ── Report filter state ─────────────────────────────────────────────────
 
-/// Selected wallet ID for reports filtering (null = all wallets).
-final reportsWalletFilterProvider = StateProvider<int?>((ref) => null);
-
-/// Selected transaction type for reports ('expense', 'income', or null for both).
-final reportsTypeFilterProvider = StateProvider<String?>((ref) => null);
-
 /// Selected month for category breakdown (defaults to current month).
 final reportsCategoryMonthProvider =
     StateProvider<(int year, int month)>((ref) {
@@ -20,8 +14,9 @@ final reportsCategoryMonthProvider =
   return (now.year, now.month);
 });
 
-// ── Monthly income/expense pair ──────────────────────────────────────────
+// ── Data classes ────────────────────────────────────────────────────────
 
+/// Monthly income/expense pair.
 class MonthlyTotal {
   const MonthlyTotal({
     required this.year,
@@ -38,8 +33,7 @@ class MonthlyTotal {
   int get net => income - expense;
 }
 
-// ── Category spending aggregate ──────────────────────────────────────────
-
+/// Category spending aggregate.
 class CategorySpending {
   const CategorySpending({
     required this.categoryId,
@@ -58,8 +52,7 @@ class CategorySpending {
   final double fraction;
 }
 
-// ── Daily spending for trend charts ──────────────────────────────────────
-
+/// Daily spending for trend charts.
 class DailySpending {
   const DailySpending({required this.date, required this.amount});
 
@@ -67,29 +60,56 @@ class DailySpending {
   final int amount;
 }
 
+// ── Parameterized provider parameter types ──────────────────────────────
+// Each tab passes its own filter values via these records, so tabs don't
+// share global filter state.
+
+/// Params for [monthlyTotalsProvider].
+typedef MonthlyTotalsParams = ({
+  int count,
+  int? walletId,
+  String? typeFilter,
+});
+
+/// Params for [categoryBreakdownProvider].
+typedef CategoryBreakdownParams = ({
+  int year,
+  int month,
+  int? walletId,
+  String? typeFilter,
+});
+
+/// Params for [dailySpendingProvider].
+typedef DailySpendingParams = ({
+  int days,
+  int? walletId,
+  String? typeFilter,
+});
+
 // ── Last N months income vs expense ──────────────────────────────────────
 
-/// Returns [MonthlyTotal] for the last [count] months (most recent last).
-/// Respects wallet and type filters from reports filter bar.
+/// Returns [MonthlyTotal] for the last [p.count] months (most recent last).
+/// Wallet and type filters are passed via [MonthlyTotalsParams].
 final monthlyTotalsProvider = FutureProvider.autoDispose
-    .family<List<MonthlyTotal>, int>((ref, count) async {
+    .family<List<MonthlyTotal>, MonthlyTotalsParams>((ref, p) async {
   final now = DateTime.now();
   final repo = ref.watch(transactionRepositoryProvider);
-  // Watch transaction count sentinel so any mutation triggers refresh
   ref.watch(transactionChangeTriggerProvider);
-  final walletId = ref.watch(reportsWalletFilterProvider);
-  final typeFilter = ref.watch(reportsTypeFilterProvider);
   final results = <MonthlyTotal>[];
 
-  for (var i = count - 1; i >= 0; i--) {
+  for (var i = p.count - 1; i >= 0; i--) {
     final d = DateTime(now.year, now.month - i);
     final y = d.year;
     final m = d.month;
 
-    if (typeFilter != null) {
-      final sum =
-          await repo.sumByTypeAndMonth(typeFilter, y, m, walletId: walletId);
-      final isIncome = typeFilter == 'income';
+    if (p.typeFilter != null) {
+      final sum = await repo.sumByTypeAndMonth(
+        p.typeFilter!,
+        y,
+        m,
+        walletId: p.walletId,
+      );
+      final isIncome = p.typeFilter == 'income';
       results.add(
         MonthlyTotal(
           year: y,
@@ -100,8 +120,8 @@ final monthlyTotalsProvider = FutureProvider.autoDispose
       );
     } else {
       final [income, expense] = await Future.wait([
-        repo.sumByTypeAndMonth('income', y, m, walletId: walletId),
-        repo.sumByTypeAndMonth('expense', y, m, walletId: walletId),
+        repo.sumByTypeAndMonth('income', y, m, walletId: p.walletId),
+        repo.sumByTypeAndMonth('expense', y, m, walletId: p.walletId),
       ]);
       results.add(
         MonthlyTotal(year: y, month: m, income: income, expense: expense),
@@ -114,22 +134,20 @@ final monthlyTotalsProvider = FutureProvider.autoDispose
 
 // ── Category breakdown for a given month ─────────────────────────────────
 
-/// Categories ranked by amount for a (year, month).
-/// Respects wallet and type filters from reports filter bar.
-final categoryBreakdownProvider =
-    Provider.family<AsyncValue<List<CategorySpending>>, (int year, int month)>(
-  (ref, params) {
-    final txAsync = ref.watch(transactionsByMonthProvider(params));
+/// Categories ranked by amount for the given month.
+/// Wallet and type filters passed via [CategoryBreakdownParams].
+final categoryBreakdownProvider = Provider.family<
+    AsyncValue<List<CategorySpending>>, CategoryBreakdownParams>(
+  (ref, p) {
+    final txAsync = ref.watch(transactionsByMonthProvider((p.year, p.month)));
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
     final lang = ref.watch(localeProvider)?.languageCode ?? 'en';
-    final walletId = ref.watch(reportsWalletFilterProvider);
-    final typeFilter = ref.watch(reportsTypeFilterProvider);
     return txAsync.whenData((transactions) {
-      var filtered = typeFilter == null
+      var filtered = p.typeFilter == null
           ? transactions
-          : transactions.where((tx) => tx.type == typeFilter);
-      if (walletId != null) {
-        filtered = filtered.where((tx) => tx.walletId == walletId);
+          : transactions.where((tx) => tx.type == p.typeFilter);
+      if (p.walletId != null) {
+        filtered = filtered.where((tx) => tx.walletId == p.walletId);
       }
       final byCategory = <int, int>{};
       for (final tx in filtered) {
@@ -162,34 +180,31 @@ final categoryBreakdownProvider =
 
 // ── Daily spending for trend line ────────────────────────────────────────
 
-/// Daily totals for the last [days] days.
-/// Respects wallet and type filters from reports filter bar.
+/// Daily totals for the last [p.days] days.
+/// Wallet and type filters passed via [DailySpendingParams].
 final dailySpendingProvider = FutureProvider.autoDispose
-    .family<List<DailySpending>, int>((ref, days) async {
+    .family<List<DailySpending>, DailySpendingParams>((ref, p) async {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final start = today.subtract(Duration(days: days - 1));
+  final start = today.subtract(Duration(days: p.days - 1));
   final end = today.add(const Duration(days: 1));
 
   final repo = ref.watch(transactionRepositoryProvider);
-  // Watch transaction count sentinel so any mutation triggers refresh
   ref.watch(transactionChangeTriggerProvider);
-  final walletId = ref.watch(reportsWalletFilterProvider);
-  final typeFilter = ref.watch(reportsTypeFilterProvider);
   final archivedIds = ref.watch(archivedWalletIdsProvider);
   final txns = await repo.getByDateRange(start, end);
 
   final dailyMap = <DateTime, int>{};
-  for (var i = 0; i < days; i++) {
+  for (var i = 0; i < p.days; i++) {
     final d = DateTime(start.year, start.month, start.day + i);
     dailyMap[d] = 0;
   }
 
   for (final tx in txns) {
     if (archivedIds.contains(tx.walletId)) continue;
-    final matchesType = typeFilter == null || tx.type == typeFilter;
+    final matchesType = p.typeFilter == null || tx.type == p.typeFilter;
     if (matchesType) {
-      final matchesWallet = walletId == null || tx.walletId == walletId;
+      final matchesWallet = p.walletId == null || tx.walletId == p.walletId;
       if (matchesWallet) {
         final key = DateTime(
           tx.transactionDate.year,

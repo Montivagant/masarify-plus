@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/notification_service.dart';
@@ -23,6 +26,9 @@ class NotificationPreferencesScreen extends ConsumerStatefulWidget {
 
 class _NotificationPreferencesScreenState
     extends ConsumerState<NotificationPreferencesScreen> {
+  /// Whether notifications are enabled at the OS level (Android only).
+  bool _notificationsEnabled = true;
+
   // Local toggles — initialised from prefs in didChangeDependencies.
   bool _budgetWarning = true;
   bool _budgetExceeded = true;
@@ -40,6 +46,14 @@ class _NotificationPreferencesScreenState
   void initState() {
     super.initState();
     _loadPrefs();
+    _checkNotificationPermission();
+  }
+
+  Future<void> _checkNotificationPermission() async {
+    if (!Platform.isAndroid) return;
+    final enabled = await NotificationService.areEnabled();
+    if (!mounted) return;
+    setState(() => _notificationsEnabled = enabled);
   }
 
   Future<void> _loadPrefs() async {
@@ -136,6 +150,53 @@ class _NotificationPreferencesScreenState
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
         children: [
+          // ── Permission warning banner (Android) ─────────��────
+          if (!_notificationsEnabled)
+            Container(
+              margin: const EdgeInsets.all(AppSizes.md),
+              padding: const EdgeInsets.all(AppSizes.md),
+              decoration: BoxDecoration(
+                color: cs.errorContainer,
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.errorCircle,
+                    color: cs.onErrorContainer,
+                    size: AppSizes.iconMd,
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  Expanded(
+                    child: Text(
+                      l10n.notif_permission_banner,
+                      style: context.textStyles.bodySmall?.copyWith(
+                        color: cs.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.sm),
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      final msg = l10n.notif_permission_denied;
+                      final messenger = ScaffoldMessenger.of(context);
+                      final granted =
+                          await NotificationService.requestPermission();
+                      if (!mounted) return;
+                      if (granted) {
+                        setState(() => _notificationsEnabled = true);
+                      } else {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(msg)),
+                        );
+                      }
+                    },
+                    child: Text(l10n.notif_permission_grant),
+                  ),
+                ],
+              ),
+            ),
+
           // ── Budget Alerts ─────────────────────────────────────
           _SectionTitle(title: l10n.notif_section_budget),
           SwitchListTile(

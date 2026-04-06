@@ -10,6 +10,7 @@ import '../../../../domain/entities/category_entity.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
 import '../../../../shared/providers/smart_defaults_provider.dart';
+import 'filter_bottom_sheet.dart';
 import 'sort_bottom_sheet.dart';
 
 /// Pinned filter bar with type chips, search icon, and sort button (D-09, D-10).
@@ -162,9 +163,39 @@ class FilterBar extends ConsumerWidget {
             ),
           ),
 
+          // ── Filter button ─────────────────────────────────────────────
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(AppIcons.filter, size: AppSizes.iconSm),
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => const FilterBottomSheet(),
+                ),
+                tooltip: context.l10n.home_filter_title,
+                visualDensity: VisualDensity.compact,
+              ),
+              // Active filter indicator dot
+              if (filter.dateRange != null)
+                Positioned(
+                  top: AppSizes.xs,
+                  right: AppSizes.xs,
+                  child: Container(
+                    width: AppSizes.indicatorDotSize,
+                    height: AppSizes.indicatorDotSize,
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
           // ── Sort button ──────────────────────────────────────────────
           IconButton(
-            icon: const Icon(AppIcons.filter, size: AppSizes.iconSm),
+            icon: const Icon(AppIcons.sort, size: AppSizes.iconSm),
             onPressed: () => showModalBottomSheet<void>(
               context: context,
               builder: (_) => const SortBottomSheet(),

@@ -48,12 +48,6 @@ Future<void> main() async {
   await GlassConfig.initialize();
   NotificationService.setSharedPreferences(prefs);
   await NotificationService.initialize();
-  // Request POST_NOTIFICATIONS permission early (Android 13+).
-  // Without this, all show() and zonedSchedule() calls silently fail.
-  // The system dialog only appears once — subsequent launches are a no-op.
-  await NotificationService.requestPermission();
-  // Request exact alarm permission (Android 14+) for zonedSchedule().
-  await NotificationService.requestExactAlarmPermission();
 
   // Run init tasks before UI mounts, reusing the same container.
   final container = ProviderContainer(
@@ -72,6 +66,16 @@ Future<void> main() async {
       child: const MasarifyApp(),
     ),
   );
+
+  // Request notification permissions AFTER first frame — the system dialog
+  // must appear while the Activity is fully visible, otherwise Android may
+  // auto-dismiss it behind the splash screen (silently denying POST_NOTIFICATIONS).
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final granted = await NotificationService.requestPermission();
+    if (granted) {
+      await NotificationService.requestExactAlarmPermission();
+    }
+  });
 
   // M-7 fix: ensure Cash wallet exists even after DB restore/corruption.
   // Resolve platform locale so the wallet name is localized (not hardcoded 'Cash').

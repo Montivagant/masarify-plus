@@ -8,7 +8,6 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/categories_tab.dart';
 import '../widgets/overview_tab.dart';
-import '../widgets/reports_filter_bar.dart';
 import '../widgets/trends_tab.dart';
 
 class ReportsScreen extends ConsumerWidget {
@@ -37,18 +36,12 @@ class ReportsScreen extends ConsumerWidget {
             ],
           ),
         ),
-        body: const Column(
+        // Each tab embeds its own TabFilterRow — no global filter bar.
+        body: const TabBarView(
           children: [
-            ReportsFilterBar(),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  OverviewTab(),
-                  CategoriesTab(),
-                  TrendsTab(),
-                ],
-              ),
-            ),
+            OverviewTab(),
+            CategoriesTab(),
+            TrendsTab(),
           ],
         ),
       ),
