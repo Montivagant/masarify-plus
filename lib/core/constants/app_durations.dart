@@ -58,6 +58,15 @@ abstract final class AppDurations {
   static const Duration voicePillPulse = Duration(milliseconds: 600);
   static const Duration voicePillErrorDismiss = Duration(seconds: 2);
 
+  // AI thinking overlay
+  static const Duration voiceTypewriterChar = Duration(milliseconds: 40);
+  static const Duration voiceTypewriterHold = Duration(milliseconds: 1500);
+  static const Duration voiceThinkingFadeIn = Duration(milliseconds: 300);
+
+  // Analytics
+  static const Duration chartMorph = Duration(milliseconds: 300);
+  static const Duration chartBarAnim = Duration(milliseconds: 400);
+
   // Voice overlay & swipe
   static const Duration overlayExpand = Duration(milliseconds: 350);
   static const Duration swipeOut = Duration(milliseconds: 300);

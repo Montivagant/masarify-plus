@@ -24,7 +24,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_analytics => 'التحليلات';
 
   @override
-  String get nav_subscriptions => 'الاشتراكات';
+  String get nav_subscriptions => 'الفواتير';
 
   @override
   String get dashboard_title => 'مصاريفي';
@@ -679,6 +679,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_ai_parsing => 'جار التحليل بالذكاء الاصطناعي...';
+
+  @override
+  String get voice_cancel_recording => 'إلغاء التسجيل';
 
   @override
   String get permission_allow => 'السماح';
@@ -2352,6 +2355,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تم رفض إذن الإشعارات. فعّله من الإعدادات لتلقي التنبيهات.';
 
   @override
+  String get notif_permission_banner =>
+      'الإشعارات معطلة. اضغط لمنح الإذن حتى تصلك التنبيهات.';
+
+  @override
+  String get notif_permission_grant => 'منح الإذن';
+
+  @override
   String get hint_fab => 'اضغط + لإضافة معاملات بسرعة — صوت أو يدوي';
 
   @override
@@ -2386,4 +2396,192 @@ class AppLocalizationsAr extends AppLocalizations {
   String dashboard_account_selector(String name) {
     return 'اختر الحساب: $name';
   }
+
+  @override
+  String get voice_ai_thinking_messages =>
+      'هممم...يوم كبير هاه!;خليني أجيب الآلة الحاسبة...;جيب فاضي ولا حساب فاضي؟;بحسب الأرقام...;محفظتك اترعشت;الحساب صعب، ثانية...;لحظة، بعد الأصفار...;بحلل اختياراتك المالية...;دي كانت ضرورة ولا رفاهية؟;هممم، أسلوب صرف مثير...;بشغل الأرقام، لحظة...;بحلل... مش زي ميزانيتك';
+
+  @override
+  String get voice_ai_cancel => 'إلغاء';
+
+  @override
+  String get reports_net_cash_flow => 'صافي التدفق النقدي';
+
+  @override
+  String reports_vs_last_month_pct(String arrow, int pct) {
+    return '$arrow $pct% مقارنة بالشهر الماضي';
+  }
+
+  @override
+  String get reports_this_month => 'هذا الشهر';
+
+  @override
+  String get reports_last_month => 'الشهر الماضي';
+
+  @override
+  String get reports_3_months => '3 أشهر';
+
+  @override
+  String get reports_6_months => '6 أشهر';
+
+  @override
+  String get reports_custom => 'مخصص...';
+
+  @override
+  String get reports_all_types => 'الكل';
+
+  @override
+  String get reports_clear_filters => 'مسح';
+
+  @override
+  String get reports_income_by_category => 'الدخل حسب الفئة';
+
+  @override
+  String get reports_spending_by_category => 'المصاريف حسب الفئة';
+
+  @override
+  String reports_category_count(int count) {
+    return '$count فئة';
+  }
+
+  @override
+  String reports_budget_label(String amount) {
+    return 'الميزانية: $amount';
+  }
+
+  @override
+  String reports_insight_savings(int rate) {
+    return 'وفرت $rate% من دخلك هذا الشهر!';
+  }
+
+  @override
+  String get reports_total_expenses_period => 'إجمالي المصاريف';
+
+  @override
+  String get reports_total_income_period => 'إجمالي الدخل';
+
+  @override
+  String reports_vs_previous_pct(String arrow, String pct) {
+    return '$arrow $pct% مقارنة بالفترة السابقة';
+  }
+
+  @override
+  String get reports_spending_pace => 'وتيرة الإنفاق';
+
+  @override
+  String reports_pace_label(String amount) {
+    return 'متوسط $amount/يوم';
+  }
+
+  @override
+  String get reports_daily_activity => 'النشاط اليومي';
+
+  @override
+  String get reports_weekly_breakdown => 'التفصيل الأسبوعي';
+
+  @override
+  String reports_week_n(int n) {
+    return 'الأسبوع $n';
+  }
+
+  @override
+  String get reports_current_period => 'الفترة الحالية';
+
+  @override
+  String get reports_previous_period => 'الفترة السابقة';
+
+  @override
+  String get reports_lowest_day => 'أقل يوم';
+
+  @override
+  String get reports_transactions_count => 'المعاملات';
+
+  @override
+  String get reports_net_label => 'الصافي';
+
+  @override
+  String get reports_last_6_months => 'آخر 6 أشهر';
+
+  @override
+  String reports_date_range(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get reports_select_range => 'اختر نطاق التاريخ';
+
+  @override
+  String get reports_last_7_days => 'آخر 7 أيام';
+
+  @override
+  String get reports_last_30_days => 'آخر 30 يوم';
+
+  @override
+  String get reports_this_quarter => 'هذا الربع';
+
+  @override
+  String get reports_last_quarter => 'الربع الماضي';
+
+  @override
+  String get reports_apply => 'تطبيق';
+
+  @override
+  String reports_category_top(String name) {
+    return '$name هي الفئة الأولى';
+  }
+
+  @override
+  String get hint_accounts => 'اضغط للتبديل بين الحسابات';
+
+  @override
+  String get home_filter_title => 'تصفية';
+
+  @override
+  String get home_filter_date_range => 'نطاق التاريخ';
+
+  @override
+  String get home_filter_today => 'اليوم';
+
+  @override
+  String get home_filter_this_week => 'هذا الأسبوع';
+
+  @override
+  String get home_filter_this_month => 'هذا الشهر';
+
+  @override
+  String get home_filter_last_month => 'الشهر الماضي';
+
+  @override
+  String get home_filter_custom_range => 'نطاق مخصص...';
+
+  @override
+  String get home_filter_category => 'الفئة';
+
+  @override
+  String get home_filter_apply => 'تطبيق الفلاتر';
+
+  @override
+  String get home_filter_clear => 'مسح الكل';
+
+  @override
+  String semantics_insight_label(String text) {
+    return 'إحصاء: $text';
+  }
+
+  @override
+  String get semantics_daily_trend_sparkline => 'مخطط الاتجاه اليومي';
+
+  @override
+  String semantics_spending_trend_chart(int days) {
+    return 'مخطط اتجاه الإنفاق خلال آخر $days أيام مع مقارنة الفترة السابقة';
+  }
+
+  @override
+  String semantics_spending_heatmap(int count) {
+    return 'خريطة حرارة نشاط الإنفاق اليومي خلال آخر $count أيام. الألوان الداكنة تشير إلى إنفاق أعلى.';
+  }
+
+  @override
+  String get semantics_spending_velocity_chart =>
+      'مخطط وتيرة الإنفاق التراكمي مع توقعات نهاية الشهر';
 }

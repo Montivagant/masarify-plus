@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @nav_subscriptions.
   ///
   /// In en, this message translates to:
-  /// **'Recurring'**
+  /// **'Bills'**
   String get nav_subscriptions;
 
   /// No description provided for @dashboard_title.
@@ -1411,6 +1411,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Analyzing with AI...'**
   String get voice_ai_parsing;
+
+  /// No description provided for @voice_cancel_recording.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel recording'**
+  String get voice_cancel_recording;
 
   /// No description provided for @permission_allow.
   ///
@@ -4371,6 +4377,18 @@ abstract class AppLocalizations {
   /// **'Notification permission denied. Enable it in Settings to receive alerts.'**
   String get notif_permission_denied;
 
+  /// No description provided for @notif_permission_banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are disabled. Tap to grant permission so alerts can reach you.'**
+  String get notif_permission_banner;
+
+  /// No description provided for @notif_permission_grant.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Permission'**
+  String get notif_permission_grant;
+
   /// No description provided for @hint_fab.
   ///
   /// In en, this message translates to:
@@ -4430,6 +4448,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select account: {name}'**
   String dashboard_account_selector(String name);
+
+  /// No description provided for @voice_ai_thinking_messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Hmmm...big day huh!;Let me get my calculator...;Empty pocket or empty bank account?;Crunching those numbers...;Your wallet just flinched;Math is hard, give me a sec...;One moment, counting zeros...;Decoding your financial choices...;Was that a need or a want?;Hmm, interesting spending pattern...;Running the numbers, please hold...;Processing... unlike your budget'**
+  String get voice_ai_thinking_messages;
+
+  /// No description provided for @voice_ai_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get voice_ai_cancel;
+
+  /// No description provided for @reports_net_cash_flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Cash Flow'**
+  String get reports_net_cash_flow;
+
+  /// No description provided for @reports_vs_last_month_pct.
+  ///
+  /// In en, this message translates to:
+  /// **'{arrow} {pct}% vs last month'**
+  String reports_vs_last_month_pct(String arrow, int pct);
+
+  /// No description provided for @reports_this_month.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get reports_this_month;
+
+  /// No description provided for @reports_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Month'**
+  String get reports_last_month;
+
+  /// No description provided for @reports_3_months.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Months'**
+  String get reports_3_months;
+
+  /// No description provided for @reports_6_months.
+  ///
+  /// In en, this message translates to:
+  /// **'6 Months'**
+  String get reports_6_months;
+
+  /// No description provided for @reports_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom...'**
+  String get reports_custom;
+
+  /// No description provided for @reports_all_types.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reports_all_types;
+
+  /// No description provided for @reports_clear_filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get reports_clear_filters;
+
+  /// No description provided for @reports_income_by_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Income by Category'**
+  String get reports_income_by_category;
+
+  /// No description provided for @reports_spending_by_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by Category'**
+  String get reports_spending_by_category;
+
+  /// No description provided for @reports_category_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} categories'**
+  String reports_category_count(int count);
+
+  /// No description provided for @reports_budget_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget: {amount}'**
+  String reports_budget_label(String amount);
+
+  /// No description provided for @reports_insight_savings.
+  ///
+  /// In en, this message translates to:
+  /// **'You saved {rate}% of your income this month!'**
+  String reports_insight_savings(int rate);
+
+  /// No description provided for @reports_total_expenses_period.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Expenses'**
+  String get reports_total_expenses_period;
+
+  /// No description provided for @reports_total_income_period.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Income'**
+  String get reports_total_income_period;
+
+  /// No description provided for @reports_vs_previous_pct.
+  ///
+  /// In en, this message translates to:
+  /// **'{arrow} {pct}% vs previous period'**
+  String reports_vs_previous_pct(String arrow, String pct);
+
+  /// No description provided for @reports_spending_pace.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending Pace'**
+  String get reports_spending_pace;
+
+  /// No description provided for @reports_pace_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg {amount}/day'**
+  String reports_pace_label(String amount);
+
+  /// No description provided for @reports_daily_activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Activity'**
+  String get reports_daily_activity;
+
+  /// No description provided for @reports_weekly_breakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Breakdown'**
+  String get reports_weekly_breakdown;
+
+  /// No description provided for @reports_week_n.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {n}'**
+  String reports_week_n(int n);
+
+  /// No description provided for @reports_current_period.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Period'**
+  String get reports_current_period;
+
+  /// No description provided for @reports_previous_period.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous Period'**
+  String get reports_previous_period;
+
+  /// No description provided for @reports_lowest_day.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest Day'**
+  String get reports_lowest_day;
+
+  /// No description provided for @reports_transactions_count.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get reports_transactions_count;
+
+  /// No description provided for @reports_net_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get reports_net_label;
+
+  /// No description provided for @reports_last_6_months.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 6 Months'**
+  String get reports_last_6_months;
+
+  /// No description provided for @reports_date_range.
+  ///
+  /// In en, this message translates to:
+  /// **'{start} - {end}'**
+  String reports_date_range(String start, String end);
+
+  /// No description provided for @reports_select_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date Range'**
+  String get reports_select_range;
+
+  /// No description provided for @reports_last_7_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 Days'**
+  String get reports_last_7_days;
+
+  /// No description provided for @reports_last_30_days.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 Days'**
+  String get reports_last_30_days;
+
+  /// No description provided for @reports_this_quarter.
+  ///
+  /// In en, this message translates to:
+  /// **'This Quarter'**
+  String get reports_this_quarter;
+
+  /// No description provided for @reports_last_quarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Quarter'**
+  String get reports_last_quarter;
+
+  /// No description provided for @reports_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get reports_apply;
+
+  /// No description provided for @reports_category_top.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is your #1 category'**
+  String reports_category_top(String name);
+
+  /// No description provided for @hint_accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to switch between accounts'**
+  String get hint_accounts;
+
+  /// No description provided for @home_filter_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get home_filter_title;
+
+  /// No description provided for @home_filter_date_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Range'**
+  String get home_filter_date_range;
+
+  /// No description provided for @home_filter_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get home_filter_today;
+
+  /// No description provided for @home_filter_this_week.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get home_filter_this_week;
+
+  /// No description provided for @home_filter_this_month.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get home_filter_this_month;
+
+  /// No description provided for @home_filter_last_month.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Month'**
+  String get home_filter_last_month;
+
+  /// No description provided for @home_filter_custom_range.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Range...'**
+  String get home_filter_custom_range;
+
+  /// No description provided for @home_filter_category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get home_filter_category;
+
+  /// No description provided for @home_filter_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Filters'**
+  String get home_filter_apply;
+
+  /// No description provided for @home_filter_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get home_filter_clear;
+
+  /// No description provided for @semantics_insight_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Insight: {text}'**
+  String semantics_insight_label(String text);
+
+  /// No description provided for @semantics_daily_trend_sparkline.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily trend sparkline'**
+  String get semantics_daily_trend_sparkline;
+
+  /// No description provided for @semantics_spending_trend_chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending trend chart for the last {days} days with previous period comparison'**
+  String semantics_spending_trend_chart(int days);
+
+  /// No description provided for @semantics_spending_heatmap.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily spending activity heatmap for the last {count} days. Darker colors indicate higher spending.'**
+  String semantics_spending_heatmap(int count);
+
+  /// No description provided for @semantics_spending_velocity_chart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cumulative spending pace chart with month-end projection'**
+  String get semantics_spending_velocity_chart;
 }
 
 class _AppLocalizationsDelegate

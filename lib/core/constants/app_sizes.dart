@@ -39,10 +39,12 @@ abstract final class AppSizes {
   static const double bottomScrollPadding =
       130; // nav bar (64) + margin (16) + raised FAB clearance (50)
   static const double bottomNavHeight = 64; // WS-6: M3 standard height
-  static const double fabSize = 56;
+  static const double fabSize = 52;
+  static const double fabSizeLegacy = 56;
   static const double minTapTarget = 48; // Accessibility: min touch target
 
   // ── Fine spacing ─────────────────────────────────────────────────────
+  static const double none = 0.0;
   static const double xxs = 2;
 
   // ── Icon containers ─────────────────────────────────────────────────
@@ -182,6 +184,27 @@ abstract final class AppSizes {
   static const double voicePillStopSize = 36.0;
   static const double voicePillStopIconSize = 14.0;
   static const double voicePillDotSize = 10.0;
+  static const double voicePillBottomMargin = 24.0; // lg — nudged up from md
+
+  // ── AI thinking overlay ───────────────────────────────────────────
+  static const double aiThinkingMaxWidth = 280.0;
+  static const double aiThinkingRobotSize = 100.0;
+  static const double aiThinkingBlurSigma = 10.0;
+  static const double aiThinkingTextHeight = 40.0;
+
+  // ── Analytics / Reports ──────────────────────────────────────────
+  static const double sparklineHeight = 40.0;
+  static const double heatmapCellSize = 20.0;
+  static const double heatmapCellGap = 3.0;
+  static const double heatmapCellRadius = 4.0;
+  static const double velocityChartHeight = 160.0;
+  static const double weeklyBarHeight = 28.0;
+  static const double weeklyLabelWidth = 56.0;
+  static const double weeklyBarMinWidth = 2.0;
+  static const double insightCardIconSize = 36.0;
+  static const double donutChartSize = 180.0;
+  static const double donutCenterRadius = 55.0;
+  static const double categoryProgressHeight = 6.0;
 
   // ── Swipe card ──────────────────────────────────────────────────────
   static const double swipeCardMaxWidth = 340.0;

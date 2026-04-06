@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nav_analytics => 'Analytics';
 
   @override
-  String get nav_subscriptions => 'Recurring';
+  String get nav_subscriptions => 'Bills';
 
   @override
   String get dashboard_title => 'Masarify';
@@ -680,6 +680,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voice_ai_parsing => 'Analyzing with AI...';
+
+  @override
+  String get voice_cancel_recording => 'Cancel recording';
 
   @override
   String get permission_allow => 'Allow';
@@ -2369,6 +2372,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notification permission denied. Enable it in Settings to receive alerts.';
 
   @override
+  String get notif_permission_banner =>
+      'Notifications are disabled. Tap to grant permission so alerts can reach you.';
+
+  @override
+  String get notif_permission_grant => 'Grant Permission';
+
+  @override
   String get hint_fab => 'Tap + to quickly add transactions — Voice or Manual';
 
   @override
@@ -2403,4 +2413,192 @@ class AppLocalizationsEn extends AppLocalizations {
   String dashboard_account_selector(String name) {
     return 'Select account: $name';
   }
+
+  @override
+  String get voice_ai_thinking_messages =>
+      'Hmmm...big day huh!;Let me get my calculator...;Empty pocket or empty bank account?;Crunching those numbers...;Your wallet just flinched;Math is hard, give me a sec...;One moment, counting zeros...;Decoding your financial choices...;Was that a need or a want?;Hmm, interesting spending pattern...;Running the numbers, please hold...;Processing... unlike your budget';
+
+  @override
+  String get voice_ai_cancel => 'Cancel';
+
+  @override
+  String get reports_net_cash_flow => 'Net Cash Flow';
+
+  @override
+  String reports_vs_last_month_pct(String arrow, int pct) {
+    return '$arrow $pct% vs last month';
+  }
+
+  @override
+  String get reports_this_month => 'This Month';
+
+  @override
+  String get reports_last_month => 'Last Month';
+
+  @override
+  String get reports_3_months => '3 Months';
+
+  @override
+  String get reports_6_months => '6 Months';
+
+  @override
+  String get reports_custom => 'Custom...';
+
+  @override
+  String get reports_all_types => 'All';
+
+  @override
+  String get reports_clear_filters => 'Clear';
+
+  @override
+  String get reports_income_by_category => 'Income by Category';
+
+  @override
+  String get reports_spending_by_category => 'Spending by Category';
+
+  @override
+  String reports_category_count(int count) {
+    return '$count categories';
+  }
+
+  @override
+  String reports_budget_label(String amount) {
+    return 'Budget: $amount';
+  }
+
+  @override
+  String reports_insight_savings(int rate) {
+    return 'You saved $rate% of your income this month!';
+  }
+
+  @override
+  String get reports_total_expenses_period => 'Total Expenses';
+
+  @override
+  String get reports_total_income_period => 'Total Income';
+
+  @override
+  String reports_vs_previous_pct(String arrow, String pct) {
+    return '$arrow $pct% vs previous period';
+  }
+
+  @override
+  String get reports_spending_pace => 'Spending Pace';
+
+  @override
+  String reports_pace_label(String amount) {
+    return 'Avg $amount/day';
+  }
+
+  @override
+  String get reports_daily_activity => 'Daily Activity';
+
+  @override
+  String get reports_weekly_breakdown => 'Weekly Breakdown';
+
+  @override
+  String reports_week_n(int n) {
+    return 'Week $n';
+  }
+
+  @override
+  String get reports_current_period => 'Current Period';
+
+  @override
+  String get reports_previous_period => 'Previous Period';
+
+  @override
+  String get reports_lowest_day => 'Lowest Day';
+
+  @override
+  String get reports_transactions_count => 'Transactions';
+
+  @override
+  String get reports_net_label => 'Net';
+
+  @override
+  String get reports_last_6_months => 'Last 6 Months';
+
+  @override
+  String reports_date_range(String start, String end) {
+    return '$start - $end';
+  }
+
+  @override
+  String get reports_select_range => 'Select Date Range';
+
+  @override
+  String get reports_last_7_days => 'Last 7 Days';
+
+  @override
+  String get reports_last_30_days => 'Last 30 Days';
+
+  @override
+  String get reports_this_quarter => 'This Quarter';
+
+  @override
+  String get reports_last_quarter => 'Last Quarter';
+
+  @override
+  String get reports_apply => 'Apply';
+
+  @override
+  String reports_category_top(String name) {
+    return '$name is your #1 category';
+  }
+
+  @override
+  String get hint_accounts => 'Tap to switch between accounts';
+
+  @override
+  String get home_filter_title => 'Filter';
+
+  @override
+  String get home_filter_date_range => 'Date Range';
+
+  @override
+  String get home_filter_today => 'Today';
+
+  @override
+  String get home_filter_this_week => 'This Week';
+
+  @override
+  String get home_filter_this_month => 'This Month';
+
+  @override
+  String get home_filter_last_month => 'Last Month';
+
+  @override
+  String get home_filter_custom_range => 'Custom Range...';
+
+  @override
+  String get home_filter_category => 'Category';
+
+  @override
+  String get home_filter_apply => 'Apply Filters';
+
+  @override
+  String get home_filter_clear => 'Clear All';
+
+  @override
+  String semantics_insight_label(String text) {
+    return 'Insight: $text';
+  }
+
+  @override
+  String get semantics_daily_trend_sparkline => 'Daily trend sparkline';
+
+  @override
+  String semantics_spending_trend_chart(int days) {
+    return 'Spending trend chart for the last $days days with previous period comparison';
+  }
+
+  @override
+  String semantics_spending_heatmap(int count) {
+    return 'Daily spending activity heatmap for the last $count days. Darker colors indicate higher spending.';
+  }
+
+  @override
+  String get semantics_spending_velocity_chart =>
+      'Cumulative spending pace chart with month-end projection';
 }

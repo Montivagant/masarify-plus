@@ -15,13 +15,28 @@ import '../../../../shared/widgets/navigation/app_app_bar.dart';
 
 /// Detail screen for a transfer, showing from/to wallets, amount, fee,
 /// date, and note. Accessible by tapping a transfer entry on the dashboard.
-class TransferDetailScreen extends ConsumerWidget {
+class TransferDetailScreen extends ConsumerStatefulWidget {
   const TransferDetailScreen({super.key, required this.transferId});
 
   final int transferId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TransferDetailScreen> createState() =>
+      _TransferDetailScreenState();
+}
+
+class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
+  late Future<dynamic> _transferFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _transferFuture =
+        ref.read(transferRepositoryProvider).getById(widget.transferId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final cs = context.colors;
     final theme = context.appTheme;
@@ -38,7 +53,7 @@ class TransferDetailScreen extends ConsumerWidget {
         ],
       ),
       body: FutureBuilder(
-        future: ref.read(transferRepositoryProvider).getById(transferId),
+        future: _transferFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator.adaptive());
@@ -194,7 +209,7 @@ class TransferDetailScreen extends ConsumerWidget {
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {
-        await ref.read(transferRepositoryProvider).delete(transferId);
+        await ref.read(transferRepositoryProvider).delete(widget.transferId);
         if (context.mounted) {
           SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
           context.pop();

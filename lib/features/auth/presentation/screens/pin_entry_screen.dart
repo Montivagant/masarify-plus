@@ -135,6 +135,7 @@ class _PinEntryScreenState extends ConsumerState<PinEntryScreen>
     if (ok) {
       _failedAttempts = 0;
       await _auth.clearLockout();
+      if (!mounted) return;
       _unlock();
     } else {
       _failedAttempts++;
