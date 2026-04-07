@@ -172,6 +172,7 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
             ),
           ],
         ),
+        const SizedBox(height: AppSizes.xs),
       ],
     );
   }

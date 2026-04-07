@@ -63,9 +63,11 @@ class BalanceHeader extends ConsumerWidget {
           ),
         ),
       ),
-      padding: const EdgeInsetsDirectional.symmetric(
-        horizontal: AppSizes.screenHPadding,
-        vertical: AppSizes.md,
+      padding: const EdgeInsetsDirectional.only(
+        start: AppSizes.screenHPadding,
+        end: AppSizes.screenHPadding,
+        top: AppSizes.lg,
+        bottom: AppSizes.md,
       ),
       child: Column(
         children: [
@@ -98,7 +100,7 @@ class BalanceHeader extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSizes.xs),
+          const SizedBox(height: AppSizes.sm),
 
           // ── Inline month summary ────────────────────────────────────
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
@@ -197,8 +199,8 @@ class BalanceHeader extends ConsumerWidget {
                         BorderRadius.circular(AppSizes.borderRadiusFull),
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.sm,
-                    vertical: AppSizes.xs,
+                    horizontal: AppSizes.md,
+                    vertical: AppSizes.sm,
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -206,15 +208,15 @@ class BalanceHeader extends ConsumerWidget {
                     children: [
                       Text(
                         selectionLabel,
-                        style: context.textStyles.labelMedium?.copyWith(
-                          color: cs.onSurfaceVariant,
+                        style: context.textStyles.labelLarge?.copyWith(
+                          color: cs.onSurface,
                         ),
                       ),
-                      const SizedBox(width: AppSizes.xxs),
+                      const SizedBox(width: AppSizes.xs),
                       Icon(
                         AppIcons.expandMore,
-                        size: AppSizes.iconXs,
-                        color: cs.onSurfaceVariant,
+                        size: AppSizes.iconSm,
+                        color: cs.onSurface,
                       ),
                     ],
                   ),
@@ -256,9 +258,6 @@ class BalanceHeader extends ConsumerWidget {
                           : () => ref
                               .read(selectedAccountIdProvider.notifier)
                               .state = w.id,
-                      onLongPress: isDragging
-                          ? null
-                          : () => showEditWalletSheet(context, w.id),
                     ),
                     trailing: [
                       Padding(

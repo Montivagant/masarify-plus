@@ -51,7 +51,7 @@ class FilterBar extends ConsumerWidget {
                   // Type filter chips
                   ...TransactionTypeFilter.values.map((type) {
                     final isActive =
-                        filter.typeFilter == type && filter.categoryId == null;
+                        filter.typeFilter == type && filter.categoryIds.isEmpty;
                     return Padding(
                       padding:
                           const EdgeInsetsDirectional.only(end: AppSizes.xs),
@@ -62,7 +62,7 @@ class FilterBar extends ConsumerWidget {
                           ref.read(homeFilterProvider.notifier).state =
                               filter.copyWith(
                             typeFilter: type,
-                            clearCategory: true,
+                            clearCategories: true,
                           );
                         },
                         selectedColor: cs.primary,
@@ -103,7 +103,7 @@ class FilterBar extends ConsumerWidget {
                   // Top-used category chips
                   ..._topCategories(ref).indexed.map((entry) {
                     final (idx, cat) = entry;
-                    final isActive = filter.categoryId == cat.id;
+                    final isActive = filter.categoryIds.contains(cat.id);
                     final catColor = ColorUtils.fromHex(cat.colorHex);
                     final isMostUsed = idx == 0;
                     return Padding(
@@ -136,8 +136,8 @@ class FilterBar extends ConsumerWidget {
                         selected: isActive,
                         onSelected: (_) {
                           ref.read(homeFilterProvider.notifier).state = isActive
-                              ? filter.copyWith(clearCategory: true)
-                              : filter.copyWith(categoryId: cat.id);
+                              ? filter.copyWith(clearCategories: true)
+                              : filter.copyWith(categoryIds: {cat.id});
                         },
                         selectedColor: catColor,
                         labelStyle:
@@ -177,7 +177,7 @@ class FilterBar extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
               ),
               // Active filter indicator dot
-              if (filter.dateRange != null)
+              if (filter.dateRange != null || filter.categoryIds.isNotEmpty)
                 Positioned(
                   top: AppSizes.xs,
                   right: AppSizes.xs,

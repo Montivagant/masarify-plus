@@ -38,10 +38,10 @@ class AccountChip extends StatelessWidget {
   final String? colorHex;
 
   /// Card width for account chips.
-  static const double individualWidth = 110;
+  static const double individualWidth = 120;
 
   /// Card height for all chips.
-  static const double _cardHeight = 64;
+  static const double _cardHeight = 70;
 
   /// Width of the colored left edge strip on selected individual cards.
   static const double _edgeStripWidth = 4;
@@ -139,11 +139,12 @@ class AccountChip extends StatelessWidget {
       );
     }
 
-    // Individual unselected: subtle tonal surface
+    // Individual unselected: same wallet-color tint as selected but no strip.
+    // Only the strip distinguishes selected vs unselected visually.
     return _ChipStyle(
-      backgroundColor: cs.surfaceContainerLow,
+      backgroundColor: walletColor.withValues(alpha: AppSizes.opacityLight2),
       textColor: cs.onSurface.withValues(alpha: AppSizes.opacityStrong),
-      iconColor: cs.onSurfaceVariant.withValues(alpha: AppSizes.opacityMedium),
+      iconColor: walletColor.withValues(alpha: AppSizes.opacityMedium),
       balanceColor: cs.onSurface.withValues(alpha: AppSizes.opacityStrong),
     );
   }

@@ -85,7 +85,7 @@ abstract final class SnackHelper {
     Duration duration = AppDurations.snackbarDefault,
   }) {
     final messenger = _messengerOrNull ?? ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
+    messenger.clearSnackBars();
     return messenger.showSnackBar(
       _buildSnackBar(
         context,
@@ -109,7 +109,7 @@ abstract final class SnackHelper {
     Duration duration = AppDurations.snackbarDefault,
   }) {
     final messenger = _messengerOrNull ?? ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
+    messenger.clearSnackBars();
     return messenger.showSnackBar(
       _buildSnackBar(
         context,
@@ -140,12 +140,14 @@ abstract final class SnackHelper {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Glassmorphic surface: theme-tinted translucent background
-    final bgColor = isDark
+    Color bgColor = isDark
         ? theme.glassCardSurface
         : Color.alphaBlend(
             semanticColor.withValues(alpha: AppSizes.opacitySubtle),
             theme.glassCardSurface,
           );
+    // Slightly more transparent so the snack reads as a floating overlay.
+    bgColor = bgColor.withValues(alpha: 0.88);
 
     final textColor = cs.onSurface;
     final iconColor = semanticColor;
@@ -185,10 +187,15 @@ abstract final class SnackHelper {
         horizontal: AppSizes.md,
         vertical: AppSizes.snackVerticalPadding,
       ),
-      margin: const EdgeInsets.only(
+      margin: EdgeInsets.only(
         left: AppSizes.snackHorizontalMargin,
         right: AppSizes.snackHorizontalMargin,
-        bottom: AppSizes.snackbarBottomMargin,
+        // Position just above the floating bottom nav bar.
+        // The nav bar lives on a nested scaffold (AppScaffoldShell), so we
+        // manually account for its height + margin + system safe-area inset.
+        bottom: AppSizes.bottomNavHeight +
+            AppSizes.md +
+            MediaQuery.paddingOf(context).bottom,
       ),
       elevation: AppSizes.snackElevation,
       duration: duration,
@@ -213,7 +220,7 @@ abstract final class SnackHelper {
   }) {
     final messenger = _messengerOrNull;
     if (messenger == null) return;
-    messenger.hideCurrentSnackBar();
+    messenger.clearSnackBars();
     messenger.showSnackBar(
       _buildSnackBar(
         context,

@@ -13,7 +13,8 @@ import '../../../../shared/providers/home_filter_provider.dart';
 /// Modal bottom sheet with date range and category filters for the home
 /// transaction list.
 ///
-/// Show via `showModalBottomSheet(context: context, builder: (_) => const FilterBottomSheet())`.
+/// Show via `showModalBottomSheet(context: context, isScrollControlled: true,
+///   builder: (_) => const FilterBottomSheet())`.
 class FilterBottomSheet extends ConsumerStatefulWidget {
   const FilterBottomSheet({super.key});
 
@@ -30,19 +31,22 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     super.initState();
     final filter = ref.read(homeFilterProvider);
     _dateRange = filter.dateRange;
-    if (filter.categoryId != null) {
-      _selectedCategoryIds = {filter.categoryId!};
-    }
+    _selectedCategoryIds = Set.of(filter.categoryIds);
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = context.colors;
     final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    return SafeArea(
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: screenHeight * 0.85,
+      ),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: AppSizes.md),
+        padding: EdgeInsets.only(bottom: bottomInset),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -77,178 +81,230 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
                 ],
               ),
             ),
-            const SizedBox(height: AppSizes.md),
+            const SizedBox(height: AppSizes.sm),
+            const Divider(height: 1),
 
-            // ── Date Range Section ────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.l10n.home_filter_date_range,
-                    style: context.textStyles.labelLarge?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: AppSizes.sm),
-                  Wrap(
-                    spacing: AppSizes.sm,
-                    runSpacing: AppSizes.sm,
-                    children: [
-                      _datePresetChip(
-                        context.l10n.home_filter_today,
-                        _todayRange(),
-                      ),
-                      _datePresetChip(
-                        context.l10n.home_filter_this_week,
-                        _thisWeekRange(),
-                      ),
-                      _datePresetChip(
-                        context.l10n.home_filter_this_month,
-                        _thisMonthRange(),
-                      ),
-                      _datePresetChip(
-                        context.l10n.home_filter_last_month,
-                        _lastMonthRange(),
-                      ),
-                      ActionChip(
-                        avatar: Icon(
-                          AppIcons.calendar,
-                          size: AppSizes.iconXs,
-                          color:
-                              _dateRange != null && !_isPresetRange(_dateRange!)
-                                  ? cs.onPrimary
-                                  : cs.onSurfaceVariant,
-                        ),
-                        label: Text(context.l10n.home_filter_custom_range),
-                        backgroundColor:
-                            _dateRange != null && !_isPresetRange(_dateRange!)
-                                ? cs.primary
-                                : null,
-                        labelStyle: context.textStyles.labelLarge?.copyWith(
-                          color:
-                              _dateRange != null && !_isPresetRange(_dateRange!)
-                                  ? cs.onPrimary
-                                  : cs.onSurface,
-                        ),
-                        side: _dateRange != null && !_isPresetRange(_dateRange!)
-                            ? BorderSide.none
-                            : BorderSide(
-                                color: cs.outline
-                                    .withValues(alpha: AppSizes.opacityLight4),
-                              ),
-                        onPressed: _pickCustomRange,
-                      ),
-                    ],
-                  ),
-                  if (_dateRange != null) ...[
-                    const SizedBox(height: AppSizes.sm),
-                    Text(
-                      _formatDateRange(_dateRange!),
-                      style: context.textStyles.bodySmall?.copyWith(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // ── Divider ──────────────────────────────────────────────
-            const SizedBox(height: AppSizes.md),
-
-            // ── Category Section ─────────────────────────────────────
-            if (categories.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.screenHPadding,
+            // ── Scrollable filter content ─────────────────────────────
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                  top: AppSizes.md,
+                  bottom: AppSizes.sm,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      context.l10n.home_filter_category,
-                      style: context.textStyles.labelLarge?.copyWith(
-                        color: cs.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
+                    // Date Range Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.screenHPadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.l10n.home_filter_date_range,
+                            style: context.textStyles.labelLarge?.copyWith(
+                              color: cs.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: AppSizes.sm),
+                          Wrap(
+                            spacing: AppSizes.sm,
+                            runSpacing: AppSizes.sm,
+                            children: [
+                              _datePresetChip(
+                                context.l10n.home_filter_today,
+                                _todayRange(),
+                              ),
+                              _datePresetChip(
+                                context.l10n.home_filter_this_week,
+                                _thisWeekRange(),
+                              ),
+                              _datePresetChip(
+                                context.l10n.home_filter_this_month,
+                                _thisMonthRange(),
+                              ),
+                              _datePresetChip(
+                                context.l10n.home_filter_last_month,
+                                _lastMonthRange(),
+                              ),
+                              ActionChip(
+                                avatar: Icon(
+                                  AppIcons.calendar,
+                                  size: AppSizes.iconXs,
+                                  color: _dateRange != null &&
+                                          !_isPresetRange(_dateRange!)
+                                      ? cs.onPrimary
+                                      : cs.onSurfaceVariant,
+                                ),
+                                label:
+                                    Text(context.l10n.home_filter_custom_range),
+                                backgroundColor: _dateRange != null &&
+                                        !_isPresetRange(_dateRange!)
+                                    ? cs.primary
+                                    : null,
+                                labelStyle:
+                                    context.textStyles.labelLarge?.copyWith(
+                                  color: _dateRange != null &&
+                                          !_isPresetRange(_dateRange!)
+                                      ? cs.onPrimary
+                                      : cs.onSurface,
+                                ),
+                                side: _dateRange != null &&
+                                        !_isPresetRange(_dateRange!)
+                                    ? BorderSide.none
+                                    : BorderSide(
+                                        color: cs.outline.withValues(
+                                          alpha: AppSizes.opacityLight4,
+                                        ),
+                                      ),
+                                onPressed: _pickCustomRange,
+                              ),
+                            ],
+                          ),
+                          if (_dateRange != null) ...[
+                            const SizedBox(height: AppSizes.sm),
+                            Text(
+                              _formatDateRange(_dateRange!),
+                              style: context.textStyles.bodySmall?.copyWith(
+                                color: cs.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSizes.sm),
-                    Wrap(
-                      spacing: AppSizes.sm,
-                      runSpacing: AppSizes.sm,
-                      children: categories.map((cat) {
-                        final isActive = _selectedCategoryIds.contains(cat.id);
-                        final catColor = ColorUtils.fromHex(cat.colorHex);
-                        return FilterChip(
-                          avatar: Icon(
-                            CategoryIconMapper.fromName(cat.iconName),
-                            size: AppSizes.iconXs,
-                            color: isActive ? cs.onPrimary : catColor,
-                          ),
-                          label: Text(
-                            cat.displayName(context.languageCode),
-                          ),
-                          selected: isActive,
-                          selectedColor: catColor,
-                          labelStyle: context.textStyles.labelLarge?.copyWith(
-                            color: isActive ? cs.onPrimary : cs.onSurface,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          showCheckmark: false,
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          side: isActive
-                              ? BorderSide.none
-                              : BorderSide(
-                                  color: catColor.withValues(
-                                    alpha: AppSizes.opacityLight4,
+
+                    // ── Category Section ─────────────────────────────────
+                    if (categories.isNotEmpty) ...[
+                      const SizedBox(height: AppSizes.md),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.screenHPadding,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  context.l10n.home_filter_category,
+                                  style:
+                                      context.textStyles.labelLarge?.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                          onSelected: (_) {
-                            setState(() {
-                              if (isActive) {
-                                _selectedCategoryIds.remove(cat.id);
-                              } else {
-                                // Single select to match the existing
-                                // homeFilterProvider.categoryId behavior.
-                                _selectedCategoryIds = {cat.id};
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
+                                if (_selectedCategoryIds.isNotEmpty) ...[
+                                  const SizedBox(width: AppSizes.xs),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSizes.xs,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: cs.primary,
+                                      borderRadius: BorderRadius.circular(
+                                        AppSizes.borderRadiusFull,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '${_selectedCategoryIds.length}',
+                                      style: context.textStyles.labelSmall
+                                          ?.copyWith(
+                                        color: cs.onPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: AppSizes.sm),
+                            Wrap(
+                              spacing: AppSizes.sm,
+                              runSpacing: AppSizes.sm,
+                              children: categories.map((cat) {
+                                final isActive =
+                                    _selectedCategoryIds.contains(cat.id);
+                                final catColor =
+                                    ColorUtils.fromHex(cat.colorHex);
+                                return FilterChip(
+                                  avatar: Icon(
+                                    CategoryIconMapper.fromName(cat.iconName),
+                                    size: AppSizes.iconXs,
+                                    color: isActive ? cs.onPrimary : catColor,
+                                  ),
+                                  label: Text(
+                                    cat.displayName(context.languageCode),
+                                  ),
+                                  selected: isActive,
+                                  selectedColor: catColor,
+                                  labelStyle:
+                                      context.textStyles.labelLarge?.copyWith(
+                                    color:
+                                        isActive ? cs.onPrimary : cs.onSurface,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  showCheckmark: false,
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  side: isActive
+                                      ? BorderSide.none
+                                      : BorderSide(
+                                          color: catColor.withValues(
+                                            alpha: AppSizes.opacityLight4,
+                                          ),
+                                        ),
+                                  onSelected: (_) {
+                                    setState(() {
+                                      if (isActive) {
+                                        _selectedCategoryIds.remove(cat.id);
+                                      } else {
+                                        _selectedCategoryIds.add(cat.id);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: AppSizes.md),
                   ],
                 ),
               ),
-            const SizedBox(height: AppSizes.lg),
+            ),
 
-            // ── Bottom buttons ────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSizes.screenHPadding,
-              ),
-              child: Row(
-                children: [
-                  // Clear All
-                  TextButton(
-                    onPressed: _clearAll,
-                    child: Text(context.l10n.home_filter_clear),
-                  ),
-                  const Spacer(),
-                  // Apply Filters
-                  FilledButton(
-                    onPressed: _applyFilters,
-                    child: Text(context.l10n.home_filter_apply),
-                  ),
-                ],
+            // ── Fixed action buttons above system safe area ───────────
+            const Divider(height: 1),
+            SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.screenHPadding,
+                  vertical: AppSizes.sm,
+                ),
+                child: Row(
+                  children: [
+                    TextButton(
+                      onPressed: _clearAll,
+                      child: Text(context.l10n.home_filter_clear),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: _applyFilters,
+                      child: Text(context.l10n.home_filter_apply),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -328,7 +384,7 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     ref.read(homeFilterProvider.notifier).state =
         ref.read(homeFilterProvider).copyWith(
               clearDateRange: true,
-              clearCategory: true,
+              clearCategories: true,
             );
     context.pop();
   }
@@ -338,15 +394,14 @@ class _FilterBottomSheetState extends ConsumerState<FilterBottomSheet> {
     ref.read(homeFilterProvider.notifier).state = current.copyWith(
       dateRange: _dateRange,
       clearDateRange: _dateRange == null,
-      categoryId:
-          _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds.first : null,
-      clearCategory: _selectedCategoryIds.isEmpty,
+      categoryIds: Set.of(_selectedCategoryIds),
+      clearCategories: _selectedCategoryIds.isEmpty,
     );
     context.pop();
   }
 }
 
-// ── Date range presets ─────────────────────────────────────────────────────
+// ── Date range presets ─────────────────────────────────────────────────────────
 
 DateTimeRange _todayRange() {
   final now = DateTime.now();

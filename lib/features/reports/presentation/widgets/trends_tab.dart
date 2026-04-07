@@ -188,15 +188,24 @@ class _TrendsBody extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: AppSizes.screenHPadding,
             ),
-            child: Semantics(
-              label: context.l10n.semantics_spending_trend_chart(days),
-              child: RepaintBoundary(
-                child: SizedBox(
-                  height: AppSizes.chartHeightMd,
-                  child: _MainAreaChart(
-                    data: data,
-                    prevData: prevData,
-                    isIncome: isIncome,
+            child: GlassCard(
+              tier: GlassTier.inset,
+              padding: const EdgeInsets.fromLTRB(
+                AppSizes.xs,
+                AppSizes.sm,
+                AppSizes.sm,
+                AppSizes.sm,
+              ),
+              child: Semantics(
+                label: context.l10n.semantics_spending_trend_chart(days),
+                child: RepaintBoundary(
+                  child: SizedBox(
+                    height: AppSizes.chartHeightMd,
+                    child: _MainAreaChart(
+                      data: data,
+                      prevData: prevData,
+                      isIncome: isIncome,
+                    ),
                   ),
                 ),
               ),
