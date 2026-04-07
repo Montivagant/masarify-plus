@@ -20,7 +20,7 @@ enum SortOrder { dateDesc, dateAsc, amountDesc, amountAsc }
 class HomeFilter {
   const HomeFilter({
     this.typeFilter = TransactionTypeFilter.all,
-    this.categoryId,
+    this.categoryIds = const {},
     this.searchQuery = '',
     this.sortOrder = SortOrder.dateDesc,
     this.isSearchActive = false,
@@ -29,8 +29,8 @@ class HomeFilter {
 
   final TransactionTypeFilter typeFilter;
 
-  /// When non-null, filters transactions to this category only.
-  final int? categoryId;
+  /// When non-empty, filters transactions to these categories.
+  final Set<int> categoryIds;
   final String searchQuery;
   final SortOrder sortOrder;
   final bool isSearchActive;
@@ -40,8 +40,8 @@ class HomeFilter {
 
   HomeFilter copyWith({
     TransactionTypeFilter? typeFilter,
-    int? categoryId,
-    bool clearCategory = false,
+    Set<int>? categoryIds,
+    bool clearCategories = false,
     String? searchQuery,
     SortOrder? sortOrder,
     bool? isSearchActive,
@@ -50,7 +50,8 @@ class HomeFilter {
   }) =>
       HomeFilter(
         typeFilter: typeFilter ?? this.typeFilter,
-        categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+        categoryIds:
+            clearCategories ? const {} : (categoryIds ?? this.categoryIds),
         searchQuery: searchQuery ?? this.searchQuery,
         sortOrder: sortOrder ?? this.sortOrder,
         isSearchActive: isSearchActive ?? this.isSearchActive,
@@ -101,22 +102,23 @@ final filteredActivityProvider =
     }
 
     // ── Category filter ───────────────────────────────────────────────
-    if (filter.categoryId != null) {
-      result =
-          result.where((tx) => tx.categoryId == filter.categoryId).toList();
+    if (filter.categoryIds.isNotEmpty) {
+      result = result
+          .where((tx) => filter.categoryIds.contains(tx.categoryId))
+          .toList();
     }
 
     // ── Date range filter ────────────────────────────────────────────
-    if (filter.dateRange != null) {
+    if (filter.dateRange case final range?) {
       final rangeStart = DateTime(
-        filter.dateRange!.start.year,
-        filter.dateRange!.start.month,
-        filter.dateRange!.start.day,
+        range.start.year,
+        range.start.month,
+        range.start.day,
       );
       final rangeEnd = DateTime(
-        filter.dateRange!.end.year,
-        filter.dateRange!.end.month,
-        filter.dateRange!.end.day,
+        range.end.year,
+        range.end.month,
+        range.end.day,
       );
       result = result.where((tx) {
         final txDate = DateTime(
