@@ -162,102 +162,137 @@ class _CardContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatted = MoneyFormatter.formatAmount(transaction.amount);
+    final cs = context.colors;
     final amountLabel =
         '$amountPrefix ${MoneyFormatter.format(transaction.amount, currency: transaction.currencyCode)}';
 
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.md,
-          vertical: AppSizes.sm,
+      borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: AppSizes.sm,
+          vertical: AppSizes.xs,
         ),
-        child: Row(
-          children: [
-            // Brand icon (3-tier logo) or category icon fallback.
-            if (brandInfo != null)
-              BrandLogo(brand: brandInfo!)
-            else
-              Icon(
-                categoryIcon,
-                size: AppSizes.iconMd,
-                color: categoryColor,
-              ),
-            const SizedBox(width: AppSizes.md),
-            // Category (primary, bold) + title (secondary, muted)
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    categoryName,
-                    style: context.textStyles.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Left accent bar ──
+              Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  color: categoryColor,
+                  borderRadius: const BorderRadiusDirectional.only(
+                    topStart: Radius.circular(AppSizes.borderRadiusMdSm),
+                    bottomStart: Radius.circular(AppSizes.borderRadiusMdSm),
                   ),
-                  if (transaction.title.isNotEmpty || walletName != null) ...[
-                    const SizedBox(height: AppSizes.xxs),
-                    Row(
-                      children: [
-                        if (transaction.title.isNotEmpty)
-                          Flexible(
-                            child: Text(
-                              transaction.title,
-                              style: context.textStyles.bodySmall?.copyWith(
-                                color: context.colors.outline,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        if (walletName != null) ...[
-                          if (transaction.title.isNotEmpty)
-                            const SizedBox(width: AppSizes.xs),
-                          Flexible(
-                            child: Text(
-                              walletName!,
-                              style: context.textStyles.labelSmall?.copyWith(
-                                color: context.colors.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                        if (sourceIcon != null) ...[
-                          const SizedBox(width: AppSizes.xs),
-                          Icon(
-                            sourceIcon!,
-                            size: AppSizes.iconXxs,
-                            color: context.colors.outline,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: AppSizes.sm),
-            // Amount
-            Semantics(
-              label: amountLabel,
-              excludeSemantics: true,
-              child: Text(
-                '$amountPrefix $formatted',
-                style: context.textStyles.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: amountColor,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
+              // ── Card body ──
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.md,
+                    vertical: AppSizes.sm,
+                  ),
+                  child: Row(
+                    children: [
+                      // Icon (brand or category)
+                      if (brandInfo != null)
+                        BrandLogo(brand: brandInfo!)
+                      else
+                        Icon(
+                          categoryIcon,
+                          size: AppSizes.iconMd,
+                          color: categoryColor,
+                        ),
+                      const SizedBox(width: AppSizes.md),
+                      // Text column
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Row 1: Category name
+                            Text(
+                              categoryName,
+                              style: context.textStyles.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // Row 2: Transaction title
+                            if (transaction.title.isNotEmpty) ...[
+                              const SizedBox(height: AppSizes.xxs),
+                              Text(
+                                transaction.title,
+                                style: context.textStyles.bodySmall?.copyWith(
+                                  color: cs.outline,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                            // Row 3: Wallet + source
+                            if (walletName != null || sourceIcon != null) ...[
+                              const SizedBox(height: AppSizes.xxs),
+                              Row(
+                                children: [
+                                  if (walletName != null)
+                                    Flexible(
+                                      child: Text(
+                                        walletName!,
+                                        style: context.textStyles.labelSmall
+                                            ?.copyWith(
+                                          color: cs.onSurfaceVariant,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  if (sourceIcon != null) ...[
+                                    if (walletName != null)
+                                      const SizedBox(width: AppSizes.xs),
+                                    Icon(
+                                      sourceIcon!,
+                                      size: AppSizes.iconXxs,
+                                      color: cs.outline,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: AppSizes.sm),
+                      // Amount
+                      Semantics(
+                        label: amountLabel,
+                        excludeSemantics: true,
+                        child: Text(
+                          '$amountPrefix ${MoneyFormatter.formatAmount(transaction.amount)}',
+                          style: context.textStyles.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: amountColor,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
