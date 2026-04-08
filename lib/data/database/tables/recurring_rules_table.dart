@@ -25,4 +25,6 @@ class RecurringRules extends Table {
   IntColumn get linkedTransactionId => integer().nullable()();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get lastProcessedDate => dateTime().nullable()();
+  BoolColumn get autoMarkPaid => boolean().withDefault(const Constant(false))();
+  IntColumn get autoPayWalletId => integer().nullable()();
 }

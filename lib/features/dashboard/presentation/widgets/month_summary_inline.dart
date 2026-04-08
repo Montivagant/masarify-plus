@@ -131,7 +131,7 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
             ),
           ],
         ),
-        const SizedBox(height: AppSizes.xs),
+        const SizedBox(height: AppSizes.sm),
 
         // ── Net row with info popover ──────────────────────────────────
         Row(
@@ -165,14 +165,14 @@ class _MonthSummaryInlineState extends ConsumerState<MonthSummaryInline> {
               hidden
                   ? bullet
                   : '${isPositive ? '+' : '-'}${MoneyFormatter.formatTrailing(net.abs())}',
-              style: bodySmall?.copyWith(
+              style: context.textStyles.titleSmall?.copyWith(
                 color: netColor,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppSizes.xs),
+        const SizedBox(height: AppSizes.sm),
       ],
     );
   }

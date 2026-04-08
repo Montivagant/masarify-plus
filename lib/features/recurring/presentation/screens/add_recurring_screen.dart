@@ -14,6 +14,7 @@ import '../../../../core/services/ai/recurring_pattern_detector.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
+import '../../../../domain/entities/wallet_entity.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -97,6 +98,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   DateTime _startDate = DateTime.now();
   DateTime? _endDate;
   bool _loading = false;
+  bool _autoMarkPaid = false;
+  int? _autoPayWalletId;
 
   /// Suggested category from title text via categorization learning.
   CategoryEntity? _suggestedCategory;
@@ -205,6 +208,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
       _frequency = rule.frequency;
       _startDate = rule.startDate;
       _endDate = rule.endDate;
+      _autoMarkPaid = rule.autoMarkPaid;
+      _autoPayWalletId = rule.autoPayWalletId;
     });
   }
 
@@ -404,6 +409,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
               linkedTransactionId: existing.linkedTransactionId,
               isActive: existing.isActive,
               lastProcessedDate: existing.lastProcessedDate,
+              autoMarkPaid: _autoMarkPaid,
+              autoPayWalletId: _autoMarkPaid ? _autoPayWalletId : null,
             ),
           );
           // Reschedule bill reminder with updated due date
@@ -425,6 +432,8 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           startDate: effectiveStartDate,
           nextDueDate: effectiveNextDue,
           endDate: effectiveEndDate,
+          autoMarkPaid: _autoMarkPaid,
+          autoPayWalletId: _autoMarkPaid ? _autoPayWalletId : null,
         );
         // Schedule bill reminder notification
         await notifService.scheduleBillReminder(
@@ -708,6 +717,9 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
 
         // ── Dates ─────────────────────────────────────────────────
         ..._buildDatePickers(cs),
+
+        // ── Auto-pay ─────────────────────────────────────────────
+        ..._buildAutoPaySection(cs, wallets),
       ],
     );
   }
@@ -733,6 +745,129 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           onPressed: canSave && !_loading ? _save : null,
           isLoading: _loading,
           icon: AppIcons.check,
+        ),
+      ),
+    );
+  }
+
+  // ── Auto-pay Section ────────────────────────────────────────────────────
+
+  List<Widget> _buildAutoPaySection(
+    ColorScheme cs,
+    List<WalletEntity> wallets,
+  ) {
+    final activeWallets = wallets.where((w) => !w.isArchived).toList();
+    final selectedAutoWallet =
+        activeWallets.where((w) => w.id == _autoPayWalletId).firstOrNull;
+
+    return [
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          context.l10n.recurring_auto_pay_label,
+          style: context.textStyles.bodyMedium,
+        ),
+        value: _autoMarkPaid,
+        onChanged: (v) => setState(() {
+          _autoMarkPaid = v;
+          if (!v) _autoPayWalletId = null;
+        }),
+      ),
+      if (_autoMarkPaid) ...[
+        const SizedBox(height: AppSizes.sm),
+        Text(
+          context.l10n.recurring_auto_pay_wallet,
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        GestureDetector(
+          onTap: () => _showAutoPayWalletPicker(activeWallets),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSizes.sm,
+              vertical: AppSizes.md,
+            ),
+            decoration: BoxDecoration(
+              border: Border.all(color: cs.outline),
+              borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
+            ),
+            child: Row(
+              children: [
+                const Icon(AppIcons.wallet, size: AppSizes.iconSm),
+                const SizedBox(width: AppSizes.xs),
+                Expanded(
+                  child: Text(
+                    selectedAutoWallet?.name ??
+                        context.l10n.recurring_auto_pay_wallet,
+                    style: context.textStyles.bodySmall?.copyWith(
+                      color: selectedAutoWallet != null ? null : cs.outline,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(AppIcons.expandMore, size: AppSizes.iconXxs),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSizes.lg),
+      ],
+    ];
+  }
+
+  void _showAutoPayWalletPicker(List<WalletEntity> wallets) {
+    if (wallets.isEmpty) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight:
+                MediaQuery.sizeOf(ctx).height * AppSizes.bottomSheetHeightRatio,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const DragHandle(),
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  AppSizes.screenHPadding,
+                  0,
+                  AppSizes.screenHPadding,
+                  AppSizes.sm,
+                ),
+                child: Text(
+                  context.l10n.recurring_auto_pay_wallet,
+                  style: ctx.textStyles.titleMedium,
+                ),
+              ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: wallets
+                      .map(
+                        (w) => ListTile(
+                          leading: const Icon(AppIcons.wallet),
+                          title: Text(w.name),
+                          trailing: _autoPayWalletId == w.id
+                              ? const Icon(AppIcons.check)
+                              : null,
+                          onTap: () {
+                            setState(() => _autoPayWalletId = w.id);
+                            ctx.pop();
+                          },
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+              const SizedBox(height: AppSizes.md),
+            ],
+          ),
         ),
       ),
     );

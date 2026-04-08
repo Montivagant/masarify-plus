@@ -53,6 +53,8 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
     required DateTime startDate,
     required DateTime nextDueDate,
     DateTime? endDate,
+    bool autoMarkPaid = false,
+    int? autoPayWalletId,
   }) async {
     return _db.transaction(() async {
       // Validate wallet exists and is not archived
@@ -74,6 +76,8 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           startDate: startDate,
           nextDueDate: nextDueDate,
           endDate: Value(endDate),
+          autoMarkPaid: Value(autoMarkPaid),
+          autoPayWalletId: Value(autoPayWalletId),
         ),
       );
     });
@@ -97,6 +101,8 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
           linkedTransactionId: Value(rule.linkedTransactionId),
           isActive: Value(rule.isActive),
           lastProcessedDate: Value(rule.lastProcessedDate),
+          autoMarkPaid: Value(rule.autoMarkPaid),
+          autoPayWalletId: Value(rule.autoPayWalletId),
         ),
       );
 
@@ -184,5 +190,7 @@ class RecurringRuleRepositoryImpl implements IRecurringRuleRepository {
         linkedTransactionId: r.linkedTransactionId,
         isActive: r.isActive,
         lastProcessedDate: r.lastProcessedDate,
+        autoMarkPaid: r.autoMarkPaid,
+        autoPayWalletId: r.autoPayWalletId,
       );
 }

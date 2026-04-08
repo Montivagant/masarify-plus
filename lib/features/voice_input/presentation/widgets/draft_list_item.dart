@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -7,10 +8,15 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 
-/// Compact list row for the voice transaction review screen (list-view mode).
+/// Substantial glassmorphic card for the voice transaction review screen
+/// (list-view mode). Matches the visual weight of the Tinder-style swipe cards.
 ///
-/// Layout: [AccentBar | Checkbox | CategoryIcon | Title+Subtitle | Amount]
-/// With optional single suggestion chip below the main row.
+/// Layout (stacked vertically):
+///   Row 1: Category icon circle + category name + amount (right-aligned)
+///   Row 2: Transaction title + raw transcript (muted italic)
+///   Row 3: Detail pills (wallet, date, type)
+///   Suggestion chip (if any)
+///   Row 4: Include checkbox + Edit button
 class DraftListItem extends StatelessWidget {
   const DraftListItem({
     super.key,
@@ -34,6 +40,8 @@ class DraftListItem extends StatelessWidget {
     this.onSubscriptionTap,
     this.onCreateWallet,
     this.onCreateToWallet,
+    this.rawTranscript,
+    this.transactionDate,
   });
 
   final int id;
@@ -56,6 +64,8 @@ class DraftListItem extends StatelessWidget {
   final VoidCallback? onSubscriptionTap;
   final VoidCallback? onCreateWallet;
   final VoidCallback? onCreateToWallet;
+  final String? rawTranscript;
+  final DateTime? transactionDate;
 
   @override
   Widget build(BuildContext context) {
@@ -84,116 +94,140 @@ class DraftListItem extends StatelessWidget {
     final cardBody = Opacity(
       opacity: isIncluded ? 1.0 : AppSizes.opacityLight5,
       child: GlassCard(
+        showShadow: true,
         margin: const EdgeInsets.symmetric(
           horizontal: AppSizes.screenHPadding,
-          vertical: AppSizes.xs,
+          vertical: AppSizes.sm,
         ),
-        padding: EdgeInsets.zero,
-        child: InkWell(
-          onTap: onEdit,
-          borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-          child: Row(
-            children: [
-              // ── Left-edge accent bar ───────────────────────────
-              Container(
-                width: AppSizes.voiceBarWidth,
-                decoration: BoxDecoration(
-                  color: typeColor,
-                  borderRadius: const BorderRadiusDirectional.only(
-                    topStart: Radius.circular(AppSizes.borderRadiusMd),
-                    bottomStart: Radius.circular(AppSizes.borderRadiusMd),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Row 1: Category icon + name + amount ──────────────
+            Row(
+              children: [
+                // Category icon in colored circle
+                Container(
+                  width: AppSizes.minTapTarget,
+                  height: AppSizes.minTapTarget,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(
+                      alpha: AppSizes.opacityLight,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    categoryIcon,
+                    size: AppSizes.iconSm,
+                    color: categoryColor,
                   ),
                 ),
-              ),
-
-              // ── Card content ───────────────────────────────────
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSizes.sm),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          // Leading checkbox
-                          SizedBox(
-                            width: AppSizes.minTapTarget,
-                            height: AppSizes.minTapTarget,
-                            child: Checkbox(
-                              value: isIncluded,
-                              onChanged: (_) => onToggle(),
-                            ),
-                          ),
-
-                          // Category icon
-                          Container(
-                            width: AppSizes.iconContainerMd,
-                            height: AppSizes.iconContainerMd,
-                            decoration: BoxDecoration(
-                              color: categoryColor.withValues(
-                                alpha: AppSizes.opacityLight,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              categoryIcon,
-                              size: AppSizes.iconSm,
-                              color: categoryColor,
-                            ),
-                          ),
-                          const SizedBox(width: AppSizes.sm),
-
-                          // Title + subtitle
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  title,
-                                  style: textStyles.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: AppSizes.xxs),
-                                Text(
-                                  '${categoryName ?? '\u2014'} \u2022 ${walletName ?? '\u2014'}',
-                                  style: textStyles.bodySmall?.copyWith(
-                                    color: colors.outline,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: AppSizes.sm),
-
-                          // Amount (right-aligned)
-                          Text(
-                            formattedAmount,
-                            style: textStyles.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: typeColor,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // Suggestion chip (if any)
-                      if (suggestionChip != null) suggestionChip,
-                    ],
+                const SizedBox(width: AppSizes.sm),
+                // Category name
+                Expanded(
+                  child: Text(
+                    categoryName ?? '\u2014',
+                    style: textStyles.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: AppSizes.sm),
+                // Amount (right-aligned, color-coded, tabular figures)
+                Text(
+                  formattedAmount,
+                  style: textStyles.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: typeColor,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Row 2: Title + raw transcript ─────────────────────
+            Text(
+              title,
+              style: textStyles.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (rawTranscript != null && rawTranscript != title) ...[
+              const SizedBox(height: AppSizes.xxs),
+              Text(
+                rawTranscript!,
+                style: textStyles.bodySmall?.copyWith(
+                  color: colors.outline,
+                  fontStyle: FontStyle.italic,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
-          ),
+
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Row 3: Detail pills ───────────────────────────────
+            Wrap(
+              spacing: AppSizes.xs,
+              runSpacing: AppSizes.xs,
+              children: [
+                if (walletName != null)
+                  _detailPill(
+                    context,
+                    walletName!,
+                    colors.secondaryContainer,
+                  ),
+                if (transactionDate != null)
+                  _detailPill(
+                    context,
+                    DateFormat('MMM d').format(transactionDate!),
+                    colors.tertiaryContainer,
+                  ),
+                _detailPill(
+                  context,
+                  _typeLabel(context),
+                  typeColor.withValues(alpha: AppSizes.opacityLight),
+                ),
+              ],
+            ),
+
+            // ── Suggestion chip (if any) ──────────────────────────
+            if (suggestionChip != null) ...[
+              const SizedBox(height: AppSizes.sm),
+              suggestionChip,
+            ],
+
+            const SizedBox(height: AppSizes.sm),
+
+            // ── Row 4: Include checkbox + Edit button ─────────────
+            Row(
+              children: [
+                SizedBox(
+                  width: AppSizes.iconMd,
+                  height: AppSizes.iconMd,
+                  child: Checkbox(
+                    value: isIncluded,
+                    onChanged: (_) => onToggle(),
+                  ),
+                ),
+                const SizedBox(width: AppSizes.xs),
+                Text(
+                  context.l10n.voice_include,
+                  style: textStyles.bodySmall,
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: onEdit,
+                  child: Text(context.l10n.common_edit),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -231,6 +265,37 @@ class DraftListItem extends StatelessWidget {
       ),
       child: cardBody,
     );
+  }
+
+  // ── Helper: detail pill ───────────────────────────────────────────
+  Widget _detailPill(BuildContext context, String text, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+      ),
+      child: Text(
+        text,
+        style: context.textStyles.labelSmall,
+      ),
+    );
+  }
+
+  // ── Helper: localized type label ──────────────────────────────────
+  String _typeLabel(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (type) {
+      'income' => l10n.transaction_type_income,
+      'expense' => l10n.transaction_type_expense,
+      'transfer' => l10n.transaction_type_transfer,
+      'cash_withdrawal' => l10n.transaction_type_cash_withdrawal_short,
+      'cash_deposit' => l10n.transaction_type_cash_deposit_short,
+      _ => type,
+    };
   }
 
   /// Builds the highest-priority suggestion chip, or null.
@@ -303,37 +368,31 @@ class DraftListItem extends StatelessWidget {
     VoidCallback? onTap,
   }) {
     final textStyles = context.textStyles;
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(
-        top: AppSizes.xs,
-        start: AppSizes.minTapTarget, // align with text, past checkbox
-      ),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.sm,
-            vertical: AppSizes.xxs,
-          ),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: AppSizes.iconXxs2, color: fgColor),
-              const SizedBox(width: AppSizes.xs),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: textStyles.labelSmall?.copyWith(color: fgColor),
-                ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.sm,
+          vertical: AppSizes.xxs,
+        ),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: AppSizes.iconXxs2, color: fgColor),
+            const SizedBox(width: AppSizes.xs),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: textStyles.labelSmall?.copyWith(color: fgColor),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

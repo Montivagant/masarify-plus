@@ -13,6 +13,7 @@ import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/lists/horizontal_reorderable_row.dart';
 import '../../../../shared/widgets/sheets/show_wallet_sheet.dart';
 import 'account_chip.dart';
@@ -66,7 +67,7 @@ class BalanceHeader extends ConsumerWidget {
       padding: const EdgeInsetsDirectional.only(
         start: AppSizes.screenHPadding,
         end: AppSizes.screenHPadding,
-        top: AppSizes.lg,
+        top: AppSizes.xl,
         bottom: AppSizes.md,
       ),
       child: Column(
@@ -100,81 +101,74 @@ class BalanceHeader extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSizes.sm),
+          const SizedBox(height: AppSizes.md),
 
           // ── Inline month summary ────────────────────────────────────
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
-          const SizedBox(height: AppSizes.sm),
+          const SizedBox(height: AppSizes.md),
 
           // ── Cash wallet banner (always visible) ─────────────────
           if (cashWallet != null) ...[
+            const SizedBox(height: AppSizes.md),
             GestureDetector(
               onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
                   selectedId == cashWallet.id ? null : cashWallet.id,
               onDoubleTap: () => showEditWalletSheet(context, cashWallet.id),
-              child: Container(
-                height: AppSizes.minTapTarget,
+              child: GlassCard(
+                tier: GlassTier.inset,
+                tintColor: cs.primaryContainer.withValues(
+                  alpha: AppSizes.opacityLight3,
+                ),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
                 padding: const EdgeInsetsDirectional.symmetric(
                   horizontal: AppSizes.md,
                 ),
-                decoration: BoxDecoration(
-                  color: theme.glassCardSurface,
-                  borderRadius:
-                      BorderRadius.circular(AppSizes.borderRadiusFull),
-                  border: selectedId == cashWallet.id
-                      ? Border.all(
-                          color: cs.primary.withValues(
-                            alpha: AppSizes.opacityMedium,
-                          ),
-                        )
-                      : Border.all(
-                          color: theme.glassCardBorder,
-                          width: AppSizes.glassBorderWidthSubtle,
-                        ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      AppIcons.walletType('physical_cash'),
-                      size: AppSizes.iconXs,
-                      color: selectedId == cashWallet.id
-                          ? cs.primary
-                          : cs.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppSizes.xs),
-                    Text(
-                      cashWallet.name,
-                      style: context.textStyles.bodyMedium?.copyWith(
+                child: SizedBox(
+                  height: AppSizes.minTapTarget,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.walletType('physical_cash'),
+                        size: AppSizes.iconXs,
                         color: selectedId == cashWallet.id
                             ? cs.primary
                             : cs.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    const SizedBox(width: AppSizes.sm),
-                    Text(
-                      hidden
-                          ? '---'
-                          : MoneyFormatter.formatTrailing(cashWallet.balance),
-                      style: context.textStyles.bodyMedium?.copyWith(
-                        color: cs.onSurface,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: AppSizes.xs),
+                      Text(
+                        cashWallet.name,
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          color: selectedId == cashWallet.id
+                              ? cs.primary
+                              : cs.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSizes.xs),
-                    Icon(
-                      AppIcons.chevronRight,
-                      size: AppSizes.iconXxs,
-                      color: cs.onSurfaceVariant.withValues(
-                        alpha: AppSizes.opacityMedium,
+                      const SizedBox(width: AppSizes.sm),
+                      Text(
+                        hidden
+                            ? '---'
+                            : MoneyFormatter.formatTrailing(cashWallet.balance),
+                        style: context.textStyles.bodyMedium?.copyWith(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: AppSizes.xs),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: AppSizes.iconXxs,
+                        color: cs.onSurfaceVariant.withValues(
+                          alpha: AppSizes.opacityMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: AppSizes.sm),
+            const SizedBox(height: AppSizes.md),
           ],
 
           // ── Account selector dropdown ───────────────────────────────

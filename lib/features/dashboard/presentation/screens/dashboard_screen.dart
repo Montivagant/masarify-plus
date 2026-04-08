@@ -10,6 +10,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/auto_pay_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
@@ -56,6 +57,8 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   static bool _notificationPermissionRequested = false;
 
+  static bool _autoPayProcessed = false;
+
   @override
   void initState() {
     super.initState();
@@ -69,6 +72,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           }
         } catch (e) {
           dev.log('Notification permission failed: $e', name: 'Dashboard');
+        }
+      });
+    }
+    // Process overdue auto-pay bills once per app session.
+    if (!_autoPayProcessed) {
+      _autoPayProcessed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final recurringRepo = ref.read(recurringRuleRepositoryProvider);
+          final service = AutoPayService(recurringRepo);
+          await service.processOverdue();
+        } catch (e) {
+          dev.log('Auto-pay processing failed: $e', name: 'Dashboard');
         }
       });
     }

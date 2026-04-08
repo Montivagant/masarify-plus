@@ -2762,6 +2762,48 @@ abstract class AppLocalizations {
   /// **'Transaction Type'**
   String get recurring_type_label;
 
+  /// No description provided for @recurring_view_all.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get recurring_view_all;
+
+  /// No description provided for @recurring_monthly_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Total'**
+  String get recurring_monthly_total;
+
+  /// No description provided for @recurring_due_this_week.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} due this week'**
+  String recurring_due_this_week(int count);
+
+  /// No description provided for @recurring_upcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get recurring_upcoming;
+
+  /// No description provided for @recurring_paid_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get recurring_paid_section;
+
+  /// No description provided for @recurring_auto_pay_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically mark as paid'**
+  String get recurring_auto_pay_label;
+
+  /// No description provided for @recurring_auto_pay_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Deduct from account'**
+  String get recurring_auto_pay_wallet;
+
   /// No description provided for @calendar_no_transactions_day.
   ///
   /// In en, this message translates to:
@@ -4100,6 +4142,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to Subscriptions & Bills?'**
   String get voice_confirm_subscription_suggest;
+
+  /// No description provided for @voice_include.
+  ///
+  /// In en, this message translates to:
+  /// **'Include'**
+  String get voice_include;
 
   /// No description provided for @insight_upcoming_bills_title.
   ///

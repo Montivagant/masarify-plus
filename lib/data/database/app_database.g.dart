@@ -1305,6 +1305,22 @@ class $RecurringRulesTable extends RecurringRules
   late final GeneratedColumn<DateTime> lastProcessedDate =
       GeneratedColumn<DateTime>('last_processed_date', aliasedName, true,
           type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _autoMarkPaidMeta =
+      const VerificationMeta('autoMarkPaid');
+  @override
+  late final GeneratedColumn<bool> autoMarkPaid = GeneratedColumn<bool>(
+      'auto_mark_paid', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("auto_mark_paid" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _autoPayWalletIdMeta =
+      const VerificationMeta('autoPayWalletId');
+  @override
+  late final GeneratedColumn<int> autoPayWalletId = GeneratedColumn<int>(
+      'auto_pay_wallet_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -1321,7 +1337,9 @@ class $RecurringRulesTable extends RecurringRules
         paidAt,
         linkedTransactionId,
         isActive,
-        lastProcessedDate
+        lastProcessedDate,
+        autoMarkPaid,
+        autoPayWalletId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1416,6 +1434,18 @@ class $RecurringRulesTable extends RecurringRules
           lastProcessedDate.isAcceptableOrUnknown(
               data['last_processed_date']!, _lastProcessedDateMeta));
     }
+    if (data.containsKey('auto_mark_paid')) {
+      context.handle(
+          _autoMarkPaidMeta,
+          autoMarkPaid.isAcceptableOrUnknown(
+              data['auto_mark_paid']!, _autoMarkPaidMeta));
+    }
+    if (data.containsKey('auto_pay_wallet_id')) {
+      context.handle(
+          _autoPayWalletIdMeta,
+          autoPayWalletId.isAcceptableOrUnknown(
+              data['auto_pay_wallet_id']!, _autoPayWalletIdMeta));
+    }
     return context;
   }
 
@@ -1455,6 +1485,10 @@ class $RecurringRulesTable extends RecurringRules
           .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
       lastProcessedDate: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}last_processed_date']),
+      autoMarkPaid: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}auto_mark_paid'])!,
+      autoPayWalletId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}auto_pay_wallet_id']),
     );
   }
 
@@ -1480,6 +1514,8 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
   final int? linkedTransactionId;
   final bool isActive;
   final DateTime? lastProcessedDate;
+  final bool autoMarkPaid;
+  final int? autoPayWalletId;
   const RecurringRule(
       {required this.id,
       required this.walletId,
@@ -1495,7 +1531,9 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       this.paidAt,
       this.linkedTransactionId,
       required this.isActive,
-      this.lastProcessedDate});
+      this.lastProcessedDate,
+      required this.autoMarkPaid,
+      this.autoPayWalletId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1521,6 +1559,10 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
     map['is_active'] = Variable<bool>(isActive);
     if (!nullToAbsent || lastProcessedDate != null) {
       map['last_processed_date'] = Variable<DateTime>(lastProcessedDate);
+    }
+    map['auto_mark_paid'] = Variable<bool>(autoMarkPaid);
+    if (!nullToAbsent || autoPayWalletId != null) {
+      map['auto_pay_wallet_id'] = Variable<int>(autoPayWalletId);
     }
     return map;
   }
@@ -1549,6 +1591,10 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       lastProcessedDate: lastProcessedDate == null && nullToAbsent
           ? const Value.absent()
           : Value(lastProcessedDate),
+      autoMarkPaid: Value(autoMarkPaid),
+      autoPayWalletId: autoPayWalletId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(autoPayWalletId),
     );
   }
 
@@ -1573,6 +1619,8 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       isActive: serializer.fromJson<bool>(json['isActive']),
       lastProcessedDate:
           serializer.fromJson<DateTime?>(json['lastProcessedDate']),
+      autoMarkPaid: serializer.fromJson<bool>(json['autoMarkPaid']),
+      autoPayWalletId: serializer.fromJson<int?>(json['autoPayWalletId']),
     );
   }
   @override
@@ -1594,6 +1642,8 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       'linkedTransactionId': serializer.toJson<int?>(linkedTransactionId),
       'isActive': serializer.toJson<bool>(isActive),
       'lastProcessedDate': serializer.toJson<DateTime?>(lastProcessedDate),
+      'autoMarkPaid': serializer.toJson<bool>(autoMarkPaid),
+      'autoPayWalletId': serializer.toJson<int?>(autoPayWalletId),
     };
   }
 
@@ -1612,7 +1662,9 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
           Value<DateTime?> paidAt = const Value.absent(),
           Value<int?> linkedTransactionId = const Value.absent(),
           bool? isActive,
-          Value<DateTime?> lastProcessedDate = const Value.absent()}) =>
+          Value<DateTime?> lastProcessedDate = const Value.absent(),
+          bool? autoMarkPaid,
+          Value<int?> autoPayWalletId = const Value.absent()}) =>
       RecurringRule(
         id: id ?? this.id,
         walletId: walletId ?? this.walletId,
@@ -1633,6 +1685,10 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
         lastProcessedDate: lastProcessedDate.present
             ? lastProcessedDate.value
             : this.lastProcessedDate,
+        autoMarkPaid: autoMarkPaid ?? this.autoMarkPaid,
+        autoPayWalletId: autoPayWalletId.present
+            ? autoPayWalletId.value
+            : this.autoPayWalletId,
       );
   RecurringRule copyWithCompanion(RecurringRulesCompanion data) {
     return RecurringRule(
@@ -1657,6 +1713,12 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       lastProcessedDate: data.lastProcessedDate.present
           ? data.lastProcessedDate.value
           : this.lastProcessedDate,
+      autoMarkPaid: data.autoMarkPaid.present
+          ? data.autoMarkPaid.value
+          : this.autoMarkPaid,
+      autoPayWalletId: data.autoPayWalletId.present
+          ? data.autoPayWalletId.value
+          : this.autoPayWalletId,
     );
   }
 
@@ -1677,7 +1739,9 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
           ..write('paidAt: $paidAt, ')
           ..write('linkedTransactionId: $linkedTransactionId, ')
           ..write('isActive: $isActive, ')
-          ..write('lastProcessedDate: $lastProcessedDate')
+          ..write('lastProcessedDate: $lastProcessedDate, ')
+          ..write('autoMarkPaid: $autoMarkPaid, ')
+          ..write('autoPayWalletId: $autoPayWalletId')
           ..write(')'))
         .toString();
   }
@@ -1698,7 +1762,9 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
       paidAt,
       linkedTransactionId,
       isActive,
-      lastProcessedDate);
+      lastProcessedDate,
+      autoMarkPaid,
+      autoPayWalletId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1717,7 +1783,9 @@ class RecurringRule extends DataClass implements Insertable<RecurringRule> {
           other.paidAt == this.paidAt &&
           other.linkedTransactionId == this.linkedTransactionId &&
           other.isActive == this.isActive &&
-          other.lastProcessedDate == this.lastProcessedDate);
+          other.lastProcessedDate == this.lastProcessedDate &&
+          other.autoMarkPaid == this.autoMarkPaid &&
+          other.autoPayWalletId == this.autoPayWalletId);
 }
 
 class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
@@ -1736,6 +1804,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
   final Value<int?> linkedTransactionId;
   final Value<bool> isActive;
   final Value<DateTime?> lastProcessedDate;
+  final Value<bool> autoMarkPaid;
+  final Value<int?> autoPayWalletId;
   const RecurringRulesCompanion({
     this.id = const Value.absent(),
     this.walletId = const Value.absent(),
@@ -1752,6 +1822,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
     this.linkedTransactionId = const Value.absent(),
     this.isActive = const Value.absent(),
     this.lastProcessedDate = const Value.absent(),
+    this.autoMarkPaid = const Value.absent(),
+    this.autoPayWalletId = const Value.absent(),
   });
   RecurringRulesCompanion.insert({
     this.id = const Value.absent(),
@@ -1769,6 +1841,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
     this.linkedTransactionId = const Value.absent(),
     this.isActive = const Value.absent(),
     this.lastProcessedDate = const Value.absent(),
+    this.autoMarkPaid = const Value.absent(),
+    this.autoPayWalletId = const Value.absent(),
   })  : walletId = Value(walletId),
         categoryId = Value(categoryId),
         amount = Value(amount),
@@ -1793,6 +1867,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
     Expression<int>? linkedTransactionId,
     Expression<bool>? isActive,
     Expression<DateTime>? lastProcessedDate,
+    Expression<bool>? autoMarkPaid,
+    Expression<int>? autoPayWalletId,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1811,6 +1887,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
         'linked_transaction_id': linkedTransactionId,
       if (isActive != null) 'is_active': isActive,
       if (lastProcessedDate != null) 'last_processed_date': lastProcessedDate,
+      if (autoMarkPaid != null) 'auto_mark_paid': autoMarkPaid,
+      if (autoPayWalletId != null) 'auto_pay_wallet_id': autoPayWalletId,
     });
   }
 
@@ -1829,7 +1907,9 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
       Value<DateTime?>? paidAt,
       Value<int?>? linkedTransactionId,
       Value<bool>? isActive,
-      Value<DateTime?>? lastProcessedDate}) {
+      Value<DateTime?>? lastProcessedDate,
+      Value<bool>? autoMarkPaid,
+      Value<int?>? autoPayWalletId}) {
     return RecurringRulesCompanion(
       id: id ?? this.id,
       walletId: walletId ?? this.walletId,
@@ -1846,6 +1926,8 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
       linkedTransactionId: linkedTransactionId ?? this.linkedTransactionId,
       isActive: isActive ?? this.isActive,
       lastProcessedDate: lastProcessedDate ?? this.lastProcessedDate,
+      autoMarkPaid: autoMarkPaid ?? this.autoMarkPaid,
+      autoPayWalletId: autoPayWalletId ?? this.autoPayWalletId,
     );
   }
 
@@ -1897,6 +1979,12 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
     if (lastProcessedDate.present) {
       map['last_processed_date'] = Variable<DateTime>(lastProcessedDate.value);
     }
+    if (autoMarkPaid.present) {
+      map['auto_mark_paid'] = Variable<bool>(autoMarkPaid.value);
+    }
+    if (autoPayWalletId.present) {
+      map['auto_pay_wallet_id'] = Variable<int>(autoPayWalletId.value);
+    }
     return map;
   }
 
@@ -1917,7 +2005,9 @@ class RecurringRulesCompanion extends UpdateCompanion<RecurringRule> {
           ..write('paidAt: $paidAt, ')
           ..write('linkedTransactionId: $linkedTransactionId, ')
           ..write('isActive: $isActive, ')
-          ..write('lastProcessedDate: $lastProcessedDate')
+          ..write('lastProcessedDate: $lastProcessedDate, ')
+          ..write('autoMarkPaid: $autoMarkPaid, ')
+          ..write('autoPayWalletId: $autoPayWalletId')
           ..write(')'))
         .toString();
   }
@@ -8299,6 +8389,8 @@ typedef $$RecurringRulesTableCreateCompanionBuilder = RecurringRulesCompanion
   Value<int?> linkedTransactionId,
   Value<bool> isActive,
   Value<DateTime?> lastProcessedDate,
+  Value<bool> autoMarkPaid,
+  Value<int?> autoPayWalletId,
 });
 typedef $$RecurringRulesTableUpdateCompanionBuilder = RecurringRulesCompanion
     Function({
@@ -8317,6 +8409,8 @@ typedef $$RecurringRulesTableUpdateCompanionBuilder = RecurringRulesCompanion
   Value<int?> linkedTransactionId,
   Value<bool> isActive,
   Value<DateTime?> lastProcessedDate,
+  Value<bool> autoMarkPaid,
+  Value<int?> autoPayWalletId,
 });
 
 final class $$RecurringRulesTableReferences
@@ -8419,6 +8513,13 @@ class $$RecurringRulesTableFilterComposer
 
   ColumnFilters<DateTime> get lastProcessedDate => $composableBuilder(
       column: $table.lastProcessedDate,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get autoMarkPaid => $composableBuilder(
+      column: $table.autoMarkPaid, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get autoPayWalletId => $composableBuilder(
+      column: $table.autoPayWalletId,
       builder: (column) => ColumnFilters(column));
 
   $$WalletsTableFilterComposer get walletId {
@@ -8533,6 +8634,14 @@ class $$RecurringRulesTableOrderingComposer
       column: $table.lastProcessedDate,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get autoMarkPaid => $composableBuilder(
+      column: $table.autoMarkPaid,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get autoPayWalletId => $composableBuilder(
+      column: $table.autoPayWalletId,
+      builder: (column) => ColumnOrderings(column));
+
   $$WalletsTableOrderingComposer get walletId {
     final $$WalletsTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -8621,6 +8730,12 @@ class $$RecurringRulesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get lastProcessedDate => $composableBuilder(
       column: $table.lastProcessedDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get autoMarkPaid => $composableBuilder(
+      column: $table.autoMarkPaid, builder: (column) => column);
+
+  GeneratedColumn<int> get autoPayWalletId => $composableBuilder(
+      column: $table.autoPayWalletId, builder: (column) => column);
 
   $$WalletsTableAnnotationComposer get walletId {
     final $$WalletsTableAnnotationComposer composer = $composerBuilder(
@@ -8724,6 +8839,8 @@ class $$RecurringRulesTableTableManager extends RootTableManager<
             Value<int?> linkedTransactionId = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<DateTime?> lastProcessedDate = const Value.absent(),
+            Value<bool> autoMarkPaid = const Value.absent(),
+            Value<int?> autoPayWalletId = const Value.absent(),
           }) =>
               RecurringRulesCompanion(
             id: id,
@@ -8741,6 +8858,8 @@ class $$RecurringRulesTableTableManager extends RootTableManager<
             linkedTransactionId: linkedTransactionId,
             isActive: isActive,
             lastProcessedDate: lastProcessedDate,
+            autoMarkPaid: autoMarkPaid,
+            autoPayWalletId: autoPayWalletId,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -8758,6 +8877,8 @@ class $$RecurringRulesTableTableManager extends RootTableManager<
             Value<int?> linkedTransactionId = const Value.absent(),
             Value<bool> isActive = const Value.absent(),
             Value<DateTime?> lastProcessedDate = const Value.absent(),
+            Value<bool> autoMarkPaid = const Value.absent(),
+            Value<int?> autoPayWalletId = const Value.absent(),
           }) =>
               RecurringRulesCompanion.insert(
             id: id,
@@ -8775,6 +8896,8 @@ class $$RecurringRulesTableTableManager extends RootTableManager<
             linkedTransactionId: linkedTransactionId,
             isActive: isActive,
             lastProcessedDate: lastProcessedDate,
+            autoMarkPaid: autoMarkPaid,
+            autoPayWalletId: autoPayWalletId,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (

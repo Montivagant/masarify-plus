@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -235,6 +237,49 @@ class TransactionDetailScreen extends ConsumerWidget {
                           label: context.l10n.transaction_location,
                           value: tx.locationName!,
                         ),
+                        if (tx.latitude != null && tx.longitude != null) ...[
+                          const SizedBox(height: AppSizes.sm),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.borderRadiusMd,
+                            ),
+                            child: SizedBox(
+                              height: AppSizes.chartHeightMd,
+                              child: FlutterMap(
+                                options: MapOptions(
+                                  initialCenter:
+                                      LatLng(tx.latitude!, tx.longitude!),
+                                  initialZoom: 15,
+                                  interactionOptions: const InteractionOptions(
+                                    flags: InteractiveFlag.none,
+                                  ),
+                                ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate:
+                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                    userAgentPackageName: 'com.masarify.app',
+                                  ),
+                                  MarkerLayer(
+                                    markers: [
+                                      Marker(
+                                        point: LatLng(
+                                          tx.latitude!,
+                                          tx.longitude!,
+                                        ),
+                                        child: Icon(
+                                          AppIcons.location,
+                                          color: cs.primary,
+                                          size: AppSizes.iconLg,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                       if (tx.source != 'manual') ...[
                         _divider(cs),

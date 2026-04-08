@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// Current schema version — referenced by both migrations and backup service.
-  static const int currentSchemaVersion = 18;
+  static const int currentSchemaVersion = 19;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -309,6 +309,14 @@ class AppDatabase extends _$AppDatabase {
           if (from < 18) {
             await customStatement(
               "ALTER TABLE budgets ADD COLUMN period TEXT NOT NULL DEFAULT 'monthly'",
+            );
+          }
+          if (from < 19) {
+            await customStatement(
+              'ALTER TABLE recurring_rules ADD COLUMN auto_mark_paid INTEGER NOT NULL DEFAULT 0',
+            );
+            await customStatement(
+              'ALTER TABLE recurring_rules ADD COLUMN auto_pay_wallet_id INTEGER',
             );
           }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.

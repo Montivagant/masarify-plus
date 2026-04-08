@@ -1390,6 +1390,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_type_label => 'نوع المعاملة';
 
   @override
+  String get recurring_view_all => 'عرض الكل';
+
+  @override
+  String get recurring_monthly_total => 'الإجمالي الشهري';
+
+  @override
+  String recurring_due_this_week(int count) {
+    return '$count مستحق هذا الأسبوع';
+  }
+
+  @override
+  String get recurring_upcoming => 'قادم';
+
+  @override
+  String get recurring_paid_section => 'مدفوع';
+
+  @override
+  String get recurring_auto_pay_label => 'وضع علامة مدفوع تلقائياً';
+
+  @override
+  String get recurring_auto_pay_wallet => 'خصم من الحساب';
+
+  @override
   String get calendar_no_transactions_day => 'لا توجد معاملات في هذا اليوم';
 
   @override
@@ -2172,6 +2195,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get voice_confirm_subscription_suggest =>
       'إضافة إلى الاشتراكات والفواتير؟';
+
+  @override
+  String get voice_include => 'تضمين';
 
   @override
   String get insight_upcoming_bills_title => 'فواتير قادمة';

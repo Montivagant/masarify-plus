@@ -769,6 +769,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                     ? draft.noteController.text.trim()
                     : draft.rawText,
                 isIncluded: draft.isIncluded,
+                rawTranscript: draft.rawText,
+                transactionDate: draft.transactionDate,
                 matchedGoalName: draft.matchedGoalName,
                 isSubscriptionLike: draft.isSubscriptionLike,
                 subscriptionAdded: draft.subscriptionAdded,

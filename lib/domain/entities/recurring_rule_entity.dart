@@ -16,6 +16,8 @@ class RecurringRuleEntity {
     this.linkedTransactionId,
     required this.isActive,
     this.lastProcessedDate,
+    this.autoMarkPaid = false,
+    this.autoPayWalletId,
   });
 
   final int id;
@@ -49,6 +51,12 @@ class RecurringRuleEntity {
 
   final bool isActive;
   final DateTime? lastProcessedDate;
+
+  /// Whether this rule should be automatically marked as paid when due.
+  final bool autoMarkPaid;
+
+  /// The wallet to deduct from when auto-paying. Required when [autoMarkPaid] is true.
+  final int? autoPayWalletId;
 
   /// True when the rule is due. For once-frequency (bills), also checks !isPaid.
   /// M-4 fix: normalize to date-only comparison, matching isOverdue behavior.
@@ -97,6 +105,8 @@ class RecurringRuleEntity {
     int? Function()? linkedTransactionId,
     bool? isActive,
     DateTime? Function()? lastProcessedDate,
+    bool? autoMarkPaid,
+    int? Function()? autoPayWalletId,
   }) {
     return RecurringRuleEntity(
       id: id ?? this.id,
@@ -118,6 +128,9 @@ class RecurringRuleEntity {
       lastProcessedDate: lastProcessedDate != null
           ? lastProcessedDate()
           : this.lastProcessedDate,
+      autoMarkPaid: autoMarkPaid ?? this.autoMarkPaid,
+      autoPayWalletId:
+          autoPayWalletId != null ? autoPayWalletId() : this.autoPayWalletId,
     );
   }
 

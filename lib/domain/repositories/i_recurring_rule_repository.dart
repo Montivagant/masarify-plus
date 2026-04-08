@@ -21,6 +21,8 @@ abstract interface class IRecurringRuleRepository {
     required DateTime startDate,
     required DateTime nextDueDate,
     DateTime? endDate,
+    bool autoMarkPaid = false,
+    int? autoPayWalletId,
   });
 
   Future<bool> update(RecurringRuleEntity rule);

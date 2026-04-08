@@ -1402,6 +1402,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_type_label => 'Transaction Type';
 
   @override
+  String get recurring_view_all => 'View All';
+
+  @override
+  String get recurring_monthly_total => 'Monthly Total';
+
+  @override
+  String recurring_due_this_week(int count) {
+    return '$count due this week';
+  }
+
+  @override
+  String get recurring_upcoming => 'Upcoming';
+
+  @override
+  String get recurring_paid_section => 'Paid';
+
+  @override
+  String get recurring_auto_pay_label => 'Automatically mark as paid';
+
+  @override
+  String get recurring_auto_pay_wallet => 'Deduct from account';
+
+  @override
   String get calendar_no_transactions_day => 'No transactions on this day';
 
   @override
@@ -2187,6 +2210,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get voice_confirm_subscription_suggest =>
       'Add to Subscriptions & Bills?';
+
+  @override
+  String get voice_include => 'Include';
 
   @override
   String get insight_upcoming_bills_title => 'Upcoming Bills';
