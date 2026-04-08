@@ -184,7 +184,7 @@ class _CardContent extends StatelessWidget {
             children: [
               // ── Left accent bar ──
               Container(
-                width: 4,
+                width: AppSizes.xs,
                 decoration: BoxDecoration(
                   color: categoryColor,
                   borderRadius: const BorderRadiusDirectional.only(

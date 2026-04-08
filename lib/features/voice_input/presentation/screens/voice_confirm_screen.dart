@@ -442,7 +442,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               child: Transform.scale(
                 scale: _pow(AppSizes.cardStackScale, i),
                 child: Opacity(
-                  opacity: 1.0 - (i * 0.15),
+                  opacity: 1.0 - (i * AppSizes.cardStackOpacityStep),
                   child: IgnorePointer(
                     child: _buildSingleCard(
                       context,

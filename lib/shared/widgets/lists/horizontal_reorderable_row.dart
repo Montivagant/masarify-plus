@@ -185,7 +185,7 @@ class _HorizontalReorderableRowState<T>
                     : Matrix4.translationValues(translateX, 0, 0),
                 child: AnimatedOpacity(
                   duration: AppDurations.microPress,
-                  opacity: isDragging ? 0.85 : 1.0,
+                  opacity: isDragging ? AppSizes.opacityDragging : 1.0,
                   child: widget.itemBuilder(context, item, isDragging),
                 ),
               ),

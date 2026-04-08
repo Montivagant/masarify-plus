@@ -154,6 +154,9 @@ abstract final class AppSizes {
   static const double opacityMedium2 = 0.6;
   static const double opacityStrong = 0.7;
   static const double opacityHeavy = 0.8;
+  static const double opacityDragging = 0.85;
+  static const double opacitySnackbar = 0.88;
+  static const double cardStackOpacityStep = 0.15;
 
   // ── FAB (Speed Dial) ─────────────────────────────────────────────────
   static const double fabRotationAngle = math.pi / 4;

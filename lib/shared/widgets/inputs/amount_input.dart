@@ -149,7 +149,10 @@ class _AmountInputState extends State<AmountInput> {
                 : InputBorder.none,
             focusedBorder: widget.compact
                 ? UnderlineInputBorder(
-                    borderSide: BorderSide(color: cs.primary, width: 2),
+                    borderSide: BorderSide(
+                      color: cs.primary,
+                      width: AppSizes.borderWidthFocus,
+                    ),
                   )
                 : InputBorder.none,
             prefixIcon: widget.compact

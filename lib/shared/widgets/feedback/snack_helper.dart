@@ -147,7 +147,7 @@ abstract final class SnackHelper {
             theme.glassCardSurface,
           );
     // Slightly more transparent so the snack reads as a floating overlay.
-    bgColor = bgColor.withValues(alpha: 0.88);
+    bgColor = bgColor.withValues(alpha: AppSizes.opacitySnackbar);
 
     final textColor = cs.onSurface;
     final iconColor = semanticColor;

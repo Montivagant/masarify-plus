@@ -5,15 +5,6 @@ import 'repository_providers.dart';
 import 'theme_provider.dart';
 import 'transaction_provider.dart';
 
-// ── Report filter state ─────────────────────────────────────────────────
-
-/// Selected month for category breakdown (defaults to current month).
-final reportsCategoryMonthProvider =
-    StateProvider<(int year, int month)>((ref) {
-  final now = DateTime.now();
-  return (now.year, now.month);
-});
-
 // ── Data classes ────────────────────────────────────────────────────────
 
 /// Monthly income/expense pair.

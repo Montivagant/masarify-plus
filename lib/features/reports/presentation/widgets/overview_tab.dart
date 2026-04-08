@@ -448,7 +448,7 @@ class _MiniSparkline extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   color.withValues(alpha: AppSizes.opacityLight3),
-                  color.withValues(alpha: 0.0),
+                  color.withValues(alpha: AppSizes.none),
                 ],
               ),
             ),
