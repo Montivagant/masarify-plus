@@ -111,7 +111,7 @@ class BalanceHeader extends ConsumerWidget {
             GestureDetector(
               onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
                   selectedId == cashWallet.id ? null : cashWallet.id,
-              onLongPress: () => showEditWalletSheet(context, cashWallet.id),
+              onDoubleTap: () => showEditWalletSheet(context, cashWallet.id),
               child: Container(
                 height: AppSizes.minTapTarget,
                 padding: const EdgeInsetsDirectional.symmetric(
@@ -233,6 +233,8 @@ class BalanceHeader extends ConsumerWidget {
                 Expanded(
                   child: HorizontalReorderableRow<WalletEntity>(
                     items: userWallets,
+                    onDoubleTapItem: (index) =>
+                        showEditWalletSheet(context, userWallets[index].id),
                     onReorder: (oldIndex, newIndex) {
                       final reordered = [...userWallets];
                       if (newIndex > oldIndex) newIndex--;

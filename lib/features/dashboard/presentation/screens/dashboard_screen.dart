@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -8,6 +10,7 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
@@ -43,11 +46,36 @@ import '../widgets/transaction_sliver_list.dart';
 /// 4. Pinned filter bar
 /// 5. Filter badge (when both account + type filters active)
 /// 6. Transaction SliverList with date grouping and swipe actions
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  static bool _notificationPermissionRequested = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_notificationPermissionRequested) {
+      _notificationPermissionRequested = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          final granted = await NotificationService.requestPermission();
+          if (granted) {
+            await NotificationService.requestExactAlarmPermission();
+          }
+        } catch (e) {
+          dev.log('Notification permission failed: $e', name: 'Dashboard');
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final now = DateTime.now();
     final monthKey = (now.year, now.month);
     final isOnline = ref.watch(isOnlineProvider).valueOrNull ?? true;

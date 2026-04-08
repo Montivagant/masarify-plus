@@ -29,6 +29,7 @@ class SwipeCard extends StatefulWidget {
     this.isSubscriptionLike = false,
     this.subscriptionAdded = false,
     this.unmatchedHint,
+    this.unmatchedToHint,
     required this.onApprove,
     required this.onSkip,
     this.onTypeTap,
@@ -38,6 +39,7 @@ class SwipeCard extends StatefulWidget {
     this.onTitleTap,
     this.onSubscriptionTap,
     this.onCreateWallet,
+    this.onCreateToWallet,
   });
 
   final IconData categoryIcon;
@@ -53,6 +55,7 @@ class SwipeCard extends StatefulWidget {
   final bool isSubscriptionLike;
   final bool subscriptionAdded;
   final String? unmatchedHint;
+  final String? unmatchedToHint;
   final VoidCallback onApprove;
   final VoidCallback onSkip;
   final VoidCallback? onTypeTap;
@@ -62,6 +65,7 @@ class SwipeCard extends StatefulWidget {
   final VoidCallback? onTitleTap;
   final VoidCallback? onSubscriptionTap;
   final VoidCallback? onCreateWallet;
+  final VoidCallback? onCreateToWallet;
 
   @override
   State<SwipeCard> createState() => _SwipeCardState();
@@ -497,6 +501,39 @@ class _SwipeCardState extends State<SwipeCard>
                     overflow: TextOverflow.ellipsis,
                     style: context.textStyles.labelSmall?.copyWith(
                       color: colors.primary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // ── Unmatched destination wallet banner (transfers) ─────────────
+    if (widget.unmatchedToHint != null) {
+      banners.add(
+        Padding(
+          padding: const EdgeInsets.only(top: AppSizes.sm),
+          child: GestureDetector(
+            onTap: widget.onCreateToWallet,
+            child: Row(
+              children: [
+                Icon(
+                  AppIcons.add,
+                  size: AppSizes.iconXs,
+                  color: colors.tertiary,
+                ),
+                const SizedBox(width: AppSizes.xs),
+                Flexible(
+                  child: Text(
+                    context.l10n
+                        .voice_create_wallet_instead(widget.unmatchedToHint!),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: colors.tertiary,
                     ),
                   ),
                 ),

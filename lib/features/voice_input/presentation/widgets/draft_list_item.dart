@@ -30,8 +30,10 @@ class DraftListItem extends StatelessWidget {
     this.isSubscriptionLike = false,
     this.subscriptionAdded = false,
     this.unmatchedHint,
+    this.unmatchedToHint,
     this.onSubscriptionTap,
     this.onCreateWallet,
+    this.onCreateToWallet,
   });
 
   final int id;
@@ -47,11 +49,13 @@ class DraftListItem extends StatelessWidget {
   final bool isSubscriptionLike;
   final bool subscriptionAdded;
   final String? unmatchedHint;
+  final String? unmatchedToHint;
   final VoidCallback onToggle;
   final VoidCallback onEdit;
   final VoidCallback? onDecline;
   final VoidCallback? onSubscriptionTap;
   final VoidCallback? onCreateWallet;
+  final VoidCallback? onCreateToWallet;
 
   @override
   Widget build(BuildContext context) {
@@ -246,6 +250,18 @@ class DraftListItem extends StatelessWidget {
         bgColor: colors.primary.withValues(alpha: AppSizes.opacityXLight),
         fgColor: colors.primary,
         onTap: onCreateWallet,
+      );
+    }
+
+    // Priority 1b: Unmatched destination wallet (transfers)
+    if (unmatchedToHint != null) {
+      return _chip(
+        context: context,
+        icon: AppIcons.add,
+        label: context.l10n.voice_create_wallet_instead(unmatchedToHint!),
+        bgColor: colors.tertiary.withValues(alpha: AppSizes.opacityXLight),
+        fgColor: colors.tertiary,
+        onTap: onCreateToWallet,
       );
     }
 

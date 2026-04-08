@@ -89,6 +89,58 @@ class TransferRepositoryImpl implements ITransferRepository {
   }
 
   @override
+  Future<bool> update({
+    required int id,
+    required int fromWalletId,
+    required int toWalletId,
+    required int amount,
+    int fee = 0,
+    String? note,
+    required DateTime transferDate,
+  }) async {
+    if (amount <= 0) throw ArgumentError('Transfer amount must be positive');
+    if (fromWalletId == toWalletId) {
+      throw ArgumentError('Cannot transfer to the same wallet');
+    }
+    if (fee < 0) throw ArgumentError('Transfer fee cannot be negative');
+
+    return _db.transaction(() async {
+      final old = await _dao.getById(id);
+      if (old == null) return false;
+
+      // 1. Reverse old balance changes
+      final oldFrom = await _walletDao.getById(old.fromWalletId);
+      final oldTo = await _walletDao.getById(old.toWalletId);
+      if (oldFrom != null) {
+        await _walletDao.adjustBalance(
+          old.fromWalletId,
+          old.amount + old.fee,
+        );
+      }
+      if (oldTo != null) {
+        await _walletDao.adjustBalance(old.toWalletId, -old.amount);
+      }
+
+      // 2. Apply new balance changes
+      await _walletDao.adjustBalance(fromWalletId, -(amount + fee));
+      await _walletDao.adjustBalance(toWalletId, amount);
+
+      // 3. Update the row
+      return _dao.updateTransfer(
+        TransfersCompanion(
+          id: Value(id),
+          fromWalletId: Value(fromWalletId),
+          toWalletId: Value(toWalletId),
+          amount: Value(amount),
+          fee: Value(fee),
+          note: Value(note),
+          transferDate: Value(transferDate),
+        ),
+      );
+    });
+  }
+
+  @override
   Future<bool> delete(int id) async {
     // L2 fix: move read inside transaction to avoid TOCTOU race
     return _db.transaction(() async {

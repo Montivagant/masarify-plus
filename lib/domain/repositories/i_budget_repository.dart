@@ -23,6 +23,7 @@ abstract interface class IBudgetRepository {
     required int limitAmount,
     bool rollover = false,
     int rolloverAmount = 0,
+    String period = 'monthly',
   });
 
   Future<bool> update(BudgetEntity budget);

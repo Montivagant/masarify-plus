@@ -9,15 +9,13 @@ class Budgets extends Table {
   IntColumn get month => integer()(); // 1–12
   IntColumn get year => integer()();
   IntColumn get limitAmount => integer()(); // piastres
-  BoolColumn get rollover =>
-      boolean().withDefault(const Constant(false))();
-  IntColumn get rolloverAmount =>
-      integer().withDefault(const Constant(0))();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get rollover => boolean().withDefault(const Constant(false))();
+  IntColumn get rolloverAmount => integer().withDefault(const Constant(0))();
+  TextColumn get period => text().withDefault(const Constant('monthly'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {categoryId, month, year},
+        {categoryId, month, year, period},
       ];
 }

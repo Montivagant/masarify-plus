@@ -37,6 +37,11 @@ class TransferDao extends DatabaseAccessor<AppDatabase>
   Future<int> insertTransfer(TransfersCompanion entry) =>
       into(transfers).insert(entry);
 
+  Future<bool> updateTransfer(TransfersCompanion entry) =>
+      (update(transfers)..where((t) => t.id.equals(entry.id.value)))
+          .write(entry)
+          .then((count) => count > 0);
+
   Future<bool> deleteById(int id) =>
       (delete(transfers)..where((t) => t.id.equals(id)))
           .go()

@@ -64,7 +64,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   /// Current schema version — referenced by both migrations and backup service.
-  static const int currentSchemaVersion = 17;
+  static const int currentSchemaVersion = 18;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -306,6 +306,11 @@ class AppDatabase extends _$AppDatabase {
             // who never had the table (fresh installs skip this path).
             await customStatement('DROP TABLE IF EXISTS exchange_rates');
           }
+          if (from < 18) {
+            await customStatement(
+              "ALTER TABLE budgets ADD COLUMN period TEXT NOT NULL DEFAULT 'monthly'",
+            );
+          }
           // Indexes are idempotent (IF NOT EXISTS) — always safe to re-run.
           await _createIndexes();
         },
@@ -347,9 +352,13 @@ class AppDatabase extends _$AppDatabase {
     );
     // uniqueKeys on Budgets only applies to CREATE TABLE (fresh installs).
     // Upgraded databases need this explicit index to enforce the constraint.
+    // v18: includes period column to support daily/weekly/monthly/yearly budgets.
     await customStatement(
-      'CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_cat_year_month '
-      'ON budgets(category_id, year, month)',
+      'DROP INDEX IF EXISTS idx_budgets_cat_year_month',
+    );
+    await customStatement(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_budgets_cat_year_month_period '
+      'ON budgets(category_id, year, month, period)',
     );
     // Goal contributions
     await customStatement(

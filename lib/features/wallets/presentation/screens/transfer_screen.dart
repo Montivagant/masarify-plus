@@ -20,7 +20,26 @@ import '../../../../shared/widgets/sheets/drag_handle.dart';
 
 /// Transfer between wallets — Rule #8: never income/expense.
 class TransferScreen extends ConsumerStatefulWidget {
-  const TransferScreen({super.key});
+  const TransferScreen({super.key, this.editId});
+
+  /// When non-null, the screen loads an existing transfer for editing.
+  final int? editId;
+
+  /// Opens the transfer screen in edit mode as a modal bottom sheet.
+  static Future<void> showEdit(BuildContext context, int editId) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: AppSizes.sheetMaxSize,
+        maxChildSize: AppSizes.sheetFullSize,
+        minChildSize: AppSizes.sheetSmallMaxSize,
+        expand: false,
+        builder: (ctx, scrollController) => TransferScreen(editId: editId),
+      ),
+    );
+  }
 
   @override
   ConsumerState<TransferScreen> createState() => _TransferScreenState();
@@ -32,11 +51,18 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
   int _amountPiastres = 0;
   final _noteController = TextEditingController();
   bool _loading = false;
+  DateTime _transferDate = DateTime.now();
+
+  bool get _isEditMode => widget.editId != null;
 
   @override
   void initState() {
     super.initState();
-    _initWallets();
+    if (_isEditMode) {
+      _loadForEdit();
+    } else {
+      _initWallets();
+    }
   }
 
   @override
@@ -61,6 +87,19 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
             wallets.where((w) => w.isSystemWallet && !w.isArchived).firstOrNull;
         _toWalletId = cash?.id;
       }
+    });
+  }
+
+  Future<void> _loadForEdit() async {
+    final transfer =
+        await ref.read(transferRepositoryProvider).getById(widget.editId!);
+    if (!mounted || transfer == null) return;
+    setState(() {
+      _fromWalletId = transfer.fromWalletId;
+      _toWalletId = transfer.toWalletId;
+      _amountPiastres = transfer.amount;
+      _noteController.text = transfer.note ?? '';
+      _transferDate = transfer.transferDate;
     });
   }
 
@@ -165,15 +204,27 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(transferRepositoryProvider).create(
-            fromWalletId: from,
-            toWalletId: to,
-            amount: _amountPiastres,
-            note: _noteController.text.trim().isEmpty
-                ? null
-                : _noteController.text.trim(),
-            transferDate: DateTime.now(),
-          );
+      final note = _noteController.text.trim().isEmpty
+          ? null
+          : _noteController.text.trim();
+      if (_isEditMode) {
+        await ref.read(transferRepositoryProvider).update(
+              id: widget.editId!,
+              fromWalletId: from,
+              toWalletId: to,
+              amount: _amountPiastres,
+              note: note,
+              transferDate: _transferDate,
+            );
+      } else {
+        await ref.read(transferRepositoryProvider).create(
+              fromWalletId: from,
+              toWalletId: to,
+              amount: _amountPiastres,
+              note: note,
+              transferDate: DateTime.now(),
+            );
+      }
       HapticFeedback.heavyImpact();
       if (!mounted) return;
       // L7 fix: show success feedback
@@ -199,7 +250,11 @@ class _TransferScreenState extends ConsumerState<TransferScreen> {
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppAppBar(title: context.l10n.transfer_title),
+      appBar: AppAppBar(
+        title: _isEditMode
+            ? context.l10n.common_edit
+            : context.l10n.transfer_title,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsetsDirectional.fromSTEB(
           AppSizes.screenHPadding,

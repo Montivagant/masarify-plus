@@ -2918,6 +2918,42 @@ abstract class AppLocalizations {
   /// **'Edit Budget'**
   String get budget_edit_title;
 
+  /// No description provided for @budget_period_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Period'**
+  String get budget_period_label;
+
+  /// No description provided for @budget_period_daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get budget_period_daily;
+
+  /// No description provided for @budget_period_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get budget_period_weekly;
+
+  /// No description provided for @budget_period_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get budget_period_monthly;
+
+  /// No description provided for @budget_period_yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get budget_period_yearly;
+
+  /// No description provided for @budget_rollover_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Roll over unused budget'**
+  String get budget_rollover_label;
+
   /// No description provided for @goal_contribution_note.
   ///
   /// In en, this message translates to:

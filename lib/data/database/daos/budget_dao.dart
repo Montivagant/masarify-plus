@@ -20,13 +20,19 @@ class BudgetDao extends DatabaseAccessor<AppDatabase> with _$BudgetDaoMixin {
         ..where((b) => b.year.equals(year) & b.month.equals(month)))
       .get();
 
-  Future<Budget?> getByCategoryAndMonth(int categoryId, int year, int month) =>
+  Future<Budget?> getByCategoryAndMonth(
+    int categoryId,
+    int year,
+    int month, {
+    String period = 'monthly',
+  }) =>
       (select(budgets)
             ..where(
               (b) =>
                   b.categoryId.equals(categoryId) &
                   b.year.equals(year) &
-                  b.month.equals(month),
+                  b.month.equals(month) &
+                  b.period.equals(period),
             ))
           .getSingleOrNull();
 

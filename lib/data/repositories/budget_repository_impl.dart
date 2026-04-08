@@ -104,20 +104,21 @@ class BudgetRepositoryImpl implements IBudgetRepository {
     required int limitAmount,
     bool rollover = false,
     int rolloverAmount = 0,
+    String period = 'monthly',
   }) async {
     // I3 fix: validate budget limit is positive
     if (limitAmount <= 0) {
       throw ArgumentError('Budget limit must be positive');
     }
-    // Rollover disabled — always store false/0 (DB column kept for compat).
     return _dao.insertBudget(
       BudgetsCompanion.insert(
         categoryId: categoryId,
         month: month,
         year: year,
         limitAmount: limitAmount,
-        rollover: const Value(false),
-        rolloverAmount: const Value(0),
+        rollover: Value(rollover),
+        rolloverAmount: Value(rolloverAmount),
+        period: Value(period),
       ),
     );
   }
@@ -132,6 +133,7 @@ class BudgetRepositoryImpl implements IBudgetRepository {
           limitAmount: Value(budget.limitAmount),
           rollover: Value(budget.rollover),
           rolloverAmount: Value(budget.rolloverAmount),
+          period: Value(budget.period),
         ),
       );
 
@@ -148,6 +150,7 @@ class BudgetRepositoryImpl implements IBudgetRepository {
         limitAmount: b.limitAmount,
         rollover: b.rollover,
         rolloverAmount: b.rolloverAmount,
+        period: b.period,
         spentAmount: spentAmount,
       );
 }

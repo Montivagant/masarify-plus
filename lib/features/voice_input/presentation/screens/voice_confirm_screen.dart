@@ -228,7 +228,25 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             if (containsMatches.length == 1) {
               draft.toWalletId = containsMatches.first.id;
             } else {
-              draft.unmatchedToHint = toHint;
+              // 3. Fuzzy match (≥50% overlap) for destination wallet
+              final toChars = toHintLower;
+              WalletEntity? closestTo;
+              int bestToScore = 0;
+              for (final w in nonSystem) {
+                final score = _similarityScore(toChars, w.name.toLowerCase());
+                final threshold =
+                    (toChars.length * 0.5).ceil().clamp(3, toChars.length);
+                if (score > bestToScore && score >= threshold) {
+                  bestToScore = score;
+                  closestTo = w;
+                }
+              }
+              if (closestTo != null) {
+                draft.toWalletId = closestTo.id;
+              } else {
+                // 4. No match — flag hint for "Create wallet" suggestion
+                draft.unmatchedToHint = toHint;
+              }
             }
           }
         }
@@ -504,6 +522,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       isSubscriptionLike: draft.isSubscriptionLike,
       subscriptionAdded: draft.subscriptionAdded,
       unmatchedHint: draft.unmatchedHint,
+      unmatchedToHint: draft.unmatchedToHint,
       onApprove: () => _approveDraft(index),
       onSkip: () => _skipDraft(index),
       onTypeTap: isCash
@@ -519,6 +538,9 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           : null,
       onCreateWallet: draft.unmatchedHint != null
           ? () => _createWalletFromHint(draft)
+          : null,
+      onCreateToWallet: draft.unmatchedToHint != null
+          ? () => _createToWalletFromHint(draft)
           : null,
     );
   }
@@ -751,12 +773,16 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 isSubscriptionLike: draft.isSubscriptionLike,
                 subscriptionAdded: draft.subscriptionAdded,
                 unmatchedHint: draft.unmatchedHint,
+                unmatchedToHint: draft.unmatchedToHint,
                 onSubscriptionTap:
                     draft.isSubscriptionLike && draft.categoryId != null
                         ? () => _createSubscriptionFromDraft(draft)
                         : null,
                 onCreateWallet: draft.unmatchedHint != null
                     ? () => _createWalletFromHint(draft)
+                    : null,
+                onCreateToWallet: draft.unmatchedToHint != null
+                    ? () => _createToWalletFromHint(draft)
                     : null,
                 onToggle: () {
                   setState(() => draft.isIncluded = !draft.isIncluded);
@@ -1105,6 +1131,33 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             if (d.unmatchedHint == hintName) {
               d.walletId = newId;
               d.unmatchedHint = null;
+            }
+          }
+        });
+      }
+    } on ArgumentError {
+      if (mounted) SnackHelper.showError(context, duplicateMsg);
+    } catch (_) {
+      if (mounted) SnackHelper.showError(context, genericMsg);
+    }
+  }
+
+  Future<void> _createToWalletFromHint(_EditableDraft draft) async {
+    final duplicateMsg = context.l10n.wallet_name_duplicate;
+    final genericMsg = context.l10n.common_error_generic;
+    final hintName = draft.unmatchedToHint!;
+    try {
+      final newId = await ref.read(walletRepositoryProvider).create(
+            name: hintName,
+            type: 'bank',
+            initialBalance: 0,
+          );
+      if (mounted) {
+        setState(() {
+          for (final d in _editableDrafts) {
+            if (d.unmatchedToHint == hintName) {
+              d.toWalletId = newId;
+              d.unmatchedToHint = null;
             }
           }
         });

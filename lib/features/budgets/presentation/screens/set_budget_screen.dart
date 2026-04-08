@@ -107,6 +107,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
   int _limitPiastres = 0;
   late int _year;
   late int _month;
+  String _period = 'monthly';
+  bool _rollover = false;
   bool _loading = false;
 
   @override
@@ -127,6 +129,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
       _limitPiastres = budget.limitAmount;
       _year = budget.year;
       _month = budget.month;
+      _period = budget.period;
+      _rollover = budget.rollover;
     });
   }
 
@@ -214,8 +218,9 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               month: existing.month,
               year: existing.year,
               limitAmount: _limitPiastres,
-              rollover: false,
-              rolloverAmount: 0,
+              rollover: _rollover,
+              rolloverAmount: existing.rolloverAmount,
+              period: _period,
             ),
           );
         }
@@ -236,8 +241,9 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
               month: existing.month,
               year: existing.year,
               limitAmount: _limitPiastres,
-              rollover: false,
-              rolloverAmount: 0,
+              rollover: _rollover,
+              rolloverAmount: existing.rolloverAmount,
+              period: _period,
             ),
           );
         } else {
@@ -246,6 +252,8 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
             month: _month,
             year: _year,
             limitAmount: _limitPiastres,
+            rollover: _rollover,
+            period: _period,
           );
         }
       }
@@ -360,10 +368,38 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
     final selectedCat =
         categories.where((c) => c.id == _categoryId).firstOrNull;
 
+    const periodKeys = ['daily', 'weekly', 'monthly', 'yearly'];
+    String periodLabel(String key) => switch (key) {
+          'daily' => context.l10n.budget_period_daily,
+          'weekly' => context.l10n.budget_period_weekly,
+          'monthly' => context.l10n.budget_period_monthly,
+          'yearly' => context.l10n.budget_period_yearly,
+          _ => key,
+        };
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Budget limit FIRST (hero) ───────────────────────────
+        // ── Period selector ─────────────────────────────────────
+        Text(
+          context.l10n.budget_period_label,
+          style: context.textStyles.labelLarge?.copyWith(color: cs.outline),
+        ),
+        const SizedBox(height: AppSizes.sm),
+        Wrap(
+          spacing: AppSizes.sm,
+          children: periodKeys.map((key) {
+            final selected = _period == key;
+            return ChoiceChip(
+              label: Text(periodLabel(key)),
+              selected: selected,
+              onSelected: (_) => setState(() => _period = key),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: AppSizes.lg),
+
+        // ── Budget limit (hero) ────────────────────────────────
         Center(
           child: Text(
             context.l10n.budget_limit,
@@ -376,6 +412,18 @@ class _SetBudgetScreenState extends ConsumerState<SetBudgetScreen> {
           onAmountChanged: (p) => setState(() => _limitPiastres = p),
           autofocus: false,
           compact: true,
+        ),
+        const SizedBox(height: AppSizes.sm),
+
+        // ── Rollover toggle ────────────────────────────────────
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            context.l10n.budget_rollover_label,
+            style: context.textStyles.bodyMedium,
+          ),
+          value: _rollover,
+          onChanged: (v) => setState(() => _rollover = v),
         ),
         const SizedBox(height: AppSizes.lg),
 

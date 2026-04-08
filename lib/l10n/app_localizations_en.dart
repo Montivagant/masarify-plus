@@ -1486,6 +1486,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budget_edit_title => 'Edit Budget';
 
   @override
+  String get budget_period_label => 'Budget Period';
+
+  @override
+  String get budget_period_daily => 'Daily';
+
+  @override
+  String get budget_period_weekly => 'Weekly';
+
+  @override
+  String get budget_period_monthly => 'Monthly';
+
+  @override
+  String get budget_period_yearly => 'Yearly';
+
+  @override
+  String get budget_rollover_label => 'Roll over unused budget';
+
+  @override
   String get goal_contribution_note => 'Note (Optional)';
 
   @override

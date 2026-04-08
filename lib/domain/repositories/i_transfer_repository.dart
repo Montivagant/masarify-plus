@@ -19,6 +19,17 @@ abstract interface class ITransferRepository {
     required DateTime transferDate,
   });
 
+  /// Updates the transfer AND atomically reverses old balances + applies new ones.
+  Future<bool> update({
+    required int id,
+    required int fromWalletId,
+    required int toWalletId,
+    required int amount,
+    int fee = 0,
+    String? note,
+    required DateTime transferDate,
+  });
+
   /// Deletes the transfer AND reverses both wallet balance adjustments atomically.
   Future<bool> delete(int id);
 }

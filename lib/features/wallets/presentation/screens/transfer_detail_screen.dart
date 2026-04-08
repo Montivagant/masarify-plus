@@ -12,6 +12,7 @@ import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
+import 'transfer_screen.dart';
 
 /// Detail screen for a transfer, showing from/to wallets, amount, fee,
 /// date, and note. Accessible by tapping a transfer entry on the dashboard.
@@ -45,6 +46,14 @@ class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
       appBar: AppAppBar(
         title: context.l10n.transfer_detail_title,
         actions: [
+          IconButton(
+            icon: Icon(AppIcons.edit, color: cs.primary),
+            tooltip: context.l10n.common_edit,
+            onPressed: () {
+              context.pop();
+              TransferScreen.showEdit(context, widget.transferId);
+            },
+          ),
           IconButton(
             icon: Icon(AppIcons.delete, color: theme.expenseColor),
             tooltip: context.l10n.common_delete,

@@ -190,12 +190,7 @@ class _TrendsBody extends StatelessWidget {
             ),
             child: GlassCard(
               tier: GlassTier.inset,
-              padding: const EdgeInsets.fromLTRB(
-                AppSizes.xs,
-                AppSizes.sm,
-                AppSizes.sm,
-                AppSizes.sm,
-              ),
+              padding: const EdgeInsets.all(AppSizes.sm),
               child: Semantics(
                 label: context.l10n.semantics_spending_trend_chart(days),
                 child: RepaintBoundary(
@@ -401,7 +396,8 @@ class _MainAreaChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: 7,
+              interval: data.length <= 14 ? 3 : (data.length <= 31 ? 7 : 14),
+              reservedSize: 24,
               getTitlesWidget: (value, _) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= data.length) {
@@ -410,7 +406,7 @@ class _MainAreaChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
-                    DateFormat('MMM d', context.languageCode)
+                    DateFormat('M/d', context.languageCode)
                         .format(data[idx].date),
                     style: context.textStyles.labelSmall?.copyWith(
                       color: cs.onSurfaceVariant,

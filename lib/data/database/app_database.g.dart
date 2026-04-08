@@ -3991,6 +3991,13 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _periodMeta = const VerificationMeta('period');
+  @override
+  late final GeneratedColumn<String> period = GeneratedColumn<String>(
+      'period', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('monthly'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -4008,6 +4015,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
         limitAmount,
         rollover,
         rolloverAmount,
+        period,
         createdAt
       ];
   @override
@@ -4061,6 +4069,10 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
           rolloverAmount.isAcceptableOrUnknown(
               data['rollover_amount']!, _rolloverAmountMeta));
     }
+    if (data.containsKey('period')) {
+      context.handle(_periodMeta,
+          period.isAcceptableOrUnknown(data['period']!, _periodMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -4072,7 +4084,7 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-        {categoryId, month, year},
+        {categoryId, month, year, period},
       ];
   @override
   Budget map(Map<String, dynamic> data, {String? tablePrefix}) {
@@ -4092,6 +4104,8 @@ class $BudgetsTable extends Budgets with TableInfo<$BudgetsTable, Budget> {
           .read(DriftSqlType.bool, data['${effectivePrefix}rollover'])!,
       rolloverAmount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}rollover_amount'])!,
+      period: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}period'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
     );
@@ -4111,6 +4125,7 @@ class Budget extends DataClass implements Insertable<Budget> {
   final int limitAmount;
   final bool rollover;
   final int rolloverAmount;
+  final String period;
   final DateTime createdAt;
   const Budget(
       {required this.id,
@@ -4120,6 +4135,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       required this.limitAmount,
       required this.rollover,
       required this.rolloverAmount,
+      required this.period,
       required this.createdAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4131,6 +4147,7 @@ class Budget extends DataClass implements Insertable<Budget> {
     map['limit_amount'] = Variable<int>(limitAmount);
     map['rollover'] = Variable<bool>(rollover);
     map['rollover_amount'] = Variable<int>(rolloverAmount);
+    map['period'] = Variable<String>(period);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -4144,6 +4161,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       limitAmount: Value(limitAmount),
       rollover: Value(rollover),
       rolloverAmount: Value(rolloverAmount),
+      period: Value(period),
       createdAt: Value(createdAt),
     );
   }
@@ -4159,6 +4177,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       limitAmount: serializer.fromJson<int>(json['limitAmount']),
       rollover: serializer.fromJson<bool>(json['rollover']),
       rolloverAmount: serializer.fromJson<int>(json['rolloverAmount']),
+      period: serializer.fromJson<String>(json['period']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -4173,6 +4192,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       'limitAmount': serializer.toJson<int>(limitAmount),
       'rollover': serializer.toJson<bool>(rollover),
       'rolloverAmount': serializer.toJson<int>(rolloverAmount),
+      'period': serializer.toJson<String>(period),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -4185,6 +4205,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           int? limitAmount,
           bool? rollover,
           int? rolloverAmount,
+          String? period,
           DateTime? createdAt}) =>
       Budget(
         id: id ?? this.id,
@@ -4194,6 +4215,7 @@ class Budget extends DataClass implements Insertable<Budget> {
         limitAmount: limitAmount ?? this.limitAmount,
         rollover: rollover ?? this.rollover,
         rolloverAmount: rolloverAmount ?? this.rolloverAmount,
+        period: period ?? this.period,
         createdAt: createdAt ?? this.createdAt,
       );
   Budget copyWithCompanion(BudgetsCompanion data) {
@@ -4209,6 +4231,7 @@ class Budget extends DataClass implements Insertable<Budget> {
       rolloverAmount: data.rolloverAmount.present
           ? data.rolloverAmount.value
           : this.rolloverAmount,
+      period: data.period.present ? data.period.value : this.period,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -4223,6 +4246,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           ..write('limitAmount: $limitAmount, ')
           ..write('rollover: $rollover, ')
           ..write('rolloverAmount: $rolloverAmount, ')
+          ..write('period: $period, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4230,7 +4254,7 @@ class Budget extends DataClass implements Insertable<Budget> {
 
   @override
   int get hashCode => Object.hash(id, categoryId, month, year, limitAmount,
-      rollover, rolloverAmount, createdAt);
+      rollover, rolloverAmount, period, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -4242,6 +4266,7 @@ class Budget extends DataClass implements Insertable<Budget> {
           other.limitAmount == this.limitAmount &&
           other.rollover == this.rollover &&
           other.rolloverAmount == this.rolloverAmount &&
+          other.period == this.period &&
           other.createdAt == this.createdAt);
 }
 
@@ -4253,6 +4278,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
   final Value<int> limitAmount;
   final Value<bool> rollover;
   final Value<int> rolloverAmount;
+  final Value<String> period;
   final Value<DateTime> createdAt;
   const BudgetsCompanion({
     this.id = const Value.absent(),
@@ -4262,6 +4288,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     this.limitAmount = const Value.absent(),
     this.rollover = const Value.absent(),
     this.rolloverAmount = const Value.absent(),
+    this.period = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   BudgetsCompanion.insert({
@@ -4272,6 +4299,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     required int limitAmount,
     this.rollover = const Value.absent(),
     this.rolloverAmount = const Value.absent(),
+    this.period = const Value.absent(),
     this.createdAt = const Value.absent(),
   })  : categoryId = Value(categoryId),
         month = Value(month),
@@ -4285,6 +4313,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     Expression<int>? limitAmount,
     Expression<bool>? rollover,
     Expression<int>? rolloverAmount,
+    Expression<String>? period,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -4295,6 +4324,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       if (limitAmount != null) 'limit_amount': limitAmount,
       if (rollover != null) 'rollover': rollover,
       if (rolloverAmount != null) 'rollover_amount': rolloverAmount,
+      if (period != null) 'period': period,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -4307,6 +4337,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       Value<int>? limitAmount,
       Value<bool>? rollover,
       Value<int>? rolloverAmount,
+      Value<String>? period,
       Value<DateTime>? createdAt}) {
     return BudgetsCompanion(
       id: id ?? this.id,
@@ -4316,6 +4347,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
       limitAmount: limitAmount ?? this.limitAmount,
       rollover: rollover ?? this.rollover,
       rolloverAmount: rolloverAmount ?? this.rolloverAmount,
+      period: period ?? this.period,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -4344,6 +4376,9 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
     if (rolloverAmount.present) {
       map['rollover_amount'] = Variable<int>(rolloverAmount.value);
     }
+    if (period.present) {
+      map['period'] = Variable<String>(period.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -4360,6 +4395,7 @@ class BudgetsCompanion extends UpdateCompanion<Budget> {
           ..write('limitAmount: $limitAmount, ')
           ..write('rollover: $rollover, ')
           ..write('rolloverAmount: $rolloverAmount, ')
+          ..write('period: $period, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -10500,6 +10536,7 @@ typedef $$BudgetsTableCreateCompanionBuilder = BudgetsCompanion Function({
   required int limitAmount,
   Value<bool> rollover,
   Value<int> rolloverAmount,
+  Value<String> period,
   Value<DateTime> createdAt,
 });
 typedef $$BudgetsTableUpdateCompanionBuilder = BudgetsCompanion Function({
@@ -10510,6 +10547,7 @@ typedef $$BudgetsTableUpdateCompanionBuilder = BudgetsCompanion Function({
   Value<int> limitAmount,
   Value<bool> rollover,
   Value<int> rolloverAmount,
+  Value<String> period,
   Value<DateTime> createdAt,
 });
 
@@ -10560,6 +10598,9 @@ class $$BudgetsTableFilterComposer
   ColumnFilters<int> get rolloverAmount => $composableBuilder(
       column: $table.rolloverAmount,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get period => $composableBuilder(
+      column: $table.period, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -10613,6 +10654,9 @@ class $$BudgetsTableOrderingComposer
       column: $table.rolloverAmount,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get period => $composableBuilder(
+      column: $table.period, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
@@ -10663,6 +10707,9 @@ class $$BudgetsTableAnnotationComposer
 
   GeneratedColumn<int> get rolloverAmount => $composableBuilder(
       column: $table.rolloverAmount, builder: (column) => column);
+
+  GeneratedColumn<String> get period =>
+      $composableBuilder(column: $table.period, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -10718,6 +10765,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             Value<int> limitAmount = const Value.absent(),
             Value<bool> rollover = const Value.absent(),
             Value<int> rolloverAmount = const Value.absent(),
+            Value<String> period = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               BudgetsCompanion(
@@ -10728,6 +10776,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             limitAmount: limitAmount,
             rollover: rollover,
             rolloverAmount: rolloverAmount,
+            period: period,
             createdAt: createdAt,
           ),
           createCompanionCallback: ({
@@ -10738,6 +10787,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             required int limitAmount,
             Value<bool> rollover = const Value.absent(),
             Value<int> rolloverAmount = const Value.absent(),
+            Value<String> period = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
           }) =>
               BudgetsCompanion.insert(
@@ -10748,6 +10798,7 @@ class $$BudgetsTableTableManager extends RootTableManager<
             limitAmount: limitAmount,
             rollover: rollover,
             rolloverAmount: rolloverAmount,
+            period: period,
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0

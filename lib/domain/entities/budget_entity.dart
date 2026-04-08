@@ -8,6 +8,7 @@ class BudgetEntity {
     required this.limitAmount,
     required this.rollover,
     required this.rolloverAmount,
+    this.period = 'monthly',
     this.spentAmount = 0,
   });
 
@@ -27,11 +28,15 @@ class BudgetEntity {
   /// Carried-over amount from previous month (piastres).
   final int rolloverAmount;
 
+  /// Budget period: 'daily', 'weekly', 'monthly', or 'yearly'.
+  final String period;
+
   /// Computed field: populated by BudgetRepository from Transactions stream.
   final int spentAmount;
 
-  /// Effective limit = limitAmount (rollover disabled).
-  int get effectiveLimit => limitAmount;
+  /// Effective limit = base limit + rollover (if enabled).
+  int get effectiveLimit =>
+      rollover ? limitAmount + rolloverAmount : limitAmount;
 
   /// 0.0 – 1.0+  (can exceed 1.0 if over-budget)
   double get progressFraction =>

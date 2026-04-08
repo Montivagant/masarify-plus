@@ -1474,6 +1474,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get budget_edit_title => 'تعديل الميزانية';
 
   @override
+  String get budget_period_label => 'فترة الميزانية';
+
+  @override
+  String get budget_period_daily => 'يومي';
+
+  @override
+  String get budget_period_weekly => 'أسبوعي';
+
+  @override
+  String get budget_period_monthly => 'شهري';
+
+  @override
+  String get budget_period_yearly => 'سنوي';
+
+  @override
+  String get budget_rollover_label => 'ترحيل الميزانية غير المستخدمة';
+
+  @override
   String get goal_contribution_note => 'ملاحظة (اختياري)';
 
   @override

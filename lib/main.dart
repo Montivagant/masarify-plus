@@ -67,16 +67,6 @@ Future<void> main() async {
     ),
   );
 
-  // Request notification permissions AFTER first frame — the system dialog
-  // must appear while the Activity is fully visible, otherwise Android may
-  // auto-dismiss it behind the splash screen (silently denying POST_NOTIFICATIONS).
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    final granted = await NotificationService.requestPermission();
-    if (granted) {
-      await NotificationService.requestExactAlarmPermission();
-    }
-  });
-
   // M-7 fix: ensure Cash wallet exists even after DB restore/corruption.
   // Resolve platform locale so the wallet name is localized (not hardcoded 'Cash').
   final platformLocale = PlatformDispatcher.instance.locale;

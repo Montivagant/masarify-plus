@@ -21,6 +21,7 @@ class HorizontalReorderableRow<T> extends StatefulWidget {
     this.itemWidth = 110,
     this.spacing = AppSizes.sm,
     this.trailing = const [],
+    this.onDoubleTapItem,
   });
 
   /// The data items to display.
@@ -41,6 +42,9 @@ class HorizontalReorderableRow<T> extends StatefulWidget {
 
   /// Trailing widgets appended after the reorderable items.
   final List<Widget> trailing;
+
+  /// Called when an item is double-tapped (e.g. to open an edit sheet).
+  final void Function(int index)? onDoubleTapItem;
 
   @override
   State<HorizontalReorderableRow<T>> createState() =>
@@ -165,6 +169,9 @@ class _HorizontalReorderableRowState<T>
             }
 
             return GestureDetector(
+              onDoubleTap: widget.onDoubleTapItem != null
+                  ? () => widget.onDoubleTapItem!(index)
+                  : null,
               onLongPressStart: (details) => _onLongPressStart(index, details),
               onLongPressMoveUpdate: (details) =>
                   _onLongPressMoveUpdate(index, details),
