@@ -141,7 +141,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         // Amount with sign
                         Text(
                           '$signPrefix${MoneyFormatter.format(tx.amount)}',
-                          style: context.textStyles.headlineMedium?.copyWith(
+                          style: context.textStyles.displaySmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: typeColor,
                           ),
@@ -171,12 +171,10 @@ class TransactionDetailScreen extends ConsumerWidget {
                               color: typeColor,
                             ),
                             const SizedBox(width: AppSizes.sm),
-                            Text(
-                              DateFormat.yMMMd(context.languageCode)
+                            _TypeBadge(
+                              label: DateFormat.yMMMd(context.languageCode)
                                   .format(tx.transactionDate),
-                              style: context.textStyles.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                              ),
+                              color: cs.outline,
                             ),
                           ],
                         ),
@@ -200,7 +198,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         value:
                             cat?.displayName(context.languageCode) ?? '\u2014',
                       ),
-                      _divider(cs),
+                      const SizedBox(height: AppSizes.md),
                       _DetailRow(
                         icon: wallet != null
                             ? AppIcons.walletType(wallet.type)
@@ -211,7 +209,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         label: context.l10n.transaction_wallet,
                         value: wallet?.name ?? '\u2014',
                       ),
-                      _divider(cs),
+                      const SizedBox(height: AppSizes.md),
                       _DetailRow(
                         icon: AppIcons.calendar,
                         iconColor: cs.outline,
@@ -221,7 +219,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                             .format(tx.transactionDate),
                       ),
                       if (tx.note != null && tx.note!.isNotEmpty) ...[
-                        _divider(cs),
+                        const SizedBox(height: AppSizes.md),
                         _DetailRow(
                           icon: AppIcons.edit,
                           iconColor: cs.outline,
@@ -230,7 +228,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         ),
                       ],
                       if (tx.locationName != null) ...[
-                        _divider(cs),
+                        const SizedBox(height: AppSizes.md),
                         _DetailRow(
                           icon: AppIcons.location,
                           iconColor: cs.outline,
@@ -282,7 +280,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                         ],
                       ],
                       if (tx.source != 'manual') ...[
-                        _divider(cs),
+                        const SizedBox(height: AppSizes.md),
                         _DetailRow(
                           icon: _sourceIcon(tx.source),
                           iconColor: cs.outline,
@@ -355,11 +353,6 @@ class TransactionDetailScreen extends ConsumerWidget {
       },
     );
   }
-
-  static Widget _divider(ColorScheme cs) => Divider(
-        height: AppSizes.dividerHeight,
-        color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight4),
-      );
 
   void _confirmDelete(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;

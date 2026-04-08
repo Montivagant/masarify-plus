@@ -80,7 +80,7 @@ class BalanceHeader extends ConsumerWidget {
                 hidden
                     ? '------'
                     : MoneyFormatter.formatTrailing(displayBalance),
-                style: context.textStyles.headlineLarge?.copyWith(
+                style: context.textStyles.displaySmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: cs.onSurface,
                 ),
