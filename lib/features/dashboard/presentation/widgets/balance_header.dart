@@ -107,193 +107,195 @@ class BalanceHeader extends ConsumerWidget {
           MonthSummaryInline(walletId: selectedId, hidden: hidden),
           const SizedBox(height: AppSizes.md),
 
-          // ── Cash wallet banner (always visible) ─────────────────
-          if (cashWallet != null) ...[
+          // ── Cash wallet card (full-width, hidden when already selected) ──
+          if (cashWallet != null && selectedId != cashWallet.id) ...[
             const SizedBox(height: AppSizes.md),
             GestureDetector(
               onTap: () => ref.read(selectedAccountIdProvider.notifier).state =
-                  selectedId == cashWallet.id ? null : cashWallet.id,
+                  cashWallet.id,
               onDoubleTap: () => showEditWalletSheet(context, cashWallet.id),
               child: GlassCard(
                 tier: GlassTier.inset,
                 tintColor: cs.primaryContainer.withValues(
                   alpha: AppSizes.opacityLight3,
                 ),
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: AppSizes.md,
-                ),
-                child: SizedBox(
-                  height: AppSizes.minTapTarget,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
+                child: Row(
+                  children: [
+                    // Icon circle
+                    Container(
+                      width: AppSizes.iconContainerLg,
+                      height: AppSizes.iconContainerLg,
+                      decoration: BoxDecoration(
+                        color: cs.primaryContainer.withValues(
+                          alpha: AppSizes.opacityLight3,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
                         AppIcons.walletType('physical_cash'),
-                        size: AppSizes.iconXs,
-                        color: selectedId == cashWallet.id
-                            ? cs.primary
-                            : cs.onSurfaceVariant,
+                        size: AppSizes.iconSm,
+                        color: cs.primary,
                       ),
-                      const SizedBox(width: AppSizes.xs),
-                      Text(
-                        cashWallet.name,
-                        style: context.textStyles.bodyMedium?.copyWith(
-                          color: selectedId == cashWallet.id
-                              ? cs.primary
-                              : cs.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    const SizedBox(width: AppSizes.md),
+                    // Name + subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cashWallet.name,
+                            style: context.textStyles.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                          Text(
+                            context.l10n.wallet_physical_wallet,
+                            style: context.textStyles.bodySmall?.copyWith(
+                              color: cs.outline,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: AppSizes.sm),
-                      Text(
-                        hidden
-                            ? '---'
-                            : MoneyFormatter.formatTrailing(cashWallet.balance),
-                        style: context.textStyles.bodyMedium?.copyWith(
-                          color: cs.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    ),
+                    // Balance
+                    Text(
+                      hidden
+                          ? '---'
+                          : MoneyFormatter.formatTrailing(cashWallet.balance),
+                      style: context.textStyles.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: cs.primary,
                       ),
-                      const SizedBox(width: AppSizes.xs),
-                      Icon(
-                        AppIcons.chevronRight,
-                        size: AppSizes.iconXxs,
-                        color: cs.onSurfaceVariant.withValues(
-                          alpha: AppSizes.opacityMedium,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
             const SizedBox(height: AppSizes.md),
           ],
 
-          // ── Account selector dropdown ───────────────────────────────
-          Semantics(
-            button: true,
-            label: context.l10n.dashboard_account_selector(selectionLabel),
-            child: Material(
-              color: AppColors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-                onTap: () => _showAccountPicker(
-                  context,
-                  ref,
-                  userWallets,
-                  selectedId,
-                  totalBalance,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerLow,
+          // ── Account selector row (dropdown left + gear right) ────────
+          Row(
+            children: [
+              Semantics(
+                button: true,
+                label: context.l10n.dashboard_account_selector(selectionLabel),
+                child: Material(
+                  color: AppColors.transparent,
+                  child: InkWell(
                     borderRadius:
                         BorderRadius.circular(AppSizes.borderRadiusFull),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.md,
-                    vertical: AppSizes.sm,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        selectionLabel,
-                        style: context.textStyles.labelLarge?.copyWith(
-                          color: cs.onSurface,
-                        ),
+                    onTap: () => _showAccountPicker(
+                      context,
+                      ref,
+                      userWallets,
+                      selectedId,
+                      totalBalance,
+                      cashWallet: cashWallet,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerLow,
+                        borderRadius:
+                            BorderRadius.circular(AppSizes.borderRadiusFull),
                       ),
-                      const SizedBox(width: AppSizes.xs),
-                      Icon(
-                        AppIcons.expandMore,
-                        size: AppSizes.iconSm,
-                        color: cs.onSurface,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.md,
+                        vertical: AppSizes.sm,
                       ),
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            selectionLabel,
+                            style: context.textStyles.labelLarge?.copyWith(
+                              color: cs.onSurface,
+                            ),
+                          ),
+                          const SizedBox(width: AppSizes.xs),
+                          Icon(
+                            AppIcons.expandMore,
+                            size: AppSizes.iconSm,
+                            color: cs.onSurface,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              const Spacer(),
+              IconButton(
+                icon: Icon(
+                  AppIcons.settings,
+                  size: AppSizes.iconSm,
+                  color: cs.outline,
+                ),
+                tooltip: context.l10n.wallet_manage_title,
+                onPressed: () => AccountManageSheet.show(context),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
           ),
 
-          // ── Account chips (only when a specific wallet is selected) ─
-          if (selectedId != null) ...[
+          // ── Account chips (only when a user wallet is selected) ──
+          if (selectedId != null &&
+              userWallets.any((w) => w.id == selectedId)) ...[
             const SizedBox(height: AppSizes.md),
-            Row(
-              children: [
-                Expanded(
-                  child: HorizontalReorderableRow<WalletEntity>(
-                    items: userWallets,
-                    onDoubleTapItem: (index) =>
-                        showEditWalletSheet(context, userWallets[index].id),
-                    onReorder: (oldIndex, newIndex) {
-                      final reordered = [...userWallets];
-                      if (newIndex > oldIndex) newIndex--;
-                      final item = reordered.removeAt(oldIndex);
-                      reordered.insert(newIndex, item);
-                      final updates = <({int id, int sortOrder})>[];
-                      for (var i = 0; i < reordered.length; i++) {
-                        updates.add((id: reordered[i].id, sortOrder: i));
-                      }
-                      ref
-                          .read(walletRepositoryProvider)
-                          .updateSortOrders(updates);
-                    },
-                    itemBuilder: (context, w, isDragging) => AccountChip(
-                      label: w.name,
-                      balance: w.balance,
-                      isSelected: selectedId == w.id,
-                      hidden: hidden,
-                      walletType: w.type,
-                      colorHex: w.colorHex,
-                      onTap: isDragging
-                          ? () {}
-                          : () => ref
-                              .read(selectedAccountIdProvider.notifier)
-                              .state = w.id,
+            HorizontalReorderableRow<WalletEntity>(
+              items: userWallets,
+              onDoubleTapItem: (index) =>
+                  showEditWalletSheet(context, userWallets[index].id),
+              onReorder: (oldIndex, newIndex) {
+                final reordered = [...userWallets];
+                if (newIndex > oldIndex) newIndex--;
+                final item = reordered.removeAt(oldIndex);
+                reordered.insert(newIndex, item);
+                final updates = <({int id, int sortOrder})>[];
+                for (var i = 0; i < reordered.length; i++) {
+                  updates.add((id: reordered[i].id, sortOrder: i));
+                }
+                ref.read(walletRepositoryProvider).updateSortOrders(updates);
+              },
+              itemBuilder: (context, w, isDragging) => AccountChip(
+                label: w.name,
+                balance: w.balance,
+                isSelected: selectedId == w.id,
+                hidden: hidden,
+                walletType: w.type,
+                colorHex: w.colorHex,
+                onTap: isDragging
+                    ? () {}
+                    : () => ref.read(selectedAccountIdProvider.notifier).state =
+                        w.id,
+              ),
+              trailing: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    end: AppSizes.sm,
+                  ),
+                  child: ActionChip(
+                    avatar: Icon(
+                      AppIcons.add,
+                      size: AppSizes.iconXs,
+                      color: cs.primary,
                     ),
-                    trailing: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(
-                          end: AppSizes.sm,
-                        ),
-                        child: ActionChip(
-                          avatar: Icon(
-                            AppIcons.add,
-                            size: AppSizes.iconXs,
-                            color: cs.primary,
-                          ),
-                          label: Text(
-                            context.l10n.wallet_add_short,
-                            style: context.textStyles.labelSmall?.copyWith(
-                              color: cs.primary,
-                            ),
-                          ),
-                          side: BorderSide(
-                            color: cs.primary.withValues(
-                              alpha: AppSizes.opacityLight4,
-                            ),
-                          ),
-                          backgroundColor: cs.surface,
-                          onPressed: () => showWalletSheet(context),
-                        ),
+                    label: Text(
+                      context.l10n.wallet_add_short,
+                      style: context.textStyles.labelSmall?.copyWith(
+                        color: cs.primary,
                       ),
-                    ],
+                    ),
+                    side: BorderSide(
+                      color: cs.primary.withValues(
+                        alpha: AppSizes.opacityLight4,
+                      ),
+                    ),
+                    backgroundColor: cs.surface,
+                    onPressed: () => showWalletSheet(context),
                   ),
-                ),
-                // Manage accounts gear icon
-                IconButton(
-                  icon: Icon(
-                    AppIcons.settings,
-                    size: AppSizes.iconSm,
-                    color: cs.outline,
-                  ),
-                  tooltip: context.l10n.wallet_manage_title,
-                  onPressed: () => AccountManageSheet.show(context),
-                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
@@ -306,10 +308,11 @@ class BalanceHeader extends ConsumerWidget {
   void _showAccountPicker(
     BuildContext context,
     WidgetRef ref,
-    List wallets,
+    List<WalletEntity> wallets,
     int? selectedId,
-    int totalBalance,
-  ) {
+    int totalBalance, {
+    WalletEntity? cashWallet,
+  }) {
     final cs = context.colors;
     showModalBottomSheet<void>(
       context: context,
@@ -330,6 +333,24 @@ class BalanceHeader extends ConsumerWidget {
                 context.pop();
               },
             ),
+            // Cash wallet
+            if (cashWallet != null)
+              ListTile(
+                leading: Icon(
+                  AppIcons.walletType('physical_cash'),
+                  color: cs.primary,
+                ),
+                title: Text(cashWallet.name),
+                subtitle: Text(MoneyFormatter.format(cashWallet.balance)),
+                trailing: selectedId == cashWallet.id
+                    ? Icon(AppIcons.check, color: cs.primary)
+                    : null,
+                onTap: () {
+                  ref.read(selectedAccountIdProvider.notifier).state =
+                      selectedId == cashWallet.id ? null : cashWallet.id;
+                  context.pop();
+                },
+              ),
             // Individual wallets
             ...wallets.map(
               (w) => ListTile(

@@ -21,7 +21,27 @@
           }
         ]
       }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.sh\"",
+            "statusMessage": "Preserving critical context..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'CHANGED=$(git diff --name-only HEAD 2>/dev/null | grep -c \"\\.dart$\" || true); if [ \"$CHANGED\" -gt 0 ]; then echo \"{\\\"systemMessage\\\": \\\"Dart files changed — did you run flutter analyze lib/ before claiming done?\\\"}\"; fi'"
+          }
+        ]
+      }
     ]
-  },
-  "enabledPlugins": {}
+  }
 }

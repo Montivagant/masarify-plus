@@ -111,6 +111,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transaction_source_recurring => 'قاعدة متكررة';
 
   @override
+  String get transaction_detailed_info => 'معلومات تفصيلية';
+
+  @override
+  String get transaction_transfer_details => 'تفاصيل التحويل';
+
+  @override
+  String get transfer_from_label => 'من';
+
+  @override
+  String get transfer_to_label => 'إلى';
+
+  @override
   String get wallets_title => 'الحسابات';
 
   @override
@@ -934,6 +946,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_add_short => 'إضافة';
 
   @override
+  String get wallet_physical_wallet => 'محفظة نقدية';
+
+  @override
   String get wallet_add_title => 'حساب جديد';
 
   @override
@@ -1407,6 +1422,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_paid_section => 'مدفوع';
 
   @override
+  String get recurring_total_monthly_spend => 'الإنفاق الشهري الإجمالي';
+
+  @override
+  String get recurring_attention_required => 'يتطلب الانتباه';
+
+  @override
+  String get recurring_coming_soon => 'قادم قريباً';
+
+  @override
+  String get recurring_active_services => 'خدمات نشطة';
+
+  @override
+  String get recurring_recently_paid => 'مدفوع مؤخراً';
+
+  @override
+  String get recurring_potential_savings => 'وفورات محتملة';
+
+  @override
+  String get recurring_spending_trend => 'اتجاه الإنفاق';
+
+  @override
+  String recurring_per_month(String amount) {
+    return '$amount/شهر';
+  }
+
+  @override
   String get recurring_auto_pay_label => 'وضع علامة مدفوع تلقائياً';
 
   @override
@@ -1670,6 +1711,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_section_goals_budgets => 'الميزانيات والأهداف';
 
   @override
+  String get hub_headline => 'نظّم رأس مالك.';
+
+  @override
+  String get hub_subtitle => 'نظّم مستقبلك المالي بدقة ووضوح';
+
+  @override
+  String get hub_optimization_label => 'تحسين';
+
+  @override
+  String get hub_saving_insights_title => 'نصائح التوفير';
+
+  @override
+  String get hub_saving_insights_body =>
+      'يمكنك توفير ١٢٠ جنيه/شهر إضافية بدمج اشتراكات البث الخاصة بك.';
+
+  @override
+  String get hub_view_details => 'عرض التفاصيل';
+
+  @override
   String get nav_planning => 'التخطيط';
 
   @override
@@ -1776,7 +1836,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String voice_confirm_count(int count) {
-    return 'تأكيد ($count)';
+    return 'مراجعة ($count)';
   }
 
   @override
@@ -2198,6 +2258,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_include => 'تضمين';
+
+  @override
+  String get voice_confirm_subtitle => 'تأكيد المعاملات';
+
+  @override
+  String get voice_confirm_headline => 'معاملات جديدة';
+
+  @override
+  String get voice_discard_all => 'تجاهل';
+
+  @override
+  String get voice_discard_confirm =>
+      'تجاهل جميع المعاملات؟ لا يمكن التراجع عن هذا.';
+
+  @override
+  String get voice_discard_confirm_action => 'تجاهل الكل';
+
+  @override
+  String get voice_submit_all => 'إرسال الكل';
+
+  @override
+  String get voice_save_draft => 'حفظ كمسودة';
 
   @override
   String get insight_upcoming_bills_title => 'فواتير قادمة';

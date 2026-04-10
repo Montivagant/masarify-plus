@@ -18,7 +18,6 @@ class AccountChip extends StatelessWidget {
     required this.balance,
     required this.isSelected,
     required this.onTap,
-    this.onLongPress,
     this.hidden = false,
     this.walletType,
     this.colorHex,
@@ -28,7 +27,6 @@ class AccountChip extends StatelessWidget {
   final int balance;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback? onLongPress;
   final bool hidden;
 
   /// Wallet type string (e.g. 'bank', 'mobile_wallet') — resolves to icon.
@@ -68,7 +66,6 @@ class AccountChip extends StatelessWidget {
           color: AppColors.transparent,
           child: InkWell(
             onTap: onTap,
-            onLongPress: onLongPress,
             borderRadius: BorderRadius.circular(AppSizes.borderRadiusMdSm),
             child: Container(
               width: cardWidth,
@@ -139,8 +136,8 @@ class AccountChip extends StatelessWidget {
       );
     }
 
-    // Individual unselected: same wallet-color tint as selected but no strip.
-    // Only the strip distinguishes selected vs unselected visually.
+    // Individual unselected: wallet-color tint (same as selected),
+    // accent bar is the visual selection indicator.
     return _ChipStyle(
       backgroundColor: walletColor.withValues(alpha: AppSizes.opacityLight2),
       textColor: cs.onSurface.withValues(alpha: AppSizes.opacityStrong),

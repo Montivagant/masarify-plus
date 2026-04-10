@@ -83,6 +83,7 @@ abstract final class AppSizes {
   // ── Chart bars & labels ─────────────────────────────────────────────
   static const double chartDotRadius = 4.0;
   static const double chartDotStrokeWidth = 2.0;
+  static const double chartAxisLabel = 10;
   static const double progressBarHeight = 8;
 
   // ── Color picker ────────────────────────────────────────────────────

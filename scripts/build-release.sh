@@ -26,7 +26,11 @@ fi
 
 echo "Building Masarify release APKs (split by ABI)..."
 # ${DART_DEFINES[@]+...} avoids 'unbound variable' error on empty array (bash <4.4 + set -u).
-flutter build apk --release --split-per-abi ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
+# --obfuscate + --split-debug-info: strips symbols → smaller APK + code protection.
+# Debug symbols saved to build/debug_info/ for crash symbolication.
+flutter build apk --release --split-per-abi \
+  --obfuscate --split-debug-info=build/debug_info \
+  ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
 
 APK_DIR="build/app/outputs/flutter-apk"
 

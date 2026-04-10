@@ -8,133 +8,135 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/repository_providers.dart';
+import '../../../../shared/providers/transfer_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
+import '../../../../shared/widgets/lists/empty_state.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import 'transfer_screen.dart';
 
 /// Detail screen for a transfer, showing from/to wallets, amount, fee,
 /// date, and note. Accessible by tapping a transfer entry on the dashboard.
-class TransferDetailScreen extends ConsumerStatefulWidget {
+class TransferDetailScreen extends ConsumerWidget {
   const TransferDetailScreen({super.key, required this.transferId});
 
   final int transferId;
 
   @override
-  ConsumerState<TransferDetailScreen> createState() =>
-      _TransferDetailScreenState();
-}
-
-class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
-  late Future<dynamic> _transferFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _transferFuture =
-        ref.read(transferRepositoryProvider).getById(widget.transferId);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final cs = context.colors;
     final theme = context.appTheme;
+    final transferAsync = ref.watch(transferByIdProvider(transferId));
 
-    return Scaffold(
-      appBar: AppAppBar(
-        title: context.l10n.transfer_detail_title,
-        actions: [
-          IconButton(
-            icon: Icon(AppIcons.edit, color: cs.primary),
-            tooltip: context.l10n.common_edit,
-            onPressed: () {
-              context.pop();
-              TransferScreen.showEdit(context, widget.transferId);
-            },
-          ),
-          IconButton(
-            icon: Icon(AppIcons.delete, color: theme.expenseColor),
-            tooltip: context.l10n.common_delete,
-            onPressed: () => _confirmDelete(context, ref),
-          ),
-        ],
+    return transferAsync.when(
+      loading: () => Scaffold(
+        appBar: AppAppBar(title: context.l10n.transfer_detail_title),
+        body: const Center(child: CircularProgressIndicator.adaptive()),
       ),
-      body: FutureBuilder(
-        future: _transferFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator.adaptive());
-          }
+      error: (_, __) => Scaffold(
+        appBar: AppAppBar(title: context.l10n.transfer_detail_title),
+        body: EmptyState(title: context.l10n.common_error_title),
+      ),
+      data: (transfer) {
+        if (transfer == null) {
+          return Scaffold(
+            appBar: AppAppBar(title: context.l10n.transfer_detail_title),
+            body: EmptyState(title: context.l10n.transfer_not_found),
+          );
+        }
 
-          final transfer = snapshot.data;
-          if (transfer == null) {
-            return Center(
-              child: Text(
-                context.l10n.transfer_not_found,
-                style: context.textStyles.bodyMedium?.copyWith(
-                  color: cs.outline,
-                ),
+        final fromWallet =
+            wallets.where((w) => w.id == transfer.fromWalletId).firstOrNull;
+        final toWallet =
+            wallets.where((w) => w.id == transfer.toWalletId).firstOrNull;
+        final fromName = fromWallet?.name ?? '?';
+        final toName = toWallet?.name ?? '?';
+
+        return Scaffold(
+          appBar: AppAppBar(
+            title: context.l10n.transfer_detail_title,
+            actions: [
+              IconButton(
+                icon: Icon(AppIcons.edit, color: cs.primary),
+                tooltip: context.l10n.common_edit,
+                onPressed: () {
+                  context.pop();
+                  TransferScreen.showEdit(context, transferId);
+                },
               ),
-            );
-          }
-
-          final fromWallet =
-              wallets.where((w) => w.id == transfer.fromWalletId).firstOrNull;
-          final toWallet =
-              wallets.where((w) => w.id == transfer.toWalletId).firstOrNull;
-          final fromName = fromWallet?.name ?? '?';
-          final toName = toWallet?.name ?? '?';
-
-          return SingleChildScrollView(
+              IconButton(
+                icon: Icon(AppIcons.delete, color: theme.expenseColor),
+                tooltip: context.l10n.common_delete,
+                onPressed: () => _confirmDelete(context, ref),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
             padding:
                 const EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Hero card: amount + direction ──────────────────────
-                GlassCard(
+                // ── Hero card: dark gradient ──────────────────────────
+                Container(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.lg,
                     vertical: AppSizes.xl,
                   ),
-                  showShadow: true,
-                  tintColor: theme.transferColor.withValues(
-                    alpha: AppSizes.opacitySubtle,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        cs.inverseSurface,
+                        cs.inverseSurface
+                            .withValues(alpha: AppSizes.opacityDragging),
+                      ],
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusLg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cs.onSurface
+                            .withValues(alpha: AppSizes.opacityLight3),
+                        blurRadius: AppSizes.heroShadowBlur,
+                        offset: const Offset(0, AppSizes.heroShadowOffsetY),
+                      ),
+                    ],
                   ),
                   child: SizedBox(
                     width: double.infinity,
                     child: Column(
                       children: [
-                        // Transfer icon badge
-                        GlassCard(
-                          tier: GlassTier.inset,
-                          padding: EdgeInsets.zero,
-                          tintColor: theme.transferColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.borderRadiusFull,
-                          ),
-                          child: SizedBox(
-                            width: AppSizes.iconContainerXl,
-                            height: AppSizes.iconContainerXl,
-                            child: Icon(
-                              AppIcons.transfer,
-                              color: theme.transferColor,
-                              size: AppSizes.iconLg,
+                        // Transfer icon badge — circle on dark bg
+                        Container(
+                          width: AppSizes.iconContainerXl,
+                          height: AppSizes.iconContainerXl,
+                          decoration: BoxDecoration(
+                            color: theme.transferColor.withValues(
+                              alpha: AppSizes.opacityLight4,
                             ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            AppIcons.transfer,
+                            color: theme.transferColor,
+                            size: AppSizes.iconLg,
                           ),
                         ),
                         const SizedBox(height: AppSizes.md),
-                        // Amount
+                        // Amount — white on dark
                         Text(
                           MoneyFormatter.format(transfer.amount),
-                          style: context.textStyles.headlineMedium?.copyWith(
+                          style: context.textStyles.displaySmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: theme.transferColor,
+                            color: cs.onInverseSurface,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
                           ),
                         ),
                         if (transfer.fee > 0) ...[
@@ -142,38 +144,27 @@ class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
                           Text(
                             '${context.l10n.transfer_fee_label}: ${MoneyFormatter.format(transfer.fee)}',
                             style: context.textStyles.bodySmall?.copyWith(
-                              color: cs.outline,
+                              color: cs.onInverseSurface.withValues(
+                                alpha: AppSizes.opacityStrong,
+                              ),
                             ),
                           ),
                         ],
-                        const SizedBox(height: AppSizes.md),
-                        // Direction: From → To
+                        const SizedBox(height: AppSizes.sm),
+                        // Type + date badges
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            _WalletBadge(
-                              name: fromName,
-                              icon: fromWallet != null
-                                  ? AppIcons.walletType(fromWallet.type)
-                                  : AppIcons.wallet,
+                            _TypeBadge(
+                              label: context.l10n.transaction_type_transfer,
+                              color: theme.transferColor,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSizes.md,
-                              ),
-                              child: Icon(
-                                context.isRtl
-                                    ? AppIcons.arrowBack
-                                    : AppIcons.arrowForward,
-                                color: theme.transferColor,
-                                size: AppSizes.iconMd,
-                              ),
-                            ),
-                            _WalletBadge(
-                              name: toName,
-                              icon: toWallet != null
-                                  ? AppIcons.walletType(toWallet.type)
-                                  : AppIcons.wallet,
+                            const SizedBox(width: AppSizes.sm),
+                            _TypeBadge(
+                              label: DateFormat.yMMMd(context.languageCode)
+                                  .format(transfer.transferDate),
+                              color: cs.onInverseSurface,
                             ),
                           ],
                         ),
@@ -182,40 +173,175 @@ class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
                   ),
                 ),
 
-                // ── Details card ──────────────────────────────────────
-                GlassCard(
-                  margin: const EdgeInsets.symmetric(
+                // ── "DETAILED INFORMATION" section label ─────────────
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    AppSizes.screenHPadding + AppSizes.xs,
+                    AppSizes.lg,
+                    AppSizes.screenHPadding,
+                    AppSizes.sm,
+                  ),
+                  child: Text(
+                    context.l10n.transaction_detailed_info.toUpperCase(),
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: cs.outline,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+
+                // ── Detail rows (no wrapping card) ──────────────────
+                _DetailRow(
+                  icon: AppIcons.calendar,
+                  iconColor: cs.primary,
+                  label: context.l10n.transaction_date,
+                  value: DateFormat.yMMMd(context.languageCode)
+                      .add_jm()
+                      .format(transfer.transferDate),
+                ),
+                if (transfer.note != null && transfer.note!.isNotEmpty)
+                  _DetailRow(
+                    icon: AppIcons.edit,
+                    iconColor: cs.primary,
+                    label: context.l10n.transaction_note,
+                    value: transfer.note!,
+                  ),
+
+                // ── "TRANSFER DETAILS" section label ─────────────────
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    AppSizes.screenHPadding + AppSizes.xs,
+                    AppSizes.lg,
+                    AppSizes.screenHPadding,
+                    AppSizes.sm,
+                  ),
+                  child: Text(
+                    context.l10n.transaction_transfer_details.toUpperCase(),
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: cs.outline,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+
+                // ── FROM / TO cards ──────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.screenHPadding,
                   ),
-                  padding: EdgeInsets.zero,
-                  child: Column(
+                  child: Row(
                     children: [
-                      _DetailRow(
-                        icon: AppIcons.calendar,
-                        iconColor: cs.outline,
-                        label: context.l10n.transaction_date,
-                        value: DateFormat.yMMMd(context.languageCode)
-                            .add_jm()
-                            .format(transfer.transferDate),
-                      ),
-                      if (transfer.note != null &&
-                          transfer.note!.isNotEmpty) ...[
-                        const SizedBox(height: AppSizes.md),
-                        _DetailRow(
-                          icon: AppIcons.edit,
-                          iconColor: cs.outline,
-                          label: context.l10n.voice_confirm_add_notes,
-                          value: transfer.note!,
+                      // FROM card
+                      Expanded(
+                        child: GlassCard(
+                          tintColor: cs.primaryContainer.withValues(
+                            alpha: AppSizes.opacitySubtle,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.l10n.transfer_from_label.toUpperCase(),
+                                style: context.textStyles.labelSmall?.copyWith(
+                                  color: cs.outline,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: AppSizes.xs),
+                              Row(
+                                children: [
+                                  Icon(
+                                    fromWallet != null
+                                        ? AppIcons.walletType(
+                                            fromWallet.type,
+                                          )
+                                        : AppIcons.wallet,
+                                    size: AppSizes.iconSm,
+                                    color: cs.primary,
+                                  ),
+                                  const SizedBox(width: AppSizes.xs),
+                                  Expanded(
+                                    child: Text(
+                                      fromName,
+                                      style: context.textStyles.bodyMedium
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
+                      // Arrow
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSizes.sm,
+                        ),
+                        child: Icon(
+                          context.isRtl
+                              ? AppIcons.arrowBack
+                              : AppIcons.arrowForward,
+                          color: cs.primary,
+                          size: AppSizes.iconMd,
+                        ),
+                      ),
+                      // TO card
+                      Expanded(
+                        child: GlassCard(
+                          tintColor: cs.primaryContainer.withValues(
+                            alpha: AppSizes.opacitySubtle,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.l10n.transfer_to_label.toUpperCase(),
+                                style: context.textStyles.labelSmall?.copyWith(
+                                  color: cs.outline,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              const SizedBox(height: AppSizes.xs),
+                              Row(
+                                children: [
+                                  Icon(
+                                    toWallet != null
+                                        ? AppIcons.walletType(toWallet.type)
+                                        : AppIcons.wallet,
+                                    size: AppSizes.iconSm,
+                                    color: cs.primary,
+                                  ),
+                                  const SizedBox(width: AppSizes.xs),
+                                  Expanded(
+                                    child: Text(
+                                      toName,
+                                      style: context.textStyles.bodyMedium
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -234,54 +360,71 @@ class _TransferDetailScreenState extends ConsumerState<TransferDetailScreen> {
             onPressed: () => ctx.pop(true),
             child: Text(
               ctx.l10n.common_delete,
-              style: TextStyle(color: ctx.colors.error),
+              style: ctx.textStyles.labelLarge?.copyWith(
+                color: ctx.colors.error,
+              ),
             ),
           ),
         ],
       ),
     ).then((confirmed) async {
       if (confirmed == true && context.mounted) {
-        await ref.read(transferRepositoryProvider).delete(widget.transferId);
-        if (context.mounted) {
-          SnackHelper.showSuccess(context, context.l10n.transaction_deleted);
-          context.pop();
+        try {
+          await ref.read(transferRepositoryProvider).delete(transferId);
+          if (context.mounted) {
+            SnackHelper.showSuccess(
+              context,
+              context.l10n.transfer_deleted_message,
+            );
+            context.pop();
+          }
+        } catch (e) {
+          if (context.mounted) {
+            SnackHelper.showError(
+              context,
+              context.l10n.common_error_generic,
+            );
+          }
         }
       }
     });
   }
 }
 
-class _WalletBadge extends StatelessWidget {
-  const _WalletBadge({required this.name, required this.icon});
+// ── Type badge (small pill) ─────────────────────────────────────────────────
 
-  final String name;
-  final IconData icon;
+class _TypeBadge extends StatelessWidget {
+  const _TypeBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.colors;
-    return Column(
-      children: [
-        Container(
-          width: AppSizes.iconContainerLg,
-          height: AppSizes.iconContainerLg,
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: cs.onSurface, size: AppSizes.iconSm),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.sm,
+        vertical: AppSizes.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: AppSizes.opacityLight2),
+        borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
+        border: Border.all(
+          color: color.withValues(alpha: AppSizes.opacityLight4),
         ),
-        const SizedBox(height: AppSizes.xs),
-        Text(
-          name,
-          style: context.textStyles.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+      ),
+      child: Text(
+        label,
+        style: context.textStyles.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
         ),
-      ],
+      ),
     );
   }
 }
+
+// ── Detail row (standalone, green circle icons) ─────────────────────────────
 
 class _DetailRow extends StatelessWidget {
   const _DetailRow({
@@ -300,21 +443,19 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.md,
-        vertical: AppSizes.md,
+        horizontal: AppSizes.screenHPadding,
+        vertical: AppSizes.sm,
       ),
       child: Row(
         children: [
-          GlassCard(
-            tier: GlassTier.inset,
-            padding: EdgeInsets.zero,
-            tintColor: iconColor.withValues(alpha: AppSizes.opacitySubtle),
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-            child: SizedBox(
-              width: AppSizes.iconContainerMd,
-              height: AppSizes.iconContainerMd,
-              child: Icon(icon, size: AppSizes.iconSm, color: iconColor),
+          Container(
+            width: AppSizes.colorSwatchSize,
+            height: AppSizes.colorSwatchSize,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: AppSizes.opacityLight2),
+              shape: BoxShape.circle,
             ),
+            child: Icon(icon, size: AppSizes.iconSm, color: iconColor),
           ),
           const SizedBox(width: AppSizes.md),
           Expanded(
@@ -323,14 +464,16 @@ class _DetailRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: context.textStyles.bodySmall?.copyWith(
+                  style: context.textStyles.labelSmall?.copyWith(
                     color: context.colors.outline,
                   ),
                 ),
                 const SizedBox(height: AppSizes.xxs),
                 Text(
                   value,
-                  style: context.textStyles.bodyLarge,
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

@@ -308,7 +308,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
     return Scaffold(
       appBar: AppAppBar(
-        title: context.l10n.voice_confirm_title,
+        title: context.l10n.voice_confirm_count(_editableDrafts.length),
         actions: [
           IconButton(
             icon: Icon(
@@ -735,6 +735,35 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
     return Column(
       children: [
+        // ── Editorial header ─────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.screenHPadding,
+            vertical: AppSizes.md,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.l10n.voice_confirm_subtitle,
+                style: context.textStyles.labelSmall?.copyWith(
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.colors.outline,
+                ),
+              ),
+              const SizedBox(height: AppSizes.xs),
+              Text(
+                context.l10n.voice_confirm_headline,
+                style: context.textStyles.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: context.colors.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+
         // ── Batch selection controls ──────────────────────────────
         _buildBatchControls(context),
 
@@ -752,6 +781,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                   categories.where((c) => c.id == draft.categoryId).firstOrNull;
               final wallet =
                   wallets.where((w) => w.id == draft.walletId).firstOrNull;
+              final toWallet =
+                  wallets.where((w) => w.id == draft.toWalletId).firstOrNull;
 
               final item = DraftListItem(
                 id: index,
@@ -776,6 +807,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 subscriptionAdded: draft.subscriptionAdded,
                 unmatchedHint: draft.unmatchedHint,
                 unmatchedToHint: draft.unmatchedToHint,
+                fromWalletName: draft.type == 'transfer' ? wallet?.name : null,
+                toWalletName: draft.type == 'transfer' ? toWallet?.name : null,
                 onSubscriptionTap:
                     draft.isSubscriptionLike && draft.categoryId != null
                         ? () => _createSubscriptionFromDraft(draft)
@@ -847,8 +880,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          TextButton(
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
               setState(() {
                 final newValue = !allSelected;
                 for (final d in _editableDrafts) {
@@ -860,11 +893,14 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               allSelected
                   ? context.l10n.voice_deselect_all
                   : context.l10n.voice_select_all,
+              style: context.textStyles.labelSmall?.copyWith(
+                color: context.colors.outline,
+              ),
             ),
           ),
           Text(
             context.l10n.voice_selected_count(selectedCount, totalCount),
-            style: context.textStyles.bodySmall?.copyWith(
+            style: context.textStyles.labelSmall?.copyWith(
               color: context.colors.outline,
             ),
           ),
@@ -875,28 +911,96 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
   Widget _buildListBottomBar(BuildContext context) {
     final includedCount = _editableDrafts.where((d) => d.isIncluded).length;
+    final cs = context.colors;
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(AppSizes.screenHPadding),
-        child: FilledButton(
-          onPressed:
-              _saving || includedCount == 0 ? null : () => _confirmAll(context),
-          child: _saving
-              ? SizedBox(
-                  width: AppSizes.spinnerSize,
-                  height: AppSizes.spinnerSize,
-                  child: CircularProgressIndicator(
-                    strokeWidth: AppSizes.spinnerStrokeWidth,
-                    color: context.colors.onPrimary,
-                  ),
-                )
-              : Text(
-                  context.l10n.voice_confirm_count(includedCount),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSizes.screenHPadding,
+          vertical: AppSizes.sm,
+        ),
+        child: Row(
+          children: [
+            // Discard button (left)
+            TextButton(
+              onPressed: _saving ? null : () => _discardAll(context),
+              child: Text(
+                context.l10n.voice_discard_all,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
                 ),
+              ),
+            ),
+            // Submit All (center, prominent pill)
+            Expanded(
+              child: Center(
+                child: FilledButton(
+                  onPressed: _saving || includedCount == 0
+                      ? null
+                      : () => _confirmAll(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cs.primary,
+                    shape: const StadiumBorder(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.xl,
+                      vertical: AppSizes.md,
+                    ),
+                  ),
+                  child: _saving
+                      ? SizedBox(
+                          width: AppSizes.spinnerSize,
+                          height: AppSizes.spinnerSize,
+                          child: CircularProgressIndicator(
+                            strokeWidth: AppSizes.spinnerStrokeWidth,
+                            color: cs.onPrimary,
+                          ),
+                        )
+                      : Text(context.l10n.voice_submit_all),
+                ),
+              ),
+            ),
+            // Save Draft button (right)
+            TextButton(
+              onPressed: _saving ? null : () => _saveDraft(context),
+              child: Text(
+                context.l10n.voice_save_draft,
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.outline,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Future<void> _discardAll(BuildContext context) async {
+    final nav = GoRouter.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.voice_discard_all),
+        content: Text(context.l10n.voice_discard_confirm),
+        actions: [
+          TextButton(
+            onPressed: () => ctx.pop(false),
+            child: Text(context.l10n.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => ctx.pop(true),
+            child: Text(context.l10n.voice_discard_confirm_action),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      nav.pop();
+    }
+  }
+
+  void _saveDraft(BuildContext context) {
+    SnackHelper.showInfo(context, context.l10n.common_coming_soon);
   }
 
   // ── Utility methods ────────────────────────────────────────────────────
@@ -1017,7 +1121,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               );
             }
             totalSuccess++;
-          } catch (_) {
+          } catch (e) {
+            dev.log('Cash transfer save failed: $e', name: 'VoiceConfirm');
             totalFail++;
           }
         }
@@ -1037,7 +1142,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
             transferDate: draft.transactionDate,
           );
           totalSuccess++;
-        } catch (_) {
+        } catch (e) {
+          dev.log('Transfer save failed: $e', name: 'VoiceConfirm');
           totalFail++;
         }
       }
@@ -1071,7 +1177,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
                 : draft.rawText;
             learningService.recordMapping(title, draft.categoryId!);
           }
-        } catch (_) {
+        } catch (e) {
+          dev.log('Transaction save failed: $e', name: 'VoiceConfirm');
           totalFail++;
         }
       }

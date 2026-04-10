@@ -190,7 +190,12 @@ class _TrendsBody extends StatelessWidget {
             ),
             child: GlassCard(
               tier: GlassTier.inset,
-              padding: const EdgeInsets.all(AppSizes.sm),
+              padding: const EdgeInsetsDirectional.fromSTEB(
+                AppSizes.sm,
+                AppSizes.md,
+                AppSizes.md,
+                AppSizes.sm,
+              ),
               child: Semantics(
                 label: context.l10n.semantics_spending_trend_chart(days),
                 child: RepaintBoundary(
@@ -396,13 +401,21 @@ class _MainAreaChart extends StatelessWidget {
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              interval: data.length <= 14 ? 3 : (data.length <= 31 ? 7 : 14),
-              reservedSize: 24,
+              interval: 1,
+              reservedSize: 28,
               getTitlesWidget: (value, _) {
                 final idx = value.toInt();
                 if (idx < 0 || idx >= data.length) {
                   return const SizedBox.shrink();
                 }
+                // Show max ~5 labels: first, last, and evenly-spaced midpoints
+                final len = data.length;
+                final step = (len / 4).ceil().clamp(1, len);
+                final show = idx == 0 ||
+                    idx == len - 1 ||
+                    (idx > 0 && idx < len - 1 && idx % step == 0);
+                if (!show) return const SizedBox.shrink();
+
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSizes.xs),
                   child: Text(
@@ -410,7 +423,9 @@ class _MainAreaChart extends StatelessWidget {
                         .format(data[idx].date),
                     style: context.textStyles.labelSmall?.copyWith(
                       color: cs.onSurfaceVariant,
+                      fontSize: AppSizes.chartAxisLabel,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 );
               },

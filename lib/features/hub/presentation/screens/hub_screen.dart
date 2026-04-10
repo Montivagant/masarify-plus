@@ -85,24 +85,50 @@ class HubScreen extends ConsumerWidget {
         title: context.l10n.hub_planning_title,
         showBack: false,
       ),
-      body: GridView.count(
-        crossAxisCount: 2,
+      body: ListView(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSizes.screenHPadding,
           vertical: AppSizes.md,
         ),
-        mainAxisSpacing: AppSizes.sm,
-        crossAxisSpacing: AppSizes.sm,
-        children: items
-            .map(
-              (item) => _HubGridCard(
-                icon: item.icon,
-                label: item.label,
-                badge: item.badge,
-                onTap: () => context.push(item.route),
-              ),
-            )
-            .toList(),
+        children: [
+          // 1. Editorial header
+          const _EditorialHeader(),
+          const SizedBox(height: AppSizes.lg),
+          // 2. Grid via Wrap + LayoutBuilder
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cardWidth = (constraints.maxWidth - AppSizes.md) / 2;
+              return Wrap(
+                spacing: AppSizes.md,
+                runSpacing: AppSizes.md,
+                children: items
+                    .map(
+                      (item) => ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: cardWidth,
+                          maxWidth: cardWidth,
+                          minHeight: cardWidth * 1.1,
+                        ),
+                        child: _HubGridCard(
+                          icon: item.icon,
+                          label: item.label,
+                          badge: item.badge,
+                          onTap: () => context.push(item.route),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+          const SizedBox(height: AppSizes.lg),
+          // 3. Optimization section label
+          const _OptimizationLabel(),
+          const SizedBox(height: AppSizes.sm),
+          // 4. Saving Insights card
+          const _InsightsCard(),
+          const SizedBox(height: AppSizes.bottomScrollPadding),
+        ],
       ),
     );
   }
@@ -143,6 +169,9 @@ class _HubGridCard extends StatelessWidget {
 
     return GlassCard(
       onTap: onTap,
+      tintColor: badge != null
+          ? cs.primaryContainer.withValues(alpha: AppSizes.opacitySubtle)
+          : null,
       child: Stack(
         children: [
           // ── Badge (top-end) ──
@@ -174,20 +203,18 @@ class _HubGridCard extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                GlassCard(
-                  tier: GlassTier.inset,
-                  padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadiusMd),
-                  tintColor: cs.primaryContainer
-                      .withValues(alpha: AppSizes.opacityLight4),
-                  child: SizedBox(
-                    width: AppSizes.iconContainerXl,
-                    height: AppSizes.iconContainerXl,
-                    child: Icon(
-                      icon,
-                      size: AppSizes.iconLg,
-                      color: cs.onPrimaryContainer,
-                    ),
+                Container(
+                  width: AppSizes.iconContainerXl,
+                  height: AppSizes.iconContainerXl,
+                  decoration: BoxDecoration(
+                    color: cs.primaryContainer
+                        .withValues(alpha: AppSizes.opacityLight4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: AppSizes.iconLg,
+                    color: cs.onPrimaryContainer,
                   ),
                 ),
                 const SizedBox(height: AppSizes.sm),
@@ -202,6 +229,128 @@ class _HubGridCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Editorial headline + subtitle above the grid.
+class _EditorialHeader extends StatelessWidget {
+  const _EditorialHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.hub_headline,
+          style: context.textStyles.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: cs.onSurface,
+          ),
+        ),
+        const SizedBox(height: AppSizes.xs),
+        Text(
+          context.l10n.hub_subtitle,
+          style: context.textStyles.bodyMedium?.copyWith(
+            color: cs.outline,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// "OPTIMIZATION" small-caps section label.
+class _OptimizationLabel extends StatelessWidget {
+  const _OptimizationLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: AppSizes.xs),
+      child: Text(
+        context.l10n.hub_optimization_label.toUpperCase(),
+        style: context.textStyles.labelSmall?.copyWith(
+          color: cs.outline,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+/// Static saving insights card with placeholder content.
+class _InsightsCard extends StatelessWidget {
+  const _InsightsCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    return GlassCard(
+      showShadow: true,
+      tintColor: cs.primaryContainer.withValues(alpha: AppSizes.opacitySubtle),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title row with decorative icon
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.l10n.hub_saving_insights_title,
+                  style: context.textStyles.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Icon(
+                AppIcons.trendingUp,
+                size: AppSizes.iconMd,
+                color: cs.outline.withValues(alpha: AppSizes.opacityLight5),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.sm),
+          // Body text
+          Text(
+            context.l10n.hub_saving_insights_body,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.outline,
+            ),
+          ),
+          const SizedBox(height: AppSizes.md),
+          // Action buttons
+          Row(
+            children: [
+              FilledButton(
+                onPressed: () {
+                  // TODO: navigate to insights detail
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: cs.primary,
+                  shape: const StadiumBorder(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.md,
+                    vertical: AppSizes.sm,
+                  ),
+                ),
+                child: Text(context.l10n.hub_view_details),
+              ),
+              const SizedBox(width: AppSizes.sm),
+              TextButton(
+                onPressed: () {
+                  // TODO: dismiss / hide card
+                },
+                child: Text(context.l10n.common_dismiss),
+              ),
+            ],
           ),
         ],
       ),

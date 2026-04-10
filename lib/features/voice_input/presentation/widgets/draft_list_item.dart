@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/theme/app_theme_extension.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
@@ -42,6 +43,8 @@ class DraftListItem extends StatelessWidget {
     this.onCreateToWallet,
     this.rawTranscript,
     this.transactionDate,
+    this.fromWalletName,
+    this.toWalletName,
   });
 
   final int id;
@@ -66,6 +69,8 @@ class DraftListItem extends StatelessWidget {
   final VoidCallback? onCreateToWallet;
   final String? rawTranscript;
   final DateTime? transactionDate;
+  final String? fromWalletName;
+  final String? toWalletName;
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +90,7 @@ class DraftListItem extends StatelessWidget {
       _ => '',
     };
 
-    final formattedAmount = '$prefix${MoneyFormatter.formatAmount(amount)}';
+    final formattedAmount = '$prefix${MoneyFormatter.format(amount)}';
 
     // ── Determine suggestion chip (max 1, priority order) ───────────
     final suggestionChip =
@@ -97,13 +102,13 @@ class DraftListItem extends StatelessWidget {
         showShadow: true,
         margin: const EdgeInsets.symmetric(
           horizontal: AppSizes.screenHPadding,
-          vertical: AppSizes.sm,
+          vertical: AppSizes.md,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── Row 1: Category icon + name + amount ──────────────
+            // ── Row 1: Category icon + name/subtitle + amount ────
             Row(
               children: [
                 // Category icon in colored circle
@@ -123,15 +128,31 @@ class DraftListItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSizes.sm),
-                // Category name
+                // Category name + subtitle (title or transfer destination)
                 Expanded(
-                  child: Text(
-                    categoryName ?? '\u2014',
-                    style: textStyles.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        categoryName ?? '\u2014',
+                        style: textStyles.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppSizes.xxs),
+                      Text(
+                        type == 'transfer' && toWalletName != null
+                            ? '${context.l10n.voice_transfer_to} ${toWalletName!}'
+                            : title,
+                        style: textStyles.bodySmall?.copyWith(
+                          color: colors.outline,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: AppSizes.sm),
@@ -147,24 +168,16 @@ class DraftListItem extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: AppSizes.sm),
-
-            // ── Row 2: Title + raw transcript ─────────────────────
-            Text(
-              title,
-              style: textStyles.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            // ── Row 2: Raw transcript (quoted italic) ────────────
             if (rawTranscript != null && rawTranscript != title) ...[
-              const SizedBox(height: AppSizes.xxs),
+              const SizedBox(height: AppSizes.sm),
               Text(
-                rawTranscript!,
+                '"$rawTranscript"',
                 style: textStyles.bodySmall?.copyWith(
                   color: colors.outline,
                   fontStyle: FontStyle.italic,
                 ),
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -176,25 +189,56 @@ class DraftListItem extends StatelessWidget {
               spacing: AppSizes.xs,
               runSpacing: AppSizes.xs,
               children: [
-                if (walletName != null)
+                if (walletName != null &&
+                    !(type == 'transfer' && fromWalletName != null))
                   _detailPill(
                     context,
                     walletName!,
-                    colors.secondaryContainer,
+                    colors.surfaceContainerHigh,
                   ),
                 if (transactionDate != null)
                   _detailPill(
                     context,
                     DateFormat('MMM d').format(transactionDate!),
-                    colors.tertiaryContainer,
+                    colors.surfaceContainerHigh,
                   ),
                 _detailPill(
                   context,
                   _typeLabel(context),
-                  typeColor.withValues(alpha: AppSizes.opacityLight),
+                  typeColor.withValues(alpha: AppSizes.opacityLight2),
                 ),
               ],
             ),
+
+            // ── Transfer arrow row (FROM → TO) ───────────────────
+            if (type == 'transfer' && fromWalletName != null) ...[
+              const SizedBox(height: AppSizes.sm),
+              Row(
+                children: [
+                  Text(
+                    fromWalletName!,
+                    style: textStyles.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  Icon(
+                    context.isRtl ? AppIcons.arrowBack : AppIcons.arrowForward,
+                    size: AppSizes.iconXxs,
+                    color: colors.outline,
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  Text(
+                    toWalletName ?? '?',
+                    style: textStyles.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ],
 
             // ── Suggestion chip (if any) ──────────────────────────
             if (suggestionChip != null) ...[
@@ -204,15 +248,15 @@ class DraftListItem extends StatelessWidget {
 
             const SizedBox(height: AppSizes.sm),
 
-            // ── Row 4: Include checkbox + Edit button ─────────────
+            // ── Row 4: Include toggle + Edit button ───────────────
             Row(
               children: [
                 SizedBox(
-                  width: AppSizes.iconMd,
-                  height: AppSizes.iconMd,
-                  child: Checkbox(
+                  height: AppSizes.iconContainerMd,
+                  child: Switch.adaptive(
                     value: isIncluded,
                     onChanged: (_) => onToggle(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
                 const SizedBox(width: AppSizes.xs),
@@ -304,7 +348,7 @@ class DraftListItem extends StatelessWidget {
     BuildContext context,
     ColorScheme colors,
     TextTheme textStyles,
-    dynamic theme,
+    AppThemeExtension theme,
   ) {
     // Priority 1: Unmatched wallet
     if (unmatchedHint != null) {
@@ -348,10 +392,8 @@ class DraftListItem extends StatelessWidget {
         context: context,
         icon: AppIcons.goals,
         label: matchedGoalName!,
-        bgColor: (theme as dynamic)
-            .incomeColor
-            .withValues(alpha: AppSizes.opacityXLight) as Color,
-        fgColor: (theme as dynamic).incomeColor as Color,
+        bgColor: theme.incomeColor.withValues(alpha: AppSizes.opacityXLight),
+        fgColor: theme.incomeColor,
         // informational — tap card to edit
       );
     }

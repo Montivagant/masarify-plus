@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/services/ai/ai_chat_service.dart';
 import '../../core/services/ai/chat_action_executor.dart';
 import '../../core/utils/money_formatter.dart';
+import '../../domain/entities/category_entity.dart';
 import '../../domain/entities/chat_message_entity.dart';
 import 'ai_provider.dart';
 import 'background_ai_provider.dart';
@@ -64,8 +65,7 @@ final financialContextProvider = Provider.autoDispose<FinancialContext>((ref) {
   final budgetStatus = <String>[];
   for (final b in budgets) {
     final cat = catMap[b.categoryId];
-    final name =
-        cat?.displayName(lang) ?? (lang == 'ar' ? 'غير معروف' : 'Unknown');
+    final name = cat?.displayName(lang) ?? CategoryEntity.fallbackName(lang);
     final pct = (b.progressFraction * 100).round();
     budgetStatus.add('$name: $pct%');
   }
@@ -86,8 +86,7 @@ final financialContextProvider = Provider.autoDispose<FinancialContext>((ref) {
   final topCategories = <String>[];
   for (final entry in sortedEntries.take(3)) {
     final cat = catMap[entry.key];
-    final name =
-        cat?.displayName(lang) ?? (lang == 'ar' ? 'غير معروف' : 'Unknown');
+    final name = cat?.displayName(lang) ?? CategoryEntity.fallbackName(lang);
     final formatted = MoneyFormatter.formatCompact(entry.value);
     topCategories.add('$name: $formatted');
   }

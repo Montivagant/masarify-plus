@@ -31,6 +31,10 @@ class CategoryEntity {
   final bool isArchived;
   final int displayOrder;
 
+  /// Fallback name when the category cannot be resolved.
+  static String fallbackName(String locale) =>
+      locale.startsWith('ar') ? 'غير معروف' : 'Unknown';
+
   /// Returns the appropriate display name for the current locale.
   /// For default categories, returns nameAr (Arabic) or name (English).
   /// For user-created categories, name == nameAr, so either works.

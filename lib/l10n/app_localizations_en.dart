@@ -112,6 +112,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transaction_source_recurring => 'Recurring Rule';
 
   @override
+  String get transaction_detailed_info => 'Detailed Information';
+
+  @override
+  String get transaction_transfer_details => 'Transfer Details';
+
+  @override
+  String get transfer_from_label => 'From';
+
+  @override
+  String get transfer_to_label => 'To';
+
+  @override
   String get wallets_title => 'Accounts';
 
   @override
@@ -938,6 +950,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_add_short => 'Add';
 
   @override
+  String get wallet_physical_wallet => 'Physical Wallet';
+
+  @override
   String get wallet_add_title => 'New Account';
 
   @override
@@ -1419,6 +1434,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_paid_section => 'Paid';
 
   @override
+  String get recurring_total_monthly_spend => 'Total Monthly Spend';
+
+  @override
+  String get recurring_attention_required => 'Attention Required';
+
+  @override
+  String get recurring_coming_soon => 'Coming Soon';
+
+  @override
+  String get recurring_active_services => 'Active Services';
+
+  @override
+  String get recurring_recently_paid => 'Recently Paid';
+
+  @override
+  String get recurring_potential_savings => 'Potential Savings';
+
+  @override
+  String get recurring_spending_trend => 'Spending Trend';
+
+  @override
+  String recurring_per_month(String amount) {
+    return '$amount/mo';
+  }
+
+  @override
   String get recurring_auto_pay_label => 'Automatically mark as paid';
 
   @override
@@ -1684,6 +1725,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_section_goals_budgets => 'Budgets & Goals';
 
   @override
+  String get hub_headline => 'Curate your capital.';
+
+  @override
+  String get hub_subtitle =>
+      'Organize your financial future with precision and clarity';
+
+  @override
+  String get hub_optimization_label => 'Optimization';
+
+  @override
+  String get hub_saving_insights_title => 'Saving Insights';
+
+  @override
+  String get hub_saving_insights_body =>
+      'You could save an additional EGP 120/mo by consolidating your streaming subscriptions.';
+
+  @override
+  String get hub_view_details => 'View Details';
+
+  @override
   String get nav_planning => 'Planning';
 
   @override
@@ -1786,7 +1847,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String voice_confirm_count(int count) {
-    return 'Confirm ($count)';
+    return 'Review ($count)';
   }
 
   @override
@@ -2213,6 +2274,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voice_include => 'Include';
+
+  @override
+  String get voice_confirm_subtitle => 'CONFIRM TRANSACTIONS';
+
+  @override
+  String get voice_confirm_headline => 'Freshly Minted';
+
+  @override
+  String get voice_discard_all => 'Discard';
+
+  @override
+  String get voice_discard_confirm =>
+      'Discard all transactions? This cannot be undone.';
+
+  @override
+  String get voice_discard_confirm_action => 'Discard All';
+
+  @override
+  String get voice_submit_all => 'Submit All';
+
+  @override
+  String get voice_save_draft => 'Save Draft';
 
   @override
   String get insight_upcoming_bills_title => 'Upcoming Bills';

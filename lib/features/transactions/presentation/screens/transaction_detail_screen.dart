@@ -10,7 +10,6 @@ import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
-import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
@@ -71,8 +70,6 @@ class TransactionDetailScreen extends ConsumerWidget {
         final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
         final wallet = wallets.where((w) => w.id == tx.walletId).firstOrNull;
 
-        final catColor =
-            cat != null ? ColorUtils.fromHex(cat.colorHex) : cs.outline;
         final catIcon = cat != null
             ? CategoryIconMapper.fromName(cat.iconName)
             : switch (tx.type) {
@@ -86,12 +83,12 @@ class TransactionDetailScreen extends ConsumerWidget {
             title: context.l10n.transaction_detail_title,
             actions: [
               IconButton(
-                icon: const Icon(AppIcons.edit),
+                icon: Icon(AppIcons.edit, color: cs.primary),
                 tooltip: context.l10n.common_edit,
                 onPressed: () => AddTransactionScreen.showEdit(context, tx.id),
               ),
               IconButton(
-                icon: const Icon(AppIcons.delete),
+                icon: Icon(AppIcons.delete, color: theme.expenseColor),
                 tooltip: context.l10n.common_delete,
                 onPressed: () => _confirmDelete(context, ref),
               ),
@@ -103,56 +100,73 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Hero: Receipt-style amount card ───────────────────
-                GlassCard(
+                // ── Hero: Dark gradient card ─────────────────────────
+                Container(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.lg,
                     vertical: AppSizes.xl,
                   ),
-                  showShadow: true,
-                  tintColor:
-                      typeColor.withValues(alpha: AppSizes.opacitySubtle),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        cs.inverseSurface,
+                        cs.inverseSurface
+                            .withValues(alpha: AppSizes.opacityDragging),
+                      ],
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusLg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: cs.onSurface
+                            .withValues(alpha: AppSizes.opacityLight3),
+                        blurRadius: AppSizes.heroShadowBlur,
+                        offset: const Offset(0, AppSizes.heroShadowOffsetY),
+                      ),
+                    ],
+                  ),
                   child: SizedBox(
                     width: double.infinity,
                     child: Column(
                       children: [
-                        // Icon badge
-                        GlassCard(
-                          tier: GlassTier.inset,
-                          padding: EdgeInsets.zero,
-                          tintColor: catColor.withValues(
-                            alpha: AppSizes.opacityLight2,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            AppSizes.borderRadiusFull,
-                          ),
-                          child: SizedBox(
-                            width: AppSizes.iconContainerXl,
-                            height: AppSizes.iconContainerXl,
-                            child: Icon(
-                              catIcon,
-                              color: catColor,
-                              size: AppSizes.iconLg,
+                        // Icon badge — circle on dark bg
+                        Container(
+                          width: AppSizes.iconContainerXl,
+                          height: AppSizes.iconContainerXl,
+                          decoration: BoxDecoration(
+                            color: typeColor.withValues(
+                              alpha: AppSizes.opacityLight4,
                             ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            catIcon,
+                            color: typeColor,
+                            size: AppSizes.iconLg,
                           ),
                         ),
                         const SizedBox(height: AppSizes.md),
-                        // Amount with sign
+                        // Amount — white on dark
                         Text(
                           '$signPrefix${MoneyFormatter.format(tx.amount)}',
                           style: context.textStyles.displaySmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: typeColor,
+                            color: cs.onInverseSurface,
+                            fontFeatures: const [
+                              FontFeature.tabularFigures(),
+                            ],
                           ),
                         ),
                         const SizedBox(height: AppSizes.xs),
-                        // Title
+                        // Title — off-white on dark
                         Text(
                           tx.title,
                           style: context.textStyles.titleMedium?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: cs.onSurface.withValues(
+                            color: cs.onInverseSurface.withValues(
                               alpha: AppSizes.opacityStrong,
                             ),
                           ),
@@ -161,7 +175,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: AppSizes.sm),
-                        // Date + type row
+                        // Type + date badges
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           mainAxisSize: MainAxisSize.min,
@@ -174,7 +188,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                             _TypeBadge(
                               label: DateFormat.yMMMd(context.languageCode)
                                   .format(tx.transactionDate),
-                              color: cs.outline,
+                              color: cs.onInverseSurface,
                             ),
                           ],
                         ),
@@ -183,114 +197,116 @@ class TransactionDetailScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // ── Details card ──────────────────────────────────────
-                GlassCard(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: AppSizes.screenHPadding,
+                // ── "DETAILED INFORMATION" section label ─────────────
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    AppSizes.screenHPadding + AppSizes.xs,
+                    AppSizes.lg,
+                    AppSizes.screenHPadding,
+                    AppSizes.sm,
                   ),
-                  padding: EdgeInsets.zero,
-                  child: Column(
-                    children: [
-                      _DetailRow(
-                        icon: catIcon,
-                        iconColor: catColor,
-                        label: context.l10n.transaction_category,
-                        value:
-                            cat?.displayName(context.languageCode) ?? '\u2014',
-                      ),
-                      const SizedBox(height: AppSizes.md),
-                      _DetailRow(
-                        icon: wallet != null
-                            ? AppIcons.walletType(wallet.type)
-                            : AppIcons.wallet,
-                        iconColor: wallet != null
-                            ? ColorUtils.fromHex(wallet.colorHex)
-                            : cs.primary,
-                        label: context.l10n.transaction_wallet,
-                        value: wallet?.name ?? '\u2014',
-                      ),
-                      const SizedBox(height: AppSizes.md),
-                      _DetailRow(
-                        icon: AppIcons.calendar,
-                        iconColor: cs.outline,
-                        label: context.l10n.transaction_date,
-                        value: DateFormat.yMd(context.languageCode)
-                            .add_jm()
-                            .format(tx.transactionDate),
-                      ),
-                      if (tx.note != null && tx.note!.isNotEmpty) ...[
-                        const SizedBox(height: AppSizes.md),
-                        _DetailRow(
-                          icon: AppIcons.edit,
-                          iconColor: cs.outline,
-                          label: context.l10n.transaction_note,
-                          value: tx.note!,
-                        ),
-                      ],
-                      if (tx.locationName != null) ...[
-                        const SizedBox(height: AppSizes.md),
-                        _DetailRow(
-                          icon: AppIcons.location,
-                          iconColor: cs.outline,
-                          label: context.l10n.transaction_location,
-                          value: tx.locationName!,
-                        ),
-                        if (tx.latitude != null && tx.longitude != null) ...[
-                          const SizedBox(height: AppSizes.sm),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              AppSizes.borderRadiusMd,
-                            ),
-                            child: SizedBox(
-                              height: AppSizes.chartHeightMd,
-                              child: FlutterMap(
-                                options: MapOptions(
-                                  initialCenter:
-                                      LatLng(tx.latitude!, tx.longitude!),
-                                  initialZoom: 15,
-                                  interactionOptions: const InteractionOptions(
-                                    flags: InteractiveFlag.none,
-                                  ),
-                                ),
-                                children: [
-                                  TileLayer(
-                                    urlTemplate:
-                                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                    userAgentPackageName: 'com.masarify.app',
-                                  ),
-                                  MarkerLayer(
-                                    markers: [
-                                      Marker(
-                                        point: LatLng(
-                                          tx.latitude!,
-                                          tx.longitude!,
-                                        ),
-                                        child: Icon(
-                                          AppIcons.location,
-                                          color: cs.primary,
-                                          size: AppSizes.iconLg,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                      if (tx.source != 'manual') ...[
-                        const SizedBox(height: AppSizes.md),
-                        _DetailRow(
-                          icon: _sourceIcon(tx.source),
-                          iconColor: cs.outline,
-                          label: context.l10n.transaction_source_label,
-                          value: _sourceLabel(context, tx.source),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    context.l10n.transaction_detailed_info.toUpperCase(),
+                    style: context.textStyles.labelSmall?.copyWith(
+                      color: cs.outline,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5,
+                    ),
                   ),
                 ),
+
+                // ── Detail rows (no wrapping card) ──────────────────
+                _DetailRow(
+                  icon: catIcon,
+                  iconColor: cs.primary,
+                  label: context.l10n.transaction_category,
+                  value: cat?.displayName(context.languageCode) ?? '\u2014',
+                ),
+                _DetailRow(
+                  icon: wallet != null
+                      ? AppIcons.walletType(wallet.type)
+                      : AppIcons.wallet,
+                  iconColor: cs.primary,
+                  label: context.l10n.transaction_wallet,
+                  value: wallet?.name ?? '\u2014',
+                ),
+                _DetailRow(
+                  icon: AppIcons.calendar,
+                  iconColor: cs.primary,
+                  label: context.l10n.transaction_date,
+                  value: DateFormat.yMd(context.languageCode)
+                      .add_jm()
+                      .format(tx.transactionDate),
+                ),
+                if (tx.note != null && tx.note!.isNotEmpty)
+                  _DetailRow(
+                    icon: AppIcons.edit,
+                    iconColor: cs.primary,
+                    label: context.l10n.transaction_note,
+                    value: tx.note!,
+                  ),
+                if (tx.locationName != null)
+                  _DetailRow(
+                    icon: AppIcons.location,
+                    iconColor: cs.primary,
+                    label: context.l10n.transaction_location,
+                    value: tx.locationName!,
+                  ),
+                if (tx.source != 'manual')
+                  _DetailRow(
+                    icon: _sourceIcon(tx.source),
+                    iconColor: cs.primary,
+                    label: context.l10n.transaction_source_label,
+                    value: _sourceLabel(context, tx.source),
+                  ),
+
+                // ── Map (standalone, below all detail rows) ─────────
+                if (tx.latitude != null && tx.longitude != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSizes.screenHPadding,
+                      vertical: AppSizes.sm,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        AppSizes.borderRadiusMd,
+                      ),
+                      child: SizedBox(
+                        height: AppSizes.chartHeightMd,
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(tx.latitude!, tx.longitude!),
+                            initialZoom: 15,
+                            interactionOptions: const InteractionOptions(
+                              flags: InteractiveFlag.none,
+                            ),
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.masarify.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(
+                                    tx.latitude!,
+                                    tx.longitude!,
+                                  ),
+                                  child: Icon(
+                                    AppIcons.location,
+                                    color: cs.primary,
+                                    size: AppSizes.iconLg,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
 
                 // ── Tags ───────────────────────────────────────────────
                 if (tx.tagList.isNotEmpty)
@@ -444,7 +460,7 @@ class _TypeBadge extends StatelessWidget {
   }
 }
 
-// ── Detail row (used inside the grouped GlassCard) ──────────────────────────
+// ── Detail row (standalone, green circle icons) ─────────────────────────────
 
 class _DetailRow extends StatelessWidget {
   const _DetailRow({
@@ -463,21 +479,19 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.md,
-        vertical: AppSizes.md,
+        horizontal: AppSizes.screenHPadding,
+        vertical: AppSizes.sm,
       ),
       child: Row(
         children: [
-          GlassCard(
-            tier: GlassTier.inset,
-            padding: EdgeInsets.zero,
-            tintColor: iconColor.withValues(alpha: AppSizes.opacitySubtle),
-            borderRadius: BorderRadius.circular(AppSizes.borderRadiusSm),
-            child: SizedBox(
-              width: AppSizes.iconContainerMd,
-              height: AppSizes.iconContainerMd,
-              child: Icon(icon, size: AppSizes.iconSm, color: iconColor),
+          Container(
+            width: AppSizes.colorSwatchSize,
+            height: AppSizes.colorSwatchSize,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: AppSizes.opacityLight2),
+              shape: BoxShape.circle,
             ),
+            child: Icon(icon, size: AppSizes.iconSm, color: iconColor),
           ),
           const SizedBox(width: AppSizes.md),
           Expanded(
@@ -486,14 +500,16 @@ class _DetailRow extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: context.textStyles.bodySmall?.copyWith(
+                  style: context.textStyles.labelSmall?.copyWith(
                     color: context.colors.outline,
                   ),
                 ),
                 const SizedBox(height: AppSizes.xxs),
                 Text(
                   value,
-                  style: context.textStyles.bodyLarge,
+                  style: context.textStyles.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

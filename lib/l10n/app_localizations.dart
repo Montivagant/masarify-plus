@@ -302,6 +302,30 @@ abstract class AppLocalizations {
   /// **'Recurring Rule'**
   String get transaction_source_recurring;
 
+  /// No description provided for @transaction_detailed_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed Information'**
+  String get transaction_detailed_info;
+
+  /// No description provided for @transaction_transfer_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Details'**
+  String get transaction_transfer_details;
+
+  /// No description provided for @transfer_from_label.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get transfer_from_label;
+
+  /// No description provided for @transfer_to_label.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get transfer_to_label;
+
   /// No description provided for @wallets_title.
   ///
   /// In en, this message translates to:
@@ -1886,6 +1910,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get wallet_add_short;
 
+  /// No description provided for @wallet_physical_wallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical Wallet'**
+  String get wallet_physical_wallet;
+
   /// No description provided for @wallet_add_title.
   ///
   /// In en, this message translates to:
@@ -2792,6 +2822,54 @@ abstract class AppLocalizations {
   /// **'Paid'**
   String get recurring_paid_section;
 
+  /// No description provided for @recurring_total_monthly_spend.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Monthly Spend'**
+  String get recurring_total_monthly_spend;
+
+  /// No description provided for @recurring_attention_required.
+  ///
+  /// In en, this message translates to:
+  /// **'Attention Required'**
+  String get recurring_attention_required;
+
+  /// No description provided for @recurring_coming_soon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get recurring_coming_soon;
+
+  /// No description provided for @recurring_active_services.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Services'**
+  String get recurring_active_services;
+
+  /// No description provided for @recurring_recently_paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Paid'**
+  String get recurring_recently_paid;
+
+  /// No description provided for @recurring_potential_savings.
+  ///
+  /// In en, this message translates to:
+  /// **'Potential Savings'**
+  String get recurring_potential_savings;
+
+  /// No description provided for @recurring_spending_trend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending Trend'**
+  String get recurring_spending_trend;
+
+  /// No description provided for @recurring_per_month.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount}/mo'**
+  String recurring_per_month(String amount);
+
   /// No description provided for @recurring_auto_pay_label.
   ///
   /// In en, this message translates to:
@@ -3296,6 +3374,42 @@ abstract class AppLocalizations {
   /// **'Budgets & Goals'**
   String get hub_section_goals_budgets;
 
+  /// No description provided for @hub_headline.
+  ///
+  /// In en, this message translates to:
+  /// **'Curate your capital.'**
+  String get hub_headline;
+
+  /// No description provided for @hub_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize your financial future with precision and clarity'**
+  String get hub_subtitle;
+
+  /// No description provided for @hub_optimization_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Optimization'**
+  String get hub_optimization_label;
+
+  /// No description provided for @hub_saving_insights_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving Insights'**
+  String get hub_saving_insights_title;
+
+  /// No description provided for @hub_saving_insights_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You could save an additional EGP 120/mo by consolidating your streaming subscriptions.'**
+  String get hub_saving_insights_body;
+
+  /// No description provided for @hub_view_details.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get hub_view_details;
+
   /// No description provided for @nav_planning.
   ///
   /// In en, this message translates to:
@@ -3491,7 +3605,7 @@ abstract class AppLocalizations {
   /// No description provided for @voice_confirm_count.
   ///
   /// In en, this message translates to:
-  /// **'Confirm ({count})'**
+  /// **'Review ({count})'**
   String voice_confirm_count(int count);
 
   /// No description provided for @voice_saved_partial.
@@ -4148,6 +4262,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Include'**
   String get voice_include;
+
+  /// No description provided for @voice_confirm_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CONFIRM TRANSACTIONS'**
+  String get voice_confirm_subtitle;
+
+  /// No description provided for @voice_confirm_headline.
+  ///
+  /// In en, this message translates to:
+  /// **'Freshly Minted'**
+  String get voice_confirm_headline;
+
+  /// No description provided for @voice_discard_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get voice_discard_all;
+
+  /// No description provided for @voice_discard_confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard all transactions? This cannot be undone.'**
+  String get voice_discard_confirm;
+
+  /// No description provided for @voice_discard_confirm_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard All'**
+  String get voice_discard_confirm_action;
+
+  /// No description provided for @voice_submit_all.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit All'**
+  String get voice_submit_all;
+
+  /// No description provided for @voice_save_draft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Draft'**
+  String get voice_save_draft;
 
   /// No description provided for @insight_upcoming_bills_title.
   ///

@@ -12,11 +12,13 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auto_pay_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/transaction_entity.dart';
 import '../../../../shared/providers/activity_provider.dart';
 import '../../../../shared/providers/background_ai_provider.dart';
 import '../../../../shared/providers/budget_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
+import '../../../../shared/providers/hide_balances_provider.dart';
 import '../../../../shared/providers/home_filter_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/selected_account_provider.dart';
@@ -56,12 +58,21 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   static bool _notificationPermissionRequested = false;
-
   static bool _autoPayProcessed = false;
+
+  final _scrollController = ScrollController();
+  bool _heroCollapsed = false;
+
+  /// Scroll offset above which the hero collapses.
+  static const double _collapseThreshold = 300;
+
+  /// Scroll offset below which the hero restores (hysteresis).
+  static const double _restoreThreshold = 150;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     if (!_notificationPermissionRequested) {
       _notificationPermissionRequested = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -88,6 +99,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }
       });
     }
+  }
+
+  void _onScroll() {
+    final offset = _scrollController.offset;
+    final shouldCollapse = _heroCollapsed
+        ? offset > _restoreThreshold
+        : offset > _collapseThreshold;
+    if (shouldCollapse != _heroCollapsed) {
+      setState(() => _heroCollapsed = shouldCollapse);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
   }
 
   @override
@@ -124,11 +153,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       body: Column(
         children: [
           // ── Fixed zone: offline banner + header (never scrolls) ──────
-          if (!isOnline) _OfflineBanner(),
+          if (!isOnline) const _OfflineBanner(),
           if (filter.isSearchActive)
             SearchHeader(resultCount: resultCount)
           else
-            const BalanceHeader(),
+            AnimatedCrossFade(
+              firstChild: const BalanceHeader(),
+              secondChild: const _MiniBalanceHeader(),
+              crossFadeState: _heroCollapsed
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: AppDurations.animQuick,
+              firstCurve: Curves.easeOutCubic,
+              secondCurve: Curves.easeOutCubic,
+              sizeCurve: Curves.easeOutCubic,
+            ),
 
           // ── Scrollable zone: insight cards + filter bar + transactions
           Expanded(
@@ -151,6 +190,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               },
               child: SlidableAutoCloseBehavior(
                 child: CustomScrollView(
+                  controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     // ── Insight cards zone (scroll away, hidden during search)
@@ -253,7 +293,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onPressed: () => ctx.pop(true),
             child: Text(
               ctx.l10n.common_delete,
-              style: TextStyle(color: ctx.colors.error),
+              style: ctx.textStyles.bodyMedium?.copyWith(
+                color: ctx.colors.error,
+              ),
             ),
           ),
         ],
@@ -323,7 +365,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onPressed: () => ctx.pop(true),
             child: Text(
               ctx.l10n.common_delete,
-              style: TextStyle(color: ctx.colors.error),
+              style: ctx.textStyles.bodyMedium?.copyWith(
+                color: ctx.colors.error,
+              ),
             ),
           ),
         ],
@@ -359,9 +403,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 }
 
+// ── Mini balance header (collapsed state) ────────────────────────────────────
+
+class _MiniBalanceHeader extends ConsumerWidget {
+  const _MiniBalanceHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+    final selectedId = ref.watch(selectedAccountIdProvider);
+    final totalBalance = ref.watch(totalBalanceProvider).valueOrNull ?? 0;
+    final hidden = ref.watch(hideBalancesProvider);
+    final cs = context.colors;
+    final theme = context.appTheme;
+
+    final displayBalance = selectedId == null
+        ? totalBalance
+        : wallets.where((w) => w.id == selectedId).firstOrNull?.balance ?? 0;
+
+    return Container(
+      height: AppSizes.minTapTarget + AppSizes.md,
+      decoration: BoxDecoration(
+        color: theme.glassCardSurface,
+        border: Border(bottom: BorderSide(color: theme.glassCardBorder)),
+      ),
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: AppSizes.screenHPadding,
+      ),
+      child: Center(
+        child: Text(
+          hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
+          style: context.textStyles.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: cs.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ── Offline banner ──────────────────────────────────────────────────────────
 
 class _OfflineBanner extends StatelessWidget {
+  const _OfflineBanner();
+
   @override
   Widget build(BuildContext context) {
     return Container(
