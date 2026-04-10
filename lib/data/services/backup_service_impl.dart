@@ -463,14 +463,12 @@ class BackupServiceImpl implements BackupService {
       ...dataRows.map((e) => e.$2),
     ];
 
-    final csv = const ListToCsvConverter().convert(rows);
-    // M-19 fix: prepend UTF-8 BOM for Excel compatibility with Arabic text.
-    final csvWithBom = '\uFEFF$csv';
+    final csvString = const CsvEncoder(addBom: true).convert(rows);
     final dir = await getTemporaryDirectory();
     final file = File(
       '${dir.path}/masarify_${year}_${month.toString().padLeft(2, '0')}.csv',
     );
-    await file.writeAsString(csvWithBom);
+    await file.writeAsString(csvString);
     return file.path;
   }
 

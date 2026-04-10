@@ -124,16 +124,16 @@ scripts/
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `drift` | ^2.20.0 | Type-safe SQLite ORM |
+| `drift` | ^2.32.0 | Type-safe SQLite ORM |
 | `flutter_riverpod` | ^2.6.1 | State management |
-| `go_router` | ^14.3.0 | Declarative navigation |
-| `fl_chart` | ^0.69.0 | Charts and analytics |
+| `go_router` | ^17.0.0 | Declarative navigation |
+| `fl_chart` | ^1.0.0 | Charts and analytics |
 | `phosphor_flutter` | ^2.1.0 | Icon set |
 | `flutter_markdown` | ^0.7.4+3 | AI message rendering |
 | `in_app_purchase` | ^3.2.0 | Google Play Billing |
 | `google_sign_in` | ^6.2.1 | Google Drive OAuth |
 | `record` | ^6.2.0 | Voice audio capture |
-| `local_auth` | ^2.3.0 | Biometric authentication |
+| `local_auth` | ^3.0.0 | Biometric authentication |
 | `flutter_local_notifications` | ^17.2.3 | Local push notifications |
 | `rxdart` | ^0.28.0 | Reactive stream operators |
 
