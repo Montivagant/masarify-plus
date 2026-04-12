@@ -11,6 +11,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/frequency_label_extension.dart';
 import '../../../../core/services/ai/recurring_pattern_detector.dart';
+import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../domain/entities/category_entity.dart';
 import '../../../../domain/entities/recurring_rule_entity.dart';
@@ -189,27 +190,61 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
   }
 
   Future<void> _loadRule() async {
-    final rule =
-        await ref.read(recurringRuleRepositoryProvider).getById(widget.editId!);
-    if (!mounted || rule == null) return;
-    // Validate loaded category still matches the rule's type
+    // Phase 1 fix: the previous version silently returned on `rule == null`,
+    // leaving the user with a blank edit form and no indication of what
+    // happened. That exactly matched the "edit doesn't fetch existing data"
+    // bug report. Now we log, surface a specific error, and close the sheet
+    // so the user isn't stuck editing a non-existent rule.
+    RecurringRuleEntity? rule;
+    try {
+      rule = await ref
+          .read(recurringRuleRepositoryProvider)
+          .getById(widget.editId!);
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
+      if (!mounted) return;
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+      context.pop();
+      return;
+    }
+
+    if (!mounted) return;
+    if (rule == null) {
+      // Rule was deleted between the list rendering and the edit tap,
+      // or the list had a stale ID from a restored backup. Either way,
+      // there's nothing to edit — bail out with a clear error.
+      CrashLogService.log(
+        StateError('Recurring rule ${widget.editId} not found'),
+        StackTrace.current,
+      );
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+      context.pop();
+      return;
+    }
+
+    // Promote `rule` to a non-nullable local — the null-check above
+    // doesn't flow through the subsequent closure for type promotion
+    // across async gaps in Dart.
+    final loaded = rule;
+
+    // Validate loaded category still matches the rule's type.
     final categories = ref.read(categoriesProvider).valueOrNull ?? [];
     final loadedCat =
-        categories.where((c) => c.id == rule.categoryId).firstOrNull;
+        categories.where((c) => c.id == loaded.categoryId).firstOrNull;
     final validCategory = loadedCat != null &&
-        (loadedCat.type == rule.type || loadedCat.type == 'both');
+        (loadedCat.type == loaded.type || loadedCat.type == 'both');
 
     setState(() {
-      _titleController.text = rule.title;
-      _type = rule.type;
-      _amountPiastres = rule.amount;
-      _categoryId = validCategory ? rule.categoryId : null;
-      _walletId = rule.walletId;
-      _frequency = rule.frequency;
-      _startDate = rule.startDate;
-      _endDate = rule.endDate;
-      _autoMarkPaid = rule.autoMarkPaid;
-      _autoPayWalletId = rule.autoPayWalletId;
+      _titleController.text = loaded.title;
+      _type = loaded.type;
+      _amountPiastres = loaded.amount;
+      _categoryId = validCategory ? loaded.categoryId : null;
+      _walletId = loaded.walletId;
+      _frequency = loaded.frequency;
+      _startDate = loaded.startDate;
+      _endDate = loaded.endDate;
+      _autoMarkPaid = loaded.autoMarkPaid;
+      _autoPayWalletId = loaded.autoPayWalletId;
     });
   }
 
@@ -363,66 +398,75 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
     }
 
     setState(() => _loading = true);
+
+    // Compute effective dates based on frequency.
+    final DateTime effectiveStartDate = _startDate;
+    final DateTime? effectiveEndDate;
+    final DateTime effectiveNextDue;
+
+    if (_isOnce) {
+      // One-time: endDate = startDate, nextDueDate = startDate
+      effectiveEndDate = effectiveStartDate;
+      effectiveNextDue = effectiveStartDate;
+    } else {
+      effectiveEndDate = _endDate;
+      effectiveNextDue = effectiveStartDate;
+    }
+
+    // ── Phase 1: DB write (must succeed) ────────────────────────────
+    // Only the DB create/update is fatal. Notification scheduling is
+    // best-effort in phase 2 — previously they were in the same try/catch,
+    // so a notification failure (e.g., daily rule + today's start date
+    // triggering an exact-alarm permission issue, or any plugin-side
+    // throw) would show "something went wrong" even though the
+    // subscription had already been saved to the DB.
+    int ruleId;
+    bool isUpdate = false;
+    bool existingIsActive = true;
+    bool existingIsPaid = false;
+    DateTime updatedNextDue = effectiveNextDue;
     try {
       final repo = ref.read(recurringRuleRepositoryProvider);
 
-      // Compute effective dates based on frequency.
-      final DateTime effectiveStartDate = _startDate;
-      final DateTime? effectiveEndDate;
-      final DateTime effectiveNextDue;
-
-      if (_isOnce) {
-        // One-time: endDate = startDate, nextDueDate = startDate
-        effectiveEndDate = effectiveStartDate;
-        effectiveNextDue = effectiveStartDate;
-      } else {
-        effectiveEndDate = _endDate;
-        effectiveNextDue = effectiveStartDate;
-      }
-
-      final notifService = ref.read(notificationTriggerServiceProvider);
-
       if (widget.editId != null) {
         final existing = await repo.getById(widget.editId!);
-        if (existing != null) {
-          final updatedNextDue = _isOnce
-              ? effectiveNextDue
-              : (_startDate != existing.startDate ||
-                      _frequency != existing.frequency
-                  ? effectiveStartDate
-                  : existing.nextDueDate);
-          await repo.update(
-            RecurringRuleEntity(
-              id: existing.id,
-              title: title,
-              type: _type,
-              amount: _amountPiastres,
-              categoryId: _categoryId!,
-              walletId: _walletId!,
-              frequency: _frequency,
-              startDate: effectiveStartDate,
-              endDate: effectiveEndDate,
-              // C6 fix: reset nextDueDate if start date or frequency changed
-              nextDueDate: updatedNextDue,
-              isPaid: existing.isPaid,
-              paidAt: existing.paidAt,
-              linkedTransactionId: existing.linkedTransactionId,
-              isActive: existing.isActive,
-              lastProcessedDate: existing.lastProcessedDate,
-              autoMarkPaid: _autoMarkPaid,
-              autoPayWalletId: _autoMarkPaid ? _autoPayWalletId : null,
-            ),
-          );
-          // Reschedule bill reminder with updated due date
-          await notifService.scheduleBillReminder(
-            ruleId: existing.id,
-            title: title,
-            amount: _amountPiastres,
-            dueDate: updatedNextDue,
-          );
+        if (existing == null) {
+          throw StateError('Rule ${widget.editId} not found');
         }
+        isUpdate = true;
+        existingIsActive = existing.isActive;
+        existingIsPaid = existing.isPaid;
+        updatedNextDue = _isOnce
+            ? effectiveNextDue
+            : (_startDate != existing.startDate ||
+                    _frequency != existing.frequency
+                ? effectiveStartDate
+                : existing.nextDueDate);
+        await repo.update(
+          RecurringRuleEntity(
+            id: existing.id,
+            title: title,
+            type: _type,
+            amount: _amountPiastres,
+            categoryId: _categoryId!,
+            walletId: _walletId!,
+            frequency: _frequency,
+            startDate: effectiveStartDate,
+            endDate: effectiveEndDate,
+            // C6 fix: reset nextDueDate if start date or frequency changed
+            nextDueDate: updatedNextDue,
+            isPaid: existing.isPaid,
+            paidAt: existing.paidAt,
+            linkedTransactionId: existing.linkedTransactionId,
+            isActive: existing.isActive,
+            lastProcessedDate: existing.lastProcessedDate,
+            autoMarkPaid: _autoMarkPaid,
+            autoPayWalletId: _autoMarkPaid ? _autoPayWalletId : null,
+          ),
+        );
+        ruleId = existing.id;
       } else {
-        final newId = await repo.create(
+        ruleId = await repo.create(
           title: title,
           type: _type,
           amount: _amountPiastres,
@@ -435,24 +479,42 @@ class _AddRecurringScreenState extends ConsumerState<AddRecurringScreen> {
           autoMarkPaid: _autoMarkPaid,
           autoPayWalletId: _autoMarkPaid ? _autoPayWalletId : null,
         );
-        // Schedule bill reminder notification
-        await notifService.scheduleBillReminder(
-          ruleId: newId,
-          title: title,
-          amount: _amountPiastres,
-          dueDate: effectiveNextDue,
-        );
       }
-
-      HapticFeedback.heavyImpact();
-      if (!mounted) return;
-      context.pop();
-    } catch (_) {
-      // M1 fix: show error feedback instead of silently stopping spinner
+    } catch (e, stack) {
+      // DB write failed — this is genuinely fatal. Log real error and show
+      // a specific message where possible.
+      CrashLogService.log(e, stack);
       if (!mounted) return;
       setState(() => _loading = false);
-      SnackHelper.showError(context, context.l10n.common_error_generic);
+      final msg = e is ArgumentError
+          ? (e.message?.toString() ?? e.toString())
+          : context.l10n.common_error_generic;
+      SnackHelper.showError(context, msg);
+      return;
     }
+
+    // ── Phase 2: Schedule notifications (best-effort) ───────────────
+    // A failure here does NOT roll back the subscription — it's already
+    // committed. Log for diagnosis but continue to the success flow.
+    try {
+      final notifService = ref.read(notificationTriggerServiceProvider);
+      await notifService.scheduleBillReminders(
+        ruleId: ruleId,
+        title: title,
+        amount: _amountPiastres,
+        frequency: _frequency,
+        nextDueDate: isUpdate ? updatedNextDue : effectiveNextDue,
+        endDate: effectiveEndDate,
+        isActive: isUpdate ? existingIsActive : true,
+        isPaid: isUpdate ? existingIsPaid : false,
+      );
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
+    }
+
+    HapticFeedback.heavyImpact();
+    if (!mounted) return;
+    context.pop();
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────

@@ -89,7 +89,7 @@ class TabFilterRow extends ConsumerWidget {
                 showCheckmark: false,
                 visualDensity: VisualDensity.compact,
                 selectedColor: cs.primary,
-                labelStyle: TextStyle(
+                labelStyle: context.textStyles.labelLarge?.copyWith(
                   color: timePreset == preset.key
                       ? cs.onPrimary
                       : cs.onSurfaceVariant,
@@ -111,7 +111,7 @@ class TabFilterRow extends ConsumerWidget {
               showCheckmark: false,
               visualDensity: VisualDensity.compact,
               selectedColor: cs.primary,
-              labelStyle: TextStyle(
+              labelStyle: context.textStyles.labelLarge?.copyWith(
                 color:
                     timePreset == 'custom' ? cs.onPrimary : cs.onSurfaceVariant,
               ),
@@ -131,7 +131,7 @@ class TabFilterRow extends ConsumerWidget {
                   showCheckmark: false,
                   visualDensity: VisualDensity.compact,
                   selectedColor: cs.primary,
-                  labelStyle: TextStyle(
+                  labelStyle: context.textStyles.labelLarge?.copyWith(
                     color:
                         typeFilter == type ? cs.onPrimary : cs.onSurfaceVariant,
                   ),
@@ -165,7 +165,7 @@ class TabFilterRow extends ConsumerWidget {
                 showCheckmark: false,
                 visualDensity: VisualDensity.compact,
                 selectedColor: cs.primary,
-                labelStyle: TextStyle(
+                labelStyle: context.textStyles.labelLarge?.copyWith(
                   color: walletId != null ? cs.onPrimary : cs.onSurfaceVariant,
                 ),
               ),

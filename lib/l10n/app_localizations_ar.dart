@@ -42,9 +42,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_welcome_empty_sub => 'اضغط + لإضافة أول معاملة';
 
   @override
-  String get transactions_title => 'المعاملات';
-
-  @override
   String get transactions_empty_title => 'لا توجد معاملات بعد';
 
   @override
@@ -82,9 +79,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transaction_amount_hint => '٠٫٠٠';
-
-  @override
-  String get transaction_save => 'حفظ';
 
   @override
   String get transaction_saved => 'تم حفظ المعاملة';
@@ -135,24 +129,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wallet_type_physical_cash => 'كاش';
 
   @override
-  String get wallet_type_bank => 'حساب بنكي';
-
-  @override
-  String get wallet_type_mobile_wallet => 'محفظة إلكترونية';
-
-  @override
-  String get wallet_type_credit_card => 'بطاقة ائتمانية';
-
-  @override
-  String get wallet_type_prepaid_card => 'بطاقة مسبقة الدفع';
-
-  @override
-  String get wallet_type_investment => 'حساب استثماري';
-
-  @override
-  String get wallet_name_hint => 'اسم الحساب';
-
-  @override
   String get wallet_initial_balance => 'الرصيد الابتدائي';
 
   @override
@@ -196,9 +172,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get budgets_empty_title => 'لا توجد ميزانيات';
 
   @override
-  String get budgets_empty_sub => 'حدد حدوداً شهرية للتحكم في الإنفاق';
-
-  @override
   String get budget_set => 'تحديد ميزانية';
 
   @override
@@ -210,9 +183,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get budget_spent => 'المُنفَق';
-
-  @override
   String get budget_remaining => 'المتبقي';
 
   @override
@@ -220,9 +190,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goals_empty_title => 'لا توجد أهداف ادخارية';
-
-  @override
-  String get goals_empty_sub => 'حدد هدفاً وابدأ الادخار';
 
   @override
   String get goal_add => 'إنشاء هدف';
@@ -235,9 +202,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get goal_keywords => 'كلمات المطابقة التلقائية';
-
-  @override
-  String get goal_completed => 'تم تحقيق الهدف! 🎉';
 
   @override
   String get goal_overdue => 'متأخر';
@@ -271,9 +235,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recurring_overdue => 'متأخرة';
-
-  @override
-  String get recurring_upcoming_bills => 'فواتير قادمة';
 
   @override
   String get recurring_paid => 'مدفوعة';
@@ -373,12 +334,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get chat_action_tx_title => 'إنشاء معاملة';
 
   @override
-  String get hub_section_ai => 'مساعد ذكي';
-
-  @override
-  String get hub_section_app => 'التطبيق';
-
-  @override
   String get hub_wallets => 'الحسابات';
 
   @override
@@ -395,9 +350,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_security => 'الأمان';
-
-  @override
-  String get settings_about => 'عن التطبيق';
 
   @override
   String get settings_language => 'اللغة';
@@ -467,13 +419,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_clear_data => 'مسح جميع البيانات';
-
-  @override
   String get settings_clear_data_confirm => 'اكتب حذف للتأكيد';
-
-  @override
-  String get settings_voice_input => 'الإدخال الصوتي';
 
   @override
   String get settings_language_changed => 'تم تغيير اللغة';
@@ -600,9 +546,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_edit => 'تعديل';
 
   @override
-  String get common_close => 'إغلاق';
-
-  @override
   String get common_confirm => 'تأكيد';
 
   @override
@@ -665,15 +608,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get error_name_required => 'الاسم مطلوب';
 
   @override
-  String get voice_tap_to_start => 'اضغط على المايك للبدء';
-
-  @override
-  String get voice_listening => 'جار التسجيل...';
-
-  @override
-  String get voice_confirm_title => 'مراجعة المعاملات';
-
-  @override
   String get voice_confirm_accept_all => 'حفظ الكل';
 
   @override
@@ -685,12 +619,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get voice_ai_error => 'فشل التحليل الذكي. حاول مرة أخرى.';
-
-  @override
-  String get voice_retry => 'حاول مرة أخرى';
-
-  @override
-  String get voice_ai_parsing => 'جار التحليل بالذكاء الاصطناعي...';
 
   @override
   String get voice_cancel_recording => 'إلغاء التسجيل';
@@ -765,9 +693,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transfer_to => 'إلى';
-
-  @override
-  String get transfer_fee => 'رسوم التحويل (اختياري)';
 
   @override
   String get language_en => 'English';
@@ -1296,55 +1221,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get goal_keyword_hint => 'مثال: سفر، رحلة، طيران';
 
   @override
-  String get month_1 => 'يناير';
-
-  @override
-  String get month_2 => 'فبراير';
-
-  @override
-  String get month_3 => 'مارس';
-
-  @override
-  String get month_4 => 'أبريل';
-
-  @override
-  String get month_5 => 'مايو';
-
-  @override
-  String get month_6 => 'يونيو';
-
-  @override
-  String get month_7 => 'يوليو';
-
-  @override
-  String get month_8 => 'أغسطس';
-
-  @override
-  String get month_9 => 'سبتمبر';
-
-  @override
-  String get month_10 => 'أكتوبر';
-
-  @override
-  String get month_11 => 'نوفمبر';
-
-  @override
-  String get month_12 => 'ديسمبر';
-
-  @override
   String get month_previous => 'الشهر السابق';
 
   @override
   String get month_next => 'الشهر التالي';
 
   @override
-  String get recurring_active => 'الاشتراكات النشطة';
-
-  @override
   String get recurring_paused => 'متوقفة';
-
-  @override
-  String get recurring_pause => 'إيقاف';
 
   @override
   String get recurring_error_title => 'من فضلك أدخل عنوان';
@@ -1408,18 +1291,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_view_all => 'عرض الكل';
 
   @override
-  String get recurring_monthly_total => 'الإجمالي الشهري';
-
-  @override
   String recurring_due_this_week(int count) {
     return '$count مستحق هذا الأسبوع';
   }
-
-  @override
-  String get recurring_upcoming => 'قادم';
-
-  @override
-  String get recurring_paid_section => 'مدفوع';
 
   @override
   String get recurring_total_monthly_spend => 'الإنفاق الشهري الإجمالي';
@@ -1437,17 +1311,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recurring_recently_paid => 'مدفوع مؤخراً';
 
   @override
-  String get recurring_potential_savings => 'وفورات محتملة';
-
-  @override
-  String get recurring_spending_trend => 'اتجاه الإنفاق';
-
-  @override
-  String recurring_per_month(String amount) {
-    return '$amount/شهر';
-  }
-
-  @override
   String get recurring_auto_pay_label => 'وضع علامة مدفوع تلقائياً';
 
   @override
@@ -1457,57 +1320,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendar_no_transactions_day => 'لا توجد معاملات في هذا اليوم';
 
   @override
-  String get reports_period_7d => '٧ أيام';
-
-  @override
-  String get reports_period_30d => '٣٠ يوم';
-
-  @override
-  String get reports_period_90d => '٩٠ يوم';
-
-  @override
   String get reports_income_vs_expense => 'الدخل مقابل المصروف';
-
-  @override
-  String get reports_top_categories => 'أعلى التصنيفات';
-
-  @override
-  String get reports_vs_last_month => 'مقارنة بالشهر الماضي';
-
-  @override
-  String get reports_no_data => 'لا توجد معاملات في هذه الفترة';
-
-  @override
-  String get reports_total_expense => 'إجمالي المصروف';
-
-  @override
-  String get reports_net => 'الصافي';
 
   @override
   String get reports_daily_average => 'المتوسط اليومي';
 
   @override
-  String get reports_total_spending => 'إجمالي الإنفاق';
-
-  @override
   String get reports_highest_day => 'أعلى يوم';
-
-  @override
-  String get reports_vs_previous => 'مقارنة بالفترة السابقة';
 
   @override
   String reports_savings_rate(int rate) {
     return 'معدل التوفير: $rate% من الدخل';
-  }
-
-  @override
-  String reportsCategoryCount(int count) {
-    return '$count فئات';
-  }
-
-  @override
-  String reportsBudgetLabel(String amount) {
-    return 'الميزانية: $amount';
   }
 
   @override
@@ -1638,15 +1461,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notif_quiet_end => 'النهاية';
 
   @override
-  String get period_3_months => '3 أشهر';
-
-  @override
-  String get period_6_months => '6 أشهر';
-
-  @override
-  String get period_1_year => 'سنة';
-
-  @override
   String get pdf_report_title => 'تقرير مصاريفي الشهري';
 
   @override
@@ -1705,12 +1519,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_planning_title => 'التخطيط';
 
   @override
-  String get hub_section_accounts => 'الحسابات';
-
-  @override
-  String get hub_section_goals_budgets => 'الميزانيات والأهداف';
-
-  @override
   String get hub_headline => 'نظّم رأس مالك.';
 
   @override
@@ -1723,8 +1531,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get hub_saving_insights_title => 'نصائح التوفير';
 
   @override
-  String get hub_saving_insights_body =>
-      'يمكنك توفير ١٢٠ جنيه/شهر إضافية بدمج اشتراكات البث الخاصة بك.';
+  String hub_saving_insights_body(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'لديك $count اشتراكات نشطة بإجمالي $amount شهرياً. راجعها لاكتشاف طرق التوفير.',
+      one:
+          'لديك اشتراك واحد نشط بإجمالي $amount شهرياً. راجعه لاكتشاف طرق التوفير.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get hub_view_details => 'عرض التفاصيل';
@@ -1848,12 +1665,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_select_all => 'تحديد الكل';
 
   @override
-  String get voice_deselect_all => 'إلغاء تحديد الكل';
+  String get voice_view_list => 'عرض القائمة';
 
   @override
-  String voice_selected_count(int selected, int total) {
-    return '$selected من $total محدد';
-  }
+  String get voice_view_cards => 'عرض البطاقات';
 
   @override
   String get backup_encryption_warning =>
@@ -2164,13 +1979,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transaction_type_cash_withdrawal => 'سحب نقدي';
-
-  @override
   String get transaction_type_cash_withdrawal_short => 'سحب';
-
-  @override
-  String get transaction_type_cash_deposit => 'إيداع نقدي';
 
   @override
   String get transaction_type_cash_deposit_short => 'إيداع';
@@ -2219,10 +2028,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get home_net_label => 'الصافي';
 
   @override
-  String get home_net_tooltip =>
-      'الدخل ناقص المصروفات الشهر ده (التحويلات مش محسوبة)';
-
-  @override
   String get home_sort_title => 'ترتيب حسب';
 
   @override
@@ -2250,50 +2055,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get voice_confirm_select_category => 'اختر الفئة';
 
   @override
-  String get voice_confirm_add_notes => 'أضف ملاحظات...';
-
-  @override
   String get voice_confirm_subscription_suggest =>
       'إضافة إلى الاشتراكات والفواتير؟';
-
-  @override
-  String get voice_include => 'تضمين';
-
-  @override
-  String get voice_confirm_subtitle => 'تأكيد المعاملات';
-
-  @override
-  String get voice_confirm_headline => 'معاملات جديدة';
-
-  @override
-  String get voice_discard_all => 'تجاهل';
-
-  @override
-  String get voice_discard_confirm =>
-      'تجاهل جميع المعاملات؟ لا يمكن التراجع عن هذا.';
-
-  @override
-  String get voice_discard_confirm_action => 'تجاهل الكل';
-
-  @override
-  String get voice_submit_all => 'إرسال الكل';
-
-  @override
-  String get voice_save_draft => 'حفظ كمسودة';
-
-  @override
-  String get insight_upcoming_bills_title => 'فواتير قادمة';
-
-  @override
-  String insight_upcoming_bills_body(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count فواتير مستحقة هذا الأسبوع',
-      one: 'فاتورة واحدة مستحقة هذا الأسبوع',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get insight_budget_savings_title => 'وفورات الميزانية';
@@ -2623,18 +2386,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_transactions_count => 'المعاملات';
 
   @override
-  String get reports_net_label => 'الصافي';
-
-  @override
   String get reports_last_6_months => 'آخر 6 أشهر';
-
-  @override
-  String reports_date_range(String start, String end) {
-    return '$start - $end';
-  }
-
-  @override
-  String get reports_select_range => 'اختر نطاق التاريخ';
 
   @override
   String get reports_last_7_days => 'آخر 7 أيام';
@@ -2643,21 +2395,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reports_last_30_days => 'آخر 30 يوم';
 
   @override
-  String get reports_this_quarter => 'هذا الربع';
-
-  @override
-  String get reports_last_quarter => 'الربع الماضي';
-
-  @override
-  String get reports_apply => 'تطبيق';
-
-  @override
   String reports_category_top(String name) {
     return '$name هي الفئة الأولى';
   }
-
-  @override
-  String get hint_accounts => 'اضغط للتبديل بين الحسابات';
 
   @override
   String get home_filter_title => 'تصفية';
@@ -2710,4 +2450,40 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get semantics_spending_velocity_chart =>
       'مخطط وتيرة الإنفاق التراكمي مع توقعات نهاية الشهر';
+
+  @override
+  String get month_1 => 'يناير';
+
+  @override
+  String get month_2 => 'فبراير';
+
+  @override
+  String get month_3 => 'مارس';
+
+  @override
+  String get month_4 => 'أبريل';
+
+  @override
+  String get month_5 => 'مايو';
+
+  @override
+  String get month_6 => 'يونيو';
+
+  @override
+  String get month_7 => 'يوليو';
+
+  @override
+  String get month_8 => 'أغسطس';
+
+  @override
+  String get month_9 => 'سبتمبر';
+
+  @override
+  String get month_10 => 'أكتوبر';
+
+  @override
+  String get month_11 => 'نوفمبر';
+
+  @override
+  String get month_12 => 'ديسمبر';
 }

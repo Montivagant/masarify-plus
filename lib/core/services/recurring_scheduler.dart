@@ -7,6 +7,7 @@ import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_wallet_repository.dart';
 import '../extensions/datetime_extensions.dart';
 import '../utils/money_formatter.dart';
+import '../utils/recurring_date_calculator.dart';
 import 'crash_log_service.dart';
 import 'notification_service.dart';
 
@@ -114,7 +115,7 @@ class RecurringScheduler {
             recurringRuleId: rule.id,
           );
 
-          nextDue = _computeNextDueDate(nextDue, rule.frequency);
+          nextDue = RecurringDateCalculator.advance(nextDue, rule.frequency);
 
           // C7 fix: check endDate after advancing — break if past end
           if (rule.endDate != null && nextDue.isAfter(rule.endDate!)) {
@@ -161,20 +162,5 @@ class RecurringScheduler {
       body: MoneyFormatter.format(rule.amount),
       payload: 'recurring:${rule.id}',
     );
-  }
-
-  /// Advance [from] by one period of [frequency].
-  /// Uses [DateTimeX.addMonths] for month-based periods to clamp day and
-  /// prevent date drift (e.g. Jan 31 + 1 month → Feb 28, not Mar 3).
-  static DateTime _computeNextDueDate(DateTime from, String frequency) {
-    return switch (frequency) {
-      'daily' => from.add(const Duration(days: 1)),
-      'weekly' => from.add(const Duration(days: 7)),
-      'biweekly' => from.add(const Duration(days: 14)),
-      'monthly' => from.addMonths(1),
-      'quarterly' => from.addMonths(3),
-      'yearly' => from.addMonths(12),
-      _ => from.add(const Duration(days: 30)),
-    };
   }
 }

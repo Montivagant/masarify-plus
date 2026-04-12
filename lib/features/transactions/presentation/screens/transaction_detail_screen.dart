@@ -100,39 +100,22 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Hero: Dark gradient card ─────────────────────────
-                Container(
+                // ── Hero: GlassCard with primary-container tint ───────
+                GlassCard(
                   margin: const EdgeInsets.all(AppSizes.screenHPadding),
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSizes.lg,
                     vertical: AppSizes.xl,
                   ),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        cs.inverseSurface,
-                        cs.inverseSurface
-                            .withValues(alpha: AppSizes.opacityDragging),
-                      ],
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusLg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: cs.onSurface
-                            .withValues(alpha: AppSizes.opacityLight3),
-                        blurRadius: AppSizes.heroShadowBlur,
-                        offset: const Offset(0, AppSizes.heroShadowOffsetY),
-                      ),
-                    ],
+                  showShadow: true,
+                  tintColor: cs.primaryContainer.withValues(
+                    alpha: AppSizes.opacityMedium,
                   ),
                   child: SizedBox(
                     width: double.infinity,
                     child: Column(
                       children: [
-                        // Icon badge — circle on dark bg
+                        // Icon badge
                         Container(
                           width: AppSizes.iconContainerXl,
                           height: AppSizes.iconContainerXl,
@@ -149,26 +132,24 @@ class TransactionDetailScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: AppSizes.md),
-                        // Amount — white on dark
+                        // Amount
                         Text(
                           '$signPrefix${MoneyFormatter.format(tx.amount)}',
                           style: context.textStyles.displaySmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: cs.onInverseSurface,
+                            color: cs.onSurface,
                             fontFeatures: const [
                               FontFeature.tabularFigures(),
                             ],
                           ),
                         ),
                         const SizedBox(height: AppSizes.xs),
-                        // Title — off-white on dark
+                        // Title
                         Text(
                           tx.title,
                           style: context.textStyles.titleMedium?.copyWith(
                             fontWeight: FontWeight.w500,
-                            color: cs.onInverseSurface.withValues(
-                              alpha: AppSizes.opacityStrong,
-                            ),
+                            color: cs.onSurfaceVariant,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 2,
@@ -188,7 +169,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                             _TypeBadge(
                               label: DateFormat.yMMMd(context.languageCode)
                                   .format(tx.transactionDate),
-                              color: cs.onInverseSurface,
+                              color: cs.onSurfaceVariant,
                             ),
                           ],
                         ),

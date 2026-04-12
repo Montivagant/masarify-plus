@@ -13,6 +13,7 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/brand_registry.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/extensions/frequency_label_extension.dart';
+import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/money_formatter.dart';
@@ -326,8 +327,6 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
                     ),
                   ),
                 ],
-
-                // ── Insight cards (TODO: wire to real computed data) ──
               ],
             ],
           );
@@ -700,7 +699,7 @@ class _SubscriptionCard extends ConsumerWidget {
       await ref.read(recurringRuleRepositoryProvider).delete(rule.id);
       await ref
           .read(notificationTriggerServiceProvider)
-          .cancelBillReminder(rule.id);
+          .cancelBillReminders(rule.id);
       ref.invalidate(recurringRulesProvider);
       HapticFeedback.mediumImpact();
     } catch (e) {
@@ -763,8 +762,8 @@ class _MarkPaidChipState extends ConsumerState<_MarkPaidChip> {
     setState(() => _processing = true);
     HapticFeedback.mediumImpact();
 
+    final rule = widget.rule;
     try {
-      final rule = widget.rule;
       await ref.read(recurringRuleRepositoryProvider).payBill(
             ruleId: rule.id,
             walletId: rule.walletId,
@@ -773,20 +772,41 @@ class _MarkPaidChipState extends ConsumerState<_MarkPaidChip> {
             type: rule.type,
             title: rule.title,
           );
+    } on ArgumentError catch (e, stack) {
+      // Known failure: wallet missing/archived — surface the real reason
+      // so the user knows what to fix instead of seeing a generic error.
+      CrashLogService.log(e, stack);
+      if (!context.mounted) return;
+      setState(() => _processing = false);
+      SnackHelper.showError(context, e.message?.toString() ?? e.toString());
+      return;
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
+      if (!context.mounted) return;
+      setState(() => _processing = false);
+      SnackHelper.showError(context, context.l10n.common_error_generic);
+      return;
+    }
+
+    // Payment succeeded. Cancel pending reminders in a separate best-effort
+    // block — if notification cancellation fails (e.g. OS permission issue),
+    // we still want to show the success toast. The old code treated this
+    // as fatal, which is why users saw "Mark Paid failed" even when the
+    // bill was actually paid and the wallet balance had been adjusted.
+    try {
       await ref
           .read(notificationTriggerServiceProvider)
-          .cancelBillReminder(rule.id);
-      if (!context.mounted) return;
-      ref.invalidate(recurringRulesProvider);
-      SnackHelper.showSuccess(
-        context,
-        context.l10n.recurring_bill_paid_success,
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      SnackHelper.showError(context, context.l10n.common_error_generic);
-    } finally {
-      if (context.mounted) setState(() => _processing = false);
+          .cancelBillReminders(rule.id);
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
     }
+
+    if (!context.mounted) return;
+    ref.invalidate(recurringRulesProvider);
+    SnackHelper.showSuccess(
+      context,
+      context.l10n.recurring_bill_paid_success,
+    );
+    if (mounted) setState(() => _processing = false);
   }
 }

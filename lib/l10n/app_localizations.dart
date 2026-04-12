@@ -164,12 +164,6 @@ abstract class AppLocalizations {
   /// **'Tap + to add your first transaction'**
   String get dashboard_welcome_empty_sub;
 
-  /// No description provided for @transactions_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Transactions'**
-  String get transactions_title;
-
   /// No description provided for @transactions_empty_title.
   ///
   /// In en, this message translates to:
@@ -247,12 +241,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'0.00'**
   String get transaction_amount_hint;
-
-  /// No description provided for @transaction_save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get transaction_save;
 
   /// No description provided for @transaction_saved.
   ///
@@ -350,42 +338,6 @@ abstract class AppLocalizations {
   /// **'Cash'**
   String get wallet_type_physical_cash;
 
-  /// No description provided for @wallet_type_bank.
-  ///
-  /// In en, this message translates to:
-  /// **'Bank Account'**
-  String get wallet_type_bank;
-
-  /// No description provided for @wallet_type_mobile_wallet.
-  ///
-  /// In en, this message translates to:
-  /// **'Mobile Wallet'**
-  String get wallet_type_mobile_wallet;
-
-  /// No description provided for @wallet_type_credit_card.
-  ///
-  /// In en, this message translates to:
-  /// **'Credit Card'**
-  String get wallet_type_credit_card;
-
-  /// No description provided for @wallet_type_prepaid_card.
-  ///
-  /// In en, this message translates to:
-  /// **'Prepaid Card'**
-  String get wallet_type_prepaid_card;
-
-  /// No description provided for @wallet_type_investment.
-  ///
-  /// In en, this message translates to:
-  /// **'Investment Account'**
-  String get wallet_type_investment;
-
-  /// No description provided for @wallet_name_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Account name'**
-  String get wallet_name_hint;
-
   /// No description provided for @wallet_initial_balance.
   ///
   /// In en, this message translates to:
@@ -470,12 +422,6 @@ abstract class AppLocalizations {
   /// **'No budgets set'**
   String get budgets_empty_title;
 
-  /// No description provided for @budgets_empty_sub.
-  ///
-  /// In en, this message translates to:
-  /// **'Set monthly limits to control spending'**
-  String get budgets_empty_sub;
-
   /// No description provided for @budget_set.
   ///
   /// In en, this message translates to:
@@ -494,12 +440,6 @@ abstract class AppLocalizations {
   /// **'{category}: {percent}'**
   String budget_progress_a11y(String category, String percent);
 
-  /// No description provided for @budget_spent.
-  ///
-  /// In en, this message translates to:
-  /// **'Spent'**
-  String get budget_spent;
-
   /// No description provided for @budget_remaining.
   ///
   /// In en, this message translates to:
@@ -517,12 +457,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No savings goals'**
   String get goals_empty_title;
-
-  /// No description provided for @goals_empty_sub.
-  ///
-  /// In en, this message translates to:
-  /// **'Set a goal and start saving'**
-  String get goals_empty_sub;
 
   /// No description provided for @goal_add.
   ///
@@ -547,12 +481,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto-match keywords'**
   String get goal_keywords;
-
-  /// No description provided for @goal_completed.
-  ///
-  /// In en, this message translates to:
-  /// **'Goal Completed! 🎉'**
-  String get goal_completed;
 
   /// No description provided for @goal_overdue.
   ///
@@ -619,12 +547,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overdue'**
   String get recurring_overdue;
-
-  /// No description provided for @recurring_upcoming_bills.
-  ///
-  /// In en, this message translates to:
-  /// **'Upcoming Bills'**
-  String get recurring_upcoming_bills;
 
   /// No description provided for @recurring_paid.
   ///
@@ -818,18 +740,6 @@ abstract class AppLocalizations {
   /// **'Create Transaction'**
   String get chat_action_tx_title;
 
-  /// No description provided for @hub_section_ai.
-  ///
-  /// In en, this message translates to:
-  /// **'AI Assistant'**
-  String get hub_section_ai;
-
-  /// No description provided for @hub_section_app.
-  ///
-  /// In en, this message translates to:
-  /// **'App'**
-  String get hub_section_app;
-
   /// No description provided for @hub_wallets.
   ///
   /// In en, this message translates to:
@@ -865,12 +775,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Security'**
   String get settings_security;
-
-  /// No description provided for @settings_about.
-  ///
-  /// In en, this message translates to:
-  /// **'About'**
-  String get settings_about;
 
   /// No description provided for @settings_language.
   ///
@@ -998,23 +902,11 @@ abstract class AppLocalizations {
   /// **'Too many attempts. Try again in {duration}.'**
   String settings_pin_lockout(String duration);
 
-  /// No description provided for @settings_clear_data.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Data'**
-  String get settings_clear_data;
-
   /// No description provided for @settings_clear_data_confirm.
   ///
   /// In en, this message translates to:
   /// **'Type DELETE to confirm'**
   String get settings_clear_data_confirm;
-
-  /// No description provided for @settings_voice_input.
-  ///
-  /// In en, this message translates to:
-  /// **'Voice Input'**
-  String get settings_voice_input;
 
   /// No description provided for @settings_language_changed.
   ///
@@ -1256,12 +1148,6 @@ abstract class AppLocalizations {
   /// **'Edit'**
   String get common_edit;
 
-  /// No description provided for @common_close.
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get common_close;
-
   /// No description provided for @common_confirm.
   ///
   /// In en, this message translates to:
@@ -1382,24 +1268,6 @@ abstract class AppLocalizations {
   /// **'Name is required'**
   String get error_name_required;
 
-  /// No description provided for @voice_tap_to_start.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap the mic to start'**
-  String get voice_tap_to_start;
-
-  /// No description provided for @voice_listening.
-  ///
-  /// In en, this message translates to:
-  /// **'Recording...'**
-  String get voice_listening;
-
-  /// No description provided for @voice_confirm_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Review Transactions'**
-  String get voice_confirm_title;
-
   /// No description provided for @voice_confirm_accept_all.
   ///
   /// In en, this message translates to:
@@ -1423,18 +1291,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AI parsing failed. Please try again.'**
   String get voice_ai_error;
-
-  /// No description provided for @voice_retry.
-  ///
-  /// In en, this message translates to:
-  /// **'Try Again'**
-  String get voice_retry;
-
-  /// No description provided for @voice_ai_parsing.
-  ///
-  /// In en, this message translates to:
-  /// **'Analyzing with AI...'**
-  String get voice_ai_parsing;
 
   /// No description provided for @voice_cancel_recording.
   ///
@@ -1573,12 +1429,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'To'**
   String get transfer_to;
-
-  /// No description provided for @transfer_fee.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfer Fee (optional)'**
-  String get transfer_fee;
 
   /// No description provided for @language_en.
   ///
@@ -2582,78 +2432,6 @@ abstract class AppLocalizations {
   /// **'e.g. travel, trip, flight'**
   String get goal_keyword_hint;
 
-  /// No description provided for @month_1.
-  ///
-  /// In en, this message translates to:
-  /// **'January'**
-  String get month_1;
-
-  /// No description provided for @month_2.
-  ///
-  /// In en, this message translates to:
-  /// **'February'**
-  String get month_2;
-
-  /// No description provided for @month_3.
-  ///
-  /// In en, this message translates to:
-  /// **'March'**
-  String get month_3;
-
-  /// No description provided for @month_4.
-  ///
-  /// In en, this message translates to:
-  /// **'April'**
-  String get month_4;
-
-  /// No description provided for @month_5.
-  ///
-  /// In en, this message translates to:
-  /// **'May'**
-  String get month_5;
-
-  /// No description provided for @month_6.
-  ///
-  /// In en, this message translates to:
-  /// **'June'**
-  String get month_6;
-
-  /// No description provided for @month_7.
-  ///
-  /// In en, this message translates to:
-  /// **'July'**
-  String get month_7;
-
-  /// No description provided for @month_8.
-  ///
-  /// In en, this message translates to:
-  /// **'August'**
-  String get month_8;
-
-  /// No description provided for @month_9.
-  ///
-  /// In en, this message translates to:
-  /// **'September'**
-  String get month_9;
-
-  /// No description provided for @month_10.
-  ///
-  /// In en, this message translates to:
-  /// **'October'**
-  String get month_10;
-
-  /// No description provided for @month_11.
-  ///
-  /// In en, this message translates to:
-  /// **'November'**
-  String get month_11;
-
-  /// No description provided for @month_12.
-  ///
-  /// In en, this message translates to:
-  /// **'December'**
-  String get month_12;
-
   /// No description provided for @month_previous.
   ///
   /// In en, this message translates to:
@@ -2666,23 +2444,11 @@ abstract class AppLocalizations {
   /// **'Next month'**
   String get month_next;
 
-  /// No description provided for @recurring_active.
-  ///
-  /// In en, this message translates to:
-  /// **'Active Subscriptions'**
-  String get recurring_active;
-
   /// No description provided for @recurring_paused.
   ///
   /// In en, this message translates to:
   /// **'Paused'**
   String get recurring_paused;
-
-  /// No description provided for @recurring_pause.
-  ///
-  /// In en, this message translates to:
-  /// **'Pause'**
-  String get recurring_pause;
 
   /// No description provided for @recurring_error_title.
   ///
@@ -2798,29 +2564,11 @@ abstract class AppLocalizations {
   /// **'View All'**
   String get recurring_view_all;
 
-  /// No description provided for @recurring_monthly_total.
-  ///
-  /// In en, this message translates to:
-  /// **'Monthly Total'**
-  String get recurring_monthly_total;
-
   /// No description provided for @recurring_due_this_week.
   ///
   /// In en, this message translates to:
   /// **'{count} due this week'**
   String recurring_due_this_week(int count);
-
-  /// No description provided for @recurring_upcoming.
-  ///
-  /// In en, this message translates to:
-  /// **'Upcoming'**
-  String get recurring_upcoming;
-
-  /// No description provided for @recurring_paid_section.
-  ///
-  /// In en, this message translates to:
-  /// **'Paid'**
-  String get recurring_paid_section;
 
   /// No description provided for @recurring_total_monthly_spend.
   ///
@@ -2852,24 +2600,6 @@ abstract class AppLocalizations {
   /// **'Recently Paid'**
   String get recurring_recently_paid;
 
-  /// No description provided for @recurring_potential_savings.
-  ///
-  /// In en, this message translates to:
-  /// **'Potential Savings'**
-  String get recurring_potential_savings;
-
-  /// No description provided for @recurring_spending_trend.
-  ///
-  /// In en, this message translates to:
-  /// **'Spending Trend'**
-  String get recurring_spending_trend;
-
-  /// No description provided for @recurring_per_month.
-  ///
-  /// In en, this message translates to:
-  /// **'{amount}/mo'**
-  String recurring_per_month(String amount);
-
   /// No description provided for @recurring_auto_pay_label.
   ///
   /// In en, this message translates to:
@@ -2888,59 +2618,11 @@ abstract class AppLocalizations {
   /// **'No transactions on this day'**
   String get calendar_no_transactions_day;
 
-  /// No description provided for @reports_period_7d.
-  ///
-  /// In en, this message translates to:
-  /// **'7 Days'**
-  String get reports_period_7d;
-
-  /// No description provided for @reports_period_30d.
-  ///
-  /// In en, this message translates to:
-  /// **'30 Days'**
-  String get reports_period_30d;
-
-  /// No description provided for @reports_period_90d.
-  ///
-  /// In en, this message translates to:
-  /// **'90 Days'**
-  String get reports_period_90d;
-
   /// No description provided for @reports_income_vs_expense.
   ///
   /// In en, this message translates to:
   /// **'Income vs Expense'**
   String get reports_income_vs_expense;
-
-  /// No description provided for @reports_top_categories.
-  ///
-  /// In en, this message translates to:
-  /// **'Top Categories'**
-  String get reports_top_categories;
-
-  /// No description provided for @reports_vs_last_month.
-  ///
-  /// In en, this message translates to:
-  /// **'vs last month'**
-  String get reports_vs_last_month;
-
-  /// No description provided for @reports_no_data.
-  ///
-  /// In en, this message translates to:
-  /// **'No transactions in this period'**
-  String get reports_no_data;
-
-  /// No description provided for @reports_total_expense.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Expense'**
-  String get reports_total_expense;
-
-  /// No description provided for @reports_net.
-  ///
-  /// In en, this message translates to:
-  /// **'Net'**
-  String get reports_net;
 
   /// No description provided for @reports_daily_average.
   ///
@@ -2948,41 +2630,17 @@ abstract class AppLocalizations {
   /// **'Daily Average'**
   String get reports_daily_average;
 
-  /// No description provided for @reports_total_spending.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Spending'**
-  String get reports_total_spending;
-
   /// No description provided for @reports_highest_day.
   ///
   /// In en, this message translates to:
   /// **'Highest Day'**
   String get reports_highest_day;
 
-  /// No description provided for @reports_vs_previous.
-  ///
-  /// In en, this message translates to:
-  /// **'vs previous period'**
-  String get reports_vs_previous;
-
   /// No description provided for @reports_savings_rate.
   ///
   /// In en, this message translates to:
   /// **'Savings rate: {rate}% of income'**
   String reports_savings_rate(int rate);
-
-  /// No description provided for @reportsCategoryCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} categories'**
-  String reportsCategoryCount(int count);
-
-  /// No description provided for @reportsBudgetLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Budget: {amount}'**
-  String reportsBudgetLabel(String amount);
 
   /// No description provided for @balance_show.
   ///
@@ -3230,24 +2888,6 @@ abstract class AppLocalizations {
   /// **'End'**
   String get notif_quiet_end;
 
-  /// No description provided for @period_3_months.
-  ///
-  /// In en, this message translates to:
-  /// **'3M'**
-  String get period_3_months;
-
-  /// No description provided for @period_6_months.
-  ///
-  /// In en, this message translates to:
-  /// **'6M'**
-  String get period_6_months;
-
-  /// No description provided for @period_1_year.
-  ///
-  /// In en, this message translates to:
-  /// **'1Y'**
-  String get period_1_year;
-
   /// No description provided for @pdf_report_title.
   ///
   /// In en, this message translates to:
@@ -3362,18 +3002,6 @@ abstract class AppLocalizations {
   /// **'Planning'**
   String get hub_planning_title;
 
-  /// No description provided for @hub_section_accounts.
-  ///
-  /// In en, this message translates to:
-  /// **'Accounts'**
-  String get hub_section_accounts;
-
-  /// No description provided for @hub_section_goals_budgets.
-  ///
-  /// In en, this message translates to:
-  /// **'Budgets & Goals'**
-  String get hub_section_goals_budgets;
-
   /// No description provided for @hub_headline.
   ///
   /// In en, this message translates to:
@@ -3401,8 +3029,8 @@ abstract class AppLocalizations {
   /// No description provided for @hub_saving_insights_body.
   ///
   /// In en, this message translates to:
-  /// **'You could save an additional EGP 120/mo by consolidating your streaming subscriptions.'**
-  String get hub_saving_insights_body;
+  /// **'{count, plural, =1{You have 1 active subscription totaling {amount}/month. Review it to find savings.} other{You have {count} active subscriptions totaling {amount}/month. Review them to find savings.}}'**
+  String hub_saving_insights_body(int count, String amount);
 
   /// No description provided for @hub_view_details.
   ///
@@ -3620,17 +3248,17 @@ abstract class AppLocalizations {
   /// **'Select All'**
   String get voice_select_all;
 
-  /// No description provided for @voice_deselect_all.
+  /// No description provided for @voice_view_list.
   ///
   /// In en, this message translates to:
-  /// **'Deselect All'**
-  String get voice_deselect_all;
+  /// **'Switch to list view'**
+  String get voice_view_list;
 
-  /// No description provided for @voice_selected_count.
+  /// No description provided for @voice_view_cards.
   ///
   /// In en, this message translates to:
-  /// **'{selected} of {total} selected'**
-  String voice_selected_count(int selected, int total);
+  /// **'Switch to card view'**
+  String get voice_view_cards;
 
   /// No description provided for @backup_encryption_warning.
   ///
@@ -4083,23 +3711,11 @@ abstract class AppLocalizations {
   /// **'You spend avg {amount}/month on this category'**
   String insight_suggest_body(String amount);
 
-  /// No description provided for @transaction_type_cash_withdrawal.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash Withdrawal'**
-  String get transaction_type_cash_withdrawal;
-
   /// No description provided for @transaction_type_cash_withdrawal_short.
   ///
   /// In en, this message translates to:
   /// **'Withdraw'**
   String get transaction_type_cash_withdrawal_short;
-
-  /// No description provided for @transaction_type_cash_deposit.
-  ///
-  /// In en, this message translates to:
-  /// **'Cash Deposit'**
-  String get transaction_type_cash_deposit;
 
   /// No description provided for @transaction_type_cash_deposit_short.
   ///
@@ -4185,12 +3801,6 @@ abstract class AppLocalizations {
   /// **'Net'**
   String get home_net_label;
 
-  /// No description provided for @home_net_tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Income minus expenses this month (transfers excluded)'**
-  String get home_net_tooltip;
-
   /// No description provided for @home_sort_title.
   ///
   /// In en, this message translates to:
@@ -4245,77 +3855,11 @@ abstract class AppLocalizations {
   /// **'Select category'**
   String get voice_confirm_select_category;
 
-  /// No description provided for @voice_confirm_add_notes.
-  ///
-  /// In en, this message translates to:
-  /// **'Add notes...'**
-  String get voice_confirm_add_notes;
-
   /// No description provided for @voice_confirm_subscription_suggest.
   ///
   /// In en, this message translates to:
   /// **'Add to Subscriptions & Bills?'**
   String get voice_confirm_subscription_suggest;
-
-  /// No description provided for @voice_include.
-  ///
-  /// In en, this message translates to:
-  /// **'Include'**
-  String get voice_include;
-
-  /// No description provided for @voice_confirm_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'CONFIRM TRANSACTIONS'**
-  String get voice_confirm_subtitle;
-
-  /// No description provided for @voice_confirm_headline.
-  ///
-  /// In en, this message translates to:
-  /// **'Freshly Minted'**
-  String get voice_confirm_headline;
-
-  /// No description provided for @voice_discard_all.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get voice_discard_all;
-
-  /// No description provided for @voice_discard_confirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard all transactions? This cannot be undone.'**
-  String get voice_discard_confirm;
-
-  /// No description provided for @voice_discard_confirm_action.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard All'**
-  String get voice_discard_confirm_action;
-
-  /// No description provided for @voice_submit_all.
-  ///
-  /// In en, this message translates to:
-  /// **'Submit All'**
-  String get voice_submit_all;
-
-  /// No description provided for @voice_save_draft.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Draft'**
-  String get voice_save_draft;
-
-  /// No description provided for @insight_upcoming_bills_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Upcoming Bills'**
-  String get insight_upcoming_bills_title;
-
-  /// No description provided for @insight_upcoming_bills_body.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 bill due this week} other{{count} bills due this week}}'**
-  String insight_upcoming_bills_body(int count);
 
   /// No description provided for @insight_budget_savings_title.
   ///
@@ -4857,29 +4401,11 @@ abstract class AppLocalizations {
   /// **'Transactions'**
   String get reports_transactions_count;
 
-  /// No description provided for @reports_net_label.
-  ///
-  /// In en, this message translates to:
-  /// **'Net'**
-  String get reports_net_label;
-
   /// No description provided for @reports_last_6_months.
   ///
   /// In en, this message translates to:
   /// **'Last 6 Months'**
   String get reports_last_6_months;
-
-  /// No description provided for @reports_date_range.
-  ///
-  /// In en, this message translates to:
-  /// **'{start} - {end}'**
-  String reports_date_range(String start, String end);
-
-  /// No description provided for @reports_select_range.
-  ///
-  /// In en, this message translates to:
-  /// **'Select Date Range'**
-  String get reports_select_range;
 
   /// No description provided for @reports_last_7_days.
   ///
@@ -4893,35 +4419,11 @@ abstract class AppLocalizations {
   /// **'Last 30 Days'**
   String get reports_last_30_days;
 
-  /// No description provided for @reports_this_quarter.
-  ///
-  /// In en, this message translates to:
-  /// **'This Quarter'**
-  String get reports_this_quarter;
-
-  /// No description provided for @reports_last_quarter.
-  ///
-  /// In en, this message translates to:
-  /// **'Last Quarter'**
-  String get reports_last_quarter;
-
-  /// No description provided for @reports_apply.
-  ///
-  /// In en, this message translates to:
-  /// **'Apply'**
-  String get reports_apply;
-
   /// No description provided for @reports_category_top.
   ///
   /// In en, this message translates to:
   /// **'{name} is your #1 category'**
   String reports_category_top(String name);
-
-  /// No description provided for @hint_accounts.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to switch between accounts'**
-  String get hint_accounts;
 
   /// No description provided for @home_filter_title.
   ///
@@ -5012,6 +4514,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cumulative spending pace chart with month-end projection'**
   String get semantics_spending_velocity_chart;
+
+  /// No description provided for @month_1.
+  ///
+  /// In en, this message translates to:
+  /// **'January'**
+  String get month_1;
+
+  /// No description provided for @month_2.
+  ///
+  /// In en, this message translates to:
+  /// **'February'**
+  String get month_2;
+
+  /// No description provided for @month_3.
+  ///
+  /// In en, this message translates to:
+  /// **'March'**
+  String get month_3;
+
+  /// No description provided for @month_4.
+  ///
+  /// In en, this message translates to:
+  /// **'April'**
+  String get month_4;
+
+  /// No description provided for @month_5.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get month_5;
+
+  /// No description provided for @month_6.
+  ///
+  /// In en, this message translates to:
+  /// **'June'**
+  String get month_6;
+
+  /// No description provided for @month_7.
+  ///
+  /// In en, this message translates to:
+  /// **'July'**
+  String get month_7;
+
+  /// No description provided for @month_8.
+  ///
+  /// In en, this message translates to:
+  /// **'August'**
+  String get month_8;
+
+  /// No description provided for @month_9.
+  ///
+  /// In en, this message translates to:
+  /// **'September'**
+  String get month_9;
+
+  /// No description provided for @month_10.
+  ///
+  /// In en, this message translates to:
+  /// **'October'**
+  String get month_10;
+
+  /// No description provided for @month_11.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get month_11;
+
+  /// No description provided for @month_12.
+  ///
+  /// In en, this message translates to:
+  /// **'December'**
+  String get month_12;
 }
 
 class _AppLocalizationsDelegate

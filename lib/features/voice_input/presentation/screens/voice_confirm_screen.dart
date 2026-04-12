@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_icons.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -15,6 +17,7 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/category_icon_mapper.dart';
 import '../../../../core/utils/color_utils.dart';
 import '../../../../core/utils/goal_keyword_matcher.dart';
+import '../../../../core/utils/money_formatter.dart';
 import '../../../../core/utils/subscription_detector.dart';
 import '../../../../core/utils/voice_transaction_parser.dart';
 import '../../../../domain/entities/wallet_entity.dart';
@@ -24,10 +27,11 @@ import '../../../../shared/providers/goal_provider.dart';
 import '../../../../shared/providers/preferences_provider.dart';
 import '../../../../shared/providers/repository_providers.dart';
 import '../../../../shared/providers/wallet_provider.dart';
+import '../../../../shared/widgets/buttons/round_action_button.dart';
+import '../../../../shared/widgets/cards/glass_card.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
 import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../widgets/draft_edit_sheet.dart';
-import '../widgets/draft_list_item.dart';
 import '../widgets/swipe_card.dart';
 
 /// Rule #7: Voice-parsed transactions MUST pass review — never auto-save.
@@ -45,9 +49,11 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
   bool _saving = false;
   bool _defaultsApplied = false;
 
-  // ── Dual-mode state ──────────────────────────────────────────────────
-  bool _isSwipeView = true;
   int _currentIndex = 0;
+
+  /// Toggle between swipe-card stack (default) and vertical list view.
+  /// Both views share the same _editableDrafts state and confirm flow.
+  bool _isSwipeView = true;
 
   // ── Swipe hint state ────────────────────────────────────────────────
   bool _showSwipeHint = false;
@@ -310,31 +316,64 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       appBar: AppAppBar(
         title: context.l10n.voice_confirm_count(_editableDrafts.length),
         actions: [
-          IconButton(
-            icon: Icon(
-              _isSwipeView ? AppIcons.listView : AppIcons.cardStack,
+          if (_editableDrafts.isNotEmpty)
+            IconButton(
+              icon: Icon(
+                _isSwipeView ? AppIcons.listView : AppIcons.cardStack,
+              ),
+              tooltip: _isSwipeView
+                  ? context.l10n.voice_view_list
+                  : context.l10n.voice_view_cards,
+              onPressed: _saving
+                  ? null
+                  : () => setState(() => _isSwipeView = !_isSwipeView),
             ),
-            onPressed: () => setState(() => _isSwipeView = !_isSwipeView),
-          ),
         ],
       ),
-      body: _editableDrafts.isEmpty
-          ? Center(
-              child: Text(
-                context.l10n.voice_no_results,
-                style: context.textStyles.bodyMedium?.copyWith(
-                  color: context.colors.outline,
+      body: Stack(
+        children: [
+          // Main content
+          _editableDrafts.isEmpty
+              ? Center(
+                  child: Text(
+                    context.l10n.voice_no_results,
+                    style: context.textStyles.bodyMedium?.copyWith(
+                      color: context.colors.outline,
+                    ),
+                  ),
+                )
+              : (_isSwipeView
+                  ? _buildSwipeView(context)
+                  : _buildListView(context)),
+
+          // Full-screen swipe hint overlay — blurred backdrop so the
+          // hint is legible even over a dense card stack. Only rendered
+          // in swipe view, first time, and respects reduce-motion.
+          if (_isSwipeView && _showSwipeHint && !context.reduceMotion)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragStart: (_) => _dismissSwipeHint(),
+                onTap: _dismissSwipeHint,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: AppSizes.glassBlurBackground,
+                    sigmaY: AppSizes.glassBlurBackground,
+                  ),
+                  child: ColoredBox(
+                    color: AppColors.barrierScrim,
+                    child: _SwipeHintOverlay(onComplete: _dismissSwipeHint),
+                  ),
                 ),
               ),
-            )
-          : _isSwipeView
-              ? _buildSwipeView(context)
-              : _buildListView(context),
+            ),
+        ],
+      ),
       bottomNavigationBar: _editableDrafts.isEmpty
           ? null
-          : _isSwipeView
+          : (_isSwipeView
               ? _buildSwipeBottomBar(context)
-              : _buildListBottomBar(context),
+              : _buildListBottomBar(context)),
     );
   }
 
@@ -465,16 +504,6 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
               isFront: true,
             ),
         ],
-        // ── Swipe hint overlay (first-time only) ─────────────────────
-        if (_showSwipeHint && !context.reduceMotion)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onHorizontalDragStart: (_) => _dismissSwipeHint(),
-              onTap: _dismissSwipeHint,
-              child: _SwipeHintOverlay(onComplete: _dismissSwipeHint),
-            ),
-          ),
       ],
     );
   }
@@ -628,6 +657,107 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     );
   }
 
+  // ── List view ──────────────────────────────────────────────────────────
+
+  /// Vertical list alternative to the swipe stack. Shows every draft at
+  /// once with inline approve/skip buttons — no swipe gestures. Shares the
+  /// same _editableDrafts state and edit-sheet flow as the swipe view.
+  Widget _buildListView(BuildContext context) {
+    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
+    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSizes.screenHPadding,
+        vertical: AppSizes.md,
+      ),
+      itemCount: _editableDrafts.length,
+      separatorBuilder: (_, __) => const SizedBox(height: AppSizes.sm),
+      itemBuilder: (ctx, index) {
+        final draft = _editableDrafts[index];
+        final cat =
+            categories.where((c) => c.id == draft.categoryId).firstOrNull;
+        final wallet = wallets.where((w) => w.id == draft.walletId).firstOrNull;
+        final isCash = _isCashType(draft.type);
+
+        return _DraftListCard(
+          key: ValueKey('draft_list_$index'),
+          categoryIcon: cat != null
+              ? CategoryIconMapper.fromName(cat.iconName)
+              : AppIcons.category,
+          categoryColor: cat != null
+              ? ColorUtils.fromHex(cat.colorHex)
+              : context.colors.outline,
+          categoryName: cat?.displayName(context.languageCode),
+          walletName: wallet?.name,
+          amount: draft.amountPiastres,
+          type: draft.type,
+          title: draft.noteController.text.trim().isNotEmpty
+              ? draft.noteController.text.trim()
+              : draft.rawText,
+          rawTranscript: draft.rawText,
+          transactionDate: draft.transactionDate,
+          isIncluded: draft.isIncluded,
+          matchedGoalName: draft.matchedGoalName,
+          isSubscriptionLike: draft.isSubscriptionLike,
+          subscriptionAdded: draft.subscriptionAdded,
+          unmatchedHint: draft.unmatchedHint,
+          unmatchedToHint: draft.unmatchedToHint,
+          onApprove: () => setState(() => draft.isIncluded = true),
+          onSkip: () => setState(() => draft.isIncluded = false),
+          onTypeTap: isCash
+              ? null
+              : () => _openEditSheet(context, draft, initialField: 'type'),
+          onCategoryTap: () =>
+              _openEditSheet(context, draft, initialField: 'category'),
+          onWalletTap: () =>
+              _openEditSheet(context, draft, initialField: 'wallet'),
+          onAmountTap: () =>
+              _openEditSheet(context, draft, initialField: 'amount'),
+          onTitleTap: () =>
+              _openEditSheet(context, draft, initialField: 'title'),
+          onSubscriptionTap:
+              draft.isSubscriptionLike && draft.categoryId != null
+                  ? () => _createSubscriptionFromDraft(draft)
+                  : null,
+          onCreateWallet: draft.unmatchedHint != null
+              ? () => _createWalletFromHint(draft)
+              : null,
+          onCreateToWallet: draft.unmatchedToHint != null
+              ? () => _createToWalletFromHint(draft)
+              : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildListBottomBar(BuildContext context) {
+    final cs = context.colors;
+    final includedCount = _editableDrafts.where((d) => d.isIncluded).length;
+    final canConfirm = includedCount > 0 && !_saving;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSizes.screenHPadding),
+        child: FilledButton(
+          onPressed: canConfirm ? () => _confirmAll(context) : null,
+          child: _saving
+              ? SizedBox(
+                  width: AppSizes.spinnerSize,
+                  height: AppSizes.spinnerSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: AppSizes.spinnerStrokeWidth,
+                    color: cs.onPrimary,
+                  ),
+                )
+              : Text(
+                  '${context.l10n.voice_confirm_accept_all} ($includedCount)',
+                ),
+        ),
+      ),
+    );
+  }
+
   // ── Swipe actions ──────────────────────────────────────────────────────
 
   void _approveDraft(int index) {
@@ -727,282 +857,6 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     if (mounted) setState(() {});
   }
 
-  // ── List view ──────────────────────────────────────────────────────────
-
-  Widget _buildListView(BuildContext context) {
-    final categories = ref.watch(categoriesProvider).valueOrNull ?? [];
-    final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
-
-    return Column(
-      children: [
-        // ── Editorial header ─────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSizes.screenHPadding,
-            vertical: AppSizes.md,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.l10n.voice_confirm_subtitle,
-                style: context.textStyles.labelSmall?.copyWith(
-                  letterSpacing: 1.5,
-                  fontWeight: FontWeight.w600,
-                  color: context.colors.outline,
-                ),
-              ),
-              const SizedBox(height: AppSizes.xs),
-              Text(
-                context.l10n.voice_confirm_headline,
-                style: context.textStyles.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: context.colors.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // ── Batch selection controls ──────────────────────────────
-        _buildBatchControls(context),
-
-        // ── Transaction list ─────────────────────────────────────
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(
-              top: AppSizes.xs,
-              bottom: AppSizes.bottomScrollPadding,
-            ),
-            itemCount: _editableDrafts.length,
-            itemBuilder: (context, index) {
-              final draft = _editableDrafts[index];
-              final cat =
-                  categories.where((c) => c.id == draft.categoryId).firstOrNull;
-              final wallet =
-                  wallets.where((w) => w.id == draft.walletId).firstOrNull;
-              final toWallet =
-                  wallets.where((w) => w.id == draft.toWalletId).firstOrNull;
-
-              final item = DraftListItem(
-                id: index,
-                categoryIcon: cat != null
-                    ? CategoryIconMapper.fromName(cat.iconName)
-                    : AppIcons.category,
-                categoryColor: cat != null
-                    ? ColorUtils.fromHex(cat.colorHex)
-                    : context.colors.outline,
-                categoryName: cat?.displayName(context.languageCode),
-                walletName: wallet?.name,
-                amount: draft.amountPiastres,
-                type: draft.type,
-                title: draft.noteController.text.trim().isNotEmpty
-                    ? draft.noteController.text.trim()
-                    : draft.rawText,
-                isIncluded: draft.isIncluded,
-                rawTranscript: draft.rawText,
-                transactionDate: draft.transactionDate,
-                matchedGoalName: draft.matchedGoalName,
-                isSubscriptionLike: draft.isSubscriptionLike,
-                subscriptionAdded: draft.subscriptionAdded,
-                unmatchedHint: draft.unmatchedHint,
-                unmatchedToHint: draft.unmatchedToHint,
-                fromWalletName: draft.type == 'transfer' ? wallet?.name : null,
-                toWalletName: draft.type == 'transfer' ? toWallet?.name : null,
-                onSubscriptionTap:
-                    draft.isSubscriptionLike && draft.categoryId != null
-                        ? () => _createSubscriptionFromDraft(draft)
-                        : null,
-                onCreateWallet: draft.unmatchedHint != null
-                    ? () => _createWalletFromHint(draft)
-                    : null,
-                onCreateToWallet: draft.unmatchedToHint != null
-                    ? () => _createToWalletFromHint(draft)
-                    : null,
-                onToggle: () {
-                  setState(() => draft.isIncluded = !draft.isIncluded);
-                },
-                onEdit: () => _openEditSheet(context, draft),
-                onDecline: () {
-                  final removedDraft = draft;
-                  final removedIndex = index;
-                  setState(() {
-                    removedDraft.isIncluded = false;
-                    _editableDrafts.removeAt(removedIndex);
-                  });
-                  SnackHelper.showInfo(
-                    context,
-                    context.l10n.sms_review_skip,
-                    action: SnackBarAction(
-                      label: context.l10n.common_undo,
-                      onPressed: () {
-                        setState(() {
-                          removedDraft.isIncluded = true;
-                          _editableDrafts.insert(
-                            removedIndex.clamp(0, _editableDrafts.length),
-                            removedDraft,
-                          );
-                        });
-                      },
-                    ),
-                  );
-                },
-              );
-
-              if (context.reduceMotion) return item;
-              return item
-                  .animate()
-                  .fadeIn(duration: AppDurations.listItemEntry)
-                  .slideY(
-                    begin: 0.03,
-                    end: 0,
-                    duration: AppDurations.listItemEntry,
-                    curve: Curves.easeOutCubic,
-                  )
-                  .then(delay: AppDurations.staggerDelay * index);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBatchControls(BuildContext context) {
-    final allSelected = _editableDrafts.every((d) => d.isIncluded);
-    final selectedCount = _editableDrafts.where((d) => d.isIncluded).length;
-    final totalCount = _editableDrafts.length;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSizes.screenHPadding,
-        vertical: AppSizes.xs,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                final newValue = !allSelected;
-                for (final d in _editableDrafts) {
-                  d.isIncluded = newValue;
-                }
-              });
-            },
-            child: Text(
-              allSelected
-                  ? context.l10n.voice_deselect_all
-                  : context.l10n.voice_select_all,
-              style: context.textStyles.labelSmall?.copyWith(
-                color: context.colors.outline,
-              ),
-            ),
-          ),
-          Text(
-            context.l10n.voice_selected_count(selectedCount, totalCount),
-            style: context.textStyles.labelSmall?.copyWith(
-              color: context.colors.outline,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildListBottomBar(BuildContext context) {
-    final includedCount = _editableDrafts.where((d) => d.isIncluded).length;
-    final cs = context.colors;
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.screenHPadding,
-          vertical: AppSizes.sm,
-        ),
-        child: Row(
-          children: [
-            // Discard button (left)
-            TextButton(
-              onPressed: _saving ? null : () => _discardAll(context),
-              child: Text(
-                context.l10n.voice_discard_all,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-            ),
-            // Submit All (center, prominent pill)
-            Expanded(
-              child: Center(
-                child: FilledButton(
-                  onPressed: _saving || includedCount == 0
-                      ? null
-                      : () => _confirmAll(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: cs.primary,
-                    shape: const StadiumBorder(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSizes.xl,
-                      vertical: AppSizes.md,
-                    ),
-                  ),
-                  child: _saving
-                      ? SizedBox(
-                          width: AppSizes.spinnerSize,
-                          height: AppSizes.spinnerSize,
-                          child: CircularProgressIndicator(
-                            strokeWidth: AppSizes.spinnerStrokeWidth,
-                            color: cs.onPrimary,
-                          ),
-                        )
-                      : Text(context.l10n.voice_submit_all),
-                ),
-              ),
-            ),
-            // Save Draft button (right)
-            TextButton(
-              onPressed: _saving ? null : () => _saveDraft(context),
-              child: Text(
-                context.l10n.voice_save_draft,
-                style: context.textStyles.bodySmall?.copyWith(
-                  color: cs.outline,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _discardAll(BuildContext context) async {
-    final nav = GoRouter.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.voice_discard_all),
-        content: Text(context.l10n.voice_discard_confirm),
-        actions: [
-          TextButton(
-            onPressed: () => ctx.pop(false),
-            child: Text(context.l10n.common_cancel),
-          ),
-          TextButton(
-            onPressed: () => ctx.pop(true),
-            child: Text(context.l10n.voice_discard_confirm_action),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true && mounted) {
-      nav.pop();
-    }
-  }
-
-  void _saveDraft(BuildContext context) {
-    SnackHelper.showInfo(context, context.l10n.common_coming_soon);
-  }
-
   // ── Utility methods ────────────────────────────────────────────────────
 
   /// Returns true if [type] is a cash withdrawal or deposit.
@@ -1020,7 +874,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
 
   // ── Confirm all ────────────────────────────────────────────────────────
 
-  Future<void> _confirmAll(BuildContext ctx) async {
+  Future<void> _confirmAll(BuildContext context) async {
     // R5-I7 fix: prevent double-tap race condition
     if (_saving) return;
 
@@ -1041,7 +895,10 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       final draft = included[i];
       final prefix = total > 1 ? '(${i + 1}/$total) ' : '';
       if (draft.amountPiastres <= 0) {
-        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_amount_zero}');
+        SnackHelper.showError(
+          context,
+          '$prefix${context.l10n.error_amount_zero}',
+        );
         return;
       }
       // Cash types and transfers don't need a category.
@@ -1049,25 +906,31 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
           !_isCashType(draft.type) &&
           draft.type != 'transfer') {
         SnackHelper.showError(
-          ctx,
-          '$prefix${ctx.l10n.error_category_required}',
+          context,
+          '$prefix${context.l10n.error_category_required}',
         );
         return;
       }
       if (draft.walletId == null) {
-        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
+        SnackHelper.showError(
+          context,
+          '$prefix${context.l10n.error_wallet_required}',
+        );
         return;
       }
       // Transfers require a destination wallet.
       if (draft.type == 'transfer' && draft.toWalletId == null) {
-        SnackHelper.showError(ctx, '$prefix${ctx.l10n.error_wallet_required}');
+        SnackHelper.showError(
+          context,
+          '$prefix${context.l10n.error_wallet_required}',
+        );
         return;
       }
       // M-8 fix: reject same-wallet transfers
       if (draft.type == 'transfer' && draft.walletId == draft.toWalletId) {
         SnackHelper.showError(
-          ctx,
-          '$prefix${ctx.l10n.chat_action_transfer_same_wallet}',
+          context,
+          '$prefix${context.l10n.chat_action_transfer_same_wallet}',
         );
         return;
       }
@@ -1076,8 +939,8 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
     setState(() => _saving = true);
     HapticFeedback.heavyImpact();
 
-    final nav = GoRouter.of(ctx);
-    final l10n = ctx.l10n;
+    final nav = GoRouter.of(context);
+    final l10n = context.l10n;
     final savedMsg = l10n.transaction_saved;
     final errorMsg = l10n.common_error_generic;
 
@@ -1184,7 +1047,7 @@ class _VoiceConfirmScreenState extends ConsumerState<VoiceConfirmScreen> {
       }
     }
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Report result based on success/failure counts.
     if (totalSuccess == 0 && totalFail > 0) {
@@ -1470,13 +1333,12 @@ class _SwipeHintOverlayState extends State<_SwipeHintOverlay>
         return Opacity(
           opacity: globalOpacity.clamp(0, 1),
           child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                color: cs.scrim.withValues(alpha: AppSizes.opacityLight3),
-                borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
-              ),
+            // The outer parent (BackdropFilter + ColoredBox) supplies the
+            // full-screen blur and scrim, so here we only center the
+            // animated icon + labels on top of that backdrop.
+            child: Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Hand icon
                   Transform.translate(
@@ -1520,6 +1382,436 @@ class _SwipeHintOverlayState extends State<_SwipeHintOverlay>
           ),
         );
       },
+    );
+  }
+}
+
+// ── List-mode draft card ─────────────────────────────────────────────────
+//
+// Compact list item that mirrors the SwipeCard content (type pill, icon,
+// title, amount, metadata, banners) but lays out for vertical scrolling
+// instead of horizontal swipe. Uses a proper top-level private
+// StatelessWidget class — not a `_buildX` method — to sidestep the release
+// build tree-shaking quirk that broke the old `_buildListView` approach.
+class _DraftListCard extends StatelessWidget {
+  const _DraftListCard({
+    super.key,
+    required this.categoryIcon,
+    required this.categoryColor,
+    this.categoryName,
+    this.walletName,
+    required this.amount,
+    required this.type,
+    required this.title,
+    required this.rawTranscript,
+    required this.transactionDate,
+    required this.isIncluded,
+    this.matchedGoalName,
+    this.isSubscriptionLike = false,
+    this.subscriptionAdded = false,
+    this.unmatchedHint,
+    this.unmatchedToHint,
+    required this.onApprove,
+    required this.onSkip,
+    this.onTypeTap,
+    this.onCategoryTap,
+    this.onWalletTap,
+    this.onAmountTap,
+    this.onTitleTap,
+    this.onSubscriptionTap,
+    this.onCreateWallet,
+    this.onCreateToWallet,
+  });
+
+  final IconData categoryIcon;
+  final Color categoryColor;
+  final String? categoryName;
+  final String? walletName;
+  final int amount;
+  final String type;
+  final String title;
+  final String rawTranscript;
+  final DateTime transactionDate;
+  final bool isIncluded;
+  final String? matchedGoalName;
+  final bool isSubscriptionLike;
+  final bool subscriptionAdded;
+  final String? unmatchedHint;
+  final String? unmatchedToHint;
+  final VoidCallback onApprove;
+  final VoidCallback onSkip;
+  final VoidCallback? onTypeTap;
+  final VoidCallback? onCategoryTap;
+  final VoidCallback? onWalletTap;
+  final VoidCallback? onAmountTap;
+  final VoidCallback? onTitleTap;
+  final VoidCallback? onSubscriptionTap;
+  final VoidCallback? onCreateWallet;
+  final VoidCallback? onCreateToWallet;
+
+  Color _typeColor(BuildContext context) {
+    final theme = context.appTheme;
+    return switch (type) {
+      'income' => theme.incomeColor,
+      'expense' => theme.expenseColor,
+      'transfer' || 'cash_withdrawal' || 'cash_deposit' => theme.transferColor,
+      _ => theme.expenseColor,
+    };
+  }
+
+  String _typeLabel(BuildContext context) {
+    final l10n = context.l10n;
+    return switch (type) {
+      'expense' => l10n.transaction_type_expense,
+      'income' => l10n.transaction_type_income,
+      'transfer' => l10n.transaction_type_transfer,
+      'cash_withdrawal' => l10n.transaction_type_cash_withdrawal_short,
+      'cash_deposit' => l10n.transaction_type_cash_deposit_short,
+      _ => l10n.transaction_type_expense,
+    };
+  }
+
+  String _formatDate(BuildContext context) {
+    final now = DateTime.now();
+    if (transactionDate.year == now.year &&
+        transactionDate.month == now.month &&
+        transactionDate.day == now.day) {
+      return context.l10n.date_today;
+    }
+    return DateFormat.yMMMd(context.languageCode).format(transactionDate);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.colors;
+    final theme = context.appTheme;
+    final typeColor = _typeColor(context);
+
+    // Skipped cards render at reduced opacity + strikethrough-ish dim
+    // to make their state obvious without collapsing the row.
+    final content = GlassCard(
+      tier: GlassTier.inset,
+      tintColor: typeColor.withValues(alpha: AppSizes.opacitySubtle),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: type pill + trailing skip/approve buttons
+          Row(
+            children: [
+              GestureDetector(
+                onTap: onTypeTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: typeColor.withValues(alpha: AppSizes.opacityLight),
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusFull),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: AppSizes.dotSm,
+                        height: AppSizes.dotSm,
+                        decoration: BoxDecoration(
+                          color: typeColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: AppSizes.xs),
+                      Text(
+                        _typeLabel(context),
+                        style: context.textStyles.labelSmall?.copyWith(
+                          color: typeColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              // Skip button (red outline)
+              RoundActionButton(
+                icon: AppIcons.close,
+                color: theme.expenseColor,
+                active: !isIncluded,
+                tooltip: context.l10n.sms_review_skip,
+                onTap: onSkip,
+              ),
+              const SizedBox(width: AppSizes.xs),
+              // Approve button (green outline)
+              RoundActionButton(
+                icon: AppIcons.check,
+                color: theme.incomeColor,
+                active: isIncluded,
+                tooltip: context.l10n.sms_review_approve,
+                onTap: onApprove,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSizes.md),
+
+          // Main row: category icon + title + amount
+          GestureDetector(
+            onTap: onCategoryTap,
+            child: Row(
+              children: [
+                Container(
+                  width: AppSizes.iconContainerSm,
+                  height: AppSizes.iconContainerSm,
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(
+                      alpha: AppSizes.opacityLight,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    categoryIcon,
+                    size: AppSizes.iconMd,
+                    color: categoryColor,
+                  ),
+                ),
+                const SizedBox(width: AppSizes.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(
+                        button: true,
+                        label: context.l10n.common_edit,
+                        child: GestureDetector(
+                          onTap: onTitleTap,
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textStyles.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: cs.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSizes.xxs),
+                      Semantics(
+                        button: true,
+                        label: context.l10n.common_edit,
+                        child: GestureDetector(
+                          onTap: onAmountTap,
+                          child: Text(
+                            MoneyFormatter.format(amount),
+                            style: context.textStyles.bodyMedium?.copyWith(
+                              color: typeColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+
+          // Raw transcript (italic)
+          Text(
+            rawTranscript,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: context.textStyles.bodySmall?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: AppSizes.sm),
+
+          // Divider
+          Container(
+            height: AppSizes.glassBorderWidthSubtle,
+            color: cs.outlineVariant.withValues(alpha: AppSizes.opacityLight),
+          ),
+          const SizedBox(height: AppSizes.sm),
+
+          // Metadata row: wallet + date
+          Row(
+            children: [
+              Semantics(
+                button: true,
+                label: context.l10n.common_edit,
+                child: GestureDetector(
+                  onTap: onWalletTap,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.wallet,
+                        size: AppSizes.iconXs,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: AppSizes.xs),
+                      Text(
+                        walletName ?? '—',
+                        style: context.textStyles.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Icon(
+                AppIcons.calendar,
+                size: AppSizes.iconXs,
+                color: cs.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSizes.xs),
+              Text(
+                _formatDate(context),
+                style: context.textStyles.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+
+          // ── Banners ────────────────────────────────────────────
+          if (matchedGoalName != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSizes.sm),
+              child: Row(
+                children: [
+                  Icon(
+                    AppIcons.goals,
+                    size: AppSizes.iconXs,
+                    color: cs.tertiary,
+                  ),
+                  const SizedBox(width: AppSizes.xs),
+                  Flexible(
+                    child: Text(
+                      matchedGoalName!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textStyles.labelSmall?.copyWith(
+                        color: cs.tertiary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (isSubscriptionLike && !subscriptionAdded)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSizes.sm),
+              child: GestureDetector(
+                onTap: onSubscriptionTap,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSizes.sm,
+                    vertical: AppSizes.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: cs.tertiaryContainer,
+                    borderRadius:
+                        BorderRadius.circular(AppSizes.borderRadiusSm),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.recurring,
+                        size: AppSizes.iconXs,
+                        color: cs.onTertiaryContainer,
+                      ),
+                      const SizedBox(width: AppSizes.xs),
+                      Flexible(
+                        child: Text(
+                          context.l10n.voice_confirm_subscription_suggest,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.textStyles.labelSmall?.copyWith(
+                            color: cs.onTertiaryContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (unmatchedHint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSizes.sm),
+              child: GestureDetector(
+                onTap: onCreateWallet,
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.add,
+                      size: AppSizes.iconXs,
+                      color: cs.primary,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Flexible(
+                      child: Text(
+                        context.l10n.voice_create_wallet_instead(
+                          unmatchedHint!,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textStyles.labelSmall?.copyWith(
+                          color: cs.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (unmatchedToHint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSizes.sm),
+              child: GestureDetector(
+                onTap: onCreateToWallet,
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.add,
+                      size: AppSizes.iconXs,
+                      color: cs.tertiary,
+                    ),
+                    const SizedBox(width: AppSizes.xs),
+                    Flexible(
+                      child: Text(
+                        context.l10n.voice_create_wallet_instead(
+                          unmatchedToHint!,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textStyles.labelSmall?.copyWith(
+                          color: cs.tertiary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    // Dim skipped cards so their state is visible at a glance.
+    return Opacity(
+      opacity: isIncluded ? 1.0 : AppSizes.opacityMedium,
+      child: content,
     );
   }
 }

@@ -11,7 +11,6 @@
   "dashboard_expense": "مصروف",
   "dashboard_welcome_empty": "أهلاً بك في مصاريفي!",
   "dashboard_welcome_empty_sub": "اضغط + لإضافة أول معاملة",
-  "transactions_title": "المعاملات",
   "transactions_empty_title": "لا توجد معاملات بعد",
   "transactions_add": "إضافة معاملة",
   "transaction_type_expense": "مصروف",
@@ -25,7 +24,6 @@
   "transaction_category": "التصنيف",
   "transaction_location": "الموقع",
   "transaction_amount_hint": "٠٫٠٠",
-  "transaction_save": "حفظ",
   "transaction_saved": "تم حفظ المعاملة",
   "transaction_deleted": "تم حذف المعاملة",
   "transaction_source_voice": "صوت",
@@ -42,12 +40,6 @@
   "wallets_add": "إضافة حساب",
   "wallets_transfer": "تحويل",
   "wallet_type_physical_cash": "كاش",
-  "wallet_type_bank": "حساب بنكي",
-  "wallet_type_mobile_wallet": "محفظة إلكترونية",
-  "wallet_type_credit_card": "بطاقة ائتمانية",
-  "wallet_type_prepaid_card": "بطاقة مسبقة الدفع",
-  "wallet_type_investment": "حساب استثماري",
-  "wallet_name_hint": "اسم الحساب",
   "wallet_initial_balance": "الرصيد الابتدائي",
   "categories_title": "التصنيفات",
   "categories_expense": "مصروفات",
@@ -62,7 +54,6 @@
   "category_delete_default_warning": "لا يمكن حذف التصنيفات الافتراضية",
   "budgets_title": "الميزانيات",
   "budgets_empty_title": "لا توجد ميزانيات",
-  "budgets_empty_sub": "حدد حدوداً شهرية للتحكم في الإنفاق",
   "budget_set": "تحديد ميزانية",
   "budget_limit": "الحد الشهري",
   "budget_progress_a11y": "{category}: {percent}",
@@ -76,16 +67,13 @@
       }
     }
   },
-  "budget_spent": "المُنفَق",
   "budget_remaining": "المتبقي",
   "goals_title": "الأهداف",
   "goals_empty_title": "لا توجد أهداف ادخارية",
-  "goals_empty_sub": "حدد هدفاً وابدأ الادخار",
   "goal_add": "إنشاء هدف",
   "goal_target": "المبلغ المستهدف",
   "goal_deadline": "تاريخ الهدف (اختياري)",
   "goal_keywords": "كلمات المطابقة التلقائية",
-  "goal_completed": "تم تحقيق الهدف! 🎉",
   "goal_overdue": "متأخر",
   "recurring_add": "إضافة اشتراك",
   "recurring_edit": "تعديل الاشتراك",
@@ -97,7 +85,6 @@
   "recurring_next_due": "الموعد القادم",
   "recurring_and_bills_title": "الاشتراكات والفواتير",
   "recurring_overdue": "متأخرة",
-  "recurring_upcoming_bills": "فواتير قادمة",
   "recurring_paid": "مدفوعة",
   "recurring_mark_paid": "تم الدفع",
   "recurring_mark_paid_confirm": "هل تريد تسجيل هذا الدفع؟ سيتم إنشاء معاملة.",
@@ -130,15 +117,12 @@
   "chat_action_failed": "فشل — حاول مرة أخرى؟",
   "chat_action_goal_title": "إنشاء هدف ادخاري",
   "chat_action_tx_title": "إنشاء معاملة",
-  "hub_section_ai": "مساعد ذكي",
-  "hub_section_app": "التطبيق",
   "hub_wallets": "الحسابات",
   "hub_active": "نشط",
   "hub_in_progress": "قيد التنفيذ",
   "settings_title": "الإعدادات",
   "settings_general": "عام",
   "settings_security": "الأمان",
-  "settings_about": "عن التطبيق",
   "settings_language": "اللغة",
   "settings_currency": "العملة",
   "settings_theme": "المظهر",
@@ -160,9 +144,7 @@
   "settings_biometric_unavailable": "المصادقة البيومترية غير متوفرة على هذا الجهاز",
   "settings_verify_pin_first": "تحقق من رمز PIN الحالي",
   "settings_pin_lockout": "محاولات كثيرة. حاول مرة أخرى بعد {duration}.",
-  "settings_clear_data": "مسح جميع البيانات",
   "settings_clear_data_confirm": "اكتب حذف للتأكيد",
-  "settings_voice_input": "الإدخال الصوتي",
   "settings_language_changed": "تم تغيير اللغة",
   "backup_title": "النسخ الاحتياطي والتصدير",
   "backup_export_json": "تصدير نسخة احتياطية (JSON)",
@@ -203,7 +185,6 @@
   "common_cancel": "إلغاء",
   "common_delete": "حذف",
   "common_edit": "تعديل",
-  "common_close": "إغلاق",
   "common_confirm": "تأكيد",
   "common_retry": "إعادة المحاولة",
   "common_back": "رجوع",
@@ -224,15 +205,10 @@
   "error_category_required": "يرجى اختيار تصنيف",
   "error_wallet_required": "يرجى اختيار حساب",
   "error_name_required": "الاسم مطلوب",
-  "voice_tap_to_start": "اضغط على المايك للبدء",
-  "voice_listening": "جار التسجيل...",
-  "voice_confirm_title": "مراجعة المعاملات",
   "voice_confirm_accept_all": "حفظ الكل",
   "voice_error_no_service": "الإدخال الصوتي غير متاح. يرجى التحقق من اتصالك بالإنترنت.",
   "voice_no_results": "لم يتم اكتشاف شيء. حاول مرة أخرى.",
   "voice_ai_error": "فشل التحليل الذكي. حاول مرة أخرى.",
-  "voice_retry": "حاول مرة أخرى",
-  "voice_ai_parsing": "جار التحليل بالذكاء الاصطناعي...",
   "voice_cancel_recording": "إلغاء التسجيل",
   "permission_allow": "السماح",
   "permission_deny": "رفض",
@@ -270,7 +246,6 @@
   "goal_link_action": "ربط",
   "transfer_from": "من",
   "transfer_to": "إلى",
-  "transfer_fee": "رسوم التحويل (اختياري)",
   "language_en": "English",
   "language_ar": "العربية",
   "language_system": "حسب النظام",
@@ -494,23 +469,9 @@
   "goal_pick_date": "اختر تاريخاً",
   "goal_remove_date": "إزالة التاريخ",
   "goal_keyword_hint": "مثال: سفر، رحلة، طيران",
-  "month_1": "يناير",
-  "month_2": "فبراير",
-  "month_3": "مارس",
-  "month_4": "أبريل",
-  "month_5": "مايو",
-  "month_6": "يونيو",
-  "month_7": "يوليو",
-  "month_8": "أغسطس",
-  "month_9": "سبتمبر",
-  "month_10": "أكتوبر",
-  "month_11": "نوفمبر",
-  "month_12": "ديسمبر",
   "month_previous": "الشهر السابق",
   "month_next": "الشهر التالي",
-  "recurring_active": "الاشتراكات النشطة",
   "recurring_paused": "متوقفة",
-  "recurring_pause": "إيقاف",
   "recurring_error_title": "من فضلك أدخل عنوان",
   "recurring_error_amount": "من فضلك أدخل مبلغ صحيح",
   "recurring_error_category": "من فضلك اختر فئة",
@@ -530,57 +491,30 @@
   "recurring_title_hint": "مثال: إيجار، إنترنت، راتب",
   "recurring_type_label": "نوع المعاملة",
   "recurring_view_all": "عرض الكل",
-  "recurring_monthly_total": "الإجمالي الشهري",
   "recurring_due_this_week": "{count} مستحق هذا الأسبوع",
-  "@recurring_due_this_week": { "placeholders": { "count": { "type": "int" } } },
-  "recurring_upcoming": "قادم",
-  "recurring_paid_section": "مدفوع",
-  "recurring_total_monthly_spend": "الإنفاق الشهري الإجمالي",
-  "recurring_attention_required": "يتطلب الانتباه",
-  "recurring_coming_soon": "قادم قريباً",
-  "recurring_active_services": "خدمات نشطة",
-  "recurring_recently_paid": "مدفوع مؤخراً",
-  "recurring_potential_savings": "وفورات محتملة",
-  "recurring_spending_trend": "اتجاه الإنفاق",
-  "recurring_per_month": "{amount}/شهر",
-  "@recurring_per_month": { "placeholders": { "amount": { "type": "String" } } },
-  "recurring_auto_pay_label": "وضع علامة مدفوع تلقائياً",
-  "recurring_auto_pay_wallet": "خصم من الحساب",
-  "calendar_no_transactions_day": "لا توجد معاملات في هذا اليوم",
-  "reports_period_7d": "٧ أيام",
-  "reports_period_30d": "٣٠ يوم",
-  "reports_period_90d": "٩٠ يوم",
-  "reports_income_vs_expense": "الدخل مقابل المصروف",
-  "reports_top_categories": "أعلى التصنيفات",
-  "reports_vs_last_month": "مقارنة بالشهر الماضي",
-  "reports_no_data": "لا توجد معاملات في هذه الفترة",
-  "reports_total_expense": "إجمالي المصروف",
-  "reports_net": "الصافي",
-  "reports_daily_average": "المتوسط اليومي",
-  "reports_total_spending": "إجمالي الإنفاق",
-  "reports_highest_day": "أعلى يوم",
-  "reports_vs_previous": "مقارنة بالفترة السابقة",
-  "reports_savings_rate": "معدل التوفير: {rate}% من الدخل",
-  "@reports_savings_rate": {
-    "placeholders": {
-      "rate": {
-        "type": "int"
-      }
-    }
-  },
-  "reportsCategoryCount": "{count} فئات",
-  "@reportsCategoryCount": {
+  "@recurring_due_this_week": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "reportsBudgetLabel": "الميزانية: {amount}",
-  "@reportsBudgetLabel": {
+  "recurring_total_monthly_spend": "الإنفاق الشهري الإجمالي",
+  "recurring_attention_required": "يتطلب الانتباه",
+  "recurring_coming_soon": "قادم قريباً",
+  "recurring_active_services": "خدمات نشطة",
+  "recurring_recently_paid": "مدفوع مؤخراً",
+  "recurring_auto_pay_label": "وضع علامة مدفوع تلقائياً",
+  "recurring_auto_pay_wallet": "خصم من الحساب",
+  "calendar_no_transactions_day": "لا توجد معاملات في هذا اليوم",
+  "reports_income_vs_expense": "الدخل مقابل المصروف",
+  "reports_daily_average": "المتوسط اليومي",
+  "reports_highest_day": "أعلى يوم",
+  "reports_savings_rate": "معدل التوفير: {rate}% من الدخل",
+  "@reports_savings_rate": {
     "placeholders": {
-      "amount": {
-        "type": "String"
+      "rate": {
+        "type": "int"
       }
     }
   },
@@ -625,9 +559,6 @@
   "notif_quiet_hours_sub": "إيقاف جميع الإشعارات خلال ساعات محددة",
   "notif_quiet_start": "البداية",
   "notif_quiet_end": "النهاية",
-  "period_3_months": "3 أشهر",
-  "period_6_months": "6 أشهر",
-  "period_1_year": "سنة",
   "pdf_report_title": "تقرير مصاريفي الشهري",
   "pdf_top_categories": "أعلى الفئات",
   "pdf_transactions": "المعاملات",
@@ -647,13 +578,21 @@
   "dashboard_offline_banner": "غير متصل — ميزات الذكاء غير متاحة. أضف المعاملات يدوياً.",
   "budget_over_by": "تجاوز بـ",
   "hub_planning_title": "التخطيط",
-  "hub_section_accounts": "الحسابات",
-  "hub_section_goals_budgets": "الميزانيات والأهداف",
   "hub_headline": "نظّم رأس مالك.",
   "hub_subtitle": "نظّم مستقبلك المالي بدقة ووضوح",
   "hub_optimization_label": "تحسين",
   "hub_saving_insights_title": "نصائح التوفير",
-  "hub_saving_insights_body": "يمكنك توفير ١٢٠ جنيه/شهر إضافية بدمج اشتراكات البث الخاصة بك.",
+  "hub_saving_insights_body": "{count, plural, =1{لديك اشتراك واحد نشط بإجمالي {amount} شهرياً. راجعه لاكتشاف طرق التوفير.} other{لديك {count} اشتراكات نشطة بإجمالي {amount} شهرياً. راجعها لاكتشاف طرق التوفير.}}",
+  "@hub_saving_insights_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "hub_view_details": "عرض التفاصيل",
   "nav_planning": "التخطيط",
   "common_undo": "تراجع",
@@ -714,14 +653,8 @@
     }
   },
   "voice_select_all": "تحديد الكل",
-  "voice_deselect_all": "إلغاء تحديد الكل",
-  "voice_selected_count": "{selected} من {total} محدد",
-  "@voice_selected_count": {
-    "placeholders": {
-      "selected": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
+  "voice_view_list": "عرض القائمة",
+  "voice_view_cards": "عرض البطاقات",
   "backup_encryption_warning": "النسخ الاحتياطية السحابية مشفرة ومرتبطة بهذا الجهاز. إذا أعدت تثبيت التطبيق أو غيّرت الجهاز، لن تتمكن من استعادتها. استخدم النسخ المحلي لنقل البيانات بين الأجهزة.",
   "chat_action_invalid_amount": "المبلغ يجب أن يكون أكبر من صفر",
   "chat_action_invalid_target": "المبلغ المستهدف يجب أن يكون أكبر من صفر",
@@ -1088,9 +1021,7 @@
       }
     }
   },
-  "transaction_type_cash_withdrawal": "سحب نقدي",
   "transaction_type_cash_withdrawal_short": "سحب",
-  "transaction_type_cash_deposit": "إيداع نقدي",
   "transaction_type_cash_deposit_short": "إيداع",
   "voice_edit_title_hint": "تعديل العنوان...",
   "voice_create_wallet_instead": "إنشاء ''{name}'' بدلاً من ذلك؟",
@@ -1119,7 +1050,6 @@
     }
   },
   "home_net_label": "الصافي",
-  "home_net_tooltip": "الدخل ناقص المصروفات الشهر ده (التحويلات مش محسوبة)",
   "home_sort_title": "ترتيب حسب",
   "home_no_matching_transactions": "لا توجد معاملات تطابق فلاترك",
   "home_clear_filters": "مسح الفلاتر",
@@ -1129,18 +1059,7 @@
   "transfer_delete_confirm_body": "سيتم حذف طرفي التحويل.",
   "transfer_cannot_edit": "لا يمكن تعديل التحويلات من هنا",
   "voice_confirm_select_category": "اختر الفئة",
-  "voice_confirm_add_notes": "أضف ملاحظات...",
   "voice_confirm_subscription_suggest": "إضافة إلى الاشتراكات والفواتير؟",
-  "voice_include": "تضمين",
-  "voice_confirm_subtitle": "تأكيد المعاملات",
-  "voice_confirm_headline": "معاملات جديدة",
-  "voice_discard_all": "تجاهل",
-  "voice_discard_confirm": "تجاهل جميع المعاملات؟ لا يمكن التراجع عن هذا.",
-  "voice_discard_confirm_action": "تجاهل الكل",
-  "voice_submit_all": "إرسال الكل",
-  "voice_save_draft": "حفظ كمسودة",
-  "insight_upcoming_bills_title": "فواتير قادمة",
-  "insight_upcoming_bills_body": "{count, plural, =1{فاتورة واحدة مستحقة هذا الأسبوع} other{{count} فواتير مستحقة هذا الأسبوع}}",
   "insight_budget_savings_title": "وفورات الميزانية",
   "insight_budget_savings_body": "وفرت {amount} في {category}",
   "trial_started_message": "بدأت تجربتك المجانية لمدة 7 أيام!",
@@ -1314,17 +1233,43 @@
   "home_due_soon_today": "اليوم",
   "home_due_soon_tomorrow": "بكرة",
   "home_due_soon_in_days": "بعد {count} يوم",
-  "@home_due_soon_in_days": { "placeholders": { "count": { "type": "int" } } },
+  "@home_due_soon_in_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_due_soon_more": "+{count} كمان",
-  "@home_due_soon_more": { "placeholders": { "count": { "type": "int" } } },
+  "@home_due_soon_more": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboard_account_selector": "اختر الحساب: {name}",
-  "@dashboard_account_selector": { "placeholders": { "name": { "type": "String" } } },
+  "@dashboard_account_selector": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "voice_ai_thinking_messages": "هممم...يوم كبير هاه!;خليني أجيب الآلة الحاسبة...;جيب فاضي ولا حساب فاضي؟;بحسب الأرقام...;محفظتك اترعشت;الحساب صعب، ثانية...;لحظة، بعد الأصفار...;بحلل اختياراتك المالية...;دي كانت ضرورة ولا رفاهية؟;هممم، أسلوب صرف مثير...;بشغل الأرقام، لحظة...;بحلل... مش زي ميزانيتك",
   "voice_ai_cancel": "إلغاء",
-
   "reports_net_cash_flow": "صافي التدفق النقدي",
   "reports_vs_last_month_pct": "{arrow} {pct}% مقارنة بالشهر الماضي",
-  "@reports_vs_last_month_pct": { "placeholders": { "arrow": { "type": "String" }, "pct": { "type": "int" } } },
+  "@reports_vs_last_month_pct": {
+    "placeholders": {
+      "arrow": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "reports_this_month": "هذا الشهر",
   "reports_last_month": "الشهر الماضي",
   "reports_3_months": "3 أشهر",
@@ -1335,39 +1280,76 @@
   "reports_income_by_category": "الدخل حسب الفئة",
   "reports_spending_by_category": "المصاريف حسب الفئة",
   "reports_category_count": "{count} فئة",
-  "@reports_category_count": { "placeholders": { "count": { "type": "int" } } },
+  "@reports_category_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reports_budget_label": "الميزانية: {amount}",
-  "@reports_budget_label": { "placeholders": { "amount": { "type": "String" } } },
+  "@reports_budget_label": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reports_insight_savings": "وفرت {rate}% من دخلك هذا الشهر!",
-  "@reports_insight_savings": { "placeholders": { "rate": { "type": "int" } } },
+  "@reports_insight_savings": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
   "reports_total_expenses_period": "إجمالي المصاريف",
   "reports_total_income_period": "إجمالي الدخل",
   "reports_vs_previous_pct": "{arrow} {pct}% مقارنة بالفترة السابقة",
-  "@reports_vs_previous_pct": { "placeholders": { "arrow": { "type": "String" }, "pct": { "type": "String" } } },
+  "@reports_vs_previous_pct": {
+    "placeholders": {
+      "arrow": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "reports_spending_pace": "وتيرة الإنفاق",
   "reports_pace_label": "متوسط {amount}/يوم",
-  "@reports_pace_label": { "placeholders": { "amount": { "type": "String" } } },
+  "@reports_pace_label": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reports_daily_activity": "النشاط اليومي",
   "reports_weekly_breakdown": "التفصيل الأسبوعي",
   "reports_week_n": "الأسبوع {n}",
-  "@reports_week_n": { "placeholders": { "n": { "type": "int" } } },
+  "@reports_week_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "reports_current_period": "الفترة الحالية",
   "reports_previous_period": "الفترة السابقة",
   "reports_lowest_day": "أقل يوم",
   "reports_transactions_count": "المعاملات",
-  "reports_net_label": "الصافي",
   "reports_last_6_months": "آخر 6 أشهر",
-  "reports_date_range": "{start} - {end}",
-  "@reports_date_range": { "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } } },
-  "reports_select_range": "اختر نطاق التاريخ",
   "reports_last_7_days": "آخر 7 أيام",
   "reports_last_30_days": "آخر 30 يوم",
-  "reports_this_quarter": "هذا الربع",
-  "reports_last_quarter": "الربع الماضي",
-  "reports_apply": "تطبيق",
   "reports_category_top": "{name} هي الفئة الأولى",
-  "@reports_category_top": { "placeholders": { "name": { "type": "String" } } },
-  "hint_accounts": "اضغط للتبديل بين الحسابات",
+  "@reports_category_top": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "home_filter_title": "تصفية",
   "home_filter_date_range": "نطاق التاريخ",
   "home_filter_today": "اليوم",
@@ -1379,11 +1361,41 @@
   "home_filter_apply": "تطبيق الفلاتر",
   "home_filter_clear": "مسح الكل",
   "semantics_insight_label": "إحصاء: {text}",
-  "@semantics_insight_label": { "placeholders": { "text": { "type": "String" } } },
+  "@semantics_insight_label": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
   "semantics_daily_trend_sparkline": "مخطط الاتجاه اليومي",
   "semantics_spending_trend_chart": "مخطط اتجاه الإنفاق خلال آخر {days} أيام مع مقارنة الفترة السابقة",
-  "@semantics_spending_trend_chart": { "placeholders": { "days": { "type": "int" } } },
+  "@semantics_spending_trend_chart": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "semantics_spending_heatmap": "خريطة حرارة نشاط الإنفاق اليومي خلال آخر {count} أيام. الألوان الداكنة تشير إلى إنفاق أعلى.",
-  "@semantics_spending_heatmap": { "placeholders": { "count": { "type": "int" } } },
-  "semantics_spending_velocity_chart": "مخطط وتيرة الإنفاق التراكمي مع توقعات نهاية الشهر"
+  "@semantics_spending_heatmap": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "semantics_spending_velocity_chart": "مخطط وتيرة الإنفاق التراكمي مع توقعات نهاية الشهر",
+  "month_1": "يناير",
+  "month_2": "فبراير",
+  "month_3": "مارس",
+  "month_4": "أبريل",
+  "month_5": "مايو",
+  "month_6": "يونيو",
+  "month_7": "يوليو",
+  "month_8": "أغسطس",
+  "month_9": "سبتمبر",
+  "month_10": "أكتوبر",
+  "month_11": "نوفمبر",
+  "month_12": "ديسمبر"
 }

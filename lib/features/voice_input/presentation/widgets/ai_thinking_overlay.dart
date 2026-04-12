@@ -15,6 +15,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/ai/gemini_audio_service.dart';
+import '../../../../core/services/crash_log_service.dart';
 import '../../../../shared/providers/ai_provider.dart';
 import '../../../../shared/providers/category_provider.dart';
 import '../../../../shared/providers/connectivity_provider.dart';
@@ -213,7 +214,12 @@ class _AiThinkingOverlayState extends ConsumerState<AiThinkingOverlay>
       // Navigate to confirm screen then dismiss overlay.
       context.push(AppRoutes.voiceConfirm, extra: drafts);
       widget.onDismiss();
-    } on GeminiAudioException catch (e) {
+    } on GeminiAudioException catch (e, stack) {
+      // Log to CrashLogService so the full details survive across runs and
+      // can be retrieved via the crash log viewer. Surface a specific label
+      // in the UI so the user can report what's actually failing (auth,
+      // rate-limit, model-not-found, etc.) instead of the previous generic
+      // "AI parsing failed" catch-all.
       dev.log(
         'Gemini error: ${e.statusCode} — ${e.message}'
         '${e.isRateLimit ? " (RATE LIMITED)" : ""}'
@@ -221,20 +227,37 @@ class _AiThinkingOverlayState extends ConsumerState<AiThinkingOverlay>
         '${e.isServerError ? " (SERVER ERROR)" : ""}',
         name: 'AiThinkingOverlay',
       );
+      CrashLogService.log(e, stack);
       if (!mounted) return;
-      _showError(context.l10n.voice_ai_error);
+      // Build a user-readable label with the actual status code so field
+      // reports are diagnosable even without access to adb logcat.
+      final code = e.statusCode ?? 0;
+      final label = e.isUnauthorized
+          ? 'AI ${code == 0 ? "auth" : code}: key rejected'
+          : e.isRateLimit
+              ? 'AI 429: rate limited'
+              : e.isServerError
+                  ? 'AI $code: server error'
+                  : code == 404
+                      ? 'AI 404: model not found'
+                      : 'AI ${code == 0 ? "error" : code}: ${e.message}';
+      _showError(label);
     } on TimeoutException {
       dev.log('Gemini request timed out', name: 'AiThinkingOverlay');
       if (!mounted) return;
-      _showError(context.l10n.voice_ai_error);
-    } on SocketException {
+      _showError('AI timeout (90s) — retry or use manual entry');
+    } on SocketException catch (e, stack) {
       dev.log('Network lost during Gemini call', name: 'AiThinkingOverlay');
+      CrashLogService.log(e, stack);
       if (!mounted) return;
       _showError(context.l10n.voice_error_no_service);
-    } catch (e) {
+    } catch (e, stack) {
       dev.log('Voice processing failed: $e', name: 'AiThinkingOverlay');
+      CrashLogService.log(e, stack);
       if (!mounted) return;
-      _showError(context.l10n.voice_ai_error);
+      final errStr = e.toString();
+      final preview = errStr.substring(0, errStr.length.clamp(0, 80));
+      _showError('AI error: ${e.runtimeType} — $preview');
     }
   }
 

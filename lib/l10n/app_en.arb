@@ -11,7 +11,6 @@
   "dashboard_expense": "Expense",
   "dashboard_welcome_empty": "Welcome to Masarify!",
   "dashboard_welcome_empty_sub": "Tap + to add your first transaction",
-  "transactions_title": "Transactions",
   "transactions_empty_title": "No transactions yet",
   "transactions_add": "Add Transaction",
   "transaction_type_expense": "Expense",
@@ -25,7 +24,6 @@
   "transaction_category": "Category",
   "transaction_location": "Location",
   "transaction_amount_hint": "0.00",
-  "transaction_save": "Save",
   "transaction_saved": "Transaction saved",
   "transaction_deleted": "Transaction deleted",
   "transaction_source_voice": "Voice",
@@ -42,12 +40,6 @@
   "wallets_add": "Add Account",
   "wallets_transfer": "Transfer",
   "wallet_type_physical_cash": "Cash",
-  "wallet_type_bank": "Bank Account",
-  "wallet_type_mobile_wallet": "Mobile Wallet",
-  "wallet_type_credit_card": "Credit Card",
-  "wallet_type_prepaid_card": "Prepaid Card",
-  "wallet_type_investment": "Investment Account",
-  "wallet_name_hint": "Account name",
   "wallet_initial_balance": "Initial Balance",
   "categories_title": "Categories",
   "categories_expense": "Expense",
@@ -62,7 +54,6 @@
   "category_delete_default_warning": "Default categories cannot be deleted",
   "budgets_title": "Budgets",
   "budgets_empty_title": "No budgets set",
-  "budgets_empty_sub": "Set monthly limits to control spending",
   "budget_set": "Set Budget",
   "budget_limit": "Monthly Limit",
   "budget_progress_a11y": "{category}: {percent}",
@@ -76,16 +67,13 @@
       }
     }
   },
-  "budget_spent": "Spent",
   "budget_remaining": "Remaining",
   "goals_title": "Goals",
   "goals_empty_title": "No savings goals",
-  "goals_empty_sub": "Set a goal and start saving",
   "goal_add": "Create Goal",
   "goal_target": "Target Amount",
   "goal_deadline": "Target Date (optional)",
   "goal_keywords": "Auto-match keywords",
-  "goal_completed": "Goal Completed! 🎉",
   "goal_overdue": "Overdue",
   "recurring_add": "Add Subscription",
   "recurring_edit": "Edit Subscription",
@@ -97,7 +85,6 @@
   "recurring_next_due": "Next due",
   "recurring_and_bills_title": "Subscriptions & Bills",
   "recurring_overdue": "Overdue",
-  "recurring_upcoming_bills": "Upcoming Bills",
   "recurring_paid": "Paid",
   "recurring_mark_paid": "Mark Paid",
   "recurring_mark_paid_confirm": "Mark this bill as paid? A transaction will be recorded.",
@@ -130,15 +117,12 @@
   "chat_action_failed": "Failed — try again?",
   "chat_action_goal_title": "Create Savings Goal",
   "chat_action_tx_title": "Create Transaction",
-  "hub_section_ai": "AI Assistant",
-  "hub_section_app": "App",
   "hub_wallets": "Accounts",
   "hub_active": "active",
   "hub_in_progress": "in progress",
   "settings_title": "Settings",
   "settings_general": "General",
   "settings_security": "Security",
-  "settings_about": "About",
   "settings_language": "Language",
   "settings_currency": "Currency",
   "settings_theme": "Theme",
@@ -167,9 +151,7 @@
       }
     }
   },
-  "settings_clear_data": "Clear All Data",
   "settings_clear_data_confirm": "Type DELETE to confirm",
-  "settings_voice_input": "Voice Input",
   "settings_language_changed": "Language changed",
   "backup_title": "Backup & Export",
   "backup_export_json": "Export Backup (JSON)",
@@ -210,7 +192,6 @@
   "common_cancel": "Cancel",
   "common_delete": "Delete",
   "common_edit": "Edit",
-  "common_close": "Close",
   "common_confirm": "Confirm",
   "common_retry": "Retry",
   "common_back": "Back",
@@ -231,15 +212,10 @@
   "error_category_required": "Please select a category",
   "error_wallet_required": "Please select an account",
   "error_name_required": "Name is required",
-  "voice_tap_to_start": "Tap the mic to start",
-  "voice_listening": "Recording...",
-  "voice_confirm_title": "Review Transactions",
   "voice_confirm_accept_all": "Save All",
   "voice_error_no_service": "Voice input is not available. Please check your internet connection.",
   "voice_no_results": "Nothing detected. Please try again.",
   "voice_ai_error": "AI parsing failed. Please try again.",
-  "voice_retry": "Try Again",
-  "voice_ai_parsing": "Analyzing with AI...",
   "voice_cancel_recording": "Cancel recording",
   "permission_allow": "Allow",
   "permission_deny": "Deny",
@@ -277,7 +253,6 @@
   "goal_link_action": "Link",
   "transfer_from": "From",
   "transfer_to": "To",
-  "transfer_fee": "Transfer Fee (optional)",
   "language_en": "English",
   "language_ar": "Arabic (العربية)",
   "language_system": "System Default",
@@ -501,23 +476,9 @@
   "goal_pick_date": "Pick a date",
   "goal_remove_date": "Remove date",
   "goal_keyword_hint": "e.g. travel, trip, flight",
-  "month_1": "January",
-  "month_2": "February",
-  "month_3": "March",
-  "month_4": "April",
-  "month_5": "May",
-  "month_6": "June",
-  "month_7": "July",
-  "month_8": "August",
-  "month_9": "September",
-  "month_10": "October",
-  "month_11": "November",
-  "month_12": "December",
   "month_previous": "Previous month",
   "month_next": "Next month",
-  "recurring_active": "Active Subscriptions",
   "recurring_paused": "Paused",
-  "recurring_pause": "Pause",
   "recurring_error_title": "Please enter a title",
   "recurring_error_amount": "Please enter a valid amount",
   "recurring_error_category": "Please select a category",
@@ -537,57 +498,30 @@
   "recurring_title_hint": "e.g. Rent, Internet, Salary",
   "recurring_type_label": "Transaction Type",
   "recurring_view_all": "View All",
-  "recurring_monthly_total": "Monthly Total",
   "recurring_due_this_week": "{count} due this week",
-  "@recurring_due_this_week": { "placeholders": { "count": { "type": "int" } } },
-  "recurring_upcoming": "Upcoming",
-  "recurring_paid_section": "Paid",
-  "recurring_total_monthly_spend": "Total Monthly Spend",
-  "recurring_attention_required": "Attention Required",
-  "recurring_coming_soon": "Coming Soon",
-  "recurring_active_services": "Active Services",
-  "recurring_recently_paid": "Recently Paid",
-  "recurring_potential_savings": "Potential Savings",
-  "recurring_spending_trend": "Spending Trend",
-  "recurring_per_month": "{amount}/mo",
-  "@recurring_per_month": { "placeholders": { "amount": { "type": "String" } } },
-  "recurring_auto_pay_label": "Automatically mark as paid",
-  "recurring_auto_pay_wallet": "Deduct from account",
-  "calendar_no_transactions_day": "No transactions on this day",
-  "reports_period_7d": "7 Days",
-  "reports_period_30d": "30 Days",
-  "reports_period_90d": "90 Days",
-  "reports_income_vs_expense": "Income vs Expense",
-  "reports_top_categories": "Top Categories",
-  "reports_vs_last_month": "vs last month",
-  "reports_no_data": "No transactions in this period",
-  "reports_total_expense": "Total Expense",
-  "reports_net": "Net",
-  "reports_daily_average": "Daily Average",
-  "reports_total_spending": "Total Spending",
-  "reports_highest_day": "Highest Day",
-  "reports_vs_previous": "vs previous period",
-  "reports_savings_rate": "Savings rate: {rate}% of income",
-  "@reports_savings_rate": {
-    "placeholders": {
-      "rate": {
-        "type": "int"
-      }
-    }
-  },
-  "reportsCategoryCount": "{count} categories",
-  "@reportsCategoryCount": {
+  "@recurring_due_this_week": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
   },
-  "reportsBudgetLabel": "Budget: {amount}",
-  "@reportsBudgetLabel": {
+  "recurring_total_monthly_spend": "Total Monthly Spend",
+  "recurring_attention_required": "Attention Required",
+  "recurring_coming_soon": "Coming Soon",
+  "recurring_active_services": "Active Services",
+  "recurring_recently_paid": "Recently Paid",
+  "recurring_auto_pay_label": "Automatically mark as paid",
+  "recurring_auto_pay_wallet": "Deduct from account",
+  "calendar_no_transactions_day": "No transactions on this day",
+  "reports_income_vs_expense": "Income vs Expense",
+  "reports_daily_average": "Daily Average",
+  "reports_highest_day": "Highest Day",
+  "reports_savings_rate": "Savings rate: {rate}% of income",
+  "@reports_savings_rate": {
     "placeholders": {
-      "amount": {
-        "type": "String"
+      "rate": {
+        "type": "int"
       }
     }
   },
@@ -632,9 +566,6 @@
   "notif_quiet_hours_sub": "Pause all notifications during set hours",
   "notif_quiet_start": "Start",
   "notif_quiet_end": "End",
-  "period_3_months": "3M",
-  "period_6_months": "6M",
-  "period_1_year": "1Y",
   "pdf_report_title": "Masarify Monthly Report",
   "pdf_top_categories": "Top Categories",
   "pdf_transactions": "Transactions",
@@ -654,13 +585,21 @@
   "dashboard_offline_banner": "Offline — AI features unavailable. Add transactions manually.",
   "budget_over_by": "Over by",
   "hub_planning_title": "Planning",
-  "hub_section_accounts": "Accounts",
-  "hub_section_goals_budgets": "Budgets & Goals",
   "hub_headline": "Curate your capital.",
   "hub_subtitle": "Organize your financial future with precision and clarity",
   "hub_optimization_label": "Optimization",
   "hub_saving_insights_title": "Saving Insights",
-  "hub_saving_insights_body": "You could save an additional EGP 120/mo by consolidating your streaming subscriptions.",
+  "hub_saving_insights_body": "{count, plural, =1{You have 1 active subscription totaling {amount}/month. Review it to find savings.} other{You have {count} active subscriptions totaling {amount}/month. Review them to find savings.}}",
+  "@hub_saving_insights_body": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "hub_view_details": "View Details",
   "nav_planning": "Planning",
   "common_undo": "Undo",
@@ -721,14 +660,8 @@
     }
   },
   "voice_select_all": "Select All",
-  "voice_deselect_all": "Deselect All",
-  "voice_selected_count": "{selected} of {total} selected",
-  "@voice_selected_count": {
-    "placeholders": {
-      "selected": { "type": "int" },
-      "total": { "type": "int" }
-    }
-  },
+  "voice_view_list": "Switch to list view",
+  "voice_view_cards": "Switch to card view",
   "backup_encryption_warning": "Cloud backups are encrypted and tied to this device. If you reinstall the app or switch devices, you will not be able to restore cloud backups. Use local file backup for device transfers.",
   "chat_action_invalid_amount": "Amount must be greater than zero",
   "chat_action_invalid_target": "Target amount must be greater than zero",
@@ -1095,9 +1028,7 @@
       }
     }
   },
-  "transaction_type_cash_withdrawal": "Cash Withdrawal",
   "transaction_type_cash_withdrawal_short": "Withdraw",
-  "transaction_type_cash_deposit": "Cash Deposit",
   "transaction_type_cash_deposit_short": "Deposit",
   "voice_edit_title_hint": "Refine title...",
   "voice_create_wallet_instead": "Create ''{name}'' instead?",
@@ -1126,7 +1057,6 @@
     }
   },
   "home_net_label": "Net",
-  "home_net_tooltip": "Income minus expenses this month (transfers excluded)",
   "home_sort_title": "Sort by",
   "home_no_matching_transactions": "No transactions match your filters",
   "home_clear_filters": "Clear filters",
@@ -1136,25 +1066,7 @@
   "transfer_delete_confirm_body": "This will delete both legs of the transfer.",
   "transfer_cannot_edit": "Transfers cannot be edited from here",
   "voice_confirm_select_category": "Select category",
-  "voice_confirm_add_notes": "Add notes...",
   "voice_confirm_subscription_suggest": "Add to Subscriptions & Bills?",
-  "voice_include": "Include",
-  "voice_confirm_subtitle": "CONFIRM TRANSACTIONS",
-  "voice_confirm_headline": "Freshly Minted",
-  "voice_discard_all": "Discard",
-  "voice_discard_confirm": "Discard all transactions? This cannot be undone.",
-  "voice_discard_confirm_action": "Discard All",
-  "voice_submit_all": "Submit All",
-  "voice_save_draft": "Save Draft",
-  "insight_upcoming_bills_title": "Upcoming Bills",
-  "insight_upcoming_bills_body": "{count, plural, =1{1 bill due this week} other{{count} bills due this week}}",
-  "@insight_upcoming_bills_body": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "insight_budget_savings_title": "Budget Savings",
   "insight_budget_savings_body": "Saved {amount} on {category}",
   "@insight_budget_savings_body": {
@@ -1338,17 +1250,43 @@
   "home_due_soon_today": "Today",
   "home_due_soon_tomorrow": "Tomorrow",
   "home_due_soon_in_days": "In {count} days",
-  "@home_due_soon_in_days": { "placeholders": { "count": { "type": "int" } } },
+  "@home_due_soon_in_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_due_soon_more": "+{count} more",
-  "@home_due_soon_more": { "placeholders": { "count": { "type": "int" } } },
+  "@home_due_soon_more": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dashboard_account_selector": "Select account: {name}",
-  "@dashboard_account_selector": { "placeholders": { "name": { "type": "String" } } },
+  "@dashboard_account_selector": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "voice_ai_thinking_messages": "Hmmm...big day huh!;Let me get my calculator...;Empty pocket or empty bank account?;Crunching those numbers...;Your wallet just flinched;Math is hard, give me a sec...;One moment, counting zeros...;Decoding your financial choices...;Was that a need or a want?;Hmm, interesting spending pattern...;Running the numbers, please hold...;Processing... unlike your budget",
   "voice_ai_cancel": "Cancel",
-
   "reports_net_cash_flow": "Net Cash Flow",
   "reports_vs_last_month_pct": "{arrow} {pct}% vs last month",
-  "@reports_vs_last_month_pct": { "placeholders": { "arrow": { "type": "String" }, "pct": { "type": "int" } } },
+  "@reports_vs_last_month_pct": {
+    "placeholders": {
+      "arrow": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "reports_this_month": "This Month",
   "reports_last_month": "Last Month",
   "reports_3_months": "3 Months",
@@ -1359,39 +1297,76 @@
   "reports_income_by_category": "Income by Category",
   "reports_spending_by_category": "Spending by Category",
   "reports_category_count": "{count} categories",
-  "@reports_category_count": { "placeholders": { "count": { "type": "int" } } },
+  "@reports_category_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reports_budget_label": "Budget: {amount}",
-  "@reports_budget_label": { "placeholders": { "amount": { "type": "String" } } },
+  "@reports_budget_label": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reports_insight_savings": "You saved {rate}% of your income this month!",
-  "@reports_insight_savings": { "placeholders": { "rate": { "type": "int" } } },
+  "@reports_insight_savings": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
   "reports_total_expenses_period": "Total Expenses",
   "reports_total_income_period": "Total Income",
   "reports_vs_previous_pct": "{arrow} {pct}% vs previous period",
-  "@reports_vs_previous_pct": { "placeholders": { "arrow": { "type": "String" }, "pct": { "type": "String" } } },
+  "@reports_vs_previous_pct": {
+    "placeholders": {
+      "arrow": {
+        "type": "String"
+      },
+      "pct": {
+        "type": "String"
+      }
+    }
+  },
   "reports_spending_pace": "Spending Pace",
   "reports_pace_label": "Avg {amount}/day",
-  "@reports_pace_label": { "placeholders": { "amount": { "type": "String" } } },
+  "@reports_pace_label": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "reports_daily_activity": "Daily Activity",
   "reports_weekly_breakdown": "Weekly Breakdown",
   "reports_week_n": "Week {n}",
-  "@reports_week_n": { "placeholders": { "n": { "type": "int" } } },
+  "@reports_week_n": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "reports_current_period": "Current Period",
   "reports_previous_period": "Previous Period",
   "reports_lowest_day": "Lowest Day",
   "reports_transactions_count": "Transactions",
-  "reports_net_label": "Net",
   "reports_last_6_months": "Last 6 Months",
-  "reports_date_range": "{start} - {end}",
-  "@reports_date_range": { "placeholders": { "start": { "type": "String" }, "end": { "type": "String" } } },
-  "reports_select_range": "Select Date Range",
   "reports_last_7_days": "Last 7 Days",
   "reports_last_30_days": "Last 30 Days",
-  "reports_this_quarter": "This Quarter",
-  "reports_last_quarter": "Last Quarter",
-  "reports_apply": "Apply",
   "reports_category_top": "{name} is your #1 category",
-  "@reports_category_top": { "placeholders": { "name": { "type": "String" } } },
-  "hint_accounts": "Tap to switch between accounts",
+  "@reports_category_top": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "home_filter_title": "Filter",
   "home_filter_date_range": "Date Range",
   "home_filter_today": "Today",
@@ -1403,11 +1378,41 @@
   "home_filter_apply": "Apply Filters",
   "home_filter_clear": "Clear All",
   "semantics_insight_label": "Insight: {text}",
-  "@semantics_insight_label": { "placeholders": { "text": { "type": "String" } } },
+  "@semantics_insight_label": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
   "semantics_daily_trend_sparkline": "Daily trend sparkline",
   "semantics_spending_trend_chart": "Spending trend chart for the last {days} days with previous period comparison",
-  "@semantics_spending_trend_chart": { "placeholders": { "days": { "type": "int" } } },
+  "@semantics_spending_trend_chart": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "semantics_spending_heatmap": "Daily spending activity heatmap for the last {count} days. Darker colors indicate higher spending.",
-  "@semantics_spending_heatmap": { "placeholders": { "count": { "type": "int" } } },
-  "semantics_spending_velocity_chart": "Cumulative spending pace chart with month-end projection"
+  "@semantics_spending_heatmap": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "semantics_spending_velocity_chart": "Cumulative spending pace chart with month-end projection",
+  "month_1": "January",
+  "month_2": "February",
+  "month_3": "March",
+  "month_4": "April",
+  "month_5": "May",
+  "month_6": "June",
+  "month_7": "July",
+  "month_8": "August",
+  "month_9": "September",
+  "month_10": "October",
+  "month_11": "November",
+  "month_12": "December"
 }

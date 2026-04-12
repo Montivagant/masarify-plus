@@ -243,8 +243,9 @@ class GoalDetailScreen extends ConsumerWidget {
     int amountPiastres = 0;
     int? selectedWalletId;
     final noteController = TextEditingController();
-    final wallets = ref.read(walletsProvider).valueOrNull ?? [];
-    final nonSystem = wallets.where((w) => !w.isSystemWallet).toList();
+    // Include Cash (the system wallet) — users can contribute physical cash
+    // toward a savings goal just like any other account.
+    final eligibleWallets = ref.read(walletsProvider).valueOrNull ?? [];
 
     showModalBottomSheet<void>(
       context: context,
@@ -273,7 +274,7 @@ class GoalDetailScreen extends ConsumerWidget {
                   const SizedBox(height: AppSizes.md),
 
                   // Wallet picker — deduct from selected account
-                  if (nonSystem.isNotEmpty) ...[
+                  if (eligibleWallets.isNotEmpty) ...[
                     Text(
                       context.l10n.goal_contribution_from_wallet,
                       style: ctx.textStyles.labelLarge?.copyWith(
@@ -293,7 +294,7 @@ class GoalDetailScreen extends ConsumerWidget {
                               setSheetState(() => selectedWalletId = null),
                           showCheckmark: false,
                         ),
-                        ...nonSystem.map(
+                        ...eligibleWallets.map(
                           (w) => ChoiceChip(
                             label: Text(w.name),
                             avatar: Icon(

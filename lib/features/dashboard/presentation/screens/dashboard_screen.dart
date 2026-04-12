@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../../../../core/constants/app_routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/services/auto_pay_service.dart';
+import '../../../../core/services/crash_log_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../domain/entities/transaction_entity.dart';
@@ -63,16 +65,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final _scrollController = ScrollController();
   bool _heroCollapsed = false;
 
-  /// Scroll offset above which the hero collapses.
-  static const double _collapseThreshold = 300;
-
-  /// Scroll offset below which the hero restores (hysteresis).
-  static const double _restoreThreshold = 150;
+  /// Scroll offset below which the hero restores (hysteresis buffer so the
+  /// restore gesture only fires once the user is near the top).
+  static const double _restoreThreshold = 32;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     if (!_notificationPermissionRequested) {
       _notificationPermissionRequested = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -101,21 +100,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  void _onScroll() {
-    final offset = _scrollController.offset;
-    final shouldCollapse = _heroCollapsed
-        ? offset > _restoreThreshold
-        : offset > _collapseThreshold;
-    if (shouldCollapse != _heroCollapsed) {
-      setState(() => _heroCollapsed = shouldCollapse);
+  /// Direction-based collapse path. Fires on the raw user gesture even when
+  /// the underlying scroll position can't change because the content is
+  /// shorter than the viewport. This is the path that fixes the
+  /// "Cash wallet → no scroll → hero never collapses" bug.
+  bool _onUserScroll(UserScrollNotification notif) {
+    final dir = notif.direction;
+    final offset = notif.metrics.pixels;
+
+    if (dir == ScrollDirection.reverse && !_heroCollapsed) {
+      // User dragging content UP (away from top) — wants to see more below.
+      setState(() => _heroCollapsed = true);
+    } else if (dir == ScrollDirection.forward &&
+        _heroCollapsed &&
+        offset <= _restoreThreshold) {
+      // User dragging content DOWN AND already near top — restore hero.
+      setState(() => _heroCollapsed = false);
     }
+    return false;
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -171,58 +178,66 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           // ── Scrollable zone: insight cards + filter bar + transactions
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(totalBalanceProvider);
-                ref.invalidate(recentActivityProvider);
-                ref.invalidate(transactionsByMonthProvider(monthKey));
-                ref.invalidate(budgetsByMonthProvider(monthKey));
-                if (selectedWalletId != null) {
-                  ref.invalidate(activityByWalletProvider(selectedWalletId));
-                }
-                // M-5 fix: invalidate all background AI insight providers
-                ref.invalidate(spendingPredictionsProvider);
-                ref.invalidate(detectedPatternsProvider);
-                ref.invalidate(budgetSuggestionsProvider);
-                ref.invalidate(budgetSavingsProvider);
-                ref.invalidate(upcomingBillsProvider);
-                await ref.read(recentActivityProvider.future);
-              },
-              child: SlidableAutoCloseBehavior(
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    // ── Insight cards zone (scroll away, hidden during search)
-                    if (!filter.isSearchActive)
-                      const SliverToBoxAdapter(child: InsightCardsZone()),
+            // Direction-based collapse trigger (see [_onUserScroll]).
+            // Wraps RefreshIndicator so we receive the user's drag direction
+            // even when the inner CustomScrollView's content is too short
+            // to actually scroll (Cash wallet case).
+            child: NotificationListener<UserScrollNotification>(
+              onNotification: _onUserScroll,
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(totalBalanceProvider);
+                  ref.invalidate(recentActivityProvider);
+                  ref.invalidate(transactionsByMonthProvider(monthKey));
+                  ref.invalidate(budgetsByMonthProvider(monthKey));
+                  if (selectedWalletId != null) {
+                    ref.invalidate(activityByWalletProvider(selectedWalletId));
+                  }
+                  // M-5 fix: invalidate all background AI insight providers
+                  ref.invalidate(spendingPredictionsProvider);
+                  ref.invalidate(detectedPatternsProvider);
+                  ref.invalidate(budgetSuggestionsProvider);
+                  ref.invalidate(budgetSavingsProvider);
+                  ref.invalidate(upcomingBillsProvider);
+                  await ref.read(recentActivityProvider.future);
+                },
+                child: SlidableAutoCloseBehavior(
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // ── Insight cards zone (scroll away, hidden during search)
+                      if (!filter.isSearchActive)
+                        const SliverToBoxAdapter(child: InsightCardsZone()),
 
-                    // ── Due-soon bills (scroll away, hidden during search)
-                    if (!filter.isSearchActive)
-                      const SliverToBoxAdapter(child: DueSoonSection()),
+                      // ── Due-soon bills (scroll away, hidden during search)
+                      if (!filter.isSearchActive)
+                        const SliverToBoxAdapter(child: DueSoonSection()),
 
-                    // ── Pinned filter bar (D-09) ──────────────────────────
-                    const SliverPersistentHeader(
-                      pinned: true,
-                      delegate: FilterBarDelegate(child: FilterBar()),
-                    ),
+                      // ── Pinned filter bar (D-09) ──────────────────────────
+                      const SliverPersistentHeader(
+                        pinned: true,
+                        delegate: FilterBarDelegate(child: FilterBar()),
+                      ),
 
-                    // ── Filter badge (D-14 — both account + type active) ──
-                    const SliverToBoxAdapter(child: FilterBadge()),
+                      // ── Filter badge (D-14 — both account + type active) ──
+                      const SliverToBoxAdapter(child: FilterBadge()),
 
-                    // ── Transaction list with date grouping (D-13) ────────
-                    TransactionSliverList(
-                      onTap: (tx) => _onTransactionTap(context, tx),
-                      onEdit: (tx) => _editTransaction(context, ref, tx),
-                      onDelete: (tx) => _deleteTransaction(context, ref, tx),
-                    ),
+                      // ── Transaction list with date grouping (D-13) ────────
+                      TransactionSliverList(
+                        onTap: (tx) => _onTransactionTap(context, tx),
+                        onEdit: (tx) => _editTransaction(context, ref, tx),
+                        onDelete: (tx) => _deleteTransaction(context, ref, tx),
+                      ),
 
-                    // ── Bottom padding for nav bar clearance ──────────────
-                    const SliverPadding(
-                      padding:
-                          EdgeInsets.only(bottom: AppSizes.bottomScrollPadding),
-                    ),
-                  ],
+                      // ── Bottom padding for nav bar clearance ──────────────
+                      const SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: AppSizes.bottomScrollPadding,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -312,26 +327,40 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             context.l10n.transaction_deleted,
             action: SnackBarAction(
               label: context.l10n.common_undo,
-              onPressed: () {
-                repo.create(
-                  walletId: entity.walletId,
-                  categoryId: entity.categoryId,
-                  amount: entity.amount,
-                  type: entity.type,
-                  title: entity.title,
-                  transactionDate: entity.transactionDate,
-                  currencyCode: entity.currencyCode,
-                  note: entity.note,
-                  tags: entity.tags,
-                  source: entity.source,
-                  rawSourceText: entity.rawSourceText,
-                  isRecurring: entity.isRecurring,
-                  recurringRuleId: entity.recurringRuleId,
-                  goalId: entity.goalId,
-                  locationName: entity.locationName,
-                  latitude: entity.latitude,
-                  longitude: entity.longitude,
-                );
+              onPressed: () async {
+                // Await + try/catch — if the restore write fails, the user
+                // must be told. Previously this was fire-and-forget and a
+                // failed undo looked identical to a successful one, risking
+                // silent data loss.
+                try {
+                  await repo.create(
+                    walletId: entity.walletId,
+                    categoryId: entity.categoryId,
+                    amount: entity.amount,
+                    type: entity.type,
+                    title: entity.title,
+                    transactionDate: entity.transactionDate,
+                    currencyCode: entity.currencyCode,
+                    note: entity.note,
+                    tags: entity.tags,
+                    source: entity.source,
+                    rawSourceText: entity.rawSourceText,
+                    isRecurring: entity.isRecurring,
+                    recurringRuleId: entity.recurringRuleId,
+                    goalId: entity.goalId,
+                    locationName: entity.locationName,
+                    latitude: entity.latitude,
+                    longitude: entity.longitude,
+                  );
+                } catch (e, stack) {
+                  CrashLogService.log(e, stack);
+                  if (context.mounted) {
+                    SnackHelper.showError(
+                      context,
+                      context.l10n.common_error_generic,
+                    );
+                  }
+                }
               },
             ),
             duration: AppDurations.snackbarLong,
@@ -384,15 +413,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             context.l10n.transaction_deleted,
             action: SnackBarAction(
               label: context.l10n.common_undo,
-              onPressed: () {
-                repo.create(
-                  fromWalletId: entity.fromWalletId,
-                  toWalletId: entity.toWalletId,
-                  amount: entity.amount,
-                  fee: entity.fee,
-                  note: entity.note,
-                  transferDate: entity.transferDate,
-                );
+              onPressed: () async {
+                // Await + try/catch — see transaction undo above.
+                try {
+                  await repo.create(
+                    fromWalletId: entity.fromWalletId,
+                    toWalletId: entity.toWalletId,
+                    amount: entity.amount,
+                    fee: entity.fee,
+                    note: entity.note,
+                    transferDate: entity.transferDate,
+                  );
+                } catch (e, stack) {
+                  CrashLogService.log(e, stack);
+                  if (context.mounted) {
+                    SnackHelper.showError(
+                      context,
+                      context.l10n.common_error_generic,
+                    );
+                  }
+                }
               },
             ),
             duration: AppDurations.snackbarLong,

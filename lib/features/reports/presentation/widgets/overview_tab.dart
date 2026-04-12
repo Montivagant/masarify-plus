@@ -79,6 +79,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
       data: (heroTotals) {
         final hasData = heroTotals.any((t) => t.income > 0 || t.expense > 0);
         if (!hasData) {
+          // Preserve the filter row above the empty state so the user can
+          // change filters without leaving the tab. Previously the EmptyState
+          // here had `title: ''` with a "filled below" TODO comment — the
+          // user saw an iconless, titleless blank region.
           return Column(
             children: [
               const SizedBox(height: AppSizes.md),
@@ -89,10 +93,10 @@ class _OverviewTabState extends ConsumerState<OverviewTab>
                 customRange: _customRange,
                 onFilterChanged: _onFilterChanged,
               ),
-              const Expanded(
+              Expanded(
                 child: EmptyState(
-                  title: '', // filled below
-                  compact: true,
+                  title: context.l10n.reports_empty_title,
+                  subtitle: context.l10n.reports_empty_sub,
                 ),
               ),
             ],

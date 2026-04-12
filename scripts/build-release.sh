@@ -24,29 +24,27 @@ else
   echo "WARNING: No .env file found. AI features will be disabled."
 fi
 
-echo "Building Masarify release APKs (split by ABI)..."
+echo "Building Masarify release APK (arm64-v8a only, fast sideload)..."
 # ${DART_DEFINES[@]+...} avoids 'unbound variable' error on empty array (bash <4.4 + set -u).
-# --obfuscate + --split-debug-info: strips symbols → smaller APK + code protection.
-# Debug symbols saved to build/debug_info/ for crash symbolication.
-flutter build apk --release --split-per-abi \
-  --obfuscate --split-debug-info=build/debug_info \
+# Single-ABI + no obfuscation = ~3x faster than split-per-abi + obfuscate.
+# For Play Store builds, use `flutter build appbundle --release --obfuscate ...` instead.
+flutter build apk --release \
+  --target-platform android-arm64 \
   ${DART_DEFINES[@]+"${DART_DEFINES[@]}"}
 
-APK_DIR="build/app/outputs/flutter-apk"
+APK="build/app/outputs/flutter-apk/app-release.apk"
 
 echo ""
-echo "=== Release APKs ==="
-for apk in "$APK_DIR"/app-*-release.apk; do
-  name=$(basename "$apk")
-  size=$(du -h "$apk" | cut -f1)
-  echo "  $name  ($size)"
-done
+echo "=== Release APK ==="
+if [ -f "$APK" ]; then
+  size=$(du -h "$APK" | cut -f1)
+  echo "  $(basename "$APK")  ($size)"
+fi
 
 echo ""
-echo "=== Distribution Guide ==="
-echo "  Modern phones (95%+): app-arm64-v8a-release.apk"
-echo "  Old 32-bit phones:    app-armeabi-v7a-release.apk"
-echo "  Emulators:            app-x86_64-release.apk"
+echo "=== Install ==="
+echo "  adb install -r $APK"
 echo ""
-echo "  IMPORTANT: Do NOT send via WhatsApp/Telegram — they corrupt APK files."
-echo "  Use Google Drive, GitHub Releases, or direct USB transfer instead."
+echo "  NOTE: This build targets arm64-v8a only (covers 95%+ of modern phones)."
+echo "  For Play Store distribution, run: flutter build appbundle --release --obfuscate \\"
+echo "                                      --split-debug-info=build/debug_info"

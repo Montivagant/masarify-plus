@@ -553,10 +553,24 @@ mixin _TransactionFormMixin<T extends ConsumerStatefulWidget>
 
   // ── Pickers ─────────────────────────────────────────────────────────
 
+  /// Wallets that are legal to pick for the current transaction type.
+  ///
+  /// For regular expense/income rows, Cash (the system wallet) is a valid
+  /// selection — the user may have paid or received cash directly. For
+  /// cash_withdrawal / cash_deposit, the picker represents the BANK side
+  /// of the transfer (cash is implicit on the other side), so the Cash
+  /// wallet is excluded to avoid a nonsensical "cash → cash" entry.
+  List<WalletEntity> _selectableWallets(List<WalletEntity> wallets) {
+    if (_isCashType) {
+      return wallets.where((w) => !w.isSystemWallet).toList();
+    }
+    return wallets;
+  }
+
   void _showWalletPicker() {
-    final wallets = (ref.read(walletsProvider).valueOrNull ?? [])
-        .where((w) => !w.isSystemWallet)
-        .toList();
+    final wallets = _selectableWallets(
+      ref.read(walletsProvider).valueOrNull ?? [],
+    );
     if (wallets.isEmpty) return;
 
     showModalBottomSheet<void>(
@@ -766,8 +780,11 @@ class _AddTransactionSheetState extends ConsumerState<AddTransactionSheet>
 
     final wallets = ref.watch(walletsProvider).valueOrNull ?? [];
     final currentWallet = wallets.where((w) => w.id == _walletId).firstOrNull;
-    final nonSystemWallets = wallets.where((w) => !w.isSystemWallet).toList();
-    final showWalletPicker = nonSystemWallets.length > 1;
+    // Only show the picker when the user has a choice. For regular
+    // expense/income, Cash counts as a selectable option; for cash_withdrawal
+    // and cash_deposit it doesn't (see [_selectableWallets]).
+    final selectable = _selectableWallets(wallets);
+    final showWalletPicker = selectable.length > 1;
 
     final typeOptions = <({String value, String label, IconData icon})>[
       (

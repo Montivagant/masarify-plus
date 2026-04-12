@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../domain/entities/category_entity.dart';
+import 'crash_log_service.dart';
 import 'preferences_service.dart';
 
 /// Tracks category usage frequency per type (expense/income) via
@@ -11,13 +12,20 @@ class CategoryFrequencyService {
   final PreferencesService _prefs;
 
   /// Returns `{categoryId: usageCount}` for the given transaction type.
+  ///
+  /// On malformed JSON or type-cast failure, logs the error and returns an
+  /// empty map so the caller gets a safe default (categories show in their
+  /// natural order instead of frequency-sorted). Logging makes the failure
+  /// diagnosable — previously the catch was silent and a corrupted pref
+  /// would permanently disable smart category ordering without any trace.
   Map<int, int> getFrequencies(String type) {
     final json = _prefs.getCategoryFrequencyJson(type);
     if (json == null) return {};
     try {
       final decoded = jsonDecode(json) as Map<String, dynamic>;
       return decoded.map((k, v) => MapEntry(int.parse(k), v as int));
-    } catch (_) {
+    } catch (e, stack) {
+      CrashLogService.log(e, stack);
       return {};
     }
   }

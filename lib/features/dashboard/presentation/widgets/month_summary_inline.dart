@@ -7,10 +7,12 @@ import '../../../../core/extensions/build_context_extensions.dart';
 import '../../../../core/utils/money_formatter.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 
-/// Glass pill badges showing Income & Expense side-by-side, with Net below.
+/// Glass pill badges showing Income & Expense side-by-side.
 ///
 /// Used inline under the balance number in the balance header.
 /// Each pill has a tinted glass background matching its category colour.
+/// The Net total lives on the Reports screen — it was removed from the
+/// hero to free vertical space for the Cash card + account chips.
 class MonthSummaryInline extends ConsumerWidget {
   const MonthSummaryInline({
     super.key,
@@ -40,75 +42,42 @@ class MonthSummaryInline extends ConsumerWidget {
       if (t.type == 'expense') expense += t.amount;
     }
 
-    final net = income - expense;
-    final isPositive = net >= 0;
-
     final incomeColor = context.appTheme.incomeColor;
     final expenseColor = context.appTheme.expenseColor;
-    final netColor = isPositive ? incomeColor : expenseColor;
     final bodySmall = context.textStyles.bodySmall;
     final bodyMedium = context.textStyles.bodyMedium;
 
     const bullet = '\u2022\u2022\u2022\u2022';
 
-    return Column(
+    // ── Income / Expense glass pills ───────────────────────────────
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // ── Net pill badge (above pills per Stitch) ──────────────────
-        Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSizes.md,
-              vertical: AppSizes.xs,
-            ),
-            decoration: BoxDecoration(
-              color: netColor.withValues(alpha: AppSizes.opacityLight2),
-              borderRadius: BorderRadius.circular(AppSizes.borderRadiusFull),
-            ),
-            child: Text(
-              hidden
-                  ? '${context.l10n.home_net_label} $bullet'
-                  : '${context.l10n.home_net_label} ${isPositive ? '+' : '\u2212'}${MoneyFormatter.formatAmount(net.abs())}',
-              style: context.textStyles.labelMedium?.copyWith(
-                color: netColor,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+        // Income pill
+        Expanded(
+          child: _GlassPill(
+            icon: AppIcons.income,
+            label: context.l10n.dashboard_income,
+            amount: hidden ? bullet : MoneyFormatter.formatAmount(income),
+            color: incomeColor,
+            labelStyle: bodySmall,
+            amountStyle: bodyMedium,
+            labelColor: context.colors.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: AppSizes.md),
-
-        // ── Income / Expense glass pills ───────────────────────────────
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Income pill
-            Expanded(
-              child: _GlassPill(
-                icon: AppIcons.income,
-                label: context.l10n.dashboard_income,
-                amount: hidden ? bullet : MoneyFormatter.formatAmount(income),
-                color: incomeColor,
-                labelStyle: bodySmall,
-                amountStyle: bodyMedium,
-                labelColor: context.colors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: AppSizes.sm),
-            // Expense pill
-            Expanded(
-              child: _GlassPill(
-                icon: AppIcons.expense,
-                label: context.l10n.dashboard_expense,
-                amount: hidden ? bullet : MoneyFormatter.formatAmount(expense),
-                color: expenseColor,
-                labelStyle: bodySmall,
-                amountStyle: bodyMedium,
-                labelColor: context.colors.onSurfaceVariant,
-              ),
-            ),
-          ],
+        const SizedBox(width: AppSizes.sm),
+        // Expense pill
+        Expanded(
+          child: _GlassPill(
+            icon: AppIcons.expense,
+            label: context.l10n.dashboard_expense,
+            amount: hidden ? bullet : MoneyFormatter.formatAmount(expense),
+            color: expenseColor,
+            labelStyle: bodySmall,
+            amountStyle: bodyMedium,
+            labelColor: context.colors.onSurfaceVariant,
+          ),
         ),
-        const SizedBox(height: AppSizes.md),
       ],
     );
   }

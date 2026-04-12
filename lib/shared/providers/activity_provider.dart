@@ -19,6 +19,7 @@ final recentActivityProvider = StreamProvider<List<TransactionEntity>>((ref) {
   final wallets = ref.watch(allWalletsProvider).valueOrNull ?? [];
 
   final walletNames = {for (final w in wallets) w.id: w.name};
+  final walletCurrencies = {for (final w in wallets) w.id: w.currencyCode};
 
   return Rx.combineLatest2(
     txRepo.watchAll(limit: 500),
@@ -27,6 +28,7 @@ final recentActivityProvider = StreamProvider<List<TransactionEntity>>((ref) {
       final transferEntries = transfersToActivities(
         transfers,
         walletNames: walletNames,
+        walletCurrencies: walletCurrencies,
       );
       final merged = [...txList, ...transferEntries]
         ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));
@@ -48,6 +50,7 @@ final activityByWalletProvider =
   final wallets = ref.watch(allWalletsProvider).valueOrNull ?? [];
 
   final walletNames = {for (final w in wallets) w.id: w.name};
+  final walletCurrencies = {for (final w in wallets) w.id: w.currencyCode};
 
   return Rx.combineLatest2(
     txRepo.watchByWallet(walletId),
@@ -57,6 +60,7 @@ final activityByWalletProvider =
         transfers,
         filterWalletId: walletId,
         walletNames: walletNames,
+        walletCurrencies: walletCurrencies,
       );
       final merged = [...txList, ...transferEntries]
         ..sort((a, b) => b.transactionDate.compareTo(a.transactionDate));

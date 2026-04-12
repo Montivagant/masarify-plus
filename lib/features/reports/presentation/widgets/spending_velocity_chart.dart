@@ -28,21 +28,25 @@ class SpendingVelocityChart extends StatelessWidget {
     final theme = context.appTheme;
     final lineColor = isIncome ? theme.incomeColor : theme.expenseColor;
 
-    // ── Compute cumulative totals ──────────────────────────────────────
-    final cumulative = <double>[];
-    var runningTotal = 0.0;
+    // ── Compute cumulative totals (int piastres — Rule #1) ───────────
+    // Money must stay integer piastres. Previously this used a double
+    // accumulator; at realistic data scales doubles are exact, but the
+    // principle matters — every other money code path uses int.
+    // Conversion to double happens only at the FlSpot boundary.
+    final cumulative = <int>[];
+    var runningTotal = 0;
     for (final d in dailyData) {
-      runningTotal += d.amount.toDouble();
+      runningTotal += d.amount;
       cumulative.add(runningTotal);
     }
 
-    final totalAmount = runningTotal.round();
+    final totalAmount = runningTotal;
     final daysWithData = dailyData.length;
     final dailyAverage = daysWithData > 0 ? totalAmount ~/ daysWithData : 0;
 
     // ── Actual spots ──────────────────────────────────────────────────
     final actualSpots = List.generate(cumulative.length, (i) {
-      return FlSpot(i.toDouble(), cumulative[i]);
+      return FlSpot(i.toDouble(), cumulative[i].toDouble());
     });
 
     // ── Projection spots (extend from last actual point to day 30) ────
@@ -50,26 +54,25 @@ class SpendingVelocityChart extends StatelessWidget {
     final projectionSpots = <FlSpot>[];
     if (daysWithData > 0 && daysWithData < projectedEnd) {
       final lastCumulative = cumulative.last;
-      final avgPerDay = daysWithData > 0 ? lastCumulative / daysWithData : 0.0;
 
       // Start projection from the last actual data point.
       projectionSpots.add(
-        FlSpot((daysWithData - 1).toDouble(), lastCumulative),
+        FlSpot((daysWithData - 1).toDouble(), lastCumulative.toDouble()),
       );
-      // End projection at day 30.
+      // End projection at day 30 using integer daily average to stay honest.
       final projectedTotal =
-          lastCumulative + avgPerDay * (projectedEnd - daysWithData);
+          lastCumulative + dailyAverage * (projectedEnd - daysWithData);
       projectionSpots.add(
-        FlSpot((projectedEnd - 1).toDouble(), projectedTotal),
+        FlSpot((projectedEnd - 1).toDouble(), projectedTotal.toDouble()),
       );
     }
 
     // ── Compute max Y ────────────────────────────────────────────────
-    final allValues = [
+    final allValues = <int>[
       ...cumulative,
-      if (projectionSpots.isNotEmpty) projectionSpots.last.y,
+      if (projectionSpots.isNotEmpty) projectionSpots.last.y.round(),
     ];
-    final maxY = allValues.fold<double>(0, (s, v) => v > s ? v : s) * 1.15;
+    final maxY = allValues.fold<int>(0, (s, v) => v > s ? v : s) * 1.15;
     final effectiveMaxY = maxY > 0 ? maxY : 100000.0;
 
     return Column(

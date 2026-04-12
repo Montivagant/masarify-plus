@@ -113,6 +113,7 @@ class _TrendsTabState extends ConsumerState<TrendsTab>
               if (!hasData) {
                 return EmptyState(
                   title: context.l10n.reports_empty_title,
+                  subtitle: context.l10n.reports_empty_sub,
                 );
               }
 

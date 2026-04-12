@@ -98,15 +98,27 @@ Future<void> main() async {
   );
 
   // CR-13 fix: run RecurringScheduler AFTER runApp() to avoid blocking splash.
-  unawaited(
-    RecurringScheduler(
+  //
+  // After the scheduler advances `nextDueDate` for any rules that fired while
+  // the app was closed, we refresh the OS-level bill-reminder alarms so the
+  // next 3 occurrences are queued at the correct dates. Without this sync
+  // step the OS would still hold stale alarms (or none at all), and users
+  // would never see reminders for future bills while the app is closed.
+  unawaited(() async {
+    await RecurringScheduler(
       ruleRepository: container.read(recurringRuleRepositoryProvider),
       transactionRepository: container.read(transactionRepositoryProvider),
       walletRepository: container.read(walletRepositoryProvider),
       categoryRepository: container.read(categoryRepositoryProvider),
       sharedPreferences: prefs,
-    ).run(),
-  );
+    ).run();
+
+    final rules =
+        await container.read(recurringRuleRepositoryProvider).getAll();
+    await container
+        .read(notificationTriggerServiceProvider)
+        .syncBillReminders(rules);
+  }());
 
   // Scan SMS inbox in background after UI is mounted (Android only — local
   // parsing only, no AI enrichment — user triggers enrichment from review screen).

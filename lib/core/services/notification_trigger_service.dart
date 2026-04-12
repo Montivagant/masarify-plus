@@ -1,9 +1,11 @@
 import 'dart:ui';
 
 import '../../domain/entities/budget_entity.dart';
+import '../../domain/entities/recurring_rule_entity.dart';
 import '../../domain/entities/savings_goal_entity.dart';
 import '../../l10n/app_localizations.dart';
 import '../utils/money_formatter.dart';
+import '../utils/recurring_date_calculator.dart';
 import 'notification_service.dart';
 import 'preferences_service.dart';
 
@@ -12,8 +14,11 @@ import 'preferences_service.dart';
 /// Called from repositories/providers when state changes occur.
 /// Respects user preferences via [PreferencesService].
 ///
-/// ID offset ranges (each gives 100k slots):
-/// - Scheduled bill reminders: `ruleId + 500_000`
+/// ID offset ranges (each gives 100k slots — max rule/budget/goal id is ~99_999):
+/// - Scheduled bill reminders: `ruleId + 500_000 + (slot * 100_000)` for slot 0..2
+///   → slot 0: 500_000–599_999
+///   → slot 1: 600_000–699_999
+///   → slot 2: 700_000–799_999
 /// - Instant overdue reminders (RecurringScheduler): `ruleId + 100_000`
 /// - Budget alerts: `budgetId + 200_000`
 /// - Goal milestones: `goalId + 300_000`
@@ -23,6 +28,16 @@ class NotificationTriggerService {
 
   final PreferencesService _prefs;
 
+  /// How many upcoming occurrences to schedule per recurring rule. Three
+  /// gives ~3 periods of safety margin if the user doesn't open the app;
+  /// startup top-up via [syncBillReminders] refills the window each time
+  /// the app launches.
+  static const int _maxUpcomingReminders = 3;
+
+  /// Base offset for slot 0. Subsequent slots are +100k each.
+  static const int _billReminderBaseOffset = 500000;
+  static const int _billReminderSlotStride = 100000;
+
   /// Resolve l10n strings without a BuildContext by reading the stored locale.
   AppLocalizations get _l10n {
     final lang = _prefs.language;
@@ -31,45 +46,103 @@ class NotificationTriggerService {
 
   // ── Bill / Recurring Rule Reminders ──────────────────────────────────────
 
-  /// Schedule a one-shot notification 1 day before a bill's due date.
-  /// Called when a recurring rule is created or its nextDueDate advances.
-  Future<void> scheduleBillReminder({
+  /// Compute the notification id for a given rule + slot.
+  static int _billReminderId(int ruleId, int slot) =>
+      ruleId + _billReminderBaseOffset + (slot * _billReminderSlotStride);
+
+  /// Schedule up to [_maxUpcomingReminders] upcoming occurrences for a
+  /// recurring rule. Idempotent — rescheduling overwrites previous slots by id.
+  ///
+  /// For `frequency == 'once'`, only slot 0 is scheduled (one-time bills
+  /// don't recur). For recurring rules, slots 0..2 are scheduled at
+  /// `nextDueDate`, `advance(nextDueDate)`, `advance(advance(nextDueDate))`.
+  ///
+  /// Rule lifecycle:
+  /// - Called on rule create/edit (UI) — seeds the reminder window.
+  /// - Called on app startup via [syncBillReminders] — refills window after
+  ///   [RecurringScheduler] advances `nextDueDate` so the OS always has
+  ///   alarms queued for the next few periods, even while the app is closed.
+  Future<void> scheduleBillReminders({
+    required int ruleId,
+    required String title,
+    required int amount,
+    required String frequency,
+    required DateTime nextDueDate,
+    DateTime? endDate,
+    bool isActive = true,
+    bool isPaid = false,
+  }) async {
+    if (!_prefs.notifyBillReminder) return;
+
+    // Clear all slots first — handles the case where frequency changed
+    // (e.g. monthly → once leaves stale slot 1/2 reminders behind).
+    await cancelBillReminders(ruleId);
+
+    // Skip inactive rules and already-paid one-time bills.
+    if (!isActive) return;
+    if (frequency == 'once' && isPaid) return;
+
+    // One-time bills schedule a single reminder in slot 0.
+    if (frequency == 'once') {
+      await _scheduleSingleBillReminder(
+        slot: 0,
+        ruleId: ruleId,
+        title: title,
+        amount: amount,
+        dueDate: nextDueDate,
+      );
+      return;
+    }
+
+    // Recurring rules: schedule next N occurrences, stopping at endDate.
+    var due = nextDueDate;
+    for (var slot = 0; slot < _maxUpcomingReminders; slot++) {
+      if (endDate != null && due.isAfter(endDate)) break;
+      await _scheduleSingleBillReminder(
+        slot: slot,
+        ruleId: ruleId,
+        title: title,
+        amount: amount,
+        dueDate: due,
+      );
+      due = RecurringDateCalculator.advance(due, frequency);
+    }
+  }
+
+  /// Schedule one bill reminder at the given slot. The reminder fires at
+  /// 9 AM the day before the due date (or 9 AM on the due date if that's
+  /// already in the past). If both are in the past, the reminder is skipped
+  /// silently — don't spam the user with notifications for old bills.
+  Future<void> _scheduleSingleBillReminder({
+    required int slot,
     required int ruleId,
     required String title,
     required int amount,
     required DateTime dueDate,
   }) async {
-    if (!_prefs.notifyBillReminder) return;
-
     final l10n = _l10n;
+    final now = DateTime.now();
 
-    // Schedule for 9 AM the day before the due date.
-    final reminderDate = DateTime(
+    // 9 AM the day before the due date.
+    final dayBefore = DateTime(
       dueDate.year,
       dueDate.month,
       dueDate.day - 1,
       9,
     );
+    final sameDay = DateTime(dueDate.year, dueDate.month, dueDate.day, 9);
 
-    // If reminder is in the past, try same-day at 9 AM.
-    final now = DateTime.now();
-    final effectiveDate = reminderDate.isBefore(now)
-        ? DateTime(dueDate.year, dueDate.month, dueDate.day, 9)
-        : reminderDate;
+    final effectiveDate = dayBefore.isAfter(now)
+        ? dayBefore
+        : (sameDay.isAfter(now) ? sameDay : null);
 
-    // Already past — fire an immediate notification instead of silently skipping.
-    if (effectiveDate.isBefore(now)) {
-      await NotificationService.show(
-        id: ruleId + 500000,
-        title: l10n.notif_bill_due_title(title),
-        body: l10n.notif_bill_due_body(MoneyFormatter.format(amount)),
-        payload: 'recurring:$ruleId',
-      );
-      return;
-    }
+    // Past — silently skip. Slot 0 of an overdue rule will be refreshed by
+    // the next scheduler run (or fired instantly by RecurringScheduler's
+    // own overdue notification path).
+    if (effectiveDate == null) return;
 
     await NotificationService.scheduleOnce(
-      id: ruleId + 500000,
+      id: _billReminderId(ruleId, slot),
       title: l10n.notif_bill_due_title(title),
       body: l10n.notif_bill_due_body(MoneyFormatter.format(amount)),
       scheduledDate: effectiveDate,
@@ -77,9 +150,40 @@ class NotificationTriggerService {
     );
   }
 
-  /// Cancel a previously scheduled bill reminder.
-  Future<void> cancelBillReminder(int ruleId) async {
-    await NotificationService.cancelScheduled(ruleId + 500000);
+  /// Cancel all scheduled bill reminders for a rule (slots 0..2).
+  Future<void> cancelBillReminders(int ruleId) async {
+    for (var slot = 0; slot < _maxUpcomingReminders; slot++) {
+      await NotificationService.cancelScheduled(_billReminderId(ruleId, slot));
+    }
+  }
+
+  /// Top up the OS-level reminder window for every active rule. Called on
+  /// app startup AFTER [RecurringScheduler.run] has advanced `nextDueDate`
+  /// for any rules that fired while the app was closed.
+  ///
+  /// This is the "Option A" half of the fix: without it, after the scheduler
+  /// advances `nextDueDate` the OS still holds alarms for the OLD dates (or
+  /// has no alarms if the rule was just created months ago). Re-scheduling
+  /// each active rule ensures reminders match the current `nextDueDate`.
+  ///
+  /// Idempotent — calling [scheduleBillReminders] with the same ruleId
+  /// overwrites existing slots, so repeated calls converge to the same
+  /// scheduled state.
+  Future<void> syncBillReminders(List<RecurringRuleEntity> rules) async {
+    if (!_prefs.notifyBillReminder) return;
+    for (final rule in rules) {
+      if (!rule.isActive) continue;
+      await scheduleBillReminders(
+        ruleId: rule.id,
+        title: rule.title,
+        amount: rule.amount,
+        frequency: rule.frequency,
+        nextDueDate: rule.nextDueDate,
+        endDate: rule.endDate,
+        isActive: rule.isActive,
+        isPaid: rule.isPaid,
+      );
+    }
   }
 
   // ── Budget Alerts ───────────────────────────────────────────────────────

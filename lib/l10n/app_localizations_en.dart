@@ -43,9 +43,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap + to add your first transaction';
 
   @override
-  String get transactions_title => 'Transactions';
-
-  @override
   String get transactions_empty_title => 'No transactions yet';
 
   @override
@@ -83,9 +80,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transaction_amount_hint => '0.00';
-
-  @override
-  String get transaction_save => 'Save';
 
   @override
   String get transaction_saved => 'Transaction saved';
@@ -136,24 +130,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wallet_type_physical_cash => 'Cash';
 
   @override
-  String get wallet_type_bank => 'Bank Account';
-
-  @override
-  String get wallet_type_mobile_wallet => 'Mobile Wallet';
-
-  @override
-  String get wallet_type_credit_card => 'Credit Card';
-
-  @override
-  String get wallet_type_prepaid_card => 'Prepaid Card';
-
-  @override
-  String get wallet_type_investment => 'Investment Account';
-
-  @override
-  String get wallet_name_hint => 'Account name';
-
-  @override
   String get wallet_initial_balance => 'Initial Balance';
 
   @override
@@ -198,9 +174,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budgets_empty_title => 'No budgets set';
 
   @override
-  String get budgets_empty_sub => 'Set monthly limits to control spending';
-
-  @override
   String get budget_set => 'Set Budget';
 
   @override
@@ -212,9 +185,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get budget_spent => 'Spent';
-
-  @override
   String get budget_remaining => 'Remaining';
 
   @override
@@ -222,9 +192,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goals_empty_title => 'No savings goals';
-
-  @override
-  String get goals_empty_sub => 'Set a goal and start saving';
 
   @override
   String get goal_add => 'Create Goal';
@@ -237,9 +204,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goal_keywords => 'Auto-match keywords';
-
-  @override
-  String get goal_completed => 'Goal Completed! 🎉';
 
   @override
   String get goal_overdue => 'Overdue';
@@ -273,9 +237,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recurring_overdue => 'Overdue';
-
-  @override
-  String get recurring_upcoming_bills => 'Upcoming Bills';
 
   @override
   String get recurring_paid => 'Paid';
@@ -375,12 +336,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat_action_tx_title => 'Create Transaction';
 
   @override
-  String get hub_section_ai => 'AI Assistant';
-
-  @override
-  String get hub_section_app => 'App';
-
-  @override
   String get hub_wallets => 'Accounts';
 
   @override
@@ -397,9 +352,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_security => 'Security';
-
-  @override
-  String get settings_about => 'About';
 
   @override
   String get settings_language => 'Language';
@@ -468,13 +420,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_clear_data => 'Clear All Data';
-
-  @override
   String get settings_clear_data_confirm => 'Type DELETE to confirm';
-
-  @override
-  String get settings_voice_input => 'Voice Input';
 
   @override
   String get settings_language_changed => 'Language changed';
@@ -601,9 +547,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_edit => 'Edit';
 
   @override
-  String get common_close => 'Close';
-
-  @override
   String get common_confirm => 'Confirm';
 
   @override
@@ -666,15 +609,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error_name_required => 'Name is required';
 
   @override
-  String get voice_tap_to_start => 'Tap the mic to start';
-
-  @override
-  String get voice_listening => 'Recording...';
-
-  @override
-  String get voice_confirm_title => 'Review Transactions';
-
-  @override
   String get voice_confirm_accept_all => 'Save All';
 
   @override
@@ -686,12 +620,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voice_ai_error => 'AI parsing failed. Please try again.';
-
-  @override
-  String get voice_retry => 'Try Again';
-
-  @override
-  String get voice_ai_parsing => 'Analyzing with AI...';
 
   @override
   String get voice_cancel_recording => 'Cancel recording';
@@ -766,9 +694,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transfer_to => 'To';
-
-  @override
-  String get transfer_fee => 'Transfer Fee (optional)';
 
   @override
   String get language_en => 'English';
@@ -1307,55 +1232,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goal_keyword_hint => 'e.g. travel, trip, flight';
 
   @override
-  String get month_1 => 'January';
-
-  @override
-  String get month_2 => 'February';
-
-  @override
-  String get month_3 => 'March';
-
-  @override
-  String get month_4 => 'April';
-
-  @override
-  String get month_5 => 'May';
-
-  @override
-  String get month_6 => 'June';
-
-  @override
-  String get month_7 => 'July';
-
-  @override
-  String get month_8 => 'August';
-
-  @override
-  String get month_9 => 'September';
-
-  @override
-  String get month_10 => 'October';
-
-  @override
-  String get month_11 => 'November';
-
-  @override
-  String get month_12 => 'December';
-
-  @override
   String get month_previous => 'Previous month';
 
   @override
   String get month_next => 'Next month';
 
   @override
-  String get recurring_active => 'Active Subscriptions';
-
-  @override
   String get recurring_paused => 'Paused';
-
-  @override
-  String get recurring_pause => 'Pause';
 
   @override
   String get recurring_error_title => 'Please enter a title';
@@ -1420,18 +1303,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_view_all => 'View All';
 
   @override
-  String get recurring_monthly_total => 'Monthly Total';
-
-  @override
   String recurring_due_this_week(int count) {
     return '$count due this week';
   }
-
-  @override
-  String get recurring_upcoming => 'Upcoming';
-
-  @override
-  String get recurring_paid_section => 'Paid';
 
   @override
   String get recurring_total_monthly_spend => 'Total Monthly Spend';
@@ -1449,17 +1323,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recurring_recently_paid => 'Recently Paid';
 
   @override
-  String get recurring_potential_savings => 'Potential Savings';
-
-  @override
-  String get recurring_spending_trend => 'Spending Trend';
-
-  @override
-  String recurring_per_month(String amount) {
-    return '$amount/mo';
-  }
-
-  @override
   String get recurring_auto_pay_label => 'Automatically mark as paid';
 
   @override
@@ -1469,57 +1332,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendar_no_transactions_day => 'No transactions on this day';
 
   @override
-  String get reports_period_7d => '7 Days';
-
-  @override
-  String get reports_period_30d => '30 Days';
-
-  @override
-  String get reports_period_90d => '90 Days';
-
-  @override
   String get reports_income_vs_expense => 'Income vs Expense';
-
-  @override
-  String get reports_top_categories => 'Top Categories';
-
-  @override
-  String get reports_vs_last_month => 'vs last month';
-
-  @override
-  String get reports_no_data => 'No transactions in this period';
-
-  @override
-  String get reports_total_expense => 'Total Expense';
-
-  @override
-  String get reports_net => 'Net';
 
   @override
   String get reports_daily_average => 'Daily Average';
 
   @override
-  String get reports_total_spending => 'Total Spending';
-
-  @override
   String get reports_highest_day => 'Highest Day';
-
-  @override
-  String get reports_vs_previous => 'vs previous period';
 
   @override
   String reports_savings_rate(int rate) {
     return 'Savings rate: $rate% of income';
-  }
-
-  @override
-  String reportsCategoryCount(int count) {
-    return '$count categories';
-  }
-
-  @override
-  String reportsBudgetLabel(String amount) {
-    return 'Budget: $amount';
   }
 
   @override
@@ -1652,15 +1475,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notif_quiet_end => 'End';
 
   @override
-  String get period_3_months => '3M';
-
-  @override
-  String get period_6_months => '6M';
-
-  @override
-  String get period_1_year => '1Y';
-
-  @override
   String get pdf_report_title => 'Masarify Monthly Report';
 
   @override
@@ -1719,12 +1533,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_planning_title => 'Planning';
 
   @override
-  String get hub_section_accounts => 'Accounts';
-
-  @override
-  String get hub_section_goals_budgets => 'Budgets & Goals';
-
-  @override
   String get hub_headline => 'Curate your capital.';
 
   @override
@@ -1738,8 +1546,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hub_saving_insights_title => 'Saving Insights';
 
   @override
-  String get hub_saving_insights_body =>
-      'You could save an additional EGP 120/mo by consolidating your streaming subscriptions.';
+  String hub_saving_insights_body(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'You have $count active subscriptions totaling $amount/month. Review them to find savings.',
+      one:
+          'You have 1 active subscription totaling $amount/month. Review it to find savings.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get hub_view_details => 'View Details';
@@ -1859,12 +1676,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_select_all => 'Select All';
 
   @override
-  String get voice_deselect_all => 'Deselect All';
+  String get voice_view_list => 'Switch to list view';
 
   @override
-  String voice_selected_count(int selected, int total) {
-    return '$selected of $total selected';
-  }
+  String get voice_view_cards => 'Switch to card view';
 
   @override
   String get backup_encryption_warning =>
@@ -2178,13 +1993,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get transaction_type_cash_withdrawal => 'Cash Withdrawal';
-
-  @override
   String get transaction_type_cash_withdrawal_short => 'Withdraw';
-
-  @override
-  String get transaction_type_cash_deposit => 'Cash Deposit';
 
   @override
   String get transaction_type_cash_deposit_short => 'Deposit';
@@ -2233,10 +2042,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home_net_label => 'Net';
 
   @override
-  String get home_net_tooltip =>
-      'Income minus expenses this month (transfers excluded)';
-
-  @override
   String get home_sort_title => 'Sort by';
 
   @override
@@ -2266,50 +2071,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get voice_confirm_select_category => 'Select category';
 
   @override
-  String get voice_confirm_add_notes => 'Add notes...';
-
-  @override
   String get voice_confirm_subscription_suggest =>
       'Add to Subscriptions & Bills?';
-
-  @override
-  String get voice_include => 'Include';
-
-  @override
-  String get voice_confirm_subtitle => 'CONFIRM TRANSACTIONS';
-
-  @override
-  String get voice_confirm_headline => 'Freshly Minted';
-
-  @override
-  String get voice_discard_all => 'Discard';
-
-  @override
-  String get voice_discard_confirm =>
-      'Discard all transactions? This cannot be undone.';
-
-  @override
-  String get voice_discard_confirm_action => 'Discard All';
-
-  @override
-  String get voice_submit_all => 'Submit All';
-
-  @override
-  String get voice_save_draft => 'Save Draft';
-
-  @override
-  String get insight_upcoming_bills_title => 'Upcoming Bills';
-
-  @override
-  String insight_upcoming_bills_body(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count bills due this week',
-      one: '1 bill due this week',
-    );
-    return '$_temp0';
-  }
 
   @override
   String get insight_budget_savings_title => 'Budget Savings';
@@ -2641,18 +2404,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_transactions_count => 'Transactions';
 
   @override
-  String get reports_net_label => 'Net';
-
-  @override
   String get reports_last_6_months => 'Last 6 Months';
-
-  @override
-  String reports_date_range(String start, String end) {
-    return '$start - $end';
-  }
-
-  @override
-  String get reports_select_range => 'Select Date Range';
 
   @override
   String get reports_last_7_days => 'Last 7 Days';
@@ -2661,21 +2413,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reports_last_30_days => 'Last 30 Days';
 
   @override
-  String get reports_this_quarter => 'This Quarter';
-
-  @override
-  String get reports_last_quarter => 'Last Quarter';
-
-  @override
-  String get reports_apply => 'Apply';
-
-  @override
   String reports_category_top(String name) {
     return '$name is your #1 category';
   }
-
-  @override
-  String get hint_accounts => 'Tap to switch between accounts';
 
   @override
   String get home_filter_title => 'Filter';
@@ -2728,4 +2468,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get semantics_spending_velocity_chart =>
       'Cumulative spending pace chart with month-end projection';
+
+  @override
+  String get month_1 => 'January';
+
+  @override
+  String get month_2 => 'February';
+
+  @override
+  String get month_3 => 'March';
+
+  @override
+  String get month_4 => 'April';
+
+  @override
+  String get month_5 => 'May';
+
+  @override
+  String get month_6 => 'June';
+
+  @override
+  String get month_7 => 'July';
+
+  @override
+  String get month_8 => 'August';
+
+  @override
+  String get month_9 => 'September';
+
+  @override
+  String get month_10 => 'October';
+
+  @override
+  String get month_11 => 'November';
+
+  @override
+  String get month_12 => 'December';
 }

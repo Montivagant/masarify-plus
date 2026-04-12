@@ -117,7 +117,11 @@ class DraftEditSheet extends ConsumerWidget {
     final selectedCategory = categoryId != null
         ? categories.where((c) => c.id == categoryId).firstOrNull
         : null;
-    final nonSystemWallets = wallets.where((w) => !w.isSystemWallet).toList();
+    // Cash is a valid payment method for expense/income, but excluded for
+    // cash_withdrawal/cash_deposit (where Cash is the implicit other side).
+    final pickerWallets = isCashType
+        ? wallets.where((w) => !w.isSystemWallet && !w.isArchived).toList()
+        : wallets.where((w) => !w.isArchived).toList();
     final selectedWallet = walletId != null
         ? wallets.where((w) => w.id == walletId).firstOrNull
         : null;
@@ -204,7 +208,7 @@ class DraftEditSheet extends ConsumerWidget {
             ),
             onTap: () => _showWalletPicker(
               context,
-              nonSystemWallets,
+              pickerWallets,
             ),
           ),
 
@@ -283,7 +287,7 @@ class DraftEditSheet extends ConsumerWidget {
 
   void _showWalletPicker(
     BuildContext context,
-    List<WalletEntity> nonSystemWallets,
+    List<WalletEntity> pickerWallets,
   ) {
     showModalBottomSheet<void>(
       context: context,
@@ -313,9 +317,9 @@ class DraftEditSheet extends ConsumerWidget {
             Expanded(
               child: ListView.builder(
                 controller: controller,
-                itemCount: nonSystemWallets.length,
+                itemCount: pickerWallets.length,
                 itemBuilder: (_, i) {
-                  final w = nonSystemWallets[i];
+                  final w = pickerWallets[i];
                   return ListTile(
                     leading: const Icon(AppIcons.wallet, size: AppSizes.iconMd),
                     title: Text(w.name),

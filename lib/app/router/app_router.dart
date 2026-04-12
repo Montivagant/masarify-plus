@@ -42,7 +42,6 @@ import '../../features/wallets/presentation/screens/wallets_screen.dart';
 import '../../shared/widgets/navigation/app_nav_bar.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
 /// Shared fade transition for pushed screens.
 CustomTransitionPage<T> _fadePage<T>({
@@ -352,8 +351,11 @@ final appRouter = GoRouter(
       builder: (_, __, shell) => AppScaffoldShell(navigationShell: shell),
       branches: [
         // Tab 0: Home / Dashboard
+        // NOTE: No explicit navigatorKey — matches the other branches. A
+        // stale branch-0-only navigatorKey was previously causing the nav
+        // bar to update visually but the indexed stack to stay on the
+        // previous branch when switching Subscriptions → Home.
         StatefulShellBranch(
-          navigatorKey: _shellNavigatorKey,
           routes: [
             GoRoute(
               path: AppRoutes.dashboard,
