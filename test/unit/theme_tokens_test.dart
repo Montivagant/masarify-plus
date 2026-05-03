@@ -8,8 +8,8 @@ void main() {
     test('light gradient has 7 stops, anchored mint at top, white at bottom',
         () {
       expect(AppColors.gradientLightStops, hasLength(7));
-      // v7.5: darkened navy top, pure white bottom.
-      expect(AppColors.gradientLightStops.first, const Color(0xFFAEC4E0));
+      // v7.6: saturated teal-navy top, pure white bottom.
+      expect(AppColors.gradientLightStops.first, const Color(0xFF1B6987));
       expect(AppColors.gradientLightStops.last, const Color(0xFFFFFFFF));
     });
 
@@ -63,10 +63,12 @@ void main() {
   group('Reduce-transparency fallback solids', () {
     test('AppColors.surface matches brightest gradient stop for continuity',
         () {
-      expect(AppColors.surface, const Color(0xFFEFF8F1));
+      // v7.6: navy mid-gradient fallback.
+      expect(AppColors.surface, const Color(0xFFE8F0F3));
     });
     test('AppColors.surfaceDark matches mid dark gradient stop', () {
-      expect(AppColors.surfaceDark, const Color(0xFF0E2820));
+      // v7.6: navy mid-gradient fallback.
+      expect(AppColors.surfaceDark, const Color(0xFF112844));
     });
   });
 

@@ -87,13 +87,12 @@ class BalanceHeader extends ConsumerWidget {
                       hidden
                           ? '------'
                           : MoneyFormatter.formatTrailing(displayBalance),
-                      // displayLarge carries the 38sp size, -0.9 tracking,
-                      // and tabular figures defined in AppTextStyles
-                      // (theme revamp v7). displaySmall would skip all of
-                      // that — the hero number must use displayLarge.
+                      // White hero text — BalanceHeader sits on the
+                      // saturated navy zone of the v7.6 gradient where
+                      // dark cs.onSurface ink would be illegible.
                       style: context.textStyles.displayLarge?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: cs.onSurface,
+                        color: AppColors.white,
                       ),
                     ),
                     const SizedBox(width: AppSizes.xs),
@@ -102,8 +101,8 @@ class BalanceHeader extends ConsumerWidget {
                       tooltip: hidden
                           ? context.l10n.balance_show
                           : context.l10n.balance_hide,
-                      color: cs.onSurface
-                          .withValues(alpha: AppSizes.opacityMedium),
+                      color: AppColors.white
+                          .withValues(alpha: AppSizes.opacityStrong),
                       size: AppSizes.iconSm,
                       onPressed: () =>
                           ref.read(hideBalancesProvider.notifier).toggle(),
