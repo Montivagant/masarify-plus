@@ -77,19 +77,20 @@ abstract final class AppColors {
 
   // ── Gradient stops (theme revamp v7) ────────────────────────────────
   /// Top-to-bottom gradient stops for the global page background (light).
-  /// Cool mint/aqua at top → clean white at bottom.
+  /// Cool mint at top → pure white at bottom. NO warm tones anywhere.
   ///
-  /// v7.1: bumped saturation on the upper stops so the mint actually
-  /// reads on device — v7's pastel pale washed out under app bar /
-  /// glass / scrim. Bottom transition is unchanged.
+  /// v7.3: lightened the whole gradient and cleaned out the orange/honey
+  /// bottom drift the user flagged. Top is a soft confident mint that
+  /// fades through pastel mint into pure white by 70% — the bottom 30%
+  /// is essentially white so cards float on a clean surface.
   static const List<Color> gradientLightStops = [
-    Color(0xFFA8E6D0), // 0%   confident mint
-    Color(0xFFA0DEEA), // 18%  fresh aqua
-    Color(0xFFB8E5C8), // 38%  mint pastel
-    Color(0xFFD4EED9), // 58%  soft mint
-    Color(0xFFE8F3EC), // 76%  near-white mint
-    Color(0xFFF5FAF7), // 90%  almost white
-    Color(0xFFFFFFFF), // 100% white
+    Color(0xFFCDEDDC), // 0%   soft mint (was confident — toned down)
+    Color(0xFFD4EFE8), // 18%  pale aqua
+    Color(0xFFDFF1E2), // 38%  pastel mint
+    Color(0xFFEEF7EE), // 58%  near-white mint
+    Color(0xFFF7FBF8), // 76%  almost white
+    Color(0xFFFCFEFD), // 90%  practically white
+    Color(0xFFFFFFFF), // 100% pure white
   ];
 
   /// Stop positions for [gradientLightStops] and [gradientDarkStops].
@@ -116,15 +117,14 @@ abstract final class AppColors {
     Color(0xFF080E0C), // 100% near-black floor
   ];
 
-  // ── Radial blooms (theme revamp v7.1 — recolored for contrast) ──────
-  // The original blooms used hues identical to the gradient stops they
-  // painted over, so they were invisible. v7.1 picks contrasting hues
-  // (soft sky / saturated mint / warm honey) so the blooms actually
-  // register as visual hotspots on the cool mint gradient.
-  static const Color bloomAquaLight = Color(0xCCBAE6FF); // soft sky, ~80%
-  static const Color bloomMintLight = Color(0xCC7DD9B8); // saturated mint, ~80%
+  // ── Radial blooms (theme revamp v7.3 — cool only, no warm tones) ────
+  // v7.3 dropped the warm honey bloom that gave the bottom of the
+  // screen an orange/yellow cast. Now: soft sky upper-left, soft mint
+  // upper-right, pure white halo lower-center. All cool, all subtle.
+  static const Color bloomAquaLight = Color(0x99CCEFFC); // pale sky, ~60%
+  static const Color bloomMintLight = Color(0x99B9E8D2); // pale mint, ~60%
   static const Color bloomWhiteLight =
-      Color(0xCCFFE6B5); // warm honey near bottom, ~80%
+      Color(0xB3FFFFFF); // pure white halo, 70%
   static const Color bloomMintDark = Color(0x4D5BC197); // ~30% mint glow
   static const Color bloomTealDark = Color(0x3314C4A0); // ~20% teal glow
 
