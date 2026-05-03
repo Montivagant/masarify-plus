@@ -8,8 +8,8 @@ void main() {
     test('light gradient has 7 stops, anchored mint at top, white at bottom',
         () {
       expect(AppColors.gradientLightStops, hasLength(7));
-      // v7.4: light navy top, pure white bottom.
-      expect(AppColors.gradientLightStops.first, const Color(0xFFCDDCEF));
+      // v7.5: darkened navy top, pure white bottom.
+      expect(AppColors.gradientLightStops.first, const Color(0xFFAEC4E0));
       expect(AppColors.gradientLightStops.last, const Color(0xFFFFFFFF));
     });
 

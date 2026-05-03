@@ -85,12 +85,12 @@ abstract final class AppColors {
   /// mint. Top is a soft navy that fades through pale blue into pure
   /// white by ~70%; bottom 30% is essentially white.
   static const List<Color> gradientLightStops = [
-    Color(0xFFCDDCEF), // 0%   soft navy mist
-    Color(0xFFD5E2F1), // 18%  pale navy
-    Color(0xFFDFE7F4), // 38%  pastel sky
-    Color(0xFFEDF1F8), // 58%  near-white navy
-    Color(0xFFF6F9FC), // 76%  almost white
-    Color(0xFFFBFCFE), // 90%  practically white
+    Color(0xFFAEC4E0), // 0%   navy mist (v7.5: darkened ~12%)
+    Color(0xFFBACDE7), // 18%  soft navy
+    Color(0xFFCCD7EC), // 38%  pastel sky
+    Color(0xFFDEE5F1), // 58%  near-white navy
+    Color(0xFFECF0F7), // 76%  almost white
+    Color(0xFFF7F9FC), // 90%  practically white
     Color(0xFFFFFFFF), // 100% pure white
   ];
 
