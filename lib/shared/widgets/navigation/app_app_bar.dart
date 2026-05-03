@@ -8,6 +8,12 @@ import '../buttons/app_icon_button.dart';
 
 /// Standard Masarify AppBar.
 /// Handles back button, actions, and title in a consistent way.
+///
+/// Theme revamp v7.2: AppBar is transparent and the system status bar
+/// is transparent. Pair with `Scaffold(extendBodyBehindAppBar: true,
+/// backgroundColor: Colors.transparent)` so the global gradient flows
+/// under the bar without a colour break. The AppBarTheme defaults from
+/// `AppTheme` already enforce transparent / no-tint.
 class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
   const AppAppBar({
     super.key,

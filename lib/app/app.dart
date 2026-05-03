@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../shared/providers/preferences_provider.dart';
 import '../shared/providers/subscription_provider.dart';
 import '../shared/providers/theme_provider.dart';
+import '../shared/widgets/backgrounds/gradient_background.dart';
 import '../shared/widgets/feedback/snack_helper.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
@@ -122,6 +124,35 @@ class _MasarifyAppState extends ConsumerState<MasarifyApp>
         Locale('ar'),
       ],
       locale: locale,
+
+      // Theme revamp v7.2: global gradient + transparent system bars.
+      // Wrapping at the MaterialApp builder level means EVERY screen
+      // (shell-routed AND pushed) inherits the gradient, instead of
+      // only the bottom-nav tabs. AnnotatedRegion makes the status bar
+      // / nav bar transparent so the gradient flows under them too.
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: isDark
+              ? SystemUiOverlayStyle.light.copyWith(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.light,
+                  statusBarBrightness: Brightness.dark,
+                  systemNavigationBarColor: Colors.transparent,
+                  systemNavigationBarIconBrightness: Brightness.light,
+                )
+              : SystemUiOverlayStyle.dark.copyWith(
+                  statusBarColor: Colors.transparent,
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarBrightness: Brightness.light,
+                  systemNavigationBarColor: Colors.transparent,
+                  systemNavigationBarIconBrightness: Brightness.dark,
+                ),
+          child: GradientBackground(
+            child: child ?? const SizedBox.shrink(),
+          ),
+        );
+      },
     );
   }
 }

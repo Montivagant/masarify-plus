@@ -20,7 +20,6 @@ import '../../../features/voice_input/presentation/widgets/ai_thinking_overlay.d
 import '../../../features/voice_input/presentation/widgets/voice_recording_pill.dart';
 import '../../providers/background_ai_provider.dart';
 import '../../providers/preferences_provider.dart';
-import '../backgrounds/gradient_background.dart';
 import '../feedback/first_time_hint.dart';
 import 'raised_center_docked_fab_location.dart';
 import 'speed_dial_fab.dart';
@@ -243,7 +242,10 @@ class _AppScaffoldShellState extends ConsumerState<AppScaffoldShell> {
     final scaffold = Scaffold(
       extendBody: true,
       backgroundColor: Colors.transparent,
-      body: GradientBackground(child: widget.navigationShell),
+      // GradientBackground lives at the MaterialApp builder level
+      // (theme revamp v7.2) so all routes — shell-routed AND pushed —
+      // share one gradient. This shell stays transparent.
+      body: widget.navigationShell,
       bottomNavigationBar: AppNavBar(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: (index) {
