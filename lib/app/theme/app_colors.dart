@@ -12,13 +12,16 @@ abstract final class AppColors {
       Color(0xFFC4384A); // Coral Red (WS-5: reduced brightness)
   static const Color transferBlue = Color(0xFF2E7DD1); // Ocean Blue
   static const Color warning = Color(0xFFB8860B); // Warm Amber
-  static const Color surface = Color(0xFFF5FBF8); // Mint White
+  /// Reduce-transparency fallback solid (matches brightest gradient stop).
+  /// Used when [GlassConfig.shouldBlur] returns false.
+  static const Color surface = Color(0xFFEFF8F1);
   static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
   static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
 
   // ── Dark Mode (Gothic Noir) ─────────────────────────────────────────
   static const Color backgroundDark = Color(0xFF0E0E0E); // True Noir
-  static const Color surfaceDark = Color(0xFF1A1A1A); // Dark Charcoal
+  /// Reduce-transparency fallback solid for dark mode.
+  static const Color surfaceDark = Color(0xFF0E2820);
   static const Color primaryDark =
       Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
   static const Color primaryContainerDark = Color(0xFF2D2344); // Dark Violet
@@ -44,31 +47,29 @@ abstract final class AppColors {
   static const Color gradientStartDark = Color(0xFF6B5B95); // Purple
   static const Color gradientEndDark = Color(0xFF4A3D6E); // Deep Purple
 
-  // ── 3-Tier Glass Hierarchy ──────────────────────────────────────────
-  // Tier 2: Card — semi-transparent with theme tint
-  static const Color glassCardSurfaceLight =
-      Color(0xDEF5FBF8); // #F5FBF8 at 87%
-  static const Color glassCardSurfaceDark = Color(0xDE1E1E2A); // #1E1E2A at 87%
-  static const Color glassCardBorderLight = Color(0x14FFFFFF); // White at 8%
-  static const Color glassCardBorderDark = Color(0x1AFFFFFF); // White at 10%
+  // ── 3-Tier Glass Hierarchy (theme revamp v7 — refined) ──────────────
+  // Tier 2: Card — milky white frost; gradient bleeds through.
+  static const Color glassCardSurfaceLight = Color(0x3DFFFFFF); // white at 24%
+  static const Color glassCardSurfaceDark = Color(0x14FFFFFF); // white at 8%
+  static const Color glassCardBorderLight = Color(0x5CFFFFFF); // white at 36%
+  static const Color glassCardBorderDark = Color(0x33FFFFFF); // white at 20%
 
-  // Tier 1: Sheet — heavier transparency for overlays
-  static const Color glassSheetSurfaceLight =
-      Color(0xB3F5FBF8); // #F5FBF8 at 70%
+  // Tier 1: Sheet — keeps higher alpha for legibility on busy backdrops.
+  static const Color glassSheetSurfaceLight = Color(0xA6FFFFFF); // white at 65%
   static const Color glassSheetSurfaceDark =
-      Color(0xB30E0E0E); // #0E0E0E at 70%
-  static const Color glassSheetBorderLight = Color(0x0DFFFFFF); // White at 5%
-  static const Color glassSheetBorderDark = Color(0x14FFFFFF); // White at 8%
+      Color(0xCC0E2820); // deep mint at 80%
+  static const Color glassSheetBorderLight = Color(0x5CFFFFFF); // white at 36%
+  static const Color glassSheetBorderDark = Color(0x33FFFFFF); // white at 20%
 
-  // Tier 3: Inset — nested elements, icon badges
+  // Tier 3: Inset — nested elements, icon badges (unchanged).
   static const Color glassInsetSurfaceLight = Color(0x26FFFFFF); // White at 15%
   static const Color glassInsetSurfaceDark = Color(0x26FFFFFF); // White at 15%
   static const Color glassInsetBorderLight = Color(0x0FFFFFFF); // White at 6%
   static const Color glassInsetBorderDark = Color(0x14FFFFFF); // White at 8%
 
-  // Brand-tinted shadows
-  static const Color glassShadowLight = Color(0x1A3DA37A); // Mint at 10%
-  static const Color glassShadowDark = Color(0x1A7B68AE); // Purple at 10%
+  // Slate-neutral shadows (was mint / purple — neutralized for cleaner read).
+  static const Color glassShadowLight = Color(0x0F0F1E32); // slate at ~6%
+  static const Color glassShadowDark = Color(0x33000000); // black at 20%
 
   // ── Gradient stops (theme revamp v7) ────────────────────────────────
   /// Top-to-bottom gradient stops for the global page background (light).

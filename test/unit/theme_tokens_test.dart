@@ -40,4 +40,29 @@ void main() {
       expect(AppColors.bloomTealDark, isNotNull);
     });
   });
+
+  group('Glass surface tokens (light) — refined recipe', () {
+    test('glassCardSurfaceLight is white at ~24%', () {
+      expect(AppColors.glassCardSurfaceLight, const Color(0x3DFFFFFF));
+    });
+    test('glassCardBorderLight is white at ~36%', () {
+      expect(AppColors.glassCardBorderLight, const Color(0x5CFFFFFF));
+    });
+    test('glassSheetSurfaceLight retains higher alpha for legibility', () {
+      expect(AppColors.glassSheetSurfaceLight, const Color(0xA6FFFFFF));
+    });
+    test('glassShadowLight is slate-tinted', () {
+      expect(AppColors.glassShadowLight, const Color(0x0F0F1E32));
+    });
+  });
+
+  group('Reduce-transparency fallback solids', () {
+    test('AppColors.surface matches brightest gradient stop for continuity',
+        () {
+      expect(AppColors.surface, const Color(0xFFEFF8F1));
+    });
+    test('AppColors.surfaceDark matches mid dark gradient stop', () {
+      expect(AppColors.surfaceDark, const Color(0xFF0E2820));
+    });
+  });
 }
