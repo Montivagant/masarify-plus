@@ -237,6 +237,12 @@ abstract final class AppSizes {
   /// the "light catches the rim" specular detail.
   static const double glassTopHighlightInset = 0.5;
 
+  /// Vertical clearance below the system status bar before content
+  /// starts on screens without an AppBar (theme revamp v7.6). Equal
+  /// to Material's standard kToolbarHeight so removing the AppBar
+  /// preserves the previous content position.
+  static const double topActionsClearance = 56;
+
   // ── Dashboard sections (WS-8) ────────────────────────────────────────
   static const double sectionGap = 16.0;
 

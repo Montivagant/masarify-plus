@@ -149,6 +149,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             bottom: false,
             child: Column(
               children: [
+                // Top clearance — replaces the removed AppBar so content
+                // doesn't sit flush against the status bar / floating
+                // quick-access icons.
+                const SizedBox(height: AppSizes.topActionsClearance),
                 // ── Fixed zone: offline banner + header (never scrolls) ──────
                 if (!isOnline) const _OfflineBanner(),
                 if (filter.isSearchActive)
@@ -488,7 +492,6 @@ class _MiniBalanceHeader extends ConsumerWidget {
     final selectedId = ref.watch(selectedAccountIdProvider);
     final totalBalance = ref.watch(totalBalanceProvider).valueOrNull ?? 0;
     final hidden = ref.watch(hideBalancesProvider);
-    final cs = context.colors;
     final theme = context.appTheme;
 
     final displayBalance = selectedId == null
@@ -510,9 +513,11 @@ class _MiniBalanceHeader extends ConsumerWidget {
           Center(
             child: Text(
               hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
+              // White text — collapsed mini-header still sits on the
+              // saturated navy zone of the gradient (theme revamp v7.6).
               style: context.textStyles.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
-                color: cs.onSurface,
+                color: Colors.white,
               ),
             ),
           ),

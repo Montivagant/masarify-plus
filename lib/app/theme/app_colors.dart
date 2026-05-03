@@ -3,38 +3,46 @@ import 'package:flutter/material.dart';
 /// All brand color constants for Masarify.
 /// NEVER use Color(0xFF...) directly in widgets — import from here.
 abstract final class AppColors {
-  // ── Brand palette — Light Mode (Minty Fresh) ────────────────────────
-  static const Color primary = Color(0xFF3DA37A); // Mint Green
-  static const Color primaryLight = Color(0xFFE0F7EF); // Very Light Mint
-  static const Color accent = Color(0xFF558B71); // Sage Green
-  static const Color incomeGreen = Color(0xFF2D7A4F); // Forest Green
+  // ── Brand palette — Light Mode (Navy — theme revamp v7.6) ──────────
+  // Brand identity rebranded from mint to navy to match the new
+  // gradient. Semantic colours unchanged (income/expense/transfer/
+  // warning) — they remain meaningful regardless of brand.
+  static const Color primary = Color(0xFF1B6987); // Saturated teal-navy
+  static const Color primaryLight =
+      Color(0xFFDCE8EE); // Pale navy mist (primary container)
+  static const Color accent = Color(0xFF2E7E9C); // Brighter teal-navy (accent)
+  static const Color incomeGreen = Color(0xFF2D7A4F); // Forest Green (semantic)
   static const Color expenseRed =
-      Color(0xFFC4384A); // Coral Red (WS-5: reduced brightness)
-  static const Color transferBlue = Color(0xFF2E7DD1); // Ocean Blue
-  static const Color warning = Color(0xFFB8860B); // Warm Amber
-  /// Reduce-transparency fallback solid (matches brightest gradient stop).
+      Color(0xFFC4384A); // Coral Red (semantic, WS-5 reduced)
+  static const Color transferBlue =
+      Color(0xFF4A90E2); // Sky blue (distinguished from brand navy)
+  static const Color warning = Color(0xFFB8860B); // Warm Amber (semantic)
+  /// Reduce-transparency fallback solid (matches a mid-gradient stop).
   /// Used when [GlassConfig.shouldBlur] returns false.
-  static const Color surface = Color(0xFFEFF8F1);
-  static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
-  static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
+  static const Color surface = Color(0xFFE8F0F3);
+  static const Color secondaryContainerLight =
+      Color(0xFFC5DAE3); // Light navy container
+  static const Color tertiaryContainerLight =
+      Color(0xFFB4D5E2); // Pale sky container
 
-  // ── Dark Mode (Mint Forest — theme revamp v7) ───────────────────────
+  // ── Dark Mode (Navy — theme revamp v7.6) ────────────────────────────
   // Names describe Material 3 slot meaning (primary / secondary / tertiary
-  // role), NOT hue. Values rebranded from the previous "Gothic Noir"
-  // purple identity to the unified mint family.
+  // role), NOT hue. Values are now navy variants matching the new
+  // dark gradient.
   static const Color backgroundDark =
-      Color(0xFF06140F); // deep mint forest (gradient top)
+      Color(0xFF0A1828); // deep navy (gradient top)
   /// Reduce-transparency fallback solid for dark mode.
-  static const Color surfaceDark = Color(0xFF0E2820);
+  static const Color surfaceDark = Color(0xFF112844);
   static const Color primaryDark =
-      Color(0xFF5BC197); // mint glow (matches light primary)
+      Color(0xFF5BABDC); // navy glow (matches light primary in mood)
   static const Color primaryContainerDark =
-      Color(0xFF143A2B); // deep mint container
-  static const Color secondaryDark = Color(0xFF7DD9B8); // pastel mint
+      Color(0xFF143750); // deep navy container
+  static const Color secondaryDark = Color(0xFF7DBDD9); // pastel navy
   static const Color secondaryContainerDark =
-      Color(0xFF1A3A2D); // dark mint container
-  static const Color tertiaryDark = Color(0xFF89E0C5); // brighter mint
-  static const Color tertiaryContainerDark = Color(0xFF0F2A20); // deep tertiary
+      Color(0xFF1A3A50); // dark navy container
+  static const Color tertiaryDark = Color(0xFF89C5E0); // brighter sky
+  static const Color tertiaryContainerDark =
+      Color(0xFF0F2A40); // deep tertiary navy
   static const Color errorDark = Color(0xFFB85450); // warm terracotta (kept)
 
   // ── Dark mode semantic colors ────────────────────────────────────────
@@ -85,12 +93,12 @@ abstract final class AppColors {
   /// mint. Top is a soft navy that fades through pale blue into pure
   /// white by ~70%; bottom 30% is essentially white.
   static const List<Color> gradientLightStops = [
-    Color(0xFFAEC4E0), // 0%   navy mist (v7.5: darkened ~12%)
-    Color(0xFFBACDE7), // 18%  soft navy
-    Color(0xFFCCD7EC), // 38%  pastel sky
-    Color(0xFFDEE5F1), // 58%  near-white navy
-    Color(0xFFECF0F7), // 76%  almost white
-    Color(0xFFF7F9FC), // 90%  practically white
+    Color(0xFF1B6987), // 0%   saturated teal-navy (v7.6 — matches reference)
+    Color(0xFF267795), // 18%  still saturated
+    Color(0xFF5196B0), // 38%  transition begins
+    Color(0xFFB0CDDC), // 58%  pale blue (rapid fade)
+    Color(0xFFE8F0F3), // 76%  near-white
+    Color(0xFFF8FBFC), // 90%  practically white
     Color(0xFFFFFFFF), // 100% pure white
   ];
 
@@ -144,12 +152,14 @@ abstract final class AppColors {
   static const Color fallbackGray = Color(0xFF9E9E9E);
 
   /// Default color hex for goals, wallets, etc. (first picker option).
-  static const String defaultColorHex = '#1A6B5E';
+  /// v7.6: navy to match the brand rebrand.
+  static const String defaultColorHex = '#1B6987';
 
   // ── Color picker options ────────────────────────────────────────────────
   /// Shared palette for category, wallet, and goal color pickers.
+  /// v7.6: first slot is navy (the new brand colour).
   static const List<String> pickerOptions = [
-    '#1A6B5E',
+    '#1B6987',
     '#F5A623',
     '#16A34A',
     '#DC2626',

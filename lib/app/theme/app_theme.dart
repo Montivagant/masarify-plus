@@ -59,12 +59,23 @@ abstract final class AppTheme {
         onSurfaceVariant: const Color(0xFF5C6E80),
       ),
       // App bar: transparent so the gradient flows under the title.
+      // v7.6: foregroundColor → white. Pushed screens (Settings, Add*,
+      // Detail) sit on the saturated navy zone where dark ink would
+      // be illegible. Body text below the AppBar is on the white zone
+      // and stays dark via cs.onSurface.
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: Color(0xFF0E2238),
+        foregroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+        ),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
         backgroundColor: Colors.transparent,
