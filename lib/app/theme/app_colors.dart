@@ -18,18 +18,24 @@ abstract final class AppColors {
   static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
   static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
 
-  // ── Dark Mode (Gothic Noir) ─────────────────────────────────────────
-  static const Color backgroundDark = Color(0xFF0E0E0E); // True Noir
+  // ── Dark Mode (Mint Forest — theme revamp v7) ───────────────────────
+  // Names describe Material 3 slot meaning (primary / secondary / tertiary
+  // role), NOT hue. Values rebranded from the previous "Gothic Noir"
+  // purple identity to the unified mint family.
+  static const Color backgroundDark =
+      Color(0xFF06140F); // deep mint forest (gradient top)
   /// Reduce-transparency fallback solid for dark mode.
   static const Color surfaceDark = Color(0xFF0E2820);
   static const Color primaryDark =
-      Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
-  static const Color primaryContainerDark = Color(0xFF2D2344); // Dark Violet
-  static const Color secondaryDark = Color(0xFFC4898A); // Mauve Pink
-  static const Color secondaryContainerDark = Color(0xFF3D2A2A); // Dark mauve
-  static const Color tertiaryDark = Color(0xFFE19B8B); // Rose Gold
-  static const Color tertiaryContainerDark = Color(0xFF3D2B25); // Dark rose
-  static const Color errorDark = Color(0xFFB85450); // Warm terracotta
+      Color(0xFF5BC197); // mint glow (matches light primary)
+  static const Color primaryContainerDark =
+      Color(0xFF143A2B); // deep mint container
+  static const Color secondaryDark = Color(0xFF7DD9B8); // pastel mint
+  static const Color secondaryContainerDark =
+      Color(0xFF1A3A2D); // dark mint container
+  static const Color tertiaryDark = Color(0xFF89E0C5); // brighter mint
+  static const Color tertiaryContainerDark = Color(0xFF0F2A20); // deep tertiary
+  static const Color errorDark = Color(0xFFB85450); // warm terracotta (kept)
 
   // ── Dark mode semantic colors ────────────────────────────────────────
   static const Color incomeGreenDark = Color(0xFFE19B8B); // Rose Gold
