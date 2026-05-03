@@ -3,21 +3,31 @@ import 'package:flutter/material.dart';
 /// Typography scale for Masarify using Plus Jakarta Sans.
 /// Applied via ThemeData.textTheme — do not use directly in widgets;
 /// instead use context.textStyles.displayLarge etc.
+///
+/// Tabular figures applied to numeric-displaying styles so columns of
+/// money line up across rows (theme revamp v7). If Plus Jakarta Sans
+/// loaded via google_fonts does not ship the `tnum` OpenType feature,
+/// the fontFeature is a silent no-op — verify with `tool/verify_tnum.dart`
+/// and self-host the font if needed.
 abstract final class AppTextStyles {
+  static const _tabular = <FontFeature>[FontFeature.tabularFigures()];
+
   /// Size/weight overrides only — NO colors, NO fontFamily.
   /// Merged on top of the base theme to preserve flex_color_scheme colors.
   static const TextTheme sizeOverrides = TextTheme(
-    // 32sp Bold — Wallet balance (dashboard hero number)
+    // 38sp Bold — Wallet balance hero (theme revamp v7).
     displayLarge: TextStyle(
-      fontSize: 32,
+      fontSize: 38,
       fontWeight: FontWeight.w700,
-      letterSpacing: -0.5,
+      letterSpacing: -0.9,
+      fontFeatures: _tabular,
     ),
     // 26sp Bold — Screen titles
     headlineLarge: TextStyle(
       fontSize: 26,
       fontWeight: FontWeight.w700,
       letterSpacing: -0.3,
+      fontFeatures: _tabular,
     ),
     // 22sp SemiBold — Section headers
     headlineMedium: TextStyle(
@@ -34,6 +44,7 @@ abstract final class AppTextStyles {
     titleLarge: TextStyle(
       fontSize: 18,
       fontWeight: FontWeight.w500,
+      fontFeatures: _tabular,
     ),
     // 14sp Medium — Compact titles, labels
     titleSmall: TextStyle(
@@ -44,6 +55,7 @@ abstract final class AppTextStyles {
     bodyLarge: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w400,
+      fontFeatures: _tabular,
     ),
     // 14sp Regular — Secondary info, dates
     bodyMedium: TextStyle(
