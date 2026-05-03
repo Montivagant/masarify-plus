@@ -70,6 +70,50 @@ abstract final class AppColors {
   static const Color glassShadowLight = Color(0x1A3DA37A); // Mint at 10%
   static const Color glassShadowDark = Color(0x1A7B68AE); // Purple at 10%
 
+  // ── Gradient stops (theme revamp v7) ────────────────────────────────
+  /// Top-to-bottom gradient stops for the global page background (light).
+  /// Cool mint/aqua at top → clean white at bottom.
+  static const List<Color> gradientLightStops = [
+    Color(0xFFDFF6E5), // 0%   mint cream
+    Color(0xFFC8F2EE), // 18%  aqua mist
+    Color(0xFFC9EBD3), // 38%  mint pastel
+    Color(0xFFE0F2E5), // 58%  soft mint
+    Color(0xFFEFF8F1), // 76%  near-white mint
+    Color(0xFFF8FCF9), // 90%  almost white
+    Color(0xFFFFFFFF), // 100% white
+  ];
+
+  /// Stop positions for [gradientLightStops] and [gradientDarkStops].
+  static const List<double> gradientStops = [
+    0.0,
+    0.18,
+    0.38,
+    0.58,
+    0.76,
+    0.90,
+    1.0,
+  ];
+
+  /// Top-to-bottom gradient stops for the dark page background.
+  /// Mint forest at top → near-black floor (NOT pure black — preserves
+  /// foreground contrast for nav labels and screen-bottom content).
+  static const List<Color> gradientDarkStops = [
+    Color(0xFF06140F), // 0%   deep mint forest
+    Color(0xFF0A1F18), // 18%
+    Color(0xFF0E2820), // 38%
+    Color(0xFF0B1F19), // 58%
+    Color(0xFF080E0C), // 76%
+    Color(0xFF050807), // 90%
+    Color(0xFF080E0C), // 100% near-black floor
+  ];
+
+  // ── Radial blooms (painted on top of the linear gradient) ───────────
+  static const Color bloomAquaLight = Color(0xE6C8F2EE); // ~90%
+  static const Color bloomMintLight = Color(0xDDB7E8D2); // ~87%
+  static const Color bloomWhiteLight = Color(0xD9FFFFFF); // ~85%
+  static const Color bloomMintDark = Color(0x335BC197); // ~20% mint glow
+  static const Color bloomTealDark = Color(0x2614C4A0); // ~15% teal glow
+
   // ── Barrier & overlay ───────────────────────────────────────────────────
   static const Color barrierScrim = Color(0x26000000); // Black at 15%
 
