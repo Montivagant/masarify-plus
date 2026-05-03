@@ -51,11 +51,12 @@ abstract final class AppTheme {
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: Colors.transparent,
-      // Warm dark text (deep forest) instead of M3 default near-black —
-      // matches the v7 mockup's `#0F3D2C` body colour.
+      // v7.4: deep navy ink replaces forest mint for body text — pairs
+      // with the new navy gradient. M3 near-black would still work but
+      // navy ink keeps the palette cohesive.
       colorScheme: base.colorScheme.copyWith(
-        onSurface: const Color(0xFF0F3D2C),
-        onSurfaceVariant: const Color(0xFF5C7868),
+        onSurface: const Color(0xFF0E2238),
+        onSurfaceVariant: const Color(0xFF5C6E80),
       ),
       // App bar: transparent so the gradient flows under the title.
       appBarTheme: const AppBarTheme(
@@ -63,7 +64,7 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: Color(0xFF0F3D2C),
+        foregroundColor: Color(0xFF0E2238),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
         backgroundColor: Colors.transparent,
@@ -124,17 +125,17 @@ abstract final class AppTheme {
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: Colors.transparent,
-      // Light mint glow text on dark mint backdrop.
+      // v7.4: light navy glow text on dark navy backdrop.
       colorScheme: base.colorScheme.copyWith(
-        onSurface: const Color(0xFFD8F0E2),
-        onSurfaceVariant: const Color(0xFFA3C4B3),
+        onSurface: const Color(0xFFD8E2F0),
+        onSurfaceVariant: const Color(0xFFA3B3C4),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: Color(0xFFD8F0E2),
+        foregroundColor: Color(0xFFD8E2F0),
       ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
         backgroundColor: Colors.transparent,
