@@ -52,7 +52,8 @@ abstract final class AppColors {
   // constants were removed (theme revamp v7). The page gradient is now
   // owned by `gradientLightStops` / `gradientDarkStops` below.
   // Tier 2: Card — milky white frost; gradient bleeds through.
-  static const Color glassCardSurfaceLight = Color(0x3DFFFFFF); // white at 24%
+  // v7.1: lowered from 24% → 18% so the gradient reads through the hero.
+  static const Color glassCardSurfaceLight = Color(0x2EFFFFFF); // white at 18%
   static const Color glassCardSurfaceDark = Color(0x14FFFFFF); // white at 8%
   static const Color glassCardBorderLight = Color(0x5CFFFFFF); // white at 36%
   static const Color glassCardBorderDark = Color(0x33FFFFFF); // white at 20%
@@ -77,13 +78,17 @@ abstract final class AppColors {
   // ── Gradient stops (theme revamp v7) ────────────────────────────────
   /// Top-to-bottom gradient stops for the global page background (light).
   /// Cool mint/aqua at top → clean white at bottom.
+  ///
+  /// v7.1: bumped saturation on the upper stops so the mint actually
+  /// reads on device — v7's pastel pale washed out under app bar /
+  /// glass / scrim. Bottom transition is unchanged.
   static const List<Color> gradientLightStops = [
-    Color(0xFFDFF6E5), // 0%   mint cream
-    Color(0xFFC8F2EE), // 18%  aqua mist
-    Color(0xFFC9EBD3), // 38%  mint pastel
-    Color(0xFFE0F2E5), // 58%  soft mint
-    Color(0xFFEFF8F1), // 76%  near-white mint
-    Color(0xFFF8FCF9), // 90%  almost white
+    Color(0xFFA8E6D0), // 0%   confident mint
+    Color(0xFFA0DEEA), // 18%  fresh aqua
+    Color(0xFFB8E5C8), // 38%  mint pastel
+    Color(0xFFD4EED9), // 58%  soft mint
+    Color(0xFFE8F3EC), // 76%  near-white mint
+    Color(0xFFF5FAF7), // 90%  almost white
     Color(0xFFFFFFFF), // 100% white
   ];
 
@@ -111,12 +116,17 @@ abstract final class AppColors {
     Color(0xFF080E0C), // 100% near-black floor
   ];
 
-  // ── Radial blooms (painted on top of the linear gradient) ───────────
-  static const Color bloomAquaLight = Color(0xE6C8F2EE); // ~90%
-  static const Color bloomMintLight = Color(0xDDB7E8D2); // ~87%
-  static const Color bloomWhiteLight = Color(0xD9FFFFFF); // ~85%
-  static const Color bloomMintDark = Color(0x335BC197); // ~20% mint glow
-  static const Color bloomTealDark = Color(0x2614C4A0); // ~15% teal glow
+  // ── Radial blooms (theme revamp v7.1 — recolored for contrast) ──────
+  // The original blooms used hues identical to the gradient stops they
+  // painted over, so they were invisible. v7.1 picks contrasting hues
+  // (soft sky / saturated mint / warm honey) so the blooms actually
+  // register as visual hotspots on the cool mint gradient.
+  static const Color bloomAquaLight = Color(0xCCBAE6FF); // soft sky, ~80%
+  static const Color bloomMintLight = Color(0xCC7DD9B8); // saturated mint, ~80%
+  static const Color bloomWhiteLight =
+      Color(0xCCFFE6B5); // warm honey near bottom, ~80%
+  static const Color bloomMintDark = Color(0x4D5BC197); // ~30% mint glow
+  static const Color bloomTealDark = Color(0x3314C4A0); // ~20% teal glow
 
   // ── Barrier & overlay ───────────────────────────────────────────────────
   static const Color barrierScrim = Color(0x26000000); // Black at 15%
