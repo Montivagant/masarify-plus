@@ -27,7 +27,6 @@ import '../../../../shared/providers/selected_account_provider.dart';
 import '../../../../shared/providers/transaction_provider.dart';
 import '../../../../shared/providers/wallet_provider.dart';
 import '../../../../shared/widgets/feedback/snack_helper.dart';
-import '../../../../shared/widgets/navigation/app_app_bar.dart';
 import '../../../../shared/widgets/sheets/show_transaction_sheet.dart';
 import '../widgets/balance_header.dart';
 import '../widgets/due_soon_section.dart';
@@ -139,116 +138,132 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? ref.watch(filteredActivityProvider).valueOrNull?.length
         : null;
 
+    // Theme revamp v7.3: AppBar dropped from Home — the two action icons
+    // (AI chat, Settings) float top-right directly on the gradient. No
+    // chrome bar, no title — keeps the gradient continuous from screen
+    // top, with the system status bar showing it through too.
     return Scaffold(
-      appBar: AppAppBar(
-        title: context.l10n.dashboard_title,
-        showBack: false,
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(AppIcons.ai),
-            onPressed: () => context.push(AppRoutes.chat),
-            tooltip: context.l10n.dashboard_chat_tooltip,
-          ),
-          IconButton(
-            icon: const Icon(AppIcons.settings),
-            onPressed: () => context.push(AppRoutes.settings),
-            tooltip: context.l10n.settings_title,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // ── Fixed zone: offline banner + header (never scrolls) ──────
-          if (!isOnline) const _OfflineBanner(),
-          if (filter.isSearchActive)
-            SearchHeader(resultCount: resultCount)
-          else
-            AnimatedCrossFade(
-              firstChild: const BalanceHeader(),
-              secondChild: const _MiniBalanceHeader(),
-              crossFadeState: _heroCollapsed
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: AppDurations.animQuick,
-              firstCurve: Curves.easeOutCubic,
-              secondCurve: Curves.easeOutCubic,
-              sizeCurve: Curves.easeOutCubic,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // ── Floating action icons row (replaces AppBar) ────────────
+            Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: AppSizes.md,
+                end: AppSizes.sm,
+                top: AppSizes.xs,
+              ),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(AppIcons.ai),
+                    onPressed: () => context.push(AppRoutes.chat),
+                    tooltip: context.l10n.dashboard_chat_tooltip,
+                  ),
+                  IconButton(
+                    icon: const Icon(AppIcons.settings),
+                    onPressed: () => context.push(AppRoutes.settings),
+                    tooltip: context.l10n.settings_title,
+                  ),
+                ],
+              ),
             ),
+            // ── Fixed zone: offline banner + header (never scrolls) ──────
+            if (!isOnline) const _OfflineBanner(),
+            if (filter.isSearchActive)
+              SearchHeader(resultCount: resultCount)
+            else
+              AnimatedCrossFade(
+                firstChild: const BalanceHeader(),
+                secondChild: const _MiniBalanceHeader(),
+                crossFadeState: _heroCollapsed
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: AppDurations.animQuick,
+                firstCurve: Curves.easeOutCubic,
+                secondCurve: Curves.easeOutCubic,
+                sizeCurve: Curves.easeOutCubic,
+              ),
 
-          // ── Scrollable zone: insight cards + filter bar + transactions
-          Expanded(
-            // Direction-based collapse trigger (see [_onUserScroll]).
-            // Wraps RefreshIndicator so we receive the user's drag direction
-            // even when the inner CustomScrollView's content is too short
-            // to actually scroll (Cash wallet case).
-            child: NotificationListener<UserScrollNotification>(
-              onNotification: _onUserScroll,
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(totalBalanceProvider);
-                  ref.invalidate(recentActivityProvider);
-                  ref.invalidate(transactionsByMonthProvider(monthKey));
-                  ref.invalidate(budgetsByMonthProvider(monthKey));
-                  if (selectedWalletId != null) {
-                    ref.invalidate(activityByWalletProvider(selectedWalletId));
-                  }
-                  // M-5 fix: invalidate all background AI insight providers
-                  ref.invalidate(spendingPredictionsProvider);
-                  ref.invalidate(detectedPatternsProvider);
-                  ref.invalidate(budgetSuggestionsProvider);
-                  ref.invalidate(budgetSavingsProvider);
-                  ref.invalidate(upcomingBillsProvider);
-                  await ref.read(recentActivityProvider.future);
-                },
-                // Theme revamp v7.1: dropped the scroll-viewport BackdropFilter
-                // that was here. Blurring the gradient under every transaction
-                // tile made the gradient invisible — glass cards lose their
-                // "frosted" effect when the surface beneath them is already
-                // blurred. Tiles paint translucent fills + hairline borders
-                // and read as glass against the sharp gradient instead.
-                child: SlidableAutoCloseBehavior(
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // ── Insight cards zone (scroll away, hidden during search)
-                      if (!filter.isSearchActive)
-                        const SliverToBoxAdapter(child: InsightCardsZone()),
+            // ── Scrollable zone: insight cards + filter bar + transactions
+            Expanded(
+              // Direction-based collapse trigger (see [_onUserScroll]).
+              // Wraps RefreshIndicator so we receive the user's drag direction
+              // even when the inner CustomScrollView's content is too short
+              // to actually scroll (Cash wallet case).
+              child: NotificationListener<UserScrollNotification>(
+                onNotification: _onUserScroll,
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(totalBalanceProvider);
+                    ref.invalidate(recentActivityProvider);
+                    ref.invalidate(transactionsByMonthProvider(monthKey));
+                    ref.invalidate(budgetsByMonthProvider(monthKey));
+                    if (selectedWalletId != null) {
+                      ref.invalidate(
+                        activityByWalletProvider(selectedWalletId),
+                      );
+                    }
+                    // M-5 fix: invalidate all background AI insight providers
+                    ref.invalidate(spendingPredictionsProvider);
+                    ref.invalidate(detectedPatternsProvider);
+                    ref.invalidate(budgetSuggestionsProvider);
+                    ref.invalidate(budgetSavingsProvider);
+                    ref.invalidate(upcomingBillsProvider);
+                    await ref.read(recentActivityProvider.future);
+                  },
+                  // Theme revamp v7.1: dropped the scroll-viewport BackdropFilter
+                  // that was here. Blurring the gradient under every transaction
+                  // tile made the gradient invisible — glass cards lose their
+                  // "frosted" effect when the surface beneath them is already
+                  // blurred. Tiles paint translucent fills + hairline borders
+                  // and read as glass against the sharp gradient instead.
+                  child: SlidableAutoCloseBehavior(
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        // ── Insight cards zone (scroll away, hidden during search)
+                        if (!filter.isSearchActive)
+                          const SliverToBoxAdapter(child: InsightCardsZone()),
 
-                      // ── Due-soon bills (scroll away, hidden during search)
-                      if (!filter.isSearchActive)
-                        const SliverToBoxAdapter(child: DueSoonSection()),
+                        // ── Due-soon bills (scroll away, hidden during search)
+                        if (!filter.isSearchActive)
+                          const SliverToBoxAdapter(child: DueSoonSection()),
 
-                      // ── Pinned filter bar (D-09) ──────────────────────────
-                      const SliverPersistentHeader(
-                        pinned: true,
-                        delegate: FilterBarDelegate(child: FilterBar()),
-                      ),
-
-                      // ── Filter badge (D-14 — both account + type active) ──
-                      const SliverToBoxAdapter(child: FilterBadge()),
-
-                      // ── Transaction list with date grouping (D-13) ────────
-                      TransactionSliverList(
-                        onTap: (tx) => _onTransactionTap(context, tx),
-                        onEdit: (tx) => _editTransaction(context, ref, tx),
-                        onDelete: (tx) => _deleteTransaction(context, ref, tx),
-                      ),
-
-                      // ── Bottom padding for nav bar clearance ──────────────
-                      const SliverPadding(
-                        padding: EdgeInsets.only(
-                          bottom: AppSizes.bottomScrollPadding,
+                        // ── Pinned filter bar (D-09) ──────────────────────────
+                        const SliverPersistentHeader(
+                          pinned: true,
+                          delegate: FilterBarDelegate(child: FilterBar()),
                         ),
-                      ),
-                    ],
+
+                        // ── Filter badge (D-14 — both account + type active) ──
+                        const SliverToBoxAdapter(child: FilterBadge()),
+
+                        // ── Transaction list with date grouping (D-13) ────────
+                        TransactionSliverList(
+                          onTap: (tx) => _onTransactionTap(context, tx),
+                          onEdit: (tx) => _editTransaction(context, ref, tx),
+                          onDelete: (tx) =>
+                              _deleteTransaction(context, ref, tx),
+                        ),
+
+                        // ── Bottom padding for nav bar clearance ──────────────
+                        const SliverPadding(
+                          padding: EdgeInsets.only(
+                            bottom: AppSizes.bottomScrollPadding,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
