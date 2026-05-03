@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,291 +59,323 @@ class BalanceHeader extends ConsumerWidget {
     final cs = context.colors;
     final theme = context.appTheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.glassCardSurface,
-        border: Border(
-          bottom: BorderSide(
-            color: theme.glassCardBorder,
+    return RepaintBoundary(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: AppSizes.glassBlurCard,
+            sigmaY: AppSizes.glassBlurCard,
           ),
-        ),
-      ),
-      padding: const EdgeInsetsDirectional.only(
-        start: AppSizes.screenHPadding,
-        end: AppSizes.screenHPadding,
-        top: AppSizes.xl,
-        bottom: AppSizes.md,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // ── Balance row with eye toggle ──────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                hidden
-                    ? '------'
-                    : MoneyFormatter.formatTrailing(displayBalance),
-                style: context.textStyles.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: cs.onSurface,
-                ),
-              ),
-              const SizedBox(width: AppSizes.xs),
-              AppIconButton(
-                icon: hidden ? AppIcons.eyeOff : AppIcons.eye,
-                tooltip: hidden
-                    ? context.l10n.balance_show
-                    : context.l10n.balance_hide,
-                color: cs.onSurface.withValues(alpha: AppSizes.opacityMedium),
-                size: AppSizes.iconSm,
-                onPressed: () =>
-                    ref.read(hideBalancesProvider.notifier).toggle(),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSizes.md),
-
-          // ── Inline month summary ────────────────────────────────────
-          MonthSummaryInline(walletId: selectedId, hidden: hidden),
-          const SizedBox(height: AppSizes.sm),
-
-          // ── Cash wallet card (full-width, always visible) ────────────
-          // Distinct amber/gold accent so it reads as prominently as the
-          // Income pill but never gets confused with it (green).
-          if (cashWallet != null) ...[
-            Builder(
-              builder: (context) {
-                final isCashSelected = selectedId == cashWallet.id;
-                final cashAccent = theme.warningColor;
-                return GestureDetector(
-                  onTap: () => ref
-                      .read(selectedAccountIdProvider.notifier)
-                      .state = cashWallet.id,
-                  onDoubleTap: () =>
-                      showEditWalletSheet(context, cashWallet.id),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(AppSizes.borderRadiusMd),
-                      border: Border.all(
-                        color: cashAccent.withValues(
-                          alpha: isCashSelected
-                              ? AppSizes.opacityStrong
-                              : AppSizes.opacityMedium,
-                        ),
-                        width: isCashSelected
-                            ? AppSizes.borderWidthSelected
-                            : AppSizes.glassBorderWidth,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.glassCardSurface,
+            ),
+            padding: const EdgeInsetsDirectional.only(
+              start: AppSizes.screenHPadding,
+              end: AppSizes.screenHPadding,
+              top: AppSizes.xl,
+              bottom: AppSizes.md,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Balance row with eye toggle ──────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      hidden
+                          ? '------'
+                          : MoneyFormatter.formatTrailing(displayBalance),
+                      style: context.textStyles.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: cs.onSurface,
                       ),
                     ),
-                    child: GlassCard(
-                      tier: GlassTier.inset,
-                      showBorder: false,
-                      tintColor: cashAccent.withValues(
-                        alpha: isCashSelected
-                            ? AppSizes.opacityLight3
-                            : AppSizes.opacityLight2,
-                      ),
-                      child: Row(
-                        children: [
-                          // Icon circle — filled amber (flips to solid accent
-                          // when selected for stronger visual weight).
-                          Container(
-                            width: AppSizes.iconContainerLg,
-                            height: AppSizes.iconContainerLg,
-                            decoration: BoxDecoration(
-                              color: isCashSelected
-                                  ? cashAccent
-                                  : cashAccent.withValues(
-                                      alpha: AppSizes.opacityLight2,
-                                    ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              AppIcons.walletType('physical_cash'),
-                              size: AppSizes.iconSm,
-                              color:
-                                  isCashSelected ? AppColors.white : cashAccent,
+                    const SizedBox(width: AppSizes.xs),
+                    AppIconButton(
+                      icon: hidden ? AppIcons.eyeOff : AppIcons.eye,
+                      tooltip: hidden
+                          ? context.l10n.balance_show
+                          : context.l10n.balance_hide,
+                      color: cs.onSurface
+                          .withValues(alpha: AppSizes.opacityMedium),
+                      size: AppSizes.iconSm,
+                      onPressed: () =>
+                          ref.read(hideBalancesProvider.notifier).toggle(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSizes.md),
+
+                // ── Inline month summary ────────────────────────────────────
+                MonthSummaryInline(walletId: selectedId, hidden: hidden),
+                const SizedBox(height: AppSizes.sm),
+
+                // ── Cash wallet card (full-width, always visible) ────────────
+                // Distinct amber/gold accent so it reads as prominently as the
+                // Income pill but never gets confused with it (green).
+                if (cashWallet != null) ...[
+                  Builder(
+                    builder: (context) {
+                      final isCashSelected = selectedId == cashWallet.id;
+                      final cashAccent = theme.warningColor;
+                      return GestureDetector(
+                        onTap: () => ref
+                            .read(selectedAccountIdProvider.notifier)
+                            .state = cashWallet.id,
+                        onDoubleTap: () =>
+                            showEditWalletSheet(context, cashWallet.id),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(AppSizes.borderRadiusMd),
+                            border: Border.all(
+                              color: cashAccent.withValues(
+                                alpha: isCashSelected
+                                    ? AppSizes.opacityStrong
+                                    : AppSizes.opacityMedium,
+                              ),
+                              width: isCashSelected
+                                  ? AppSizes.borderWidthSelected
+                                  : AppSizes.glassBorderWidth,
                             ),
                           ),
-                          const SizedBox(width: AppSizes.md),
-                          // Name + subtitle
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          child: GlassCard(
+                            tier: GlassTier.inset,
+                            showBorder: false,
+                            tintColor: cashAccent.withValues(
+                              alpha: isCashSelected
+                                  ? AppSizes.opacityLight3
+                                  : AppSizes.opacityLight2,
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  cashWallet.name,
-                                  style: context.textStyles.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: cs.onSurface,
+                                // Icon circle — filled amber (flips to solid accent
+                                // when selected for stronger visual weight).
+                                Container(
+                                  width: AppSizes.iconContainerLg,
+                                  height: AppSizes.iconContainerLg,
+                                  decoration: BoxDecoration(
+                                    color: isCashSelected
+                                        ? cashAccent
+                                        : cashAccent.withValues(
+                                            alpha: AppSizes.opacityLight2,
+                                          ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    AppIcons.walletType('physical_cash'),
+                                    size: AppSizes.iconSm,
+                                    color: isCashSelected
+                                        ? AppColors.white
+                                        : cashAccent,
                                   ),
                                 ),
+                                const SizedBox(width: AppSizes.md),
+                                // Name + subtitle
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        cashWallet.name,
+                                        style: context.textStyles.bodyLarge
+                                            ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: cs.onSurface,
+                                        ),
+                                      ),
+                                      Text(
+                                        context.l10n.wallet_physical_wallet,
+                                        style: context.textStyles.bodySmall
+                                            ?.copyWith(
+                                          color: cs.outline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Balance — amber accent matches icon & border
                                 Text(
-                                  context.l10n.wallet_physical_wallet,
-                                  style: context.textStyles.bodySmall?.copyWith(
-                                    color: cs.outline,
+                                  hidden
+                                      ? '---'
+                                      : MoneyFormatter.formatTrailing(
+                                          cashWallet.balance,
+                                        ),
+                                  style:
+                                      context.textStyles.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: cashAccent,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          // Balance — amber accent matches icon & border
-                          Text(
-                            hidden
-                                ? '---'
-                                : MoneyFormatter.formatTrailing(
-                                    cashWallet.balance,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSizes.md),
+                ],
+
+                // ── Account selector row (dropdown left + gear right) ────────
+                Row(
+                  children: [
+                    Semantics(
+                      button: true,
+                      label: context.l10n
+                          .dashboard_account_selector(selectionLabel),
+                      child: Material(
+                        color: AppColors.transparent,
+                        child: InkWell(
+                          borderRadius:
+                              BorderRadius.circular(AppSizes.borderRadiusFull),
+                          onTap: () => _showAccountPicker(
+                            context,
+                            ref,
+                            userWallets,
+                            selectedId,
+                            totalBalance,
+                            cashWallet: cashWallet,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: cs.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(
+                                AppSizes.borderRadiusFull,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSizes.md,
+                              vertical: AppSizes.sm,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  selectionLabel,
+                                  style:
+                                      context.textStyles.labelLarge?.copyWith(
+                                    color: cs.onSurface,
                                   ),
-                            style: context.textStyles.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: cashAccent,
+                                ),
+                                const SizedBox(width: AppSizes.xs),
+                                Icon(
+                                  AppIcons.expandMore,
+                                  size: AppSizes.iconSm,
+                                  color: cs.onSurface,
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: AppSizes.md),
-          ],
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(
+                        AppIcons.settings,
+                        size: AppSizes.iconSm,
+                        color: cs.outline,
+                      ),
+                      tooltip: context.l10n.wallet_manage_title,
+                      onPressed: () => AccountManageSheet.show(context),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
 
-          // ── Account selector row (dropdown left + gear right) ────────
-          Row(
-            children: [
-              Semantics(
-                button: true,
-                label: context.l10n.dashboard_account_selector(selectionLabel),
-                child: Material(
-                  color: AppColors.transparent,
-                  child: InkWell(
-                    borderRadius:
-                        BorderRadius.circular(AppSizes.borderRadiusFull),
-                    onTap: () => _showAccountPicker(
-                      context,
-                      ref,
-                      userWallets,
-                      selectedId,
-                      totalBalance,
-                      cashWallet: cashWallet,
+                // ── Account chips (only when a user wallet is selected) ──
+                if (selectedId != null &&
+                    userWallets.any((w) => w.id == selectedId)) ...[
+                  const SizedBox(height: AppSizes.md),
+                  HorizontalReorderableRow<WalletEntity>(
+                    items: userWallets,
+                    onDoubleTapItem: (index) =>
+                        showEditWalletSheet(context, userWallets[index].id),
+                    onReorder: (oldIndex, newIndex) {
+                      // HorizontalReorderableRow returns newIndex as an ITEM index
+                      // (clamped to [0, items.length - 1]), NOT the insertion-gap
+                      // index that Flutter's ReorderableListView uses. Do NOT apply
+                      // the `if (newIndex > oldIndex) newIndex--` workaround here —
+                      // it silently cancels rightward drags and causes the item to
+                      // visually bounce back to its original slot.
+                      final reordered = [...userWallets];
+                      final item = reordered.removeAt(oldIndex);
+                      reordered.insert(newIndex, item);
+                      final updates = <({int id, int sortOrder})>[];
+                      for (var i = 0; i < reordered.length; i++) {
+                        updates.add((id: reordered[i].id, sortOrder: i));
+                      }
+                      unawaited(
+                        ref
+                            .read(walletRepositoryProvider)
+                            .updateSortOrders(updates),
+                      );
+                    },
+                    itemBuilder: (context, w, isDragging) => AccountChip(
+                      label: w.name,
+                      balance: w.balance,
+                      isSelected: selectedId == w.id,
+                      hidden: hidden,
+                      walletType: w.type,
+                      colorHex: w.colorHex,
+                      onTap: isDragging
+                          ? () {}
+                          : () => ref
+                              .read(selectedAccountIdProvider.notifier)
+                              .state = w.id,
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: cs.surfaceContainerLow,
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.borderRadiusFull),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSizes.md,
-                        vertical: AppSizes.sm,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            selectionLabel,
-                            style: context.textStyles.labelLarge?.copyWith(
-                              color: cs.onSurface,
+                    trailing: [
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(
+                          end: AppSizes.sm,
+                        ),
+                        child: ActionChip(
+                          avatar: Icon(
+                            AppIcons.add,
+                            size: AppSizes.iconXs,
+                            color: cs.primary,
+                          ),
+                          label: Text(
+                            context.l10n.wallet_add_short,
+                            style: context.textStyles.labelSmall?.copyWith(
+                              color: cs.primary,
                             ),
                           ),
-                          const SizedBox(width: AppSizes.xs),
-                          Icon(
-                            AppIcons.expandMore,
-                            size: AppSizes.iconSm,
-                            color: cs.onSurface,
+                          side: BorderSide(
+                            color: cs.primary.withValues(
+                              alpha: AppSizes.opacityLight4,
+                            ),
                           ),
-                        ],
+                          backgroundColor: cs.surface,
+                          onPressed: () => showWalletSheet(context),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: Icon(
-                  AppIcons.settings,
-                  size: AppSizes.iconSm,
-                  color: cs.outline,
-                ),
-                tooltip: context.l10n.wallet_manage_title,
-                onPressed: () => AccountManageSheet.show(context),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-
-          // ── Account chips (only when a user wallet is selected) ──
-          if (selectedId != null &&
-              userWallets.any((w) => w.id == selectedId)) ...[
-            const SizedBox(height: AppSizes.md),
-            HorizontalReorderableRow<WalletEntity>(
-              items: userWallets,
-              onDoubleTapItem: (index) =>
-                  showEditWalletSheet(context, userWallets[index].id),
-              onReorder: (oldIndex, newIndex) {
-                // HorizontalReorderableRow returns newIndex as an ITEM index
-                // (clamped to [0, items.length - 1]), NOT the insertion-gap
-                // index that Flutter's ReorderableListView uses. Do NOT apply
-                // the `if (newIndex > oldIndex) newIndex--` workaround here —
-                // it silently cancels rightward drags and causes the item to
-                // visually bounce back to its original slot.
-                final reordered = [...userWallets];
-                final item = reordered.removeAt(oldIndex);
-                reordered.insert(newIndex, item);
-                final updates = <({int id, int sortOrder})>[];
-                for (var i = 0; i < reordered.length; i++) {
-                  updates.add((id: reordered[i].id, sortOrder: i));
-                }
-                unawaited(
-                  ref.read(walletRepositoryProvider).updateSortOrders(updates),
-                );
-              },
-              itemBuilder: (context, w, isDragging) => AccountChip(
-                label: w.name,
-                balance: w.balance,
-                isSelected: selectedId == w.id,
-                hidden: hidden,
-                walletType: w.type,
-                colorHex: w.colorHex,
-                onTap: isDragging
-                    ? () {}
-                    : () => ref.read(selectedAccountIdProvider.notifier).state =
-                        w.id,
-              ),
-              trailing: [
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(
-                    end: AppSizes.sm,
-                  ),
-                  child: ActionChip(
-                    avatar: Icon(
-                      AppIcons.add,
-                      size: AppSizes.iconXs,
-                      color: cs.primary,
+                ],
+                // Soft fade divider — replaces the hard hero/body bottom border.
+                const SizedBox(height: AppSizes.md),
+                Container(
+                  height: AppSizes.glassBorderWidth,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.glassCardBorder.withValues(alpha: 0),
+                        theme.glassCardBorder,
+                        theme.glassCardBorder.withValues(alpha: 0),
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
                     ),
-                    label: Text(
-                      context.l10n.wallet_add_short,
-                      style: context.textStyles.labelSmall?.copyWith(
-                        color: cs.primary,
-                      ),
-                    ),
-                    side: BorderSide(
-                      color: cs.primary.withValues(
-                        alpha: AppSizes.opacityLight4,
-                      ),
-                    ),
-                    backgroundColor: cs.surface,
-                    onPressed: () => showWalletSheet(context),
                   ),
                 ),
               ],
             ),
-          ],
-        ],
+          ),
+        ),
       ),
     );
   }
