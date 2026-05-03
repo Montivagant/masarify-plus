@@ -12,21 +12,30 @@ abstract final class AppColors {
       Color(0xFFC4384A); // Coral Red (WS-5: reduced brightness)
   static const Color transferBlue = Color(0xFF2E7DD1); // Ocean Blue
   static const Color warning = Color(0xFFB8860B); // Warm Amber
-  static const Color surface = Color(0xFFF5FBF8); // Mint White
+  /// Reduce-transparency fallback solid (matches brightest gradient stop).
+  /// Used when [GlassConfig.shouldBlur] returns false.
+  static const Color surface = Color(0xFFEFF8F1);
   static const Color secondaryContainerLight = Color(0xFFD4EDE3); // Light sage
   static const Color tertiaryContainerLight = Color(0xFFD1FAE5); // Emerald 100
 
-  // ── Dark Mode (Gothic Noir) ─────────────────────────────────────────
-  static const Color backgroundDark = Color(0xFF0E0E0E); // True Noir
-  static const Color surfaceDark = Color(0xFF1A1A1A); // Dark Charcoal
+  // ── Dark Mode (Mint Forest — theme revamp v7) ───────────────────────
+  // Names describe Material 3 slot meaning (primary / secondary / tertiary
+  // role), NOT hue. Values rebranded from the previous "Gothic Noir"
+  // purple identity to the unified mint family.
+  static const Color backgroundDark =
+      Color(0xFF06140F); // deep mint forest (gradient top)
+  /// Reduce-transparency fallback solid for dark mode.
+  static const Color surfaceDark = Color(0xFF0E2820);
   static const Color primaryDark =
-      Color(0xFF6B5B95); // Muted Purple (WS-5: lower saturation)
-  static const Color primaryContainerDark = Color(0xFF2D2344); // Dark Violet
-  static const Color secondaryDark = Color(0xFFC4898A); // Mauve Pink
-  static const Color secondaryContainerDark = Color(0xFF3D2A2A); // Dark mauve
-  static const Color tertiaryDark = Color(0xFFE19B8B); // Rose Gold
-  static const Color tertiaryContainerDark = Color(0xFF3D2B25); // Dark rose
-  static const Color errorDark = Color(0xFFB85450); // Warm terracotta
+      Color(0xFF5BC197); // mint glow (matches light primary)
+  static const Color primaryContainerDark =
+      Color(0xFF143A2B); // deep mint container
+  static const Color secondaryDark = Color(0xFF7DD9B8); // pastel mint
+  static const Color secondaryContainerDark =
+      Color(0xFF1A3A2D); // dark mint container
+  static const Color tertiaryDark = Color(0xFF89E0C5); // brighter mint
+  static const Color tertiaryContainerDark = Color(0xFF0F2A20); // deep tertiary
+  static const Color errorDark = Color(0xFFB85450); // warm terracotta (kept)
 
   // ── Dark mode semantic colors ────────────────────────────────────────
   static const Color incomeGreenDark = Color(0xFFE19B8B); // Rose Gold
@@ -38,37 +47,76 @@ abstract final class AppColors {
   // ── Semantic text overlays (on solid semantic backgrounds) ───────────
   static const Color onTransfer = AppColors.white;
 
-  // ── Gradient stops (WS-7) ─────────────────────────────────────────────
-  static const Color gradientStartLight = Color(0xFF3DA37A); // Mint
-  static const Color gradientEndLight = Color(0xFF2D8A65); // Deep Mint
-  static const Color gradientStartDark = Color(0xFF6B5B95); // Purple
-  static const Color gradientEndDark = Color(0xFF4A3D6E); // Deep Purple
+  // ── 3-Tier Glass Hierarchy (theme revamp v7 — refined) ──────────────
+  // Note: legacy WS-7 `gradientStartLight/End` and `gradientStartDark/End`
+  // constants were removed (theme revamp v7). The page gradient is now
+  // owned by `gradientLightStops` / `gradientDarkStops` below.
+  // Tier 2: Card — milky white frost; gradient bleeds through.
+  static const Color glassCardSurfaceLight = Color(0x3DFFFFFF); // white at 24%
+  static const Color glassCardSurfaceDark = Color(0x14FFFFFF); // white at 8%
+  static const Color glassCardBorderLight = Color(0x5CFFFFFF); // white at 36%
+  static const Color glassCardBorderDark = Color(0x33FFFFFF); // white at 20%
 
-  // ── 3-Tier Glass Hierarchy ──────────────────────────────────────────
-  // Tier 2: Card — semi-transparent with theme tint
-  static const Color glassCardSurfaceLight =
-      Color(0xDEF5FBF8); // #F5FBF8 at 87%
-  static const Color glassCardSurfaceDark = Color(0xDE1E1E2A); // #1E1E2A at 87%
-  static const Color glassCardBorderLight = Color(0x14FFFFFF); // White at 8%
-  static const Color glassCardBorderDark = Color(0x1AFFFFFF); // White at 10%
-
-  // Tier 1: Sheet — heavier transparency for overlays
-  static const Color glassSheetSurfaceLight =
-      Color(0xB3F5FBF8); // #F5FBF8 at 70%
+  // Tier 1: Sheet — keeps higher alpha for legibility on busy backdrops.
+  static const Color glassSheetSurfaceLight = Color(0xA6FFFFFF); // white at 65%
   static const Color glassSheetSurfaceDark =
-      Color(0xB30E0E0E); // #0E0E0E at 70%
-  static const Color glassSheetBorderLight = Color(0x0DFFFFFF); // White at 5%
-  static const Color glassSheetBorderDark = Color(0x14FFFFFF); // White at 8%
+      Color(0xCC0E2820); // deep mint at 80%
+  static const Color glassSheetBorderLight = Color(0x5CFFFFFF); // white at 36%
+  static const Color glassSheetBorderDark = Color(0x33FFFFFF); // white at 20%
 
-  // Tier 3: Inset — nested elements, icon badges
+  // Tier 3: Inset — nested elements, icon badges (unchanged).
   static const Color glassInsetSurfaceLight = Color(0x26FFFFFF); // White at 15%
   static const Color glassInsetSurfaceDark = Color(0x26FFFFFF); // White at 15%
   static const Color glassInsetBorderLight = Color(0x0FFFFFFF); // White at 6%
   static const Color glassInsetBorderDark = Color(0x14FFFFFF); // White at 8%
 
-  // Brand-tinted shadows
-  static const Color glassShadowLight = Color(0x1A3DA37A); // Mint at 10%
-  static const Color glassShadowDark = Color(0x1A7B68AE); // Purple at 10%
+  // Slate-neutral shadows (was mint / purple — neutralized for cleaner read).
+  static const Color glassShadowLight = Color(0x0F0F1E32); // slate at ~6%
+  static const Color glassShadowDark = Color(0x33000000); // black at 20%
+
+  // ── Gradient stops (theme revamp v7) ────────────────────────────────
+  /// Top-to-bottom gradient stops for the global page background (light).
+  /// Cool mint/aqua at top → clean white at bottom.
+  static const List<Color> gradientLightStops = [
+    Color(0xFFDFF6E5), // 0%   mint cream
+    Color(0xFFC8F2EE), // 18%  aqua mist
+    Color(0xFFC9EBD3), // 38%  mint pastel
+    Color(0xFFE0F2E5), // 58%  soft mint
+    Color(0xFFEFF8F1), // 76%  near-white mint
+    Color(0xFFF8FCF9), // 90%  almost white
+    Color(0xFFFFFFFF), // 100% white
+  ];
+
+  /// Stop positions for [gradientLightStops] and [gradientDarkStops].
+  static const List<double> gradientStops = [
+    0.0,
+    0.18,
+    0.38,
+    0.58,
+    0.76,
+    0.90,
+    1.0,
+  ];
+
+  /// Top-to-bottom gradient stops for the dark page background.
+  /// Mint forest at top → near-black floor (NOT pure black — preserves
+  /// foreground contrast for nav labels and screen-bottom content).
+  static const List<Color> gradientDarkStops = [
+    Color(0xFF06140F), // 0%   deep mint forest
+    Color(0xFF0A1F18), // 18%
+    Color(0xFF0E2820), // 38%
+    Color(0xFF0B1F19), // 58%
+    Color(0xFF080E0C), // 76%
+    Color(0xFF050807), // 90%
+    Color(0xFF080E0C), // 100% near-black floor
+  ];
+
+  // ── Radial blooms (painted on top of the linear gradient) ───────────
+  static const Color bloomAquaLight = Color(0xE6C8F2EE); // ~90%
+  static const Color bloomMintLight = Color(0xDDB7E8D2); // ~87%
+  static const Color bloomWhiteLight = Color(0xD9FFFFFF); // ~85%
+  static const Color bloomMintDark = Color(0x335BC197); // ~20% mint glow
+  static const Color bloomTealDark = Color(0x2614C4A0); // ~15% teal glow
 
   // ── Barrier & overlay ───────────────────────────────────────────────────
   static const Color barrierScrim = Color(0x26000000); // Black at 15%

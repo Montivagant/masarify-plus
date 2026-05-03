@@ -23,9 +23,11 @@ class FilterBarDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    // Transparent so the dashboard's tier-2 backdrop region (theme revamp
+    // v7, §5.1.3) shows through the pinned filter bar. A solid M3 surface
+    // here would block the gradient and break the glass aesthetic.
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      elevation: overlapsContent ? 1.0 : 0.0,
+      color: Colors.transparent,
       child: child,
     );
   }

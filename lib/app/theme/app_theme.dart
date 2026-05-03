@@ -20,8 +20,9 @@ abstract final class AppTheme {
         appBarColor: AppColors.primary,
         error: AppColors.expenseRed,
       ),
-      surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
-      blendLevel: 7,
+      // surfaceMode + blendLevel removed (theme revamp v7) — gradient page
+      // owns the surface tone; FlexColorScheme tinting was producing
+      // greenish neutrals we no longer want.
       subThemesData: const FlexSubThemesData(
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
@@ -38,6 +39,8 @@ abstract final class AppTheme {
         textButtonSchemeColor: SchemeColor.primary,
         filledButtonSchemeColor: SchemeColor.primary,
         outlinedButtonSchemeColor: SchemeColor.primary,
+        chipRadius: AppSizes.borderRadiusSm,
+        chipBlendColors: false,
       ),
       visualDensity: FlexColorScheme.comfortablePlatformDensity,
       fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
@@ -47,9 +50,9 @@ abstract final class AppTheme {
       textTheme: base.textTheme.merge(AppTextStyles.sizeOverrides),
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
-      scaffoldBackgroundColor: AppColors.surface,
+      scaffoldBackgroundColor: Colors.transparent,
       navigationBarTheme: base.navigationBarTheme.copyWith(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         indicatorShape: const StadiumBorder(),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         elevation: AppSizes.elevationNone,
@@ -78,8 +81,7 @@ abstract final class AppTheme {
         appBarColor: AppColors.backgroundDark,
         error: AppColors.errorDark,
       ),
-      surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
-      blendLevel: 13,
+      // surfaceMode + blendLevel removed (theme revamp v7).
       subThemesData: const FlexSubThemesData(
         useMaterial3Typography: true,
         useM2StyleDividerInM3: true,
@@ -96,6 +98,8 @@ abstract final class AppTheme {
         textButtonSchemeColor: SchemeColor.primary,
         filledButtonSchemeColor: SchemeColor.primary,
         outlinedButtonSchemeColor: SchemeColor.primary,
+        chipRadius: AppSizes.borderRadiusSm,
+        chipBlendColors: false,
       ),
       visualDensity: FlexColorScheme.comfortablePlatformDensity,
       fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
@@ -105,9 +109,9 @@ abstract final class AppTheme {
       textTheme: base.textTheme.merge(AppTextStyles.sizeOverrides),
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
-      scaffoldBackgroundColor: AppColors.backgroundDark,
+      scaffoldBackgroundColor: Colors.transparent,
       navigationBarTheme: base.navigationBarTheme.copyWith(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: Colors.transparent,
         indicatorShape: const StadiumBorder(),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         elevation: AppSizes.elevationNone,

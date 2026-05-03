@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -201,43 +202,66 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ref.invalidate(upcomingBillsProvider);
                   await ref.read(recentActivityProvider.future);
                 },
-                child: SlidableAutoCloseBehavior(
-                  child: CustomScrollView(
-                    controller: _scrollController,
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      // ── Insight cards zone (scroll away, hidden during search)
-                      if (!filter.isSearchActive)
-                        const SliverToBoxAdapter(child: InsightCardsZone()),
-
-                      // ── Due-soon bills (scroll away, hidden during search)
-                      if (!filter.isSearchActive)
-                        const SliverToBoxAdapter(child: DueSoonSection()),
-
-                      // ── Pinned filter bar (D-09) ──────────────────────────
-                      const SliverPersistentHeader(
-                        pinned: true,
-                        delegate: FilterBarDelegate(child: FilterBar()),
-                      ),
-
-                      // ── Filter badge (D-14 — both account + type active) ──
-                      const SliverToBoxAdapter(child: FilterBadge()),
-
-                      // ── Transaction list with date grouping (D-13) ────────
-                      TransactionSliverList(
-                        onTap: (tx) => _onTransactionTap(context, tx),
-                        onEdit: (tx) => _editTransaction(context, ref, tx),
-                        onDelete: (tx) => _deleteTransaction(context, ref, tx),
-                      ),
-
-                      // ── Bottom padding for nav bar clearance ──────────────
-                      const SliverPadding(
-                        padding: EdgeInsets.only(
-                          bottom: AppSizes.bottomScrollPadding,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Single tier-2 backdrop covering the scrollable region.
+                    // Insight cards, transaction tiles, and other tier-2
+                    // surfaces inside the scroll viewport rely on this one
+                    // BackdropFilter rather than each painting their own —
+                    // keeps the visible filter count under the documented
+                    // Android GPU ceiling (theme revamp v7, §5.1.3).
+                    Positioned.fill(
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: AppSizes.glassBlurCard,
+                            sigmaY: AppSizes.glassBlurCard,
+                          ),
+                          child: const SizedBox.expand(),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SlidableAutoCloseBehavior(
+                      child: CustomScrollView(
+                        controller: _scrollController,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          // ── Insight cards zone (scroll away, hidden during search)
+                          if (!filter.isSearchActive)
+                            const SliverToBoxAdapter(child: InsightCardsZone()),
+
+                          // ── Due-soon bills (scroll away, hidden during search)
+                          if (!filter.isSearchActive)
+                            const SliverToBoxAdapter(child: DueSoonSection()),
+
+                          // ── Pinned filter bar (D-09) ──────────────────────────
+                          const SliverPersistentHeader(
+                            pinned: true,
+                            delegate: FilterBarDelegate(child: FilterBar()),
+                          ),
+
+                          // ── Filter badge (D-14 — both account + type active) ──
+                          const SliverToBoxAdapter(child: FilterBadge()),
+
+                          // ── Transaction list with date grouping (D-13) ────────
+                          TransactionSliverList(
+                            onTap: (tx) => _onTransactionTap(context, tx),
+                            onEdit: (tx) => _editTransaction(context, ref, tx),
+                            onDelete: (tx) =>
+                                _deleteTransaction(context, ref, tx),
+                          ),
+
+                          // ── Bottom padding for nav bar clearance ──────────────
+                          const SliverPadding(
+                            padding: EdgeInsets.only(
+                              bottom: AppSizes.bottomScrollPadding,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -461,23 +485,46 @@ class _MiniBalanceHeader extends ConsumerWidget {
         ? totalBalance
         : wallets.where((w) => w.id == selectedId).firstOrNull?.balance ?? 0;
 
+    // Match the full BalanceHeader treatment (theme revamp v7, §5.6):
+    // soft fade divider replaces the hard hex bottom border.
     return Container(
       height: AppSizes.minTapTarget + AppSizes.md,
       decoration: BoxDecoration(
         color: theme.glassCardSurface,
-        border: Border(bottom: BorderSide(color: theme.glassCardBorder)),
       ),
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: AppSizes.screenHPadding,
       ),
-      child: Center(
-        child: Text(
-          hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
-          style: context.textStyles.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: cs.onSurface,
+      child: Stack(
+        children: [
+          Center(
+            child: Text(
+              hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
+              style: context.textStyles.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+            ),
           ),
-        ),
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: Container(
+              height: AppSizes.glassBorderWidth,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    theme.glassCardBorder.withValues(alpha: 0),
+                    theme.glassCardBorder,
+                    theme.glassCardBorder.withValues(alpha: 0),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
