@@ -48,12 +48,72 @@ class AppNavBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = context.colors;
+    final theme = context.appTheme;
+    final canBlur = GlassConfig.shouldBlur(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final dests = AppNavigation.destinations;
     final upcomingCount = ref.watch(upcomingBillsProvider).length;
 
     // Map logical 4-tab index (0–3) → visual 5-destination index (0,1,_,3,4).
     final navIndex = currentIndex < 2 ? currentIndex : currentIndex + 1;
+
+    Widget navContent = MediaQuery.removePadding(
+      context: context,
+      removeBottom: true,
+      child: NavigationBar(
+        selectedIndex: navIndex,
+        onDestinationSelected: (i) {
+          if (i == 2) return; // center spacer — ignore
+          final logicalIndex = i < 2 ? i : i - 1;
+          if (logicalIndex != currentIndex) {
+            HapticFeedback.selectionClick();
+            onTap(logicalIndex);
+          }
+        },
+        height: AppSizes.bottomNavHeight,
+        destinations: [
+          for (var i = 0; i < 2; i++)
+            NavigationDestination(
+              icon: i == 1
+                  ? Badge(
+                      isLabelVisible: upcomingCount > 0,
+                      label: Text('$upcomingCount'),
+                      child: Icon(dests[i].icon),
+                    )
+                  : Icon(dests[i].icon),
+              selectedIcon: i == 1
+                  ? Badge(
+                      isLabelVisible: upcomingCount > 0,
+                      label: Text('$upcomingCount'),
+                      child: Icon(dests[i].activeIcon),
+                    )
+                  : Icon(dests[i].activeIcon),
+              label: dests[i].label(context),
+            ),
+          // Center spacer for FAB overlap.
+          const NavigationDestination(
+            icon: SizedBox.shrink(),
+            label: '',
+          ),
+          for (var i = 2; i < dests.length; i++)
+            NavigationDestination(
+              icon: Icon(dests[i].icon),
+              selectedIcon: Icon(dests[i].activeIcon),
+              label: dests[i].label(context),
+            ),
+        ],
+      ),
+    );
+
+    if (canBlur) {
+      navContent = BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: AppSizes.glassBlurBackground,
+          sigmaY: AppSizes.glassBlurBackground,
+        ),
+        child: navContent,
+      );
+    }
 
     return RepaintBoundary(
       child: Container(
@@ -65,7 +125,12 @@ class AppNavBar extends ConsumerWidget {
         ),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
+          color: theme.glassSheetSurface,
           borderRadius: BorderRadius.circular(AppSizes.borderRadiusLg),
+          border: Border.all(
+            color: theme.glassSheetBorder,
+            width: AppSizes.glassBorderWidthSubtle,
+          ),
           boxShadow: [
             BoxShadow(
               color: cs.shadow.withValues(alpha: AppSizes.opacityLight3),
@@ -74,55 +139,7 @@ class AppNavBar extends ConsumerWidget {
             ),
           ],
         ),
-        // Strip bottom padding so NavigationBar's internal SafeArea
-        // doesn't double the inset our Container margin already handles.
-        child: MediaQuery.removePadding(
-          context: context,
-          removeBottom: true,
-          child: NavigationBar(
-            selectedIndex: navIndex,
-            onDestinationSelected: (i) {
-              if (i == 2) return; // center spacer — ignore
-              final logicalIndex = i < 2 ? i : i - 1;
-              if (logicalIndex != currentIndex) {
-                HapticFeedback.selectionClick();
-                onTap(logicalIndex);
-              }
-            },
-            height: AppSizes.bottomNavHeight,
-            destinations: [
-              for (var i = 0; i < 2; i++)
-                NavigationDestination(
-                  icon: i == 1
-                      ? Badge(
-                          isLabelVisible: upcomingCount > 0,
-                          label: Text('$upcomingCount'),
-                          child: Icon(dests[i].icon),
-                        )
-                      : Icon(dests[i].icon),
-                  selectedIcon: i == 1
-                      ? Badge(
-                          isLabelVisible: upcomingCount > 0,
-                          label: Text('$upcomingCount'),
-                          child: Icon(dests[i].activeIcon),
-                        )
-                      : Icon(dests[i].activeIcon),
-                  label: dests[i].label(context),
-                ),
-              // Center spacer for FAB overlap.
-              const NavigationDestination(
-                icon: SizedBox.shrink(),
-                label: '',
-              ),
-              for (var i = 2; i < dests.length; i++)
-                NavigationDestination(
-                  icon: Icon(dests[i].icon),
-                  selectedIcon: Icon(dests[i].activeIcon),
-                  label: dests[i].label(context),
-                ),
-            ],
-          ),
-        ),
+        child: navContent,
       ),
     );
   }
