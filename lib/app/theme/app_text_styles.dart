@@ -46,6 +46,12 @@ abstract final class AppTextStyles {
       fontWeight: FontWeight.w500,
       fontFeatures: _tabular,
     ),
+    // 16sp Medium — Mini balance header (collapsed hero state).
+    titleMedium: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      fontFeatures: _tabular,
+    ),
     // 14sp Medium — Compact titles, labels
     titleSmall: TextStyle(
       fontSize: 14,

@@ -87,7 +87,11 @@ class BalanceHeader extends ConsumerWidget {
                       hidden
                           ? '------'
                           : MoneyFormatter.formatTrailing(displayBalance),
-                      style: context.textStyles.displaySmall?.copyWith(
+                      // displayLarge carries the 38sp size, -0.9 tracking,
+                      // and tabular figures defined in AppTextStyles
+                      // (theme revamp v7). displaySmall would skip all of
+                      // that — the hero number must use displayLarge.
+                      style: context.textStyles.displayLarge?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: cs.onSurface,
                       ),

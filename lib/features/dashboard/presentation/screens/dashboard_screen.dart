@@ -485,23 +485,46 @@ class _MiniBalanceHeader extends ConsumerWidget {
         ? totalBalance
         : wallets.where((w) => w.id == selectedId).firstOrNull?.balance ?? 0;
 
+    // Match the full BalanceHeader treatment (theme revamp v7, §5.6):
+    // soft fade divider replaces the hard hex bottom border.
     return Container(
       height: AppSizes.minTapTarget + AppSizes.md,
       decoration: BoxDecoration(
         color: theme.glassCardSurface,
-        border: Border(bottom: BorderSide(color: theme.glassCardBorder)),
       ),
       padding: const EdgeInsetsDirectional.symmetric(
         horizontal: AppSizes.screenHPadding,
       ),
-      child: Center(
-        child: Text(
-          hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
-          style: context.textStyles.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: cs.onSurface,
+      child: Stack(
+        children: [
+          Center(
+            child: Text(
+              hidden ? '------' : MoneyFormatter.formatTrailing(displayBalance),
+              style: context.textStyles.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+            ),
           ),
-        ),
+          PositionedDirectional(
+            start: 0,
+            end: 0,
+            bottom: 0,
+            child: Container(
+              height: AppSizes.glassBorderWidth,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    theme.glassCardBorder.withValues(alpha: 0),
+                    theme.glassCardBorder,
+                    theme.glassCardBorder.withValues(alpha: 0),
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -47,13 +47,10 @@ abstract final class AppColors {
   // ── Semantic text overlays (on solid semantic backgrounds) ───────────
   static const Color onTransfer = AppColors.white;
 
-  // ── Gradient stops (WS-7) ─────────────────────────────────────────────
-  static const Color gradientStartLight = Color(0xFF3DA37A); // Mint
-  static const Color gradientEndLight = Color(0xFF2D8A65); // Deep Mint
-  static const Color gradientStartDark = Color(0xFF6B5B95); // Purple
-  static const Color gradientEndDark = Color(0xFF4A3D6E); // Deep Purple
-
   // ── 3-Tier Glass Hierarchy (theme revamp v7 — refined) ──────────────
+  // Note: legacy WS-7 `gradientStartLight/End` and `gradientStartDark/End`
+  // constants were removed (theme revamp v7). The page gradient is now
+  // owned by `gradientLightStops` / `gradientDarkStops` below.
   // Tier 2: Card — milky white frost; gradient bleeds through.
   static const Color glassCardSurfaceLight = Color(0x3DFFFFFF); // white at 24%
   static const Color glassCardSurfaceDark = Color(0x14FFFFFF); // white at 8%
