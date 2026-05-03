@@ -51,6 +51,20 @@ abstract final class AppTheme {
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: Colors.transparent,
+      // Warm dark text (deep forest) instead of M3 default near-black —
+      // matches the v7 mockup's `#0F3D2C` body colour.
+      colorScheme: base.colorScheme.copyWith(
+        onSurface: const Color(0xFF0F3D2C),
+        onSurfaceVariant: const Color(0xFF5C7868),
+      ),
+      // App bar: transparent so the gradient flows under the title.
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        foregroundColor: Color(0xFF0F3D2C),
+      ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
         backgroundColor: Colors.transparent,
         indicatorShape: const StadiumBorder(),
@@ -110,6 +124,18 @@ abstract final class AppTheme {
       primaryTextTheme:
           base.primaryTextTheme.merge(AppTextStyles.sizeOverrides),
       scaffoldBackgroundColor: Colors.transparent,
+      // Light mint glow text on dark mint backdrop.
+      colorScheme: base.colorScheme.copyWith(
+        onSurface: const Color(0xFFD8F0E2),
+        onSurfaceVariant: const Color(0xFFA3C4B3),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        foregroundColor: Color(0xFFD8F0E2),
+      ),
       navigationBarTheme: base.navigationBarTheme.copyWith(
         backgroundColor: Colors.transparent,
         indicatorShape: const StadiumBorder(),

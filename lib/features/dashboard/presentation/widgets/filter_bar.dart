@@ -65,6 +65,10 @@ class FilterBar extends ConsumerWidget {
                             clearCategories: true,
                           );
                         },
+                        // v7.1: translucent fill for unselected so the
+                        // gradient bleeds through. Default M3 surfaceContainer
+                        // is opaque and was blocking the gradient.
+                        backgroundColor: context.appTheme.glassCardSurface,
                         selectedColor: cs.primary,
                         labelStyle:
                             Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -139,6 +143,7 @@ class FilterBar extends ConsumerWidget {
                               ? filter.copyWith(clearCategories: true)
                               : filter.copyWith(categoryIds: {cat.id});
                         },
+                        backgroundColor: context.appTheme.glassCardSurface,
                         selectedColor: catColor,
                         labelStyle:
                             Theme.of(context).textTheme.labelLarge?.copyWith(

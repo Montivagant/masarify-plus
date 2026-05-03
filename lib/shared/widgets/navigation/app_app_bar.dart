@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_icons.dart';
@@ -27,7 +28,26 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Transparent app bar + transparent system status bar so the page
+    // gradient (theme revamp v7) flows continuously from the top edge
+    // of the screen.
     return AppBar(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: isDark
+          ? SystemUiOverlayStyle.light.copyWith(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              statusBarBrightness: Brightness.dark,
+            )
+          : SystemUiOverlayStyle.dark.copyWith(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+            ),
       title: Text(
         title,
         style: context.textStyles.headlineMedium,
@@ -44,7 +64,6 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
           : null,
       actions: actions,
       bottom: bottom,
-      scrolledUnderElevation: 0,
     );
   }
 

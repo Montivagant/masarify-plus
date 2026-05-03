@@ -1,5 +1,4 @@
 import 'dart:developer' as dev;
-import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -202,66 +201,49 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ref.invalidate(upcomingBillsProvider);
                   await ref.read(recentActivityProvider.future);
                 },
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // Single tier-2 backdrop covering the scrollable region.
-                    // Insight cards, transaction tiles, and other tier-2
-                    // surfaces inside the scroll viewport rely on this one
-                    // BackdropFilter rather than each painting their own —
-                    // keeps the visible filter count under the documented
-                    // Android GPU ceiling (theme revamp v7, §5.1.3).
-                    Positioned.fill(
-                      child: ClipRect(
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(
-                            sigmaX: AppSizes.glassBlurCard,
-                            sigmaY: AppSizes.glassBlurCard,
-                          ),
-                          child: const SizedBox.expand(),
+                // Theme revamp v7.1: dropped the scroll-viewport BackdropFilter
+                // that was here. Blurring the gradient under every transaction
+                // tile made the gradient invisible — glass cards lose their
+                // "frosted" effect when the surface beneath them is already
+                // blurred. Tiles paint translucent fills + hairline borders
+                // and read as glass against the sharp gradient instead.
+                child: SlidableAutoCloseBehavior(
+                  child: CustomScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      // ── Insight cards zone (scroll away, hidden during search)
+                      if (!filter.isSearchActive)
+                        const SliverToBoxAdapter(child: InsightCardsZone()),
+
+                      // ── Due-soon bills (scroll away, hidden during search)
+                      if (!filter.isSearchActive)
+                        const SliverToBoxAdapter(child: DueSoonSection()),
+
+                      // ── Pinned filter bar (D-09) ──────────────────────────
+                      const SliverPersistentHeader(
+                        pinned: true,
+                        delegate: FilterBarDelegate(child: FilterBar()),
+                      ),
+
+                      // ── Filter badge (D-14 — both account + type active) ──
+                      const SliverToBoxAdapter(child: FilterBadge()),
+
+                      // ── Transaction list with date grouping (D-13) ────────
+                      TransactionSliverList(
+                        onTap: (tx) => _onTransactionTap(context, tx),
+                        onEdit: (tx) => _editTransaction(context, ref, tx),
+                        onDelete: (tx) => _deleteTransaction(context, ref, tx),
+                      ),
+
+                      // ── Bottom padding for nav bar clearance ──────────────
+                      const SliverPadding(
+                        padding: EdgeInsets.only(
+                          bottom: AppSizes.bottomScrollPadding,
                         ),
                       ),
-                    ),
-                    SlidableAutoCloseBehavior(
-                      child: CustomScrollView(
-                        controller: _scrollController,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        slivers: [
-                          // ── Insight cards zone (scroll away, hidden during search)
-                          if (!filter.isSearchActive)
-                            const SliverToBoxAdapter(child: InsightCardsZone()),
-
-                          // ── Due-soon bills (scroll away, hidden during search)
-                          if (!filter.isSearchActive)
-                            const SliverToBoxAdapter(child: DueSoonSection()),
-
-                          // ── Pinned filter bar (D-09) ──────────────────────────
-                          const SliverPersistentHeader(
-                            pinned: true,
-                            delegate: FilterBarDelegate(child: FilterBar()),
-                          ),
-
-                          // ── Filter badge (D-14 — both account + type active) ──
-                          const SliverToBoxAdapter(child: FilterBadge()),
-
-                          // ── Transaction list with date grouping (D-13) ────────
-                          TransactionSliverList(
-                            onTap: (tx) => _onTransactionTap(context, tx),
-                            onEdit: (tx) => _editTransaction(context, ref, tx),
-                            onDelete: (tx) =>
-                                _deleteTransaction(context, ref, tx),
-                          ),
-
-                          // ── Bottom padding for nav bar clearance ──────────────
-                          const SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: AppSizes.bottomScrollPadding,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

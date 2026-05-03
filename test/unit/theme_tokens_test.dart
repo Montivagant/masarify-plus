@@ -8,7 +8,8 @@ void main() {
     test('light gradient has 7 stops, anchored mint at top, white at bottom',
         () {
       expect(AppColors.gradientLightStops, hasLength(7));
-      expect(AppColors.gradientLightStops.first, const Color(0xFFDFF6E5));
+      // v7.1: confident mint top, white bottom.
+      expect(AppColors.gradientLightStops.first, const Color(0xFFA8E6D0));
       expect(AppColors.gradientLightStops.last, const Color(0xFFFFFFFF));
     });
 
@@ -43,8 +44,9 @@ void main() {
   });
 
   group('Glass surface tokens (light) — refined recipe', () {
-    test('glassCardSurfaceLight is white at ~24%', () {
-      expect(AppColors.glassCardSurfaceLight, const Color(0x3DFFFFFF));
+    test('glassCardSurfaceLight is white at ~18% (v7.1)', () {
+      // v7.1 lowered from 24% → 18% so the gradient reads through the hero.
+      expect(AppColors.glassCardSurfaceLight, const Color(0x2EFFFFFF));
     });
     test('glassCardBorderLight is white at ~36%', () {
       expect(AppColors.glassCardBorderLight, const Color(0x5CFFFFFF));
