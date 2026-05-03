@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:masarify/app/theme/app_colors.dart';
+import 'package:masarify/core/constants/app_sizes.dart';
 
 void main() {
   group('Gradient stops', () {
@@ -63,6 +64,24 @@ void main() {
     });
     test('AppColors.surfaceDark matches mid dark gradient stop', () {
       expect(AppColors.surfaceDark, const Color(0xFF0E2820));
+    });
+  });
+
+  group('Glass size tokens', () {
+    test('glassBlurCard bumped to 28', () {
+      expect(AppSizes.glassBlurCard, 28.0);
+    });
+    test('cardShadowOffsetY softened to 6 (refined glass float)', () {
+      expect(AppSizes.cardShadowOffsetY, 6.0);
+    });
+    test('cardShadowBlur is 32 for the airy spread', () {
+      expect(AppSizes.cardShadowBlur, 32.0);
+    });
+    test('glassBackdropSaturation = 1.6 for chromatic frost', () {
+      expect(AppSizes.glassBackdropSaturation, 1.6);
+    });
+    test('glassTopHighlightInset = 0.5 hairline specular', () {
+      expect(AppSizes.glassTopHighlightInset, 0.5);
     });
   });
 }

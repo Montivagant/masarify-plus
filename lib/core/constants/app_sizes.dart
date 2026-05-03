@@ -114,8 +114,8 @@ abstract final class AppSizes {
   // ── Shadow presets ────────────────────────────────────────────────
   static const double heroShadowBlur = 16.0;
   static const double heroShadowOffsetY = 6.0;
-  static const double cardShadowBlur = 12.0;
-  static const double cardShadowOffsetY = 4.0;
+  static const double cardShadowBlur = 32.0;
+  static const double cardShadowOffsetY = 6.0;
 
   // ── Voice wave bars ──────────────────────────────────────────────────
   static const int voiceBarCount = 24;
@@ -224,9 +224,18 @@ abstract final class AppSizes {
 
   // ── Glass hierarchy (3-tier iOS Control Center style) ──────────────
   static const double glassBlurBackground = 20.0; // Tier 1: sheets, dialogs
-  static const double glassBlurCard = 12.0; // Tier 2: cards, sections
+  static const double glassBlurCard =
+      28.0; // Tier 2: cards, sections (revamp v7)
   static const double glassBlurInset = 8.0; // Tier 3: nested elements
   static const double glassBorderWidthSubtle = 0.5; // Tier 1 border
+
+  /// Backdrop saturation multiplier paired with the glass blur for
+  /// chromatic frosting (theme revamp v7).
+  static const double glassBackdropSaturation = 1.6;
+
+  /// Single hairline inset highlight on the top edge of a glass card —
+  /// the "light catches the rim" specular detail.
+  static const double glassTopHighlightInset = 0.5;
 
   // ── Dashboard sections (WS-8) ────────────────────────────────────────
   static const double sectionGap = 16.0;
