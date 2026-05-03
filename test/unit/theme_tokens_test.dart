@@ -8,17 +8,18 @@ void main() {
     test('light gradient has 7 stops, anchored mint at top, white at bottom',
         () {
       expect(AppColors.gradientLightStops, hasLength(7));
-      // v7.3: lightened — soft mint top, pure white bottom, no warm tones.
-      expect(AppColors.gradientLightStops.first, const Color(0xFFCDEDDC));
+      // v7.4: light navy top, pure white bottom.
+      expect(AppColors.gradientLightStops.first, const Color(0xFFCDDCEF));
       expect(AppColors.gradientLightStops.last, const Color(0xFFFFFFFF));
     });
 
     test(
-        'dark gradient has 7 stops, mint forest at top, near-black floor at bottom',
+        'dark gradient has 7 stops, deep navy at top, near-black floor at bottom',
         () {
       expect(AppColors.gradientDarkStops, hasLength(7));
-      expect(AppColors.gradientDarkStops.first, const Color(0xFF06140F));
-      expect(AppColors.gradientDarkStops.last, const Color(0xFF080E0C));
+      // v7.4: deep navy top, near-black floor.
+      expect(AppColors.gradientDarkStops.first, const Color(0xFF0A1828));
+      expect(AppColors.gradientDarkStops.last, const Color(0xFF080F1A));
       // Floor is above pure black to preserve foreground contrast.
       expect(AppColors.gradientDarkStops.last, isNot(const Color(0xFF000000)));
     });

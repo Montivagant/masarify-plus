@@ -77,19 +77,20 @@ abstract final class AppColors {
 
   // ── Gradient stops (theme revamp v7) ────────────────────────────────
   /// Top-to-bottom gradient stops for the global page background (light).
-  /// Cool mint at top → pure white at bottom. NO warm tones anywhere.
+  /// Light navy at top → pure white at bottom. Cool only, no warm tones.
   ///
-  /// v7.3: lightened the whole gradient and cleaned out the orange/honey
-  /// bottom drift the user flagged. Top is a soft confident mint that
-  /// fades through pastel mint into pure white by 70% — the bottom 30%
-  /// is essentially white so cards float on a clean surface.
+  /// v7.4: gradient palette swapped from mint to light navy per user
+  /// request. Brand primary (mint #3DA37A) kept as the accent against
+  /// this navy backdrop — FAB, active filter chip, etc. still read as
+  /// mint. Top is a soft navy that fades through pale blue into pure
+  /// white by ~70%; bottom 30% is essentially white.
   static const List<Color> gradientLightStops = [
-    Color(0xFFCDEDDC), // 0%   soft mint (was confident — toned down)
-    Color(0xFFD4EFE8), // 18%  pale aqua
-    Color(0xFFDFF1E2), // 38%  pastel mint
-    Color(0xFFEEF7EE), // 58%  near-white mint
-    Color(0xFFF7FBF8), // 76%  almost white
-    Color(0xFFFCFEFD), // 90%  practically white
+    Color(0xFFCDDCEF), // 0%   soft navy mist
+    Color(0xFFD5E2F1), // 18%  pale navy
+    Color(0xFFDFE7F4), // 38%  pastel sky
+    Color(0xFFEDF1F8), // 58%  near-white navy
+    Color(0xFFF6F9FC), // 76%  almost white
+    Color(0xFFFBFCFE), // 90%  practically white
     Color(0xFFFFFFFF), // 100% pure white
   ];
 
@@ -105,28 +106,31 @@ abstract final class AppColors {
   ];
 
   /// Top-to-bottom gradient stops for the dark page background.
-  /// Mint forest at top → near-black floor (NOT pure black — preserves
+  /// Deep navy at top → near-black floor (NOT pure black — preserves
   /// foreground contrast for nav labels and screen-bottom content).
+  ///
+  /// v7.4: dark variant swapped from mint forest to deep navy.
   static const List<Color> gradientDarkStops = [
-    Color(0xFF06140F), // 0%   deep mint forest
-    Color(0xFF0A1F18), // 18%
-    Color(0xFF0E2820), // 38%
-    Color(0xFF0B1F19), // 58%
-    Color(0xFF080E0C), // 76%
-    Color(0xFF050807), // 90%
-    Color(0xFF080E0C), // 100% near-black floor
+    Color(0xFF0A1828), // 0%   deep navy
+    Color(0xFF0E2236), // 18%
+    Color(0xFF112844), // 38%
+    Color(0xFF0C1B2D), // 58%
+    Color(0xFF080F1A), // 76%
+    Color(0xFF05080F), // 90%
+    Color(0xFF080F1A), // 100% near-black floor
   ];
 
   // ── Radial blooms (theme revamp v7.3 — cool only, no warm tones) ────
   // v7.3 dropped the warm honey bloom that gave the bottom of the
   // screen an orange/yellow cast. Now: soft sky upper-left, soft mint
   // upper-right, pure white halo lower-center. All cool, all subtle.
-  static const Color bloomAquaLight = Color(0x99CCEFFC); // pale sky, ~60%
-  static const Color bloomMintLight = Color(0x99B9E8D2); // pale mint, ~60%
+  // v7.4: bloom colours swapped to navy palette.
+  static const Color bloomAquaLight = Color(0x99CCE3FC); // pale sky, ~60%
+  static const Color bloomMintLight = Color(0x99BCD3EC); // pale navy, ~60%
   static const Color bloomWhiteLight =
       Color(0xB3FFFFFF); // pure white halo, 70%
-  static const Color bloomMintDark = Color(0x4D5BC197); // ~30% mint glow
-  static const Color bloomTealDark = Color(0x3314C4A0); // ~20% teal glow
+  static const Color bloomMintDark = Color(0x4D5B8FC1); // ~30% navy glow
+  static const Color bloomTealDark = Color(0x335B97C1); // ~20% sky glow
 
   // ── Barrier & overlay ───────────────────────────────────────────────────
   static const Color barrierScrim = Color(0x26000000); // Black at 15%
